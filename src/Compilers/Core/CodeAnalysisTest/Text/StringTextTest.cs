@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void CheckLine(SourceText text, int lineNumber, int start, int length, int newlineLength, string lineText)
         {
-            var textLine = text.Lines[lineNumber];
+            TextLine textLine = text.Lines[lineNumber];
 
             Assert.Equal(start, textLine.Start);
             Assert.Equal(start + length, textLine.End);
@@ -217,7 +217,7 @@ bar baz";
         public void CheckSum_Utf8_BOM()
         {
             var data = SourceText.From("The quick brown fox jumps over the lazy dog", Encoding.UTF8);
-            var checksum = data.GetChecksum();
+            ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("88d3ed78 9b0bae8b ced8e348 91133516 b79ba9fb", ChecksumToHexQuads(checksum));
         }
 
@@ -229,7 +229,7 @@ bar baz";
             var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
             Assert.Equal("abc", source.ToString());
 
-            var checksum = source.GetChecksum();
+            ImmutableArray<byte> checksum = source.GetChecksum();
             AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
 
@@ -244,7 +244,7 @@ bar baz";
             var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
             Assert.Equal("ab?", source.ToString());
 
-            var checksum = source.GetChecksum();
+            ImmutableArray<byte> checksum = source.GetChecksum();
             AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
 
@@ -256,7 +256,7 @@ bar baz";
             var source = SourceText.From(new MemoryStream(bytes));
             Assert.Equal("\u1234", source.ToString());
 
-            var checksum = source.GetChecksum();
+            ImmutableArray<byte> checksum = source.GetChecksum();
             AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
 
@@ -271,7 +271,7 @@ bar baz";
             var source = SourceText.From(stream, Encoding.ASCII);
             Assert.Equal("abc", source.ToString());
 
-            var checksum = source.GetChecksum();
+            ImmutableArray<byte> checksum = source.GetChecksum();
             AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
     }

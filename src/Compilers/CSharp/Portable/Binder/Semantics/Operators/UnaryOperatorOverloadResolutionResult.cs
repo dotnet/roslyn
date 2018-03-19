@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool AnyValid()
         {
-            foreach (var result in Results)
+            foreach (UnaryOperatorAnalysisResult result in Results)
             {
                 if (result.IsValid)
                 {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SingleValid()
         {
             bool oneValid = false;
-            foreach (var result in Results)
+            foreach (UnaryOperatorAnalysisResult result in Results)
             {
                 if (result.IsValid)
                 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 UnaryOperatorAnalysisResult best = default(UnaryOperatorAnalysisResult);
-                foreach (var result in Results)
+                foreach (UnaryOperatorAnalysisResult result in Results)
                 {
                     if (result.IsValid)
                     {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             sb.AppendLine("Detailed results:");
-            foreach (var result in Results)
+            foreach (UnaryOperatorAnalysisResult result in Results)
             {
                 sb.AppendFormat("operator: {0} reason: {1}\n", result.Signature.ToString(), result.Kind.ToString());
             }

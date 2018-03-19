@@ -37,32 +37,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     static string F() { return ""a""; }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
 
-                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
+                    MetadataReader reader1 = md1.Reader;
 
-                    var s = MetadataTokens.StringHandle(0);
+                    StringHandle s = MetadataTokens.StringHandle(0);
                     Assert.Equal(reader1.GetString(s), "");
 
-                    var b = MetadataTokens.BlobHandle(0);
+                    BlobHandle b = MetadataTokens.BlobHandle(0);
                     Assert.Equal(0, reader1.GetBlobBytes(b).Length);
 
-                    var us = MetadataTokens.UserStringHandle(0);
+                    UserStringHandle us = MetadataTokens.UserStringHandle(0);
                     Assert.Equal(reader1.GetUserString(us), "");
                 }
             }
@@ -74,17 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
             var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void SemanticErrors_MethodBody()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void E() 
@@ -110,7 +110,7 @@ class C
         System.Console.WriteLine(1);
     }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void E() 
@@ -125,21 +125,21 @@ class C
     }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var e0 = compilation0.GetMember<MethodSymbol>("C.E");
-            var e1 = compilation1.GetMember<MethodSymbol>("C.E");
-            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+            MethodSymbol e0 = compilation0.GetMember<MethodSymbol>("C.E");
+            MethodSymbol e1 = compilation1.GetMember<MethodSymbol>("C.E");
+            MethodSymbol g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            MethodSymbol g1 = compilation1.GetMember<MethodSymbol>("C.G");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             // Semantic errors are reported only for the bodies of members being emitted.
 
-            var diffError = compilation1.EmitDifference(
+            CompilationDifference diffError = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -149,7 +149,7 @@ class C
                 //         int x = Unknown(2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(6, 17));
 
-            var diffGood = compilation1.EmitDifference(
+            CompilationDifference diffGood = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -172,7 +172,7 @@ class C
         [Fact]
         public void SemanticErrors_Declaration()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void G() 
@@ -181,7 +181,7 @@ class C
     }
 }
 ");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void G() 
@@ -195,17 +195,17 @@ class Bad : Bad
 }
 ");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+            MethodSymbol g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            MethodSymbol g1 = compilation1.GetMember<MethodSymbol>("C.G");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var diff = compilation1.EmitDifference(
+            CompilationDifference diff = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -233,33 +233,33 @@ class Bad : Bad
     static void Main() { }
     static string F() { return string.Empty; }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
                 CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
 
-                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
                     EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetMethodDefNames(), "F");
@@ -297,29 +297,29 @@ class Bad : Bad
     static void Main() { }
     static (int, int) F() { return (2, 3); }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
 
-                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
                     EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetMethodDefNames(), "F");
@@ -359,32 +359,32 @@ class Bad : Bad
     static partial void M1() { }
     static partial void M2() { }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
 
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-                var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
                     EmptyLocalsProvider);
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
-                var methods = diff1.TestData.GetMethodsByName();
+                ImmutableDictionary<string, CompilationTestData.MethodData> methods = diff1.TestData.GetMethodsByName();
                 Assert.Equal(methods.Count, 1);
                 Assert.True(methods.ContainsKey("C.M2()"));
 
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetMethodDefNames(), "M2");
                     CheckEncLog(reader1,
@@ -428,31 +428,31 @@ class C
     static void Main() { F2(); }
     [return:A]static object F2(string s2 = ""2"") { return null; }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation0.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation0.WithSource(source2);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Main", "F1", ".ctor");
                 CheckNames(reader0, reader0.GetParameterDefNames(), "s1");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F2");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F2");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, method1)));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetMethodDefNames(), "F2");
@@ -479,15 +479,15 @@ class C
                         Handle(2, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.AssemblyRef));
 
-                    var method2 = compilation2.GetMember<MethodSymbol>("C.F2");
-                    var diff2 = compilation2.EmitDifference(
+                    MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("C.F2");
+                    CompilationDifference diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2)));
 
                     // Verify delta metadata contains expected rows.
-                    using (var md2 = diff2.GetMetadata())
+                    using (PinnedMetadata md2 = diff2.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
                         EncValidation.VerifyModuleMvid(2, reader1, reader2);
                         CheckNames(readers, reader2.GetTypeDefNames());
@@ -522,33 +522,33 @@ class C
     string F = ""F"";
     string G = ""G"";
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
                 CheckNames(reader0, reader0.GetFieldDefNames(), "F");
                 CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method0 = compilation0.GetMember<MethodSymbol>("C..ctor");
-                var method1 = compilation1.GetMember<MethodSymbol>("C..ctor");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C..ctor");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C..ctor");
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<FieldSymbol>("C.G")),
                         new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetFieldDefNames(), "G");
                     CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
@@ -582,24 +582,24 @@ class C
 {
     object P { get { return 2; } }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetPropertyDefNames(), "P");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "get_P", ".ctor");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("C.get_P"), compilation1.GetMember<MethodSymbol>("C.get_P"))));
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetPropertyDefNames(), "P");
                     CheckNames(readers, reader1.GetMethodDefNames(), "get_P");
                     CheckEncLog(reader1,
@@ -653,15 +653,15 @@ class B
     object R { get { return null; } }
     object S { set { } }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation0.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation0.WithSource(source2);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B");
                 CheckNames(reader0, reader0.GetFieldDefNames(), "<P>k__BackingField");
                 CheckNames(reader0, reader0.GetPropertyDefNames(), "P");
@@ -669,15 +669,15 @@ class B
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<PropertySymbol>("B.R"))));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetFieldDefNames());
                     CheckNames(readers, reader1.GetPropertyDefNames(), "R");
@@ -703,16 +703,16 @@ class B
                         Handle(3, TableIndex.MethodSemantics),
                         Handle(2, TableIndex.AssemblyRef));
 
-                    var diff2 = compilation2.EmitDifference(
+                    CompilationDifference diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(
                             new SemanticEdit(SemanticEditKind.Insert, null, compilation2.GetMember<PropertySymbol>("A.Q")),
                             new SemanticEdit(SemanticEditKind.Insert, null, compilation2.GetMember<PropertySymbol>("B.S"))));
 
                     // Verify delta metadata contains expected rows.
-                    using (var md2 = diff2.GetMetadata())
+                    using (PinnedMetadata md2 = diff2.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
                         CheckNames(readers, reader2.GetTypeDefNames());
                         CheckNames(readers, reader2.GetFieldDefNames(), "<Q>k__BackingField");
@@ -811,15 +811,15 @@ class B
     event D F;
     event D H;
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation0.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation0.WithSource(source2);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "D", "A", "B");
                 CheckNames(reader0, reader0.GetFieldDefNames(), "E");
                 CheckNames(reader0, reader0.GetEventDefNames(), "E");
@@ -827,15 +827,15 @@ class B
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<EventSymbol>("B.F"))));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetFieldDefNames(), "F");
                     CheckNames(readers, reader1.GetMethodDefNames(), "add_F", "remove_F");
@@ -902,16 +902,16 @@ class B
                         Handle(2, TableIndex.AssemblyRef),
                         Handle(2, TableIndex.MethodSpec));
 
-                    var diff2 = compilation2.EmitDifference(
+                    CompilationDifference diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(
                             new SemanticEdit(SemanticEditKind.Insert, null, compilation2.GetMember<EventSymbol>("A.G")),
                             new SemanticEdit(SemanticEditKind.Insert, null, compilation2.GetMember<EventSymbol>("B.H"))));
 
                     // Verify delta metadata contains expected rows.
-                    using (var md2 = diff2.GetMetadata())
+                    using (PinnedMetadata md2 = diff2.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
                         CheckNames(readers, reader2.GetTypeDefNames());
                         CheckNames(readers, reader2.GetFieldDefNames(), "G", "H");
@@ -1014,7 +1014,7 @@ class B
         [Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")]
         public void EventFields()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 using System;
 
 class C
@@ -1028,7 +1028,7 @@ class C
     }
 }
 ");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 using System;
 
 class C
@@ -1042,17 +1042,17 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
@@ -1107,31 +1107,31 @@ class C
         return C.G();
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor");
                 Assert.Equal(1, reader0.GetTableRowCount(TableIndex.NestedClass));
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A.C")),
                         new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("A.F"), compilation1.GetMember<MethodSymbol>("A.F"))));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames(), "C", "D");
                     Assert.Equal(2, reader1.GetTableRowCount(TableIndex.NestedClass));
                     CheckNames(readers, reader1.GetMethodDefNames(), "F", "G", ".ctor", ".ctor");
@@ -1210,27 +1210,27 @@ class C
         class C4 { }
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B1", "B2", "C1", "C2");
                 Assert.Equal(4, reader0.GetTableRowCount(TableIndex.NestedClass));
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A.B3")),
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A.B4"))));
 
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames(), "B3", "B4", "C3", "C4");
                     Assert.Equal(4, reader1.GetTableRowCount(TableIndex.NestedClass));
                 }
@@ -1269,30 +1269,30 @@ class C
         return new B<A>.C<B<object>>().F<A>();
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B`1");
                 Assert.Equal(1, reader0.GetTableRowCount(TableIndex.NestedClass));
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A.B.C")),
                         new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("A.F"), compilation1.GetMember<MethodSymbol>("A.F"))));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames(), "C`1");
                     Assert.Equal(1, reader1.GetTableRowCount(TableIndex.NestedClass));
                     CheckEncLog(reader1,
@@ -1355,29 +1355,29 @@ class C : I
 {
     void I.M() { }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "I", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "M", "I.M", ".ctor");
 
-                var method0 = compilation0.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
+                MethodSymbol method0 = compilation0.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
                 // Verify delta metadata contains expected rows.
-                using (var block1 = diff1.GetMetadata())
+                using (PinnedMetadata block1 = diff1.GetMetadata())
                 {
-                    var reader1 = block1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = block1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetMethodDefNames(), "I.M");
@@ -1424,24 +1424,24 @@ class B : I
     void I.M() { }
 }";
             var source2 = source1;
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation0.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation0.WithSource(source2);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<NamedTypeSymbol>("B").GetMethod("I.M");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<NamedTypeSymbol>("B").GetMethod("I.M");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, method1)));
 
-                using (var block1 = diff1.GetMetadata())
+                using (PinnedMetadata block1 = diff1.GetMetadata())
                 {
-                    var reader1 = block1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = block1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetMethodDefNames(), "I.M");
                     CheckEncLog(reader1,
@@ -1456,15 +1456,15 @@ class B : I
                         Handle(2, TableIndex.MethodImpl),
                         Handle(2, TableIndex.AssemblyRef));
 
-                    var generation1 = diff1.NextGeneration;
-                    var method2 = compilation2.GetMember<NamedTypeSymbol>("B").GetMethod("I.M");
-                    var diff2 = compilation2.EmitDifference(
+                    EmitBaseline generation1 = diff1.NextGeneration;
+                    MethodSymbol method2 = compilation2.GetMember<NamedTypeSymbol>("B").GetMethod("I.M");
+                    CompilationDifference diff2 = compilation2.EmitDifference(
                         generation1,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2)));
 
-                    using (var md2 = diff2.GetMetadata())
+                    using (PinnedMetadata md2 = diff2.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
                         EncValidation.VerifyModuleMvid(2, reader1, reader2);
                         CheckNames(readers, reader2.GetMethodDefNames(), "I.M");
@@ -1497,25 +1497,25 @@ class C : I
     void I.M() { }
 }
 ";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
 
-                var method0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+                MethodSymbol method0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
-                using (var block1 = diff1.GetMetadata())
+                using (PinnedMetadata block1 = diff1.GetMetadata())
                 {
-                    var reader1 = block1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = block1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     EncValidation.VerifyModuleMvid(1, reader0, reader1);
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
@@ -1564,14 +1564,14 @@ class C
 }
 delegate void D();
 ";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B", "C", "D");
                 CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", ".ctor", "M1", "get_P1", "add_E1", "remove_E1", ".ctor", ".ctor", "Invoke", "BeginInvoke", "EndInvoke");
                 CheckAttributes(reader0,
@@ -1590,7 +1590,7 @@ delegate void D();
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.M2")),
@@ -1599,10 +1599,10 @@ delegate void D();
                         new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<EventSymbol>("C.E2"))));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetMethodDefNames(), "M2", "get_P2", "add_E2", "remove_E2");
                     CheckEncLog(reader1,
@@ -1729,26 +1729,26 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.M"))));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var readers = new[] { reader0, md1.Reader };
+                    MetadataReader[] readers = new[] { reader0, md1.Reader };
                     CheckNames(readers, md1.Reader.GetTypeDefNames());
                     CheckNames(readers, md1.Reader.GetMethodDefNames(), "M");
                     CheckEncLog(md1.Reader,
@@ -1794,35 +1794,35 @@ class C
         E += null;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "D", "C");
                 CheckNames(reader0, reader0.GetEventDefNames(), "E");
                 CheckNames(reader0, reader0.GetFieldDefNames(), "F", "E");
                 CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "BeginInvoke", "EndInvoke", "get_P", "add_E", "remove_E", "M", ".ctor");
                 CheckNames(reader0, reader0.GetPropertyDefNames(), "P");
 
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
 
                 // Emit delta metadata.
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
                 // Verify delta metadata contains expected rows.
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames());
                     CheckNames(readers, reader1.GetEventDefNames());
                     CheckNames(readers, reader1.GetFieldDefNames());
@@ -1851,23 +1851,23 @@ class C
         int[] a = new[] { 1, 2, 3, 4 };
     }
 }";
-            var compilation0 = CreateCompilation(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.RemoveAllSyntaxTrees().AddSyntaxTrees(Parse(source1, "a.cs"));
+            CSharpCompilation compilation0 = CreateCompilation(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.RemoveAllSyntaxTrees().AddSyntaxTrees(Parse(source1, "a.cs"));
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember("C.M"), compilation1.GetMember("C.M"))));
 
-            using (var md1 = diff1.GetMetadata())
+            using (PinnedMetadata md1 = diff1.GetMetadata())
             {
-                var reader1 = md1.Reader;
+                MetadataReader reader1 = md1.Reader;
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                     Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
@@ -1955,18 +1955,18 @@ class C
     [DllImport(""msvcrt.dll"")]
     public static extern int puts(string s);
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var bytes0 = compilation0.EmitToArray();
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.puts"))));
 
-            using (var md1 = diff1.GetMetadata())
+            using (PinnedMetadata md1 = diff1.GetMetadata())
             {
-                var reader1 = md1.Reader;
+                MetadataReader reader1 = md1.Reader;
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.ModuleRef, EditAndContinueOperation.Default),
@@ -2014,18 +2014,18 @@ class B
     [FieldOffset(0)]internal short F;
     [FieldOffset(4)]internal short G;
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var bytes0 = compilation0.EmitToArray();
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("B"))));
 
-            using (var md1 = diff1.GetMetadata())
+            using (PinnedMetadata md1 = diff1.GetMetadata())
             {
-                var reader1 = md1.Reader;
+                MetadataReader reader1 = md1.Reader;
                 CheckEncLog(reader1,
                     Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                     Row(5, TableIndex.MemberRef, EditAndContinueOperation.Default),
@@ -2057,7 +2057,7 @@ class B
         [Fact]
         public void NamespacesAndOverloads()
         {
-            var compilation0 = CreateCompilation(options: TestOptions.DebugDll, source:
+            CSharpCompilation compilation0 = CreateCompilation(options: TestOptions.DebugDll, source:
 @"class C { }
 namespace N
 {
@@ -2076,12 +2076,12 @@ namespace M
     }
 }");
 
-            var method0 = compilation0.GetMember<MethodSymbol>("M.C.M2");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("M.C.M2");
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var compilation1 = compilation0.WithSource(@"
+            CSharpCompilation compilation1 = compilation0.WithSource(@"
 class C { }
 namespace N
 {
@@ -2101,7 +2101,7 @@ namespace M
         }
     }
 }");
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMembers("M.C.M1")[2])));
 
@@ -2113,7 +2113,7 @@ namespace M
   IL_0001:  ret
 }");
 
-            var compilation2 = compilation1.WithSource(@"
+            CSharpCompilation compilation2 = compilation1.WithSource(@"
 class C { }
 namespace N
 {
@@ -2134,7 +2134,7 @@ namespace M
         }
     }
 }");
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation1.GetMember<MethodSymbol>("M.C.M2"),
                                                                         compilation2.GetMember<MethodSymbol>("M.C.M2"))));
@@ -2243,9 +2243,9 @@ class C
         M((A<int>.B<B>)null);
     }
 }";
-            var options = TestOptions.UnsafeDebugDll;
-            var compilation0 = CreateCompilation(source, options: options, references: new[] { CSharpRef });
-            var bytes0 = compilation0.EmitToArray();
+            CSharpCompilationOptions options = TestOptions.UnsafeDebugDll;
+            CSharpCompilation compilation0 = CreateCompilation(source, options: options, references: new[] { CSharpRef });
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var n = compilation0.GetMembers("C.M").Length;
@@ -2256,8 +2256,8 @@ class C
             //    M(a);
             //    M((A<B>.B<B>)null);
             //}
-            var compilation1 = compilation0.WithSource(source);
-            var diff1 = compilation1.EmitDifference(
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation0.GetMembers("C.M")[0], compilation1.GetMembers("C.M")[0])));
 
@@ -2280,8 +2280,8 @@ class C
             //    M(a);
             //    M((A<B>.B<object>)null);
             //}
-            var compilation2 = compilation1.WithSource(source);
-            var diff2 = compilation2.EmitDifference(
+            CSharpCompilation compilation2 = compilation1.WithSource(source);
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation1.GetMembers("C.M")[1], compilation2.GetMembers("C.M")[1])));
 
@@ -2304,8 +2304,8 @@ class C
             //    M(a);
             //    M((A<B>?)a);
             //}
-            var compilation3 = compilation2.WithSource(source);
-            var diff3 = compilation3.EmitDifference(
+            CSharpCompilation compilation3 = compilation2.WithSource(source);
+            CompilationDifference diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation2.GetMembers("C.M")[2], compilation3.GetMembers("C.M")[2])));
 
@@ -2329,8 +2329,8 @@ class C
             //    M(a);
             //    M(a.Value);
             //}
-            var compilation4 = compilation3.WithSource(source);
-            var diff4 = compilation4.EmitDifference(
+            CSharpCompilation compilation4 = compilation3.WithSource(source);
+            CompilationDifference diff4 = compilation4.EmitDifference(
                 diff3.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation3.GetMembers("C.M")[3], compilation4.GetMembers("C.M")[3])));
 
@@ -2354,8 +2354,8 @@ class C
             //    M(p);
             //    M((byte*)p);
             //}
-            var compilation5 = compilation4.WithSource(source);
-            var diff5 = compilation5.EmitDifference(
+            CSharpCompilation compilation5 = compilation4.WithSource(source);
+            CompilationDifference diff5 = compilation5.EmitDifference(
                 diff4.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation4.GetMembers("C.M")[4], compilation5.GetMembers("C.M")[4])));
 
@@ -2378,8 +2378,8 @@ class C
             //    M(p);
             //    M((int*)p);
             //}
-            var compilation6 = compilation5.WithSource(source);
-            var diff6 = compilation6.EmitDifference(
+            CSharpCompilation compilation6 = compilation5.WithSource(source);
+            CompilationDifference diff6 = compilation6.EmitDifference(
                 diff5.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation5.GetMembers("C.M")[5], compilation6.GetMembers("C.M")[5])));
 
@@ -2402,8 +2402,8 @@ class C
             //    M(b);
             //    M((object[][])b);
             //}
-            var compilation7 = compilation6.WithSource(source);
-            var diff7 = compilation7.EmitDifference(
+            CSharpCompilation compilation7 = compilation6.WithSource(source);
+            CompilationDifference diff7 = compilation7.EmitDifference(
                 diff6.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation6.GetMembers("C.M")[6], compilation7.GetMembers("C.M")[6])));
 
@@ -2428,8 +2428,8 @@ class C
             //    M(b);
             //    M((B[][])b);
             //}
-            var compilation8 = compilation7.WithSource(source);
-            var diff8 = compilation8.EmitDifference(
+            CSharpCompilation compilation8 = compilation7.WithSource(source);
+            CompilationDifference diff8 = compilation8.EmitDifference(
                 diff7.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation7.GetMembers("C.M")[7], compilation8.GetMembers("C.M")[7])));
 
@@ -2453,8 +2453,8 @@ class C
             //    M(b);
             //    M((A<B[,,]>.B<object>)null);
             //}
-            var compilation9 = compilation8.WithSource(source);
-            var diff9 = compilation9.EmitDifference(
+            CSharpCompilation compilation9 = compilation8.WithSource(source);
+            CompilationDifference diff9 = compilation9.EmitDifference(
                 diff8.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation8.GetMembers("C.M")[8], compilation9.GetMembers("C.M")[8])));
 
@@ -2477,8 +2477,8 @@ class C
             //    M(b);
             //    M((A<B[]>.B<object>)null);
             //}
-            var compilation10 = compilation9.WithSource(source);
-            var diff10 = compilation10.EmitDifference(
+            CSharpCompilation compilation10 = compilation9.WithSource(source);
+            CompilationDifference diff10 = compilation10.EmitDifference(
                 diff9.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation9.GetMembers("C.M")[9], compilation10.GetMembers("C.M")[9])));
 
@@ -2550,8 +2550,8 @@ class C
             //    M(t);
             //    M((A<double>.B<int>)null);
             //}
-            var compilation11 = compilation10.WithSource(source);
-            var diff11 = compilation11.EmitDifference(
+            CSharpCompilation compilation11 = compilation10.WithSource(source);
+            CompilationDifference diff11 = compilation11.EmitDifference(
                 diff10.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation10.GetMembers("C.M")[12], compilation11.GetMembers("C.M")[12])));
 
@@ -2574,8 +2574,8 @@ class C
             //    M(t);
             //    M((A<int>.B<B>)null);
             //}
-            var compilation12 = compilation11.WithSource(source);
-            var diff12 = compilation12.EmitDifference(
+            CSharpCompilation compilation12 = compilation11.WithSource(source);
+            CompilationDifference diff12 = compilation12.EmitDifference(
                 diff11.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation11.GetMembers("C.M")[13], compilation12.GetMembers("C.M")[13])));
 
@@ -2642,13 +2642,13 @@ class C
         System.Console.WriteLine(y.C);
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.Main");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.Main");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
             testData0.GetMethodData("C.Main").VerifyIL(
 @"
@@ -2672,8 +2672,8 @@ class C
   IL_001e:  ret
 }");
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.Main");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
             diff1.VerifyIL("C.Main",
@@ -2712,24 +2712,24 @@ class C
         return F[index] + G[index];
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 var typeNames = new[] { reader0 }.GetStrings(reader0.GetTypeDefNames());
                 Assert.NotNull(typeNames.FirstOrDefault(n => n.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)));
             }
 
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -2787,13 +2787,13 @@ class C
         System.Console.WriteLine(a[1]);
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll.WithModuleName("MODULE"));
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll.WithModuleName("MODULE"));
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M");
 
             methodData0.VerifyIL(
 @"{
@@ -2815,12 +2815,12 @@ class C
   IL_001c:  ret
 }");
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -2853,9 +2853,9 @@ class C
   IL_001d:  ret
 }");
 
-            var method2 = compilation2.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("C.M");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
@@ -2936,15 +2936,15 @@ class C
     static object F3() { return new[] { 13, 14, 15 }; }
     static object F4() { return new[] { 7, 8, 9 }; }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, compilation0.GetMember<MethodSymbol>("C.F1"), compilation1.GetMember<MethodSymbol>("C.F1")),
@@ -3001,7 +3001,7 @@ class C
   IL_0017:  ldloc.0
   IL_0018:  ret
 }");
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, compilation1.GetMember<MethodSymbol>("C.F1"), compilation2.GetMember<MethodSymbol>("C.F1")),
@@ -3103,13 +3103,13 @@ class C
     }
 }";
             const string ComputeStringHashName = "ComputeStringHash";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.F");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.F");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             // Should have generated call to ComputeStringHash and
@@ -3119,11 +3119,11 @@ class C
 
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ComputeStringHashName);
 
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -3132,10 +3132,10 @@ class C
                 var actualIL1 = diff1.GetMethodIL("C.F");
                 Assert.False(actualIL1.Contains(ComputeStringHashName));
 
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetMethodDefNames(), "F");
                 }
             }
@@ -3192,15 +3192,15 @@ class C
         return g();
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation0.GetMembers("C.F")[1], compilation1.GetMembers("C.F")[1])));
 
@@ -3229,7 +3229,7 @@ class C
   IL_0027:  ret
 }");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, compilation1.GetMembers("C.F")[1], compilation2.GetMembers("C.F")[1])));
 
@@ -3278,23 +3278,23 @@ class C
     static void F() { System.Console.WriteLine(1); }
     static void G() { System.Console.Write(2); }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "F", "G", ".ctor");
                 CheckNames(reader0, reader0.GetMemberRefNames(), ".ctor", ".ctor", ".ctor", "WriteLine", ".ctor");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-                var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.G");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.G");
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(
                         SemanticEditKind.Update,
@@ -3412,24 +3412,24 @@ class B : A<B>
         M(b);
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var compilation3 = compilation2.WithSource(source3);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation3 = compilation2.WithSource(source3);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("B.M");
-            var methodN = compilation0.GetMember<MethodSymbol>("B.N");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("B.M");
+            MethodSymbol methodN = compilation0.GetMember<MethodSymbol>("B.N");
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
                 m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
             #region Gen1 
 
-            var method1 = compilation1.GetMember<MethodSymbol>("B.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("B.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -3486,8 +3486,8 @@ class B : A<B>
 
             #region Gen2 
 
-            var method2 = compilation2.GetMember<MethodSymbol>("B.M");
-            var diff2 = compilation2.EmitDifference(
+            MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("B.M");
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
 
@@ -3544,8 +3544,8 @@ class B : A<B>
             // Modify different method. (Previous generations
             // have not referenced method.)
             method2 = compilation2.GetMember<MethodSymbol>("B.N");
-            var method3 = compilation3.GetMember<MethodSymbol>("B.N");
-            var diff3 = compilation3.EmitDifference(
+            MethodSymbol method3 = compilation3.GetMember<MethodSymbol>("B.N");
+            CompilationDifference diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
 
@@ -3625,20 +3625,20 @@ class B : A<B>
         var b = string.Empty;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, method1, null, preserveLocalVariables: true)));
 
-            var method2 = compilation2.GetMember<MethodSymbol>("C.M");
-            var diff2 = compilation2.EmitDifference(
+            MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
             diff2.VerifyIL("C.M",
@@ -3711,16 +3711,16 @@ class B : A<B>
         System.Console.WriteLine(y);
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
-            var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.Main");
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.Main");
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.Main").EncDebugInfoProvider());
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
             diff1.VerifyIL("C.Main", @"
@@ -3759,18 +3759,18 @@ class B : A<B>
         using (var x = F()) { }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1a = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1a = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables: false)));
 
@@ -3819,7 +3819,7 @@ class B : A<B>
 }
 ");
 
-            var diff1b = compilation1.EmitDifference(
+            CompilationDifference diff1b = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables: true)));
 
@@ -3954,19 +3954,19 @@ class C
         System.Console.WriteLine(y);
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var compilation3 = compilation2.WithSource(source3);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation3 = compilation2.WithSource(source3);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M1");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M1");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M1");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M1");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M1");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<NamedTypeSymbol>("A")),
@@ -3994,8 +3994,8 @@ class C
   IL_0010:  ret
 }");
 
-            var method2 = compilation2.GetMember<MethodSymbol>("C.M2");
-            var diff2 = compilation2.EmitDifference(
+            MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("C.M2");
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
@@ -4022,8 +4022,8 @@ class C
   IL_0010:  ret
 }");
 
-            var method3 = compilation3.GetMember<MethodSymbol>("C.M2");
-            var diff3 = compilation3.EmitDifference(
+            MethodSymbol method3 = compilation3.GetMember<MethodSymbol>("C.M2");
+            CompilationDifference diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables: true)));
@@ -4055,7 +4055,7 @@ class C
         [Fact]
         public void AnonymousTypes_Update()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void F()
@@ -4064,7 +4064,7 @@ class C
     }
 }
 ");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void F()
@@ -4073,7 +4073,7 @@ class C
     }
 }
 ");
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static void F()
@@ -4082,16 +4082,16 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -4108,7 +4108,7 @@ class C
 }
 ");
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -4128,10 +4128,10 @@ class C
 }
 ");
             // expect a single TypeRef for System.Object
-            var md1 = diff1.GetMetadata();
+            PinnedMetadata md1 = diff1.GetMetadata();
             AssertEx.Equal(new[] { "[0x23000002] 0x00000266.0x00000273" }, DumpTypeRefs(md1.Reader));
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
@@ -4151,14 +4151,14 @@ class C
 }
 ");
             // expect a single TypeRef for System.Object
-            var md2 = diff2.GetMetadata();
+            PinnedMetadata md2 = diff2.GetMetadata();
             AssertEx.Equal(new[] { "[0x23000003] 0x000002af.0x000002bc" }, DumpTypeRefs(md2.Reader));
         }
 
         [Fact]
         public void AnonymousTypes_UpdateAfterAdd()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void F()
@@ -4166,7 +4166,7 @@ class C
     }
 }
 ");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void F()
@@ -4175,7 +4175,7 @@ class C
     }
 }
 ");
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static void F()
@@ -4184,20 +4184,20 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -4216,7 +4216,7 @@ class C
   IL_0008:  ret
 }
 ");
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
@@ -4236,15 +4236,15 @@ class C
 }
 ");
             // expect a single TypeRef for System.Object
-            var md2 = diff2.GetMetadata();
+            PinnedMetadata md2 = diff2.GetMetadata();
             AssertEx.Equal(new[] { "[0x23000003] 0x000002e2.0x000002ef" }, DumpTypeRefs(md2.Reader));
         }
 
         private static IEnumerable<string> DumpTypeRefs(MetadataReader reader)
         {
-            foreach (var typeRefHandle in reader.TypeReferences)
+            foreach (TypeReferenceHandle typeRefHandle in reader.TypeReferences)
             {
-                var typeRef = reader.GetTypeReference(typeRefHandle);
+                TypeReference typeRef = reader.GetTypeReference(typeRefHandle);
                 yield return $"[0x{MetadataTokens.GetToken(typeRef.ResolutionScope):x8}] 0x{MetadataTokens.GetHeapOffset(typeRef.Namespace):x8}.0x{MetadataTokens.GetHeapOffset(typeRef.Name):x8}";
             }
         }
@@ -4296,27 +4296,27 @@ namespace M
         }
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
 
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("M.B.M").EncDebugInfoProvider());
 
-                var method0 = compilation0.GetMember<MethodSymbol>("M.B.M");
-                var reader0 = md0.MetadataReader;
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("M.B.M");
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "<>f__AnonymousType2", "B", "A");
 
-                var method1 = compilation1.GetMember<MethodSymbol>("M.B.M");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("M.B.M");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
+                    MetadataReader reader1 = md1.Reader;
                     CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType3`1"); // one additional type
 
                     diff1.VerifyIL("M.B.M", @"
@@ -4408,18 +4408,18 @@ namespace M
             var metadata0 = (MetadataImageReference)CompileIL(ilSource);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            ModuleMetadata moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(moduleMetadata0, m => default(EditAndContinueMethodDebugInformation));
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-            using (var md1 = diff1.GetMetadata())
+            using (PinnedMetadata md1 = diff1.GetMetadata())
             {
                 diff1.VerifyIL("C.F",
     @"{
@@ -4453,7 +4453,7 @@ namespace M
         [Fact]
         public void AnonymousTypes_SkipGeneration()
         {
-            var source0 = MarkedSource(
+            SourceWithMarkedNodes source0 = MarkedSource(
 @"class A { }
 class B
 {
@@ -4468,7 +4468,7 @@ class B
         return x;
     }
 }");
-            var source1 = MarkedSource(
+            SourceWithMarkedNodes source1 = MarkedSource(
 @"class A { }
 class B
 {
@@ -4483,7 +4483,7 @@ class B
         return x + 1;
     }
 }");
-            var source2 = MarkedSource(
+            SourceWithMarkedNodes source2 = MarkedSource(
 @"class A { }
 class B
 {
@@ -4499,7 +4499,7 @@ class B
         return x.A;
     }
 }");
-            var source3 = MarkedSource(
+            SourceWithMarkedNodes source3 = MarkedSource(
 @"class A { }
 class B
 {
@@ -4515,30 +4515,30 @@ class B
         return y.B;
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
-            var compilation3 = compilation2.WithSource(source3.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation3 = compilation2.WithSource(source3.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("B.G");
-            var method1 = compilation1.GetMember<MethodSymbol>("B.G");
-            var method2 = compilation2.GetMember<MethodSymbol>("B.G");
-            var method3 = compilation3.GetMember<MethodSymbol>("B.G");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("B.G");
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("B.G");
+            MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("B.G");
+            MethodSymbol method3 = compilation3.GetMember<MethodSymbol>("B.G");
 
-            var reader0 = md0.MetadataReader;
+            MetadataReader reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`1", "A", "B");
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
+            PinnedMetadata md1 = diff1.GetMetadata();
+            MetadataReader reader1 = md1.Reader;
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames()); // no additional types
 
             diff1.VerifyIL("B.G", @"
@@ -4561,12 +4561,12 @@ class B
   IL_000f:  ret       
 }");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
-            var md2 = diff2.GetMetadata();
-            var reader2 = md2.Reader;
+            PinnedMetadata md2 = diff2.GetMetadata();
+            MetadataReader reader2 = md2.Reader;
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>f__AnonymousType1`1"); // one additional type
             diff2.VerifyIL("B.G", @"
 {
@@ -4593,13 +4593,13 @@ class B
   IL_0020:  ret       
 }");
 
-            var diff3 = compilation3.EmitDifference(
+            CompilationDifference diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
 
-            var md3 = diff3.GetMetadata();
+            PinnedMetadata md3 = diff3.GetMetadata();
 
-            var reader3 = md3.Reader;
+            MetadataReader reader3 = md3.Reader;
             CheckNames(new[] { reader0, reader1, reader2, reader3 }, reader3.GetTypeDefNames()); // no additional types
             diff3.VerifyIL("B.G", @"
 {
@@ -4693,13 +4693,13 @@ class B
         return x;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var compilation3 = compilation2.WithSource(source3);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation3 = compilation2.WithSource(source3);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(
@@ -4715,36 +4715,36 @@ class B
                         return default(EditAndContinueMethodDebugInformation);
                     });
 
-                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
-                var reader0 = md0.MetadataReader;
+                MethodSymbol method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`1", "C");
 
-                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
-                var method1G = compilation1.GetMember<MethodSymbol>("C.G");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1G = compilation1.GetMember<MethodSymbol>("C.G");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetEquivalentNodesMap(method1F, method0F), preserveLocalVariables: true)));
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
+                    MetadataReader reader1 = md1.Reader;
                     CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType1`2"); // one additional type
 
-                    var method2G = compilation2.GetMember<MethodSymbol>("C.G");
-                    var diff2 = compilation2.EmitDifference(
+                    MethodSymbol method2G = compilation2.GetMember<MethodSymbol>("C.G");
+                    CompilationDifference diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetEquivalentNodesMap(method2G, method1G), preserveLocalVariables: true)));
-                    using (var md2 = diff2.GetMetadata())
+                    using (PinnedMetadata md2 = diff2.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames()); // no additional types
 
-                        var method3G = compilation3.GetMember<MethodSymbol>("C.G");
-                        var diff3 = compilation3.EmitDifference(
+                        MethodSymbol method3G = compilation3.GetMember<MethodSymbol>("C.G");
+                        CompilationDifference diff3 = compilation3.EmitDifference(
                             diff2.NextGeneration,
                             ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetEquivalentNodesMap(method3G, method2G), preserveLocalVariables: true)));
-                        using (var md3 = diff3.GetMetadata())
+                        using (PinnedMetadata md3 = diff3.GetMetadata())
                         {
-                            var reader3 = md3.Reader;
+                            MetadataReader reader3 = md3.Reader;
                             CheckNames(new[] { reader0, reader1, reader2, reader3 }, reader3.GetTypeDefNames()); // no additional types
                         }
                     }
@@ -4811,29 +4811,29 @@ class B
         return y;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var compilation3 = compilation2.WithSource(source3);
-            var compilation4 = compilation3.WithSource(source4);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation3 = compilation2.WithSource(source3);
+            CSharpCompilation compilation4 = compilation3.WithSource(source4);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("C.F").EncDebugInfoProvider());
 
-                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-                var reader0 = md0.MetadataReader;
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
 
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
+                    MetadataReader reader1 = md1.Reader;
                     CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType0`1"); // one additional type
 
                     diff1.VerifyIL("C.F", @"
@@ -4859,7 +4859,7 @@ class B
   IL_001a:  ret
 }");
 
-                    var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+                    MethodSymbol method2 = compilation2.GetMember<MethodSymbol>("C.F");
                     // TODO: Generate placeholder for missing types.
 #if false
                     var diff2 = compilation2.EmitDifference(
@@ -4980,7 +4980,7 @@ class B
         [Fact]
         public void AnonymousTypes_DifferentCase()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void M()
@@ -4989,7 +4989,7 @@ class C
         var <N:1>y = new { a = 3, b = 4 }</N:1>;
     }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void M()
@@ -4998,7 +4998,7 @@ class C
         var <N:1>y = new { AB = 3 }</N:1>;
     }
 }");
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static void M()
@@ -5007,27 +5007,27 @@ class C
         var <N:1>y = new { Ab = 5 }</N:1>;
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-            var reader0 = md0.MetadataReader;
+            MetadataReader reader0 = md0.MetadataReader;
 
-            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m2 = compilation2.GetMember<MethodSymbol>("C.M");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "C");
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            var reader1 = diff1.GetMetadata().Reader;
+            MetadataReader reader1 = diff1.GetMetadata().Reader;
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType2`2", "<>f__AnonymousType3`1");
 
             // the first two slots can't be reused since the type changed
@@ -5050,11 +5050,11 @@ class C
   IL_0010:  ret
 }");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m1, m2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
-            var reader2 = diff2.GetMetadata().Reader;
+            MetadataReader reader2 = diff2.GetMetadata().Reader;
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>f__AnonymousType4`1");
 
             // we can reuse slot for "x", it's type haven't changed
@@ -5100,20 +5100,20 @@ class C
         Console.WriteLine(<<VALUE>>);
     }
 }";
-            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
-            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
-            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+            SourceWithMarkedNodes source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            SourceWithMarkedNodes source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            SourceWithMarkedNodes source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation0.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation0.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -5173,7 +5173,7 @@ class C
 ";
             v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"));
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -5187,7 +5187,7 @@ class C
 
             diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -5223,20 +5223,20 @@ class C
         Console.WriteLine(<<VALUE>>);
     }
 }";
-            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
-            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
-            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+            SourceWithMarkedNodes source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            SourceWithMarkedNodes source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            SourceWithMarkedNodes source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation0.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation0.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -5296,7 +5296,7 @@ class C
 ";
             v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"));
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -5310,7 +5310,7 @@ class C
 
             diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -5328,7 +5328,7 @@ class C
         [Fact]
         public void AnonymousTypes_Query1()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 using System.Linq;
 
 class C
@@ -5356,7 +5356,7 @@ class C
     }
 }
 ");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 using System.Linq;
 
 class C
@@ -5396,15 +5396,15 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -5413,7 +5413,7 @@ class C
               System.Collections.Generic.IEnumerable<string> V_1) //newArgs
 ");
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                  generation0,
                  ImmutableArray.Create(
                      new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -5457,21 +5457,21 @@ class C
     }
 }
 ";
-            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
-            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
-            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+            SourceWithMarkedNodes source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            SourceWithMarkedNodes source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            SourceWithMarkedNodes source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -5494,7 +5494,7 @@ class C
 ";
             v0.VerifyIL("C.F", baselineIL0);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -5525,7 +5525,7 @@ class C
 
             diff1.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "1"));
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -5596,14 +5596,14 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(assemblyBytes);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M1");
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => default(EditAndContinueMethodDebugInformation));
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M1");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M1");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -5666,17 +5666,17 @@ class C
             var metadata0 = (MetadataImageReference)CompileIL(ilSource, prependDefaultHeader: false);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
-            var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            ModuleMetadata moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 moduleMetadata0,
                 m => default(EditAndContinueMethodDebugInformation));
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -5739,19 +5739,19 @@ class C
         return c.P++;
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -5806,13 +5806,13 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
@@ -5843,8 +5843,8 @@ class C
   IL_0016:  ret       
 }");
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -5931,14 +5931,14 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(assemblyBytes);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -5988,21 +5988,21 @@ class C
         x.Add(1);
     }
 }";
-            var compilation0 = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
 
             var modMeta = ModuleMetadata.CreateFromImage(bytes0);
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 modMeta,
                 methodData0.EncDebugInfoProvider());
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
@@ -6054,19 +6054,19 @@ class B
     static object G = ((dynamic)F).F();
     object x = ((dynamic)F) + 1;
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { CSharpRef });
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { CSharpRef });
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 // Source method with dynamic operations.
-                var methodData0 = testData0.GetMethodData("A.M");
+                CompilationTestData.MethodData methodData0 = testData0.GetMethodData("A.M");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
-                var method0 = compilation0.GetMember<MethodSymbol>("A.M");
-                var method1 = compilation1.GetMember<MethodSymbol>("A.M");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("A.M");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("A.M");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.EmitResult.Diagnostics.Verify();
@@ -6138,21 +6138,21 @@ class C
     }
 }
 ";
-            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
-            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
-            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            SourceWithMarkedNodes source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            SourceWithMarkedNodes source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            SourceWithMarkedNodes source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
 
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
@@ -6187,7 +6187,7 @@ class C
 }
 ");
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -6228,7 +6228,7 @@ class C
   IL_0053:  ret
 }
 ");
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -6275,7 +6275,7 @@ class C
         [Fact]
         public void ExceptionFilters()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 using System;
 using System.IO;
 
@@ -6300,7 +6300,7 @@ class C
     }
 }
 ");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 using System;
 using System.IO;
 
@@ -6326,17 +6326,17 @@ class C
         Console.WriteLine(1);
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var v0 = CompileAndVerify(compilation0);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -6426,7 +6426,7 @@ using System.Runtime.InteropServices;
 public interface I
 {
 }";
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void M(I x)
@@ -6434,7 +6434,7 @@ class C
         System.Console.WriteLine(1);
     }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void M(I x)
@@ -6442,19 +6442,19 @@ class C
         System.Console.WriteLine(2);
     }
 }");
-            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
+            MetadataReference referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -6477,7 +6477,7 @@ using System.Runtime.InteropServices;
 public interface I
 {
 }";
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void M(I x)
@@ -6486,7 +6486,7 @@ class C
         M(null);
     }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void M(I x)
@@ -6495,19 +6495,19 @@ class C
         M(x);
     }
 }");
-            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
+            MetadataReference referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -6581,25 +6581,25 @@ public struct S
     {
     }
 }";
-            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
-            var compilation1A = compilation0.WithSource(source1A);
-            var compilation1B = compilation0.WithSource(source1B);
+            CSharpCompilation compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
+            MetadataReference referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
+            CSharpCompilation compilation1A = compilation0.WithSource(source1A);
+            CSharpCompilation compilation1B = compilation0.WithSource(source1B);
 
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C<T>.M1");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C<T>.M1");
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M1");
 
                 // Disallow edits that require NoPIA references.
-                var method1A = compilation1A.GetMember<MethodSymbol>("C.M1");
-                var diff1A = compilation1A.EmitDifference(
+                MethodSymbol method1A = compilation1A.GetMember<MethodSymbol>("C.M1");
+                CompilationDifference diff1A = compilation1A.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0), preserveLocalVariables: true)));
                 diff1A.EmitResult.Diagnostics.Verify(
@@ -6610,8 +6610,8 @@ public struct S
 
                 // Allow edits that do not require NoPIA references,
                 // even if the previous code included references.
-                var method1B = compilation1B.GetMember<MethodSymbol>("C.M1");
-                var diff1B = compilation1B.EmitDifference(
+                MethodSymbol method1B = compilation1B.GetMember<MethodSymbol>("C.M1");
+                CompilationDifference diff1B = compilation1B.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0), preserveLocalVariables: true)));
                 diff1B.VerifyIL("C<T>.M1",
@@ -6626,10 +6626,10 @@ public struct S
   IL_0007:  nop
   IL_0008:  ret
 }");
-                using (var md1 = diff1B.GetMetadata())
+                using (PinnedMetadata md1 = diff1B.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetTypeDefNames());
                 }
             }
@@ -6667,18 +6667,18 @@ public interface IB
     }
     enum E { X }
 }";
-            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
-            var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
+            MetadataReference referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, m => default(EditAndContinueMethodDebugInformation));
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
                 diff1.EmitResult.Diagnostics.Verify(
@@ -6728,29 +6728,29 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            CSharpCompilation compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source);
             var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(testData: testData0);
+            CompilationTestData.MethodData methodData0 = testData0.GetMethodData("C.M");
 
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+                MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.M");
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
 
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
                     CheckNames(readers, reader1.GetTypeRefNames(), "Object");
                     CheckEncLog(reader1,
@@ -6836,54 +6836,54 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var bytes0 = compilation0.EmitToArray();
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
-                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0F = compilation0.GetMember<MethodSymbol>("C.F");
                 // Use empty LocalVariableNameProvider for original locals and
                 // use preserveLocalVariables: true for the edit so that existing
                 // locals are retained even though all are unrecognized.
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
                     EmptyLocalsProvider);
-                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
-                var method1G = compilation1.GetMember<MethodSymbol>("C.G");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1G = compilation1.GetMember<MethodSymbol>("C.G");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)));
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var readers = new[] { reader0, reader1 };
+                    MetadataReader reader1 = md1.Reader;
+                    MetadataReader[] readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
                     CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousType1`1");
                     CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "DebuggerDisplayAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String", "IFormatProvider");
                     // Change method updated in generation 1.
-                    var method2F = compilation2.GetMember<MethodSymbol>("C.F");
-                    var diff2F = compilation2.EmitDifference(
+                    MethodSymbol method2F = compilation2.GetMember<MethodSymbol>("C.F");
+                    CompilationDifference diff2F = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1F, method2F, syntaxMap: s => null, preserveLocalVariables: true)));
-                    using (var md2 = diff2F.GetMetadata())
+                    using (PinnedMetadata md2 = diff2F.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
                         CheckNames(readers, reader2.GetAssemblyRefNames(), "mscorlib");
                         CheckNames(readers, reader2.GetTypeDefNames());
                         CheckNames(readers, reader2.GetTypeRefNames(), "Object");
                     }
                     // Change method unchanged since generation 0.
-                    var method2G = compilation2.GetMember<MethodSymbol>("C.G");
-                    var diff2G = compilation2.EmitDifference(
+                    MethodSymbol method2G = compilation2.GetMember<MethodSymbol>("C.G");
+                    CompilationDifference diff2G = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1G, method2G, syntaxMap: s => null, preserveLocalVariables: true)));
-                    using (var md2 = diff2G.GetMetadata())
+                    using (PinnedMetadata md2 = diff2G.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         readers = new[] { reader0, reader1, reader2 };
                         CheckNames(readers, reader2.GetAssemblyRefNames(), "mscorlib");
                         CheckNames(readers, reader2.GetTypeDefNames());
@@ -6913,16 +6913,16 @@ class C
         return o.ToString();
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var bytes0 = compilation0.EmitToArray();
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0F = compilation0.GetMember<MethodSymbol>("C.F");
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
                     EmptyLocalsProvider);
-                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1F = compilation1.GetMember<MethodSymbol>("C.F");
 
                 using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
                 {
@@ -6932,7 +6932,7 @@ class C
                     var badStream = new BrokenStream();
                     badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
 
-                    var result = compilation1.EmitDifference(
+                    EmitDifferenceResult result = compilation1.EmitDifference(
                         generation0,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
                         isAddedSymbol,
@@ -7003,16 +7003,16 @@ class C
         return o.ToString();
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0F = compilation0.GetMember<MethodSymbol>("C.F");
                 var generation0 = EmitBaseline.CreateInitialBaseline(
                     md0,
                     EmptyLocalsProvider);
-                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method1F = compilation1.GetMember<MethodSymbol>("C.F");
 
                 using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
                 {
@@ -7022,7 +7022,7 @@ class C
                     var badStream = new BrokenStream();
                     badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
 
-                    var result = compilation1.EmitDifference(
+                    EmitDifferenceResult result = compilation1.EmitDifference(
                         generation0,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
                         isAddedSymbol,
@@ -7053,14 +7053,14 @@ class C
 {
     static void Main() { }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var diff1 = compilation1.EmitDifference(
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
                     testData: new CompilationTestData { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
@@ -7101,39 +7101,39 @@ class C
         bool goo = true;
     }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var bytes0 = compilation0.EmitToArray();
+            CSharpCompilation compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var reader0 = md0.MetadataReader;
+                MetadataReader reader0 = md0.MetadataReader;
                 CheckNames(reader0, reader0.GetAssemblyRefNames(), "mscorlib");
-                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                MethodSymbol method0F = compilation0.GetMember<MethodSymbol>("C.F");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
-                var diff1 = compilation1.EmitDifference(
+                MethodSymbol method1F = compilation1.GetMember<MethodSymbol>("C.F");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)));
 
-                var handle = MetadataTokens.BlobHandle(1);
+                BlobHandle handle = MetadataTokens.BlobHandle(1);
                 byte[] value0 = reader0.GetBlobBytes(handle);
                 Assert.Equal("20-01-01-08", BitConverter.ToString(value0));
 
-                using (var md1 = diff1.GetMetadata())
+                using (PinnedMetadata md1 = diff1.GetMetadata())
                 {
-                    var reader1 = md1.Reader;
-                    var method2F = compilation2.GetMember<MethodSymbol>("C.F");
-                    var diff2F = compilation2.EmitDifference(
+                    MetadataReader reader1 = md1.Reader;
+                    MethodSymbol method2F = compilation2.GetMember<MethodSymbol>("C.F");
+                    CompilationDifference diff2F = compilation2.EmitDifference(
                         diff1.NextGeneration,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1F, method2F, syntaxMap: s => null, preserveLocalVariables: true)));
 
                     byte[] value1 = reader1.GetBlobBytes(handle);
                     Assert.Equal("07-02-0E-0C", BitConverter.ToString(value1));
 
-                    using (var md2 = diff2F.GetMetadata())
+                    using (PinnedMetadata md2 = diff2F.GetMetadata())
                     {
-                        var reader2 = md2.Reader;
+                        MetadataReader reader2 = md2.Reader;
                         byte[] value2 = reader2.GetBlobBytes(handle);
                         Assert.Equal("07-03-0E-0C-02", BitConverter.ToString(value2));
                     }
@@ -7171,23 +7171,23 @@ public class B
 public class Y : X { }
 ";
 
-            var compilationA0 = CreateCompilation(sourceA0, options: TestOptions.DebugDll, assemblyName: "LibA");
-            var compilationA1 = compilationA0.WithSource(sourceA1);
-            var compilationB0 = CreateCompilation(sourceB0, new[] { compilationA0.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
-            var compilationB1 = CreateCompilation(sourceB1, new[] { compilationA1.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
+            CSharpCompilation compilationA0 = CreateCompilation(sourceA0, options: TestOptions.DebugDll, assemblyName: "LibA");
+            CSharpCompilation compilationA1 = compilationA0.WithSource(sourceA1);
+            CSharpCompilation compilationB0 = CreateCompilation(sourceB0, new[] { compilationA0.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
+            CSharpCompilation compilationB1 = CreateCompilation(sourceB1, new[] { compilationA1.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
 
-            var bytesA0 = compilationA0.EmitToArray();
-            var bytesB0 = compilationB0.EmitToArray();
+            ImmutableArray<byte> bytesA0 = compilationA0.EmitToArray();
+            ImmutableArray<byte> bytesB0 = compilationB0.EmitToArray();
             var mdA0 = ModuleMetadata.CreateFromImage(bytesA0);
             var mdB0 = ModuleMetadata.CreateFromImage(bytesB0);
             var generationA0 = EmitBaseline.CreateInitialBaseline(mdA0, EmptyLocalsProvider);
             var generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, EmptyLocalsProvider);
-            var mA1 = compilationA1.GetMember<MethodSymbol>("A.M");
-            var mX1 = compilationA1.GetMember<TypeSymbol>("X");
+            MethodSymbol mA1 = compilationA1.GetMember<MethodSymbol>("A.M");
+            TypeSymbol mX1 = compilationA1.GetMember<TypeSymbol>("X");
 
             var allAddedSymbols = new ISymbol[] { mA1, mX1 };
 
-            var diffA1 = compilationA1.EmitDifference(
+            CompilationDifference diffA1 = compilationA1.EmitDifference(
                 generationA0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Insert, null, mA1),
@@ -7196,7 +7196,7 @@ public class Y : X { }
 
             diffA1.EmitResult.Diagnostics.Verify();
 
-            var diffB1 = compilationB1.EmitDifference(
+            CompilationDifference diffB1 = compilationB1.EmitDifference(
                 generationB0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, compilationB0.GetMember<MethodSymbol>("B.F"), compilationB1.GetMember<MethodSymbol>("B.F")),
@@ -7236,23 +7236,23 @@ public class B
     public static void F() { var a = new A(); }
 }";
 
-            var compilationA = CreateCompilation(sourceA, options: TestOptions.DebugDll, assemblyName: "AssemblyA");
-            var aRef = compilationA.ToMetadataReference();
+            CSharpCompilation compilationA = CreateCompilation(sourceA, options: TestOptions.DebugDll, assemblyName: "AssemblyA");
+            CompilationReference aRef = compilationA.ToMetadataReference();
 
-            var compilationB0 = CreateCompilation(sourceB0, new[] { aRef }, options: TestOptions.DebugDll, assemblyName: "AssemblyB");
-            var compilationB1 = compilationB0.WithSource(sourceB1);
-            var compilationB2 = compilationB1.WithSource(sourceB2);
+            CSharpCompilation compilationB0 = CreateCompilation(sourceB0, new[] { aRef }, options: TestOptions.DebugDll, assemblyName: "AssemblyB");
+            CSharpCompilation compilationB1 = compilationB0.WithSource(sourceB1);
+            CSharpCompilation compilationB2 = compilationB1.WithSource(sourceB2);
 
             var testDataB0 = new CompilationTestData();
-            var bytesB0 = compilationB0.EmitToArray(testData: testDataB0);
+            ImmutableArray<byte> bytesB0 = compilationB0.EmitToArray(testData: testDataB0);
             var mdB0 = ModuleMetadata.CreateFromImage(bytesB0);
             var generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, testDataB0.GetMethodData("B.F").EncDebugInfoProvider());
 
-            var f0 = compilationB0.GetMember<MethodSymbol>("B.F");
-            var f1 = compilationB1.GetMember<MethodSymbol>("B.F");
-            var f2 = compilationB2.GetMember<MethodSymbol>("B.F");
+            MethodSymbol f0 = compilationB0.GetMember<MethodSymbol>("B.F");
+            MethodSymbol f1 = compilationB1.GetMember<MethodSymbol>("B.F");
+            MethodSymbol f2 = compilationB2.GetMember<MethodSymbol>("B.F");
 
-            var diffB1 = compilationB1.EmitDifference(
+            CompilationDifference diffB1 = compilationB1.EmitDifference(
                 generationB0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetEquivalentNodesMap(f1, f0), preserveLocalVariables: true)));
 
@@ -7271,7 +7271,7 @@ public class B
 }
 ");
 
-            var diffB2 = compilationB2.EmitDifference(
+            CompilationDifference diffB2 = compilationB2.EmitDifference(
                diffB1.NextGeneration,
                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1), preserveLocalVariables: true)));
 
@@ -7308,35 +7308,35 @@ public class C
     public static void F(dynamic d) { d.Bar(); }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
+            CSharpCompilation compilation0 = CreateCompilationWithMscorlib45(source0, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            CSharpCompilation compilation1 = compilation0.WithSource(source1);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f_byte2 = compilation2.GetMembers("C.F").Single(m => m.ToString() == "C.F(dynamic, byte)");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            Symbol f_byte2 = compilation2.GetMembers("C.F").Single(m => m.ToString() == "C.F(dynamic, byte)");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
 
             diff1.EmitResult.Diagnostics.Verify();
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Insert, null, f_byte2)));
 
             diff2.EmitResult.Diagnostics.Verify();
 
-            var reader0 = md0.MetadataReader;
-            var reader1 = diff1.GetMetadata().Reader;
-            var reader2 = diff2.GetMetadata().Reader;
+            MetadataReader reader0 = md0.MetadataReader;
+            MetadataReader reader1 = diff1.GetMetadata().Reader;
+            MetadataReader reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>o__0");
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>o__0#1");
@@ -7353,18 +7353,18 @@ public class C
     static int F() {{ return {0}; }}
 }}";
 
-            var compilation0 = CreateCompilation(String.Format(source, 1), options: TestOptions.DebugDll);
+            CSharpCompilation compilation0 = CreateCompilation(String.Format(source, 1), options: TestOptions.DebugDll);
 
-            var bytes0 = compilation0.EmitToArray();
+            ImmutableArray<byte> bytes0 = compilation0.EmitToArray();
             var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol method0 = compilation0.GetMember<MethodSymbol>("C.F");
 
             for (int i = 2; i <= 50; i++)
             {
-                var compilation1 = compilation0.WithSource(String.Format(source, i));
-                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-                var diff1 = compilation1.EmitDifference(
+                CSharpCompilation compilation1 = compilation0.WithSource(String.Format(source, i));
+                MethodSymbol method1 = compilation1.GetMember<MethodSymbol>("C.F");
+                CompilationDifference diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
@@ -7378,7 +7378,7 @@ public class C
         [Fact]
         public void PdbReadingErrors()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 using System;
 
 class C
@@ -7389,7 +7389,7 @@ class C
     }
 }");
 
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 using System;
 
 class C
@@ -7399,21 +7399,21 @@ class C
         <N:0>Console.WriteLine(2);</N:0>
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodHandle =>
             {
                 throw new InvalidDataException("Bad PDB!");
             });
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -7425,7 +7425,7 @@ class C
         [Fact]
         public void PdbReadingErrors_PassThruExceptions()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 using System;
 
 class C
@@ -7436,7 +7436,7 @@ class C
     }
 }");
 
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 using System;
 
 class C
@@ -7446,14 +7446,14 @@ class C
         <N:0>Console.WriteLine(2);</N:0>
     }
 }");
-            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
-            var compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodHandle =>
             {
@@ -7470,35 +7470,35 @@ class C
         [Fact]
         public void OutVar()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static void F(out int x, out int y) { x = 1; y = 2; }
     static int G() { F(out int <N:0>x</N:0>, out var <N:1>y</N:1>); return x + y; }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static void F(out int x, out int y) { x = 1; y = 2; }
     static int G() { F(out int <N:0>x</N:0>, out var <N:1>z</N:1>); return x + z; }
 }");
 
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static void F(out int x, out int y) { x = 1; y = 2; }
     static int G() { F(out int <N:0>x</N:0>, out int <N:1>y</N:1>); return x + y; }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.G");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.G");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.G", @"
 {
   // Code size       19 (0x13)
@@ -7523,7 +7523,7 @@ class C
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -7551,7 +7551,7 @@ class C
 }
 ");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -7584,32 +7584,32 @@ class C
         [Fact]
         public void PatternVariable_TypeChange()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static int F(object o) { if (o is int <N:0>i</N:0>) { return i; } return 0; }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static int F(object o) { if (o is bool <N:0>i</N:0>) { return i ? 1 : 0; } return 0; }
 }");
 
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static int F(object o) { if (o is int <N:0>j</N:0>) { return j; } return 0; }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
   // Code size       37 (0x25)
@@ -7647,7 +7647,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -7694,7 +7694,7 @@ class C
   IL_0033:  ret
 }");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -7745,32 +7745,32 @@ class C
         [Fact]
         public void PatternVariable_DeleteInsert()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static int F(object o) { if (o is int <N:0>i</N:0>) { return i; } return 0; }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static int F(object o) { if (o is int) { return 1; } return 0; }
 }");
 
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static int F(object o) { if (o is int <N:0>i</N:0>) { return i; } return 0; }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
   // Code size       37 (0x25)
@@ -7808,7 +7808,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -7843,7 +7843,7 @@ class C
 }
 ");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -7892,32 +7892,32 @@ class C
         [Fact]
         public void Tuple_Parenthesized()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static int F() { (int, (int, int)) <N:0>x</N:0> = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static int F() { (int, int, int) <N:0>x</N:0> = (1, 2, 3); return x.Item1 + x.Item2 + x.Item3; }
 }");
 
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static int F() { (int, int) <N:0>x</N:0> = (1, 3); return x.Item1 + x.Item2; }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
   // Code size       51 (0x33)
@@ -7951,7 +7951,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -7985,7 +7985,7 @@ class C
 }
 ");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -8021,32 +8021,32 @@ class C
         [Fact]
         public void Tuple_Decomposition()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     static int F() { (int <N:0>x</N:0>, int <N:1>y</N:1>, int <N:2>z</N:2>) = (1, 2, 3); return x + y + z; }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     static int F() { (int <N:0>x</N:0>, int <N:2>z</N:2>) = (1, 3); return x + z; }
 }");
 
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     static int F() { (int <N:0>x</N:0>, int <N:1>y</N:1>, int <N:2>z</N:2>) = (1, 2, 3); return x + y + z; }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
   // Code size       17 (0x11)
@@ -8077,7 +8077,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -8106,7 +8106,7 @@ class C
 }
 ");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
@@ -8145,7 +8145,7 @@ class C
         [Fact]
         public void ForeachStatement()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 class C
 {
     public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
@@ -8158,7 +8158,7 @@ class C
         }
     }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 class C
 {
     public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
@@ -8172,7 +8172,7 @@ class C
     }
 }");
 
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 class C
 {
     public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
@@ -8186,15 +8186,15 @@ class C
     }
 }");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.G");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.G");
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.G", @"
 {
   // Code size       70 (0x46)
@@ -8247,7 +8247,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
@@ -8304,7 +8304,7 @@ class C
 }
 ");
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));

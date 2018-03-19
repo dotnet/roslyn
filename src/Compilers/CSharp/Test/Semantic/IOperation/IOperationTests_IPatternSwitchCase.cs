@@ -35,7 +35,7 @@ IPatternCaseClauseOperation (Label Symbol: case var y:) (CaseKind.Pattern) (Oper
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -66,7 +66,7 @@ IPatternCaseClauseOperation (Label Symbol: case int y:) (CaseKind.Pattern) (Oper
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -96,7 +96,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y:) (CaseKind.Pattern) (Operat
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -126,7 +126,7 @@ IPatternCaseClauseOperation (Label Symbol: case T y:) (CaseKind.Pattern) (Operat
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -192,7 +192,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y:) (CaseKind.Pattern) (Operat
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -223,7 +223,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y:) (CaseKind.Pattern) (Operat
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -255,7 +255,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y:) (CaseKind.Pattern) (Operat
   Guard Expression: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -292,7 +292,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y when x != null:) (CaseKind.P
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -326,7 +326,7 @@ IPatternCaseClauseOperation (Label Symbol: case X y when x is X z :) (CaseKind.P
       Pattern: 
         IDeclarationPatternOperation (Declared Symbol: X z) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X z')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -461,7 +461,7 @@ class X
             string expectedOperationTree = @"
 IDefaultCaseClauseOperation (CaseKind.Default) (OperationKind.CaseClause, Type: null) (Syntax: 'default:')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

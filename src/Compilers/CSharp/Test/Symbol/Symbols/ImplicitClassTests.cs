@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitClassSymbol()
         {
-            var c = CreateEmptyCompilation(@"
+            CSharpCompilation c = CreateEmptyCompilation(@"
 namespace N
 {
     void Goo()
@@ -34,7 +34,7 @@ namespace N
             Assert.False(implicitClass.IsSubmissionClass);
             Assert.False(implicitClass.IsScriptClass);
 
-            var c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
+            CSharpCompilation c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
 
             n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
             implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
@@ -46,7 +46,7 @@ namespace N
         [Fact]
         public void ScriptClassSymbol()
         {
-            var c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 base.ToString();
 void Goo()
 {
@@ -63,11 +63,11 @@ void Goo()
             Assert.False(scriptClass.IsSubmissionClass);
             Assert.True(scriptClass.IsScriptClass);
 
-            var tree = c.SyntaxTrees.Single();
-            var model = c.GetSemanticModel(tree);
+            SyntaxTree tree = c.SyntaxTrees.Single();
+            SemanticModel model = c.GetSemanticModel(tree);
 
             IEnumerable<IdentifierNameSyntax> identifiers = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>();
-            var toStringIdentifier = identifiers.Where(node => node.Identifier.ValueText.Equals("ToString")).Single();
+            IdentifierNameSyntax toStringIdentifier = identifiers.Where(node => node.Identifier.ValueText.Equals("ToString")).Single();
 
             Assert.Null(model.GetSymbolInfo(toStringIdentifier).Symbol);
         }
@@ -75,13 +75,13 @@ void Goo()
         [Fact, WorkItem(531535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531535")]
         public void Events()
         {
-            var c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
 event System.Action e;
 ", parseOptions: TestOptions.Script);
 
             c.VerifyDiagnostics();
 
-            var evnt = c.ScriptClass.GetMember<EventSymbol>("e");
+            EventSymbol evnt = c.ScriptClass.GetMember<EventSymbol>("e");
             Assert.NotNull(evnt.Type);
         }
 
@@ -89,7 +89,7 @@ event System.Action e;
         [Fact]
         public void AliasQualifiedNamespaceName()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 namespace N::A
 {
     void Goo()
@@ -106,11 +106,11 @@ namespace N::A
                 //     void Goo()
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"));
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var namespaceDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
-            var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            NamespaceDeclarationSyntax namespaceDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            MethodDeclarationSyntax methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
             Assert.Equal("A", model.GetDeclaredSymbol(namespaceDecl).Name);
             Assert.Equal("Goo", model.GetDeclaredSymbol(methodDecl).Name);

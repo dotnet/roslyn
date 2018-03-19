@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            var effectiveKind = kind.MapSpecifiedToEffectiveKind();
+            SourceCodeKind effectiveKind = kind.MapSpecifiedToEffectiveKind();
             return new CSharpParseOptions(this) { SpecifiedKind = kind, Kind = effectiveKind };
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            var effectiveLanguageVersion = version.MapSpecifiedToEffectiveVersion();
+            LanguageVersion effectiveLanguageVersion = version.MapSpecifiedToEffectiveVersion();
             return new CSharpParseOptions(this) { SpecifiedLanguageVersion = version, LanguageVersion = effectiveLanguageVersion };
         }
 

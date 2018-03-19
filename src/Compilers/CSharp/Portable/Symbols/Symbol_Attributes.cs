@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out CSharpAttributeData attributeData,
             out ObsoleteAttributeData obsoleteData)
         {
-            var type = arguments.AttributeType;
-            var syntax = arguments.AttributeSyntax;
+            NamedTypeSymbol type = arguments.AttributeType;
+            AttributeSyntax syntax = arguments.AttributeSyntax;
 
             ObsoleteAttributeKind kind;
             if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ObsoleteAttribute))
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<AttributeSyntax, bool> attributeMatchesOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
             ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, attributeMatchesOpt, binderOpt, out binders);
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordPresenceOfBadAttributes(ImmutableArray<CSharpAttributeData> boundAttributes)
         {
-            foreach (var attribute in boundAttributes)
+            foreach (CSharpAttributeData attribute in boundAttributes)
             {
                 if (attribute.HasErrors)
                 {
@@ -399,11 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int listIndex = 0; listIndex < attributeDeclarationSyntaxLists.Count; listIndex++)
             {
-                var attributeDeclarationSyntaxList = attributeDeclarationSyntaxLists[listIndex];
+                SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList = attributeDeclarationSyntaxLists[listIndex];
                 if (attributeDeclarationSyntaxList.Any())
                 {
                     int prevCount = attributesToBindCount;
-                    foreach (var attributeDeclarationSyntax in attributeDeclarationSyntaxList)
+                    foreach (AttributeListSyntax attributeDeclarationSyntax in attributeDeclarationSyntaxList)
                     {
                         // We bind the attribute only if it has a matching target for the given ownerSymbol and attributeLocation.
                         if (MatchAttributeTarget(attributeTarget, symbolPart, attributeDeclarationSyntax.Target, diagnostics))
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bindersBuilder = new ArrayBuilder<Binder>();
                             }
 
-                            var attributesToBind = attributeDeclarationSyntax.Attributes;
+                            SeparatedSyntaxList<AttributeSyntax> attributesToBind = attributeDeclarationSyntax.Attributes;
                             if (attributeMatchesOpt is null)
                             {
                                 syntaxBuilder.AddRange(attributesToBind);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                foreach (var attribute in attributesToBind)
+                                foreach (AttributeSyntax attribute in attributesToBind)
                                 {
                                     if (attributeMatchesOpt(attribute))
                                     {
@@ -439,8 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(attributeDeclarationSyntaxList.Node != null);
                         Debug.Assert(bindersBuilder != null);
 
-                        var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
-                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
+                        SyntaxTree syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
+                        Binder binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
                         Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < attributeTypes.Length; i++)
             {
-                var attributeType = attributeTypes[i];
+                NamedTypeSymbol attributeType = attributeTypes[i];
 
                 if (!attributeType.IsErrorType())
                 {

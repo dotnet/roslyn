@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Equality()
         {
-            var c1 = CreateCompilation("");
-            var c2 = CreateCompilation("");
-            var a1 = c1.Assembly;
-            var a2 = c2.Assembly;
+            CSharpCompilation c1 = CreateCompilation("");
+            CSharpCompilation c2 = CreateCompilation("");
+            AssemblySymbol a1 = c1.Assembly;
+            AssemblySymbol a2 = c2.Assembly;
 
             EqualityTesting.AssertEqual(default(NamespaceExtent), default(NamespaceExtent));
             EqualityTesting.AssertNotEqual(default(NamespaceExtent), new NamespaceExtent(c2));

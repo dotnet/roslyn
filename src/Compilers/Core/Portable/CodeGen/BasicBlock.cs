@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     {
                         Debug.Assert(newLabel != null);
 
-                        var labelInfo = this.builder._labelInfos[newLabel];
+                        LabelInfo labelInfo = this.builder._labelInfos[newLabel];
                         if (!labelInfo.targetOfConditionalBranches)
                         {
                             this.builder._labelInfos[newLabel] = labelInfo.SetTargetOfConditionalBranches();
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     Debug.Assert(BranchBlock?.EnclosingHandler == null);
                 }
 
-                var branchBlock = BranchBlock;
+                BasicBlock branchBlock = BranchBlock;
                 if (branchBlock == null)
                 {
                     return;
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return; //Not a branch;
                 }
 
-                var curBranchCode = this.BranchCode;
+                ILOpCode curBranchCode = this.BranchCode;
                 if (curBranchCode.GetBranchOperandSize() == 1)
                 {
                     return; //already short;
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     Debug.Assert(BranchCode != ILOpCode.Nop, "Nop branches should not have labels");
 
-                    var next = this.NextNontrivial;
+                    BasicBlock next = this.NextNontrivial;
 
                     if (next != null)
                     {
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    var next = this.NextBlock;
+                    BasicBlock next = this.NextBlock;
                     while (next != null &&
                         next.BranchCode == ILOpCode.Nop &&
                         next.HasNoRegularInstructions)
@@ -417,11 +417,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         // make sure we are not breaking this condition.
                         if (this.HasNoRegularInstructions)
                         {
-                            var labelInfos = builder._labelInfos;
-                            var labels = labelInfos.Keys;
+                            SmallDictionary<object, LabelInfo> labelInfos = builder._labelInfos;
+                            SmallDictionary<object, LabelInfo>.KeyCollection labels = labelInfos.Keys;
                             foreach (var label in labels)
                             {
-                                var info = labelInfos[label];
+                                LabelInfo info = labelInfos[label];
                                 if (info.bb == this)
                                 {
                                     // move the label from "this" to "next"
@@ -452,8 +452,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         // we are effectively removing blocks between this and the BranchBlock (including next) from the block chain.
                         // that is ok, since branch-to-branch should already eliminate any possible branches to these blocks
                         // and they were only reachable from current via NextBlock which we are re-directing.
-                        var toRemove = this.NextBlock;
-                        var branchBlock = this.BranchBlock;
+                        BasicBlock toRemove = this.NextBlock;
+                        BasicBlock branchBlock = this.BranchBlock;
                         while (toRemove != branchBlock)
                         {
                             Debug.Assert(toRemove == next || toRemove.TotalSize == 0);
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         // swap BranchCode for revBrOp
                         // set our branch label where next block used to branch.
-                        var origBrOp = this.BranchCode;
+                        ILOpCode origBrOp = this.BranchCode;
                         this.SetBranch(next.BranchLabel, revBrOp, origBrOp);
 
                         return true;
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private bool TryOptimizeBranchToNextOrRet(BasicBlock next, ref int delta)
             {
-                var curBranchCode = this.BranchCode;
+                ILOpCode curBranchCode = this.BranchCode;
                 if (curBranchCode == ILOpCode.Br || curBranchCode == ILOpCode.Br_s)
                 {
                     // check for branch to next.
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private bool TryOptimizeBranchToEquivalent(BasicBlock next, ref int delta)
             {
-                var curBranchCode = this.BranchCode;
+                ILOpCode curBranchCode = this.BranchCode;
                 if (curBranchCode.IsConditionalBranch())
                 {
                     // check for branch to next, 
@@ -557,8 +557,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     !one._branchCode.CanFallThrough() &&
                     one._branchLabel == another._branchLabel)
                 {
-                    var instr1 = one.RegularInstructions;
-                    var instr2 = another.RegularInstructions;
+                    BlobBuilder instr1 = one.RegularInstructions;
+                    BlobBuilder instr2 = another.RegularInstructions;
                     return instr1 == instr2 || instr1?.ContentEquals(instr2) == true;
                 }
 
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// </summary>
             private ILOpCode GetReversedBranchOp()
             {
-                var result = RevBranchCode;
+                ILOpCode result = RevBranchCode;
 
                 if (result != ILOpCode.Nop)
                 {
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var visType = System.Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
                 if (visType != null)
                 {
-                    var method = visType.GetTypeInfo().GetDeclaredMethod("BasicBlockToString");
+                    MethodInfo method = visType.GetTypeInfo().GetDeclaredMethod("BasicBlockToString");
                     return (string)method.Invoke(null, new object[] { this });
                 }
 #endif

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                foreach (var res in this.ResultsBuilder)
+                foreach (MemberResolutionResult<TMember> res in this.ResultsBuilder)
                 {
                     if (res.Result.IsApplicable)
                     {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ImmutableArray<TMember> GetAllApplicableMembers()
         {
             var result = ArrayBuilder<TMember>.GetInstance();
-            foreach (var res in this.ResultsBuilder)
+            foreach (MemberResolutionResult<TMember> res in this.ResultsBuilder)
             {
                 if (res.Result.IsApplicable)
                 {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             best = default(MemberResolutionResult<TMember>);
             ThreeState haveBest = ThreeState.False;
 
-            foreach (var pair in allResults)
+            foreach (MemberResolutionResult<TMember> pair in allResults)
             {
                 if (pair.Result.IsValid)
                 {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the candidate list.
             AssertNone(MemberResolutionKind.None);
 
-            var symbols = StaticCast<Symbol>.From(memberGroup);
+            ImmutableArray<Symbol> symbols = StaticCast<Symbol>.From(memberGroup);
 
             //// PHASE 1: Valid candidates ////
 
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            foreach (var supported in supportedInPriorityOrder)
+            foreach (MemberResolutionResult<TMember> supported in supportedInPriorityOrder)
             {
                 if (supported.IsNotNull)
                 {
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UseSiteError()
         {
-            var bad = GetFirstMemberKind(MemberResolutionKind.UseSiteError);
+            MemberResolutionResult<TMember> bad = GetFirstMemberKind(MemberResolutionKind.UseSiteError);
             if (bad.IsNull)
             {
                 return false;
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol> symbols,
             Location location)
         {
-            var inaccessible = GetFirstMemberKind(MemberResolutionKind.InaccessibleTypeArgument);
+            MemberResolutionResult<TMember> inaccessible = GetFirstMemberKind(MemberResolutionKind.InaccessibleTypeArgument);
             if (inaccessible.IsNull)
             {
                 return false;
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt,
             SyntaxNode nodeOpt)
         {
-            var staticInstanceMismatch = GetFirstMemberKind(MemberResolutionKind.StaticInstanceMismatch);
+            MemberResolutionResult<TMember> staticInstanceMismatch = GetFirstMemberKind(MemberResolutionKind.StaticInstanceMismatch);
             if (staticInstanceMismatch.IsNull)
             {
                 return false;
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadReturnMismatch(Location location, DiagnosticBag diagnostics, RefKind refKind, TypeSymbol delegateType)
         {
-            var mismatch = GetFirstMemberKind(MemberResolutionKind.WrongRefKind);
+            MemberResolutionResult<TMember> mismatch = GetFirstMemberKind(MemberResolutionKind.WrongRefKind);
             if (!mismatch.IsNull)
             {
                 diagnostics.Add(ErrorCode.ERR_DelegateRefMismatch, location, mismatch.Member, delegateType);
@@ -632,13 +632,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadConstraintFailure(Location location, DiagnosticBag diagnostics)
         {
-            var constraintFailure = GetFirstMemberKind(MemberResolutionKind.ConstraintFailure);
+            MemberResolutionResult<TMember> constraintFailure = GetFirstMemberKind(MemberResolutionKind.ConstraintFailure);
             if (constraintFailure.IsNull)
             {
                 return false;
             }
 
-            foreach (var pair in constraintFailure.Result.ConstraintFailureDiagnostics)
+            foreach (TypeParameterDiagnosticInfo pair in constraintFailure.Result.ConstraintFailureDiagnostics)
             {
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location,
             CSharpSyntaxNode queryClause = null)
         {
-            var inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceFailed);
+            MemberResolutionResult<TMember> inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceFailed);
             if (inferenceFailed.IsNotNull)
             {
                 if (queryClause != null)
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inferenceFailed.IsNotNull)
             {
                 Debug.Assert(arguments.Arguments.Count > 0);
-                var instanceArgument = arguments.Arguments[0];
+                BoundExpression instanceArgument = arguments.Arguments[0];
                 if (queryClause != null)
                 {
                     binder.ReportQueryLookupFailed(queryClause, instanceArgument, inferenceFailed.Member.Name, symbols, diagnostics);
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // error CS1729: 'M' does not contain a constructor that takes n arguments
             // error CS1593: Delegate 'M' does not take n arguments
 
-            var code =
+            ErrorCode code =
                 (object)typeContainingConstructor != null ? ErrorCode.ERR_BadCtorArgCount :
                 (object)delegateTypeBeingInvoked != null ? ErrorCode.ERR_BadDelArgCount :
                 ErrorCode.ERR_BadArgCount;
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See test case CS0310ERR_NewConstraintNotSatisfied02 for an even more complex version
             // of this flavor of error recovery.
 
-            var result = GetFirstMemberKind(MemberResolutionKind.ConstructedParameterFailedConstraintCheck);
+            MemberResolutionResult<TMember> result = GetFirstMemberKind(MemberResolutionKind.ConstructedParameterFailedConstraintCheck);
             if (result.IsNull)
             {
                 return false;
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool HadLambdaConversionError(DiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             bool hadError = false;
-            foreach (var argument in arguments.Arguments)
+            foreach (BoundExpression argument in arguments.Arguments)
             {
                 if (argument.Kind == BoundKind.UnboundLambda)
                 {
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags flags,
             bool isMethodGroupConversion)
         {
-            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArguments);
+            MemberResolutionResult<TMember> badArg = GetFirstMemberKind(MemberResolutionKind.BadArguments);
             if (badArg.IsNull)
             {
                 return false;
@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var method = badArg.Member;
+            TMember method = badArg.Member;
 
             // The best overloaded method match for '{0}' has some invalid arguments
             // Since we have bad arguments to report, there is no need to report an error on the invocation itself.
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ErrorCode.ERR_BadArgTypesForCollectionAdd or ErrorCode.ERR_InitializerAddHasParamModifiers
                 // as there is no explicit call to Add method.
 
-                foreach (var parameter in method.GetParameters())
+                foreach (ParameterSymbol parameter in method.GetParameters())
                 {
                     if (parameter.RefKind != RefKind.None)
                     {
@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             first = default(MemberResolutionResult<TMember>);
             second = default(MemberResolutionResult<TMember>);
 
-            foreach (var res in this.ResultsBuilder)
+            foreach (MemberResolutionResult<TMember> res in this.ResultsBuilder)
             {
                 if (res.Result.Kind == MemberResolutionKind.Worse)
                 {
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             first = default(MemberResolutionResult<TMember>);
             second = default(MemberResolutionResult<TMember>);
 
-            foreach (var res in this.ResultsBuilder)
+            foreach (MemberResolutionResult<TMember> res in this.ResultsBuilder)
             {
                 if (res.Result.IsValid)
                 {
@@ -1360,7 +1360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private void AssertNone(MemberResolutionKind kind)
         {
-            foreach (var result in this.ResultsBuilder)
+            foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
                 if (result.Result.Kind == kind)
                 {
@@ -1371,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MemberResolutionResult<TMember> GetFirstMemberKind(MemberResolutionKind kind)
         {
-            foreach (var result in this.ResultsBuilder)
+            foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
                 if (result.Result.Kind == kind)
                 {
@@ -1405,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             sb.AppendLine("Detailed results:");
-            foreach (var result in ResultsBuilder)
+            foreach (MemberResolutionResult<TMember> result in ResultsBuilder)
             {
                 sb.AppendFormat("method: {0} reason: {1}\n", result.Member.ToString(), result.Result.Kind.ToString());
             }

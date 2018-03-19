@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private WrappedValue ComputeValue(TKey key)
         {
-            var value = _computeValue(key);
+            TValue value = _computeValue(key);
             return new WrappedValue { Value = value };
         }
 

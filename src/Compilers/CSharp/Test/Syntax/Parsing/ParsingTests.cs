@@ -25,22 +25,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
         {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
+            SyntaxTree parsedTree = ParseWithRoundTripCheck(text);
+            IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
         }
 
         public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var parsedTree = ParseWithRoundTripCheck(text, options: options);
-            var actualErrors = parsedTree.GetDiagnostics();
+            SyntaxTree parsedTree = ParseWithRoundTripCheck(text, options: options);
+            IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
         }
 
         public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
         {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
+            SyntaxTree parsedTree = ParseWithRoundTripCheck(text);
+            IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             actualErrors.Take(1).Verify(expectedFirstError);
         }
 
@@ -54,20 +54,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseStatement(text);
+            StatementSyntax node = SyntaxFactory.ParseStatement(text);
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
+            IEnumerable<Diagnostic> actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
             UsingNode(node);
         }
 
         internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text, options: options);
+            ExpressionSyntax node = SyntaxFactory.ParseExpression(text, options: options);
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
+            IEnumerable<Diagnostic> actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
             UsingNode(node);
         }
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         protected SyntaxTree UsingTree(string text, CSharpParseOptions options = null)
         {
-            var tree = ParseTree(text, options);
-            var nodes = EnumerateNodes(tree.GetCompilationUnitRoot());
+            SyntaxTree tree = ParseTree(text, options);
+            IEnumerable<SyntaxNodeOrToken> nodes = EnumerateNodes(tree.GetCompilationUnitRoot());
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
 #endif
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options = null)
         {
-            var root = ParseNode(text, options);
+            CSharpSyntaxNode root = ParseNode(text, options);
             UsingNode(root);
             return root;
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         protected void UsingNode(CSharpSyntaxNode root)
         {
-            var nodes = EnumerateNodes(root);
+            IEnumerable<SyntaxNodeOrToken> nodes = EnumerateNodes(root);
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
 #endif
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             while (stack.Count > 0)
             {
-                var en = stack.Pop();
+                ChildSyntaxList.Enumerator en = stack.Pop();
                 if (!en.MoveNext())
                 {
                     // no more down this branch
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                var current = en.Current;
+                SyntaxNodeOrToken current = en.Current;
                 stack.Push(en); // put it back on stack (struct enumerator)
 
                 Print(current);

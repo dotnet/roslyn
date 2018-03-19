@@ -19,28 +19,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
-            var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
-            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-            foreach (var content in node.Contents)
+            NamedTypeSymbol stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
+            NamedTypeSymbol objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
+            NamedTypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+            foreach (InterpolatedStringContentSyntax content in node.Contents)
             {
                 switch (content.Kind())
                 {
                     case SyntaxKind.Interpolation:
                         {
                             var interpolation = (InterpolationSyntax)content;
-                            var value = BindValue(interpolation.Expression, diagnostics, Binder.BindValueKind.RValue);
+                            BoundExpression value = BindValue(interpolation.Expression, diagnostics, Binder.BindValueKind.RValue);
                             // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
                             // when we perform overload resolution, to report a problem. So we do that check by calling
                             // GenerateConversionForAssignment with objectType. However we want to preserve the original expression's
                             // natural type so that overload resolution may select a specialized implementation of string.Format,
                             // so we discard the result of that call and only preserve its diagnostics.
-                            var discarded = GenerateConversionForAssignment(objectType, value, diagnostics);
+                            BoundExpression discarded = GenerateConversionForAssignment(objectType, value, diagnostics);
                             BoundExpression alignment = null, format = null;
                             if (interpolation.AlignmentClause != null)
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
-                                var alignmentConstant = alignment.ConstantValue;
+                                ConstantValue alignmentConstant = alignment.ConstantValue;
                                 if (alignmentConstant != null && !alignmentConstant.IsBad)
                                 {
                                     const int magnitudeLimit = 32767;

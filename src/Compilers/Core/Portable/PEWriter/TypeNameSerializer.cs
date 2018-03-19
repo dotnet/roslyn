@@ -178,7 +178,7 @@ namespace Microsoft.Cci
 
             if (referencedAssembly != null)
             {
-                var containingAssembly = context.Module.GetContainingAssembly(context);
+                IAssemblyReference containingAssembly = context.Module.GetContainingAssembly(context);
 
                 if (containingAssembly == null || !ReferenceEquals(referencedAssembly, containingAssembly))
                 {

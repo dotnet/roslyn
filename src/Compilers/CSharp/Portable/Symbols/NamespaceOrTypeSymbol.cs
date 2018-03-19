@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeKind typeKind = kind.ToDeclarationKind().ToTypeKind();
 
-            foreach (var member in GetTypeMembers(name, arity))
+            foreach (NamedTypeSymbol member in GetTypeMembers(name, arity))
             {
                 var memberT = member as SourceNamedTypeSymbol;
                 if ((object)memberT != null && memberT.TypeKind == typeKind)
                 {
                     if (syntax != null)
                     {
-                        foreach (var loc in memberT.Locations)
+                        foreach (Location loc in memberT.Locations)
                         {
                             if (loc.IsInSource && loc.SourceTree == syntax.SyntaxTree && syntax.Span.Contains(loc.SourceSpan))
                             {
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Let's handle mangling case first.
                     namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.UnmangledTypeName);
 
-                    foreach (var named in namespaceOrTypeMembers)
+                    foreach (NamedTypeSymbol named in namespaceOrTypeMembers)
                     {
                         if (emittedTypeName.InferredArity == named.Arity && named.MangleName)
                         {
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.TypeName);
 
-            foreach (var named in namespaceOrTypeMembers)
+            foreach (NamedTypeSymbol named in namespaceOrTypeMembers)
             {
                 if (!named.MangleName && (forcedArity == -1 || forcedArity == named.Arity))
                 {

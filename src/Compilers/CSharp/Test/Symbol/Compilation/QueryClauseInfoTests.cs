@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void Equality()
         {
-            var c = CreateCompilation("");
-            var obj = c.GetSpecialType(SpecialType.System_Object);
-            var int32 = c.GetSpecialType(SpecialType.System_Int32);
+            CSharpCompilation c = CreateCompilation("");
+            Symbols.NamedTypeSymbol obj = c.GetSpecialType(SpecialType.System_Object);
+            Symbols.NamedTypeSymbol int32 = c.GetSpecialType(SpecialType.System_Int32);
 
             EqualityTesting.AssertEqual(default(QueryClauseInfo), default(QueryClauseInfo));
 

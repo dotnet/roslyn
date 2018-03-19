@@ -101,7 +101,7 @@ class Test
         db.Property = 10;
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method(1, a)
 Derived.Method(2, a)
@@ -183,7 +183,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 BaseClass.ToString()
 BaseClass.ToString<T>()
@@ -306,7 +306,7 @@ class Test
         Class5.Test();
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Class3.Member1
 Class4.Member1
@@ -380,7 +380,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.virtual1
 Derived.virtual2
@@ -464,7 +464,7 @@ class Test
         b.Method3(new int[6]{1, 2, 3, 4, 5, 6}, 8, 9, 10, 11, 12, 13, 14);
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method( , 1, [1])
 Derived.Method( , 2, [2])
@@ -568,7 +568,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base4.Method(a, b)
 Base4.Method(a, b)
@@ -663,7 +663,7 @@ class Test
         d.Property = ""c"";
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method(a, b)
 Base.get_Property()
 Base.set_Property()");
@@ -750,7 +750,7 @@ class Test
         string x = d.Property;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method(a, b)
 Base.get_Property()
 Base.set_Property()");
@@ -817,7 +817,7 @@ abstract class DerivedClass : BaseClass<int, long>
     public override bool Equals(object obj) { return base.Equals(obj); }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
 
             comp.VerifyIL("BaseClass<TInt, TLong>.ToString", @"
 {
@@ -928,7 +928,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Finalize()
 Base.Finalize()
@@ -1020,7 +1020,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Base2.Method()
 Derived.Method()
 Derived.Method<>
@@ -1107,7 +1107,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
         [Fact]
 
@@ -1153,7 +1153,7 @@ class Test
             // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
             // the test flaky, we can delete this test.
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived.Method(ref, out)
 Base.Method(ref, out)
 Base.Method(ref)");
@@ -1205,7 +1205,7 @@ class Program
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.P.Get=1
 Base.P.Set(2)
@@ -1262,7 +1262,7 @@ class Program
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.P.Get=1
 Derived.P.Set(2)
@@ -1305,7 +1305,7 @@ class Test
         b.Property3 = b.Property3;
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property2
 Derived.set_Property1
@@ -1371,7 +1371,7 @@ class Test
         b2.Property2 *= 1;
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property1
 Base1.set_Property1
@@ -1451,7 +1451,7 @@ class Test
         b2.Property3--;
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property1
 Derived.set_Property2
@@ -1605,7 +1605,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method()
 Base.Method<T>()
 Base.Method<T>(T, int)
@@ -1786,7 +1786,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"Derived2.Method()
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"Derived2.Method()
 Base<T>.Method(T)
 Derived2.Method<U>(int x, int y)
 Base<T>.Method<U>(U, T, List<U>, Dictionary<T, U>)
@@ -1856,7 +1856,7 @@ class Derived2 : Base2
     public override void Method(ref ArgumentException x) { }
 }";
 
-            var comp = CompileAndVerify(text, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(text, expectedSignatures: new[]
             {
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.ArgumentException x) cil managed"),
                 Signature("Derived2", "Method", ".method public hidebysig virtual instance System.Void Method(System.ArgumentException& x) cil managed"),
@@ -1897,7 +1897,7 @@ class Derived : Base2<int>
     internal sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "Method1", ".method assembly hidebysig newslot strict virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method assembly hidebysig newslot strict abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
@@ -1933,7 +1933,7 @@ class Derived : Base2<int>
     protected internal sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "Method1", ".method famorassem hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method famorassem hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
@@ -1970,7 +1970,7 @@ class Derived : Base2<int>
     protected sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "Method1", ".method family hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method family hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
@@ -2004,7 +2004,7 @@ class Derived : Base2<int>
     public sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "Method1", ".method public hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method public hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
@@ -2049,7 +2049,7 @@ class Derived : Base2<int>
     internal sealed override List<int> Property6 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method assembly hidebysig newslot strict specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
@@ -2103,7 +2103,7 @@ class Derived : Base<int>
     protected internal sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method famorassem hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
@@ -2133,7 +2133,7 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -2150,7 +2150,7 @@ public class Derived2 : Base<int>
     public sealed override List<int> Property1 { protected set { } }
     public sealed override List<int> Property2 { protected get { return null; } }
 }";
-            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, expectedSignatures: new[]
             {
                 Signature("Derived", "get_Property1", ".method public hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property1() cil managed"),
                 Signature("Derived", "set_Property1", ".method family hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
@@ -2188,7 +2188,7 @@ class Derived : Base<int>
     protected sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method family hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
@@ -2228,7 +2228,7 @@ class Derived : Base<int>
     public sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method public hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
@@ -2268,7 +2268,7 @@ class Derived : Base2<int>
     public override int Method(List<int> x, long y) { return 0; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Int32 Method(System.Collections.Generic.List`1[System.Int32] x, System.Int64 y) cil managed"),
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method(System.Collections.Generic.List`1[System.Int32] x, System.Int32 y) cil managed"),
@@ -2333,7 +2333,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base<T>.Method<K>(T x)
 Base<T>.Method(List<T> x, int y)
@@ -2424,12 +2424,12 @@ public class Test
     }
 }";
 
-            var referencedCompilation =
+            CSharpCompilation referencedCompilation =
                 CreateCompilation(source,
                     options: TestOptions.ReleaseDll,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember1");
 
-            var outerCompilation =
+            CSharpCompilation outerCompilation =
                 CreateCompilation(source2,
                     new[] { new CSharpCompilationReference(referencedCompilation) },
                     options: TestOptions.ReleaseExe,
@@ -2544,9 +2544,9 @@ public class Test
     }
 }";
 
-            var referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
+            CSharpCompilation referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
 
-            var comp = CompileAndVerify(
+            CompilationVerifier comp = CompileAndVerify(
                 source2,
                 new[] { referencedCompilation.EmitToImageReference() },
                 expectedOutput: @"
@@ -2649,9 +2649,9 @@ public class Test
     }
 }";
 
-            var referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
+            CSharpCompilation referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
 
-            var comp = CompileAndVerify(
+            CompilationVerifier comp = CompileAndVerify(
                 source2,
                 new[] { referencedCompilation.EmitToImageReference() },
                 expectedOutput: @"
@@ -2715,15 +2715,15 @@ class Test
     }
 }
 ";
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
+            CSharpCompilation comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
                             options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
+            CSharpCompilation comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
                         options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
@@ -2808,15 +2808,15 @@ class Test
     }
 }
 ";
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
+            CSharpCompilation comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
                             options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
+            CSharpCompilation comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
                         options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"VBDefault VBDefault VBWriteReadOnly VBWriteReadOnly 100200900900");
@@ -2869,15 +2869,15 @@ class Test
 }
 ";
 
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.CSInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.CSInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
 
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 text1,
                 references: new[] { asm01, asm02 },
                 assemblyName: "OHI_DeriveBaseInMetadataProp001");
 
-            var comp2 = CreateCompilation(
+            CSharpCompilation comp2 = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 options: TestOptions.ReleaseExe,
@@ -3046,23 +3046,23 @@ class Test
 
             #endregion
 
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.CSInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.CSInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
+            CSharpCompilation comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
                             options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
+            CSharpCompilation comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
                             options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 
-            var comp = CreateCompilation(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
+            CSharpCompilation comp = CreateCompilation(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
                             options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(); // No Errors
 
@@ -3106,16 +3106,16 @@ partial class Test
     }
 }
 ";
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses02;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses02;
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 new string[] { text1, text2 },
                 references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_BridgeMethodFromBaseVB007");
 
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 comp,
                 expectedOutput: @"Derived (OVSealed) VBaseFunc (Non-Virtual)",
                 expectedSignatures: new[]
@@ -3183,7 +3183,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
@@ -3258,20 +3258,20 @@ class Test
 ";
             #endregion
 
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
 
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 text1,
                 references: new MetadataReference[] { asm01, asm02 },
                 assemblyName: "OHI_OverloadGetSetMethodWithProp001");
 
-            var comp2 = CreateCompilation(
+            CSharpCompilation comp2 = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 assemblyName: "OHI_OverloadGetSetMethodWithProp002");
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 text3,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -3363,19 +3363,19 @@ class Test
 ";
             #endregion
 
-            var asmfile = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asmfile = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 text1,
                 references: new[] { asmfile },
                 assemblyName: "OHI_ClassOverrideNewVBNested001");
 
-            var comp2 = CreateCompilation(
+            CSharpCompilation comp2 = CreateCompilation(
                 text2,
                 references: new[] { asmfile, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ClassOverrideNewVBNested002");
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 text,
                 references: new MetadataReference[] { asmfile, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -3415,7 +3415,7 @@ namespace Metadata
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 text,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 expectedOutput: @"Hello 3",
@@ -3449,7 +3449,7 @@ public class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(text,
+            CompilationVerifier verifier = CompileAndVerify(text,
                 references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "51");
         }
@@ -3476,7 +3476,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text,
+            CompilationVerifier verifier = CompileAndVerify(text,
                 references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: @"88
 88
@@ -3489,11 +3489,11 @@ public class Test
             var comp = (CSharpCompilation)verifier.Compilation;
             comp.VerifyDiagnostics();
 
-            var baseType = comp.GlobalNamespace.GetMember<NamespaceSymbol>("Metadata").GetMember<NamedTypeSymbol>("LeastModoptsWin");
-            var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            NamedTypeSymbol baseType = comp.GlobalNamespace.GetMember<NamespaceSymbol>("Metadata").GetMember<NamedTypeSymbol>("LeastModoptsWin");
+            NamedTypeSymbol derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
 
-            var overridingMethod = derivedType.GetMember<MethodSymbol>("M");
-            var overriddenMethod = overridingMethod.OverriddenMethod;
+            MethodSymbol overridingMethod = derivedType.GetMember<MethodSymbol>("M");
+            MethodSymbol overriddenMethod = overridingMethod.OverriddenMethod;
 
             Assert.Equal("System.Byte modopt(System.Runtime.CompilerServices.IsConst) Metadata.LeastModoptsWin.M(System.Byte t, System.Byte v)",
                 overriddenMethod.ToTestDisplayString());
@@ -3541,7 +3541,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
@@ -3593,7 +3593,7 @@ class Test
             //Assert.Equal(1, errs.Count());
             //Assert.Equal(109, errs.First().Code);
 
-            var verifier = CompileAndVerify(text,
+            CompilationVerifier verifier = CompileAndVerify(text,
                 references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "1122",
                 expectedSignatures: new[]
@@ -3664,15 +3664,15 @@ public class C : B
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
-                var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
-                var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
+                NamedTypeSymbol classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
+                NamedTypeSymbol classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
 
-                var methodA = classA.GetMember<PropertySymbol>("P").GetMethod;
-                var methodB = classB.GetMember<MethodSymbol>("get_P");
-                var methodC = classC.GetMember<PropertySymbol>("P").GetMethod;
+                MethodSymbol methodA = classA.GetMember<PropertySymbol>("P").GetMethod;
+                MethodSymbol methodB = classB.GetMember<MethodSymbol>("get_P");
+                MethodSymbol methodC = classC.GetMember<PropertySymbol>("P").GetMethod;
 
                 Assert.True(methodA.IsVirtual);
                 Assert.True(methodB.IsVirtual);
@@ -3708,15 +3708,15 @@ public class C : B
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
-                var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
-                var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
+                NamedTypeSymbol classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
+                NamedTypeSymbol classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
 
-                var methodA = classA.GetMember<MethodSymbol>("get_P");
-                var methodB = classB.GetMember<PropertySymbol>("P").GetMethod;
-                var methodC = classC.GetMember<MethodSymbol>("get_P");
+                MethodSymbol methodA = classA.GetMember<MethodSymbol>("get_P");
+                MethodSymbol methodB = classB.GetMember<PropertySymbol>("P").GetMethod;
+                MethodSymbol methodC = classC.GetMember<MethodSymbol>("get_P");
 
                 Assert.True(methodA.IsVirtual);
                 Assert.True(methodB.IsVirtual);
@@ -3800,16 +3800,16 @@ public class Invoke
             {
                 compilation.VerifyDiagnostics();
 
-                var globalNamespace = compilation.GlobalNamespace;
+                NamespaceSymbol globalNamespace = compilation.GlobalNamespace;
 
-                var baseClass = globalNamespace.GetMember<NamedTypeSymbol>("Base");
-                var derivedClass = globalNamespace.GetMember<NamedTypeSymbol>("Derived");
-                var overrideClass = globalNamespace.GetMember<NamedTypeSymbol>("Override");
-                var invokeClass = globalNamespace.GetMember<NamedTypeSymbol>("Invoke");
+                NamedTypeSymbol baseClass = globalNamespace.GetMember<NamedTypeSymbol>("Base");
+                NamedTypeSymbol derivedClass = globalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                NamedTypeSymbol overrideClass = globalNamespace.GetMember<NamedTypeSymbol>("Override");
+                NamedTypeSymbol invokeClass = globalNamespace.GetMember<NamedTypeSymbol>("Invoke");
 
-                var baseMethod = baseClass.GetMember<MethodSymbol>("Foo");
-                var derivedMethod = derivedClass.GetMember<MethodSymbol>("Bar");
-                var overrideMethod = overrideClass.GetMember<MethodSymbol>("Bar");
+                MethodSymbol baseMethod = baseClass.GetMember<MethodSymbol>("Foo");
+                MethodSymbol derivedMethod = derivedClass.GetMember<MethodSymbol>("Bar");
+                MethodSymbol overrideMethod = overrideClass.GetMember<MethodSymbol>("Bar");
 
                 Assert.True(derivedMethod.IsOverride);
                 Assert.Null(derivedMethod.OverriddenMethod);
@@ -3852,18 +3852,18 @@ class Program
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var globalNamespace = module.GetReferencedAssemblySymbols().Last().GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GetReferencedAssemblySymbols().Last().GlobalNamespace;
 
-                var classA = globalNamespace.GetMember<NamedTypeSymbol>("BaseVirtual");
-                var classB = globalNamespace.GetMember<NamedTypeSymbol>("DerivedNonVirtual");
-                var classC = globalNamespace.GetMember<NamedTypeSymbol>("Derived2Override");
+                NamedTypeSymbol classA = globalNamespace.GetMember<NamedTypeSymbol>("BaseVirtual");
+                NamedTypeSymbol classB = globalNamespace.GetMember<NamedTypeSymbol>("DerivedNonVirtual");
+                NamedTypeSymbol classC = globalNamespace.GetMember<NamedTypeSymbol>("Derived2Override");
 
                 Assert.Equal(classA, classB.BaseType());
                 Assert.Equal(classB, classC.BaseType());
 
-                var methodA = classA.GetMember<MethodSymbol>("M");
-                var methodB = classB.GetMember<MethodSymbol>("M");
-                var methodC = classC.GetMember<MethodSymbol>("M");
+                MethodSymbol methodA = classA.GetMember<MethodSymbol>("M");
+                MethodSymbol methodB = classB.GetMember<MethodSymbol>("M");
+                MethodSymbol methodC = classC.GetMember<MethodSymbol>("M");
 
                 Assert.True(methodA.IsVirtual);
                 Assert.False(methodB.IsVirtual);
@@ -3876,7 +3876,7 @@ class Program
             };
 
             var references = new MetadataReference[] { TestReferences.SymbolsTests.Methods.ILMethods };
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 references: references,
                 sourceSymbolValidator: validator,
@@ -3956,26 +3956,26 @@ class B : A
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromMetadata => module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
-                var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
+                NamedTypeSymbol classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
+                NamedTypeSymbol classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
 
                 Assert.Equal(classA, classB.BaseType());
 
-                var fooA = classA.GetMember<MethodSymbol>("Foo");
-                var fooB = classB.GetMember<MethodSymbol>("Foo");
+                MethodSymbol fooA = classA.GetMember<MethodSymbol>("Foo");
+                MethodSymbol fooB = classB.GetMember<MethodSymbol>("Foo");
 
                 Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB));
 
                 Assert.Equal(1, fooA.ParameterCount);
-                var parameterA = fooA.Parameters[0];
+                ParameterSymbol parameterA = fooA.Parameters[0];
                 Assert.True(parameterA.IsParams, "Parameter is not ParameterArray");
                 Assert.False(parameterA.HasExplicitDefaultValue, "ParameterArray param has default value");
                 Assert.False(parameterA.IsOptional, "ParameterArray param cannot be optional");
 
                 Assert.Equal(1, fooB.ParameterCount);
-                var parameterB = fooB.Parameters[0];
+                ParameterSymbol parameterB = fooB.Parameters[0];
                 Assert.True(parameterB.IsParams, "Parameter is not ParameterArray");
                 Assert.False(parameterB.HasExplicitDefaultValue, "ParameterArray param has default value");
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
@@ -3987,7 +3987,7 @@ class B : A
                 };
             };
 
-            var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
+            CompilationVerifier verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
@@ -4015,21 +4015,21 @@ public class Test
         obj.M();
     }
 }";
-            var compref = CreateCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
-            var comp = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
+            CSharpCompilation compref = CreateCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
+            CompilationVerifier comp = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
         }
 
         [Fact]
         public void CrossLanguageCase1()
         {
-            var vb1Compilation = CreateVisualBasicCompilation("VB1",
+            VisualBasic.VisualBasicCompilation vb1Compilation = CreateVisualBasicCompilation("VB1",
 @"Public MustInherit Class C1
     MustOverride Sub foo()
 End Class",
                 compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vb1Compilation.VerifyDiagnostics();
 
-            var cs1Compilation = CreateCSharpCompilation("CS1",
+            CSharpCompilation cs1Compilation = CreateCSharpCompilation("CS1",
 @"using System;
 public abstract class C2 : C1
 {
@@ -4040,10 +4040,10 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation);
+            CompilationVerifier cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
-            var vb2Compilation = CreateVisualBasicCompilation("VB2",
+            VisualBasic.VisualBasicCompilation vb2Compilation = CreateVisualBasicCompilation("VB2",
 @"Imports System
 Public Class C3 : Inherits C2
     Public Overrides Sub foo
@@ -4054,7 +4054,7 @@ End Class",
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation });
             vb2Compilation.VerifyDiagnostics();
 
-            var cs2Compilation = CreateCSharpCompilation("CS2",
+            CSharpCompilation cs2Compilation = CreateCSharpCompilation("CS2",
 @"
 public class C4 : C3
 {
@@ -4082,7 +4082,7 @@ public class Program
 }",
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
-            var cs2Verifier = CompileAndVerify(cs2Compilation,
+            CompilationVerifier cs2Verifier = CompileAndVerify(cs2Compilation,
                 expectedOutput: @"C3");
             cs2Verifier.VerifyDiagnostics();
         }
@@ -4090,14 +4090,14 @@ public class Program
         [Fact]
         public void CrossLanguageCase2()
         {
-            var vb1Compilation = CreateVisualBasicCompilation("VB1",
+            VisualBasic.VisualBasicCompilation vb1Compilation = CreateVisualBasicCompilation("VB1",
 @"Public MustInherit Class C1
     MustOverride Sub foo()
 End Class",
                 compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vb1Compilation.VerifyDiagnostics();
 
-            var cs1Compilation = CreateCSharpCompilation("CS1",
+            CSharpCompilation cs1Compilation = CreateCSharpCompilation("CS1",
 @"using System;
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""CS2"")]
 public abstract class C2 : C1
@@ -4109,10 +4109,10 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation);
+            CompilationVerifier cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
-            var vb2Compilation = CreateVisualBasicCompilation("VB2",
+            VisualBasic.VisualBasicCompilation vb2Compilation = CreateVisualBasicCompilation("VB2",
 @"Imports System
 Public Class C3 : Inherits C2
     Public Overrides Sub foo
@@ -4123,7 +4123,7 @@ End Class",
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation });
             vb2Compilation.VerifyDiagnostics();
 
-            var cs2Compilation = CreateCSharpCompilation("CS2",
+            CSharpCompilation cs2Compilation = CreateCSharpCompilation("CS2",
 @"using System;
 
 public class C4 : C3
@@ -4154,7 +4154,7 @@ public class Program
 }",
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
-            var cs2Verifier = CompileAndVerify(cs2Compilation, expectedOutput: @"C4
+            CompilationVerifier cs2Verifier = CompileAndVerify(cs2Compilation, expectedOutput: @"C4
 C2");
             cs2Verifier.VerifyDiagnostics();
         }
@@ -4184,7 +4184,7 @@ public class Test
         d.M(y: 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput:
 @"Base.M(x:1)
 Derived.M(y:2)");
         }
@@ -4193,21 +4193,21 @@ Derived.M(y:2)");
         [Fact]
         public void MissingAssemblyReference01()
         {
-            var A = CreateCSharpCompilation("A", @"public class A {}",
+            CSharpCompilation A = CreateCSharpCompilation("A", @"public class A {}",
                 compilationOptions: TestOptions.ReleaseDll);
             CompileAndVerify(A).VerifyDiagnostics();
 
-            var B = CreateCSharpCompilation("B", @"public interface B { void M(A a); }",
+            CSharpCompilation B = CreateCSharpCompilation("B", @"public interface B { void M(A a); }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { A });
             CompileAndVerify(B).VerifyDiagnostics();
 
-            var C = CreateCSharpCompilation("C", @"public class C { public void M(int a) { } }",
+            CSharpCompilation C = CreateCSharpCompilation("C", @"public class C { public void M(int a) { } }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { A });
             CompileAndVerify(B).VerifyDiagnostics();
 
-            var D = CreateCSharpCompilation("D", @"public class D : C, B { }",
+            CSharpCompilation D = CreateCSharpCompilation("D", @"public class D : C, B { }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { B, C }).VerifyDiagnostics(
     // (1,21): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -4220,11 +4220,11 @@ Derived.M(y:2)");
         [Fact]
         public void MissingAssemblyReference02()
         {
-            var A = CreateCompilation(@"public class A {}", assemblyName: "A");
-            var B = CreateCompilation(@"public interface B { void M(A a); }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "B");
-            var C = CreateCompilation(@"public class C { public void M(A a) { } }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "C");
+            CSharpCompilation A = CreateCompilation(@"public class A {}", assemblyName: "A");
+            CSharpCompilation B = CreateCompilation(@"public interface B { void M(A a); }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "B");
+            CSharpCompilation C = CreateCompilation(@"public class C { public void M(A a) { } }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "C");
 
-            var D = CreateCompilation(@"public class D : C, B { }", references: new[] { new CSharpCompilationReference(B), new CSharpCompilationReference(C) }, assemblyName: "D");
+            CSharpCompilation D = CreateCompilation(@"public class D : C, B { }", references: new[] { new CSharpCompilationReference(B), new CSharpCompilationReference(C) }, assemblyName: "D");
 
             A.VerifyDiagnostics();
             B.VerifyDiagnostics();
@@ -4240,14 +4240,14 @@ Derived.M(y:2)");
         [Fact]
         public void CrossLanguageCase3()
         {
-            var vb1Compilation = CreateVisualBasicCompilation("VB1",
+            VisualBasic.VisualBasicCompilation vb1Compilation = CreateVisualBasicCompilation("VB1",
 @"Public MustInherit Class C1
     MustOverride Sub foo()
 End Class",
                 compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vb1Compilation.VerifyDiagnostics();
 
-            var cs1Compilation = CreateCSharpCompilation("CS1",
+            CSharpCompilation cs1Compilation = CreateCSharpCompilation("CS1",
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""CS2"")]
 public abstract class C2 : C1
 {
@@ -4257,10 +4257,10 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation);
+            CompilationVerifier cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
-            var vb2Compilation = CreateVisualBasicCompilation("VB2",
+            VisualBasic.VisualBasicCompilation vb2Compilation = CreateVisualBasicCompilation("VB2",
 @"Public Class C3 : Inherits C2
     Public Overrides Sub foo
     End Sub
@@ -4269,7 +4269,7 @@ End Class",
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation });
             vb2Compilation.VerifyDiagnostics();
 
-            var cs2Compilation = CreateCSharpCompilation("CS2",
+            CSharpCompilation cs2Compilation = CreateCSharpCompilation("CS2",
 @"abstract public class C4 : C3
 {
     public override void foo()

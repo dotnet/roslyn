@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-            var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
+            TypeKind typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
 
-            var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
+            BoundStatement bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
 
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void GenerateMethodImplementations()
         {
-            var IAsyncStateMachine_MoveNext = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext);
-            var IAsyncStateMachine_SetStateMachine = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
+            MethodSymbol IAsyncStateMachine_MoveNext = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext);
+            MethodSymbol IAsyncStateMachine_SetStateMachine = F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine);
 
             // Add IAsyncStateMachine.MoveNext()
 
-            var moveNextMethod = OpenMoveNextMethodImplementation(IAsyncStateMachine_MoveNext);
+            SynthesizedImplementationMethod moveNextMethod = OpenMoveNextMethodImplementation(IAsyncStateMachine_MoveNext);
 
             GenerateMoveNext(moveNextMethod);
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-            var builderVariable = F.SynthesizedLocal(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, null);
+            LocalSymbol builderVariable = F.SynthesizedLocal(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, null);
 
             // local.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder<typeArgs>.Create();
             bodyBuilder.Add(
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType))));
 
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
-            var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
+            MethodSymbol startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
             if (methodScopeAsyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
             {
                 startMethod.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, diagnostics);

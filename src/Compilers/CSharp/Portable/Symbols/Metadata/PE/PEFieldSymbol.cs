@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if ((object)_lazyType == null)
             {
-                var moduleSymbol = _containingType.ContainingPEModule;
+                PEModuleSymbol moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
                 TypeSymbol type = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (containingPEModule.Module.HasFixedBufferAttribute(_handle, out elementTypeName, out bufferSize))
             {
                 var decoder = new MetadataDecoder(containingPEModule);
-                var elementType = decoder.GetTypeSymbolForSerializedType(elementTypeName);
+                TypeSymbol elementType = decoder.GetTypeSymbolForSerializedType(elementTypeName);
                 if (elementType.FixedBufferElementSizeInBytes() != 0)
                 {
                     fixedSize = bufferSize;
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var access = Accessibility.Private;
+                Accessibility access = Accessibility.Private;
 
                 switch (_flags & FieldAttributes.FieldAccessMask)
                 {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (FilterOutDecimalConstantAttribute())
                 {
                     // filter out DecimalConstantAttribute
-                    var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                    ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
                         _handle,
                         out _,
                         AttributeDescription.DecimalConstantAttribute);
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Yield hidden attributes last, order might be important.
             if (FilterOutDecimalConstantAttribute())
             {
-                var containingPEModuleSymbol = _containingType.ContainingPEModule;
+                PEModuleSymbol containingPEModuleSymbol = _containingType.ContainingPEModule;
                 yield return new PEAttributeData(containingPEModuleSymbol,
                                           containingPEModuleSymbol.Module.FindLastTargetAttribute(_handle, AttributeDescription.DecimalConstantAttribute).Handle);
             }

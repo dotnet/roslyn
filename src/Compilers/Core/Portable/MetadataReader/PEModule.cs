@@ -333,9 +333,9 @@ namespace Microsoft.CodeAnalysis
             var builder = ArrayBuilder<string>.GetInstance();
             try
             {
-                foreach (var fileHandle in MetadataReader.AssemblyFiles)
+                foreach (AssemblyFileHandle fileHandle in MetadataReader.AssemblyFiles)
                 {
-                    var file = MetadataReader.GetAssemblyFile(fileHandle);
+                    AssemblyFile file = MetadataReader.GetAssemblyFile(fileHandle);
                     if (!file.ContainsMetadata)
                     {
                         continue;
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis
         internal IEnumerable<string> GetReferencedManagedModulesOrThrow()
         {
             HashSet<EntityHandle> nameTokens = new HashSet<EntityHandle>();
-            foreach (var handle in MetadataReader.TypeReferences)
+            foreach (TypeReferenceHandle handle in MetadataReader.TypeReferences)
             {
                 TypeReference typeRef = MetadataReader.GetTypeReference(handle);
                 EntityHandle scope = typeRef.ResolutionScope;
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var token in nameTokens)
+            foreach (EntityHandle token in nameTokens)
             {
                 yield return this.GetModuleRefNameOrThrow((ModuleReferenceHandle)token);
             }
@@ -388,10 +388,10 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<EmbeddedResource>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<EmbeddedResource>();
-            foreach (var handle in MetadataReader.ManifestResources)
+            ImmutableArray<EmbeddedResource>.Builder builder = ImmutableArray.CreateBuilder<EmbeddedResource>();
+            foreach (ManifestResourceHandle handle in MetadataReader.ManifestResources)
             {
-                var resource = MetadataReader.GetManifestResource(handle);
+                ManifestResource resource = MetadataReader.GetManifestResource(handle);
                 if (resource.Implementation.IsNil)
                 {
                     string resourceName = MetadataReader.GetString(resource.Name);
@@ -584,9 +584,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private IEnumerable<TypeDefToNamespace> GetTypeDefsOrThrow(bool topLevelOnly)
         {
-            foreach (var typeDef in MetadataReader.TypeDefinitions)
+            foreach (TypeDefinitionHandle typeDef in MetadataReader.TypeDefinitions)
             {
-                var row = MetadataReader.GetTypeDefinition(typeDef);
+                TypeDefinition row = MetadataReader.GetTypeDefinition(typeDef);
 
                 if (topLevelOnly && IsNested(row.Attributes))
                 {
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis
 
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
 
-            foreach (var pair in namespaces)
+            foreach (KeyValuePair<string, ArrayBuilder<TypeDefinitionHandle>> pair in namespaces)
             {
                 result.Add(new Grouping<string, TypeDefinitionHandle>(pair.Key, pair.Value ?? SpecializedCollections.EmptyEnumerable<TypeDefinitionHandle>()));
             }
@@ -658,8 +658,8 @@ namespace Microsoft.CodeAnalysis
 
                 if (result == 0)
                 {
-                    var fLeft = left.FirstOrDefault();
-                    var fRight = right.FirstOrDefault();
+                    TypeDefinitionHandle fLeft = left.FirstOrDefault();
+                    TypeDefinitionHandle fRight = right.FirstOrDefault();
 
                     if (fLeft.IsNil ^ fRight.IsNil)
                     {
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var kvp in namespaceHandles)
+            foreach (KeyValuePair<NamespaceDefinitionHandle, ArrayBuilder<TypeDefinitionHandle>> kvp in namespaceHandles)
             {
                 string @namespace = MetadataReader.GetString(kvp.Key);
 
@@ -787,8 +787,8 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var allTypeDefs = GetTypeDefsOrThrow(topLevelOnly: false);
-                var typeNames =
+                IEnumerable<TypeDefToNamespace> allTypeDefs = GetTypeDefsOrThrow(topLevelOnly: false);
+                IEnumerable<string> typeNames =
                     from typeDef in allTypeDefs
                     let metadataName = GetTypeDefNameOrThrow(typeDef.TypeDef)
                     let backtickIndex = metadataName.IndexOf('`')
@@ -806,13 +806,13 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var allTypeIds = GetTypeDefsOrThrow(topLevelOnly: true);
-                var fullNamespaceNames =
+                IEnumerable<TypeDefToNamespace> allTypeIds = GetTypeDefsOrThrow(topLevelOnly: true);
+                IEnumerable<string> fullNamespaceNames =
                     from id in allTypeIds
                     where !id.NamespaceHandle.IsNil
                     select MetadataReader.GetString(id.NamespaceHandle);
 
-                var namespaceNames =
+                IEnumerable<string> namespaceNames =
                     from fullName in fullNamespaceNames.Distinct()
                     from name in fullName.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries)
                     select name;
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis
                 // CLI Spec 22.8.3:
                 // The Class or ValueType indexed by Parent shall be SequentialLayout or ExplicitLayout. 
                 // That is, AutoLayout types shall not own any rows in the ClassLayout table.
-                var def = MetadataReader.GetTypeDefinition(typeDef);
+                TypeDefinition def = MetadataReader.GetTypeDefinition(typeDef);
 
                 LayoutKind kind;
                 switch (def.Attributes & TypeAttributes.LayoutMask)
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis
                         return default(TypeLayout);
                 }
 
-                var layout = def.GetLayout();
+                System.Reflection.Metadata.TypeLayout layout = def.GetLayout();
                 int size = layout.Size;
                 int packingSize = layout.PackingSize;
 
@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
-            var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
             Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
 
             if (!info.HasValue)
@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis
 
             var result = ArrayBuilder<string>.GetInstance(attrInfos.Count);
 
-            foreach (var ai in attrInfos)
+            foreach (AttributeInfo ai in attrInfos)
             {
                 string extractedStr;
                 if (TryExtractStringValueFromAttribute(ai.Handle, out extractedStr) && extractedStr != null)
@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis
 
                 case 2:
                     // ObsoleteAttribute(string, bool)
-                    return TryExtractValueFromAttribute(attributeInfo.Handle, out var obsoleteData, s_attributeObsoleteDataExtractor) ?
+                    return TryExtractValueFromAttribute(attributeInfo.Handle, out ObsoleteAttributeData obsoleteData, s_attributeObsoleteDataExtractor) ?
                         obsoleteData :
                         null;
 
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis
                 case 1: // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
                 case 3: // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
-                    return TryExtractValueFromAttribute(attributeInfo.Handle, out var obsoleteData, s_attributeDeprecatedDataExtractor) ?
+                    return TryExtractValueFromAttribute(attributeInfo.Handle, out ObsoleteAttributeData obsoleteData, s_attributeDeprecatedDataExtractor) ?
                         obsoleteData :
                         null;
 
@@ -1692,7 +1692,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                foreach (var attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
+                foreach (CustomAttributeHandle attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
                 {
                     int signatureIndex = GetTargetAttributeSignatureIndex(attributeHandle, description);
                     if (signatureIndex != -1)
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                foreach (var attributeHandle in metadataReader.GetCustomAttributes(hasAttribute))
+                foreach (CustomAttributeHandle attributeHandle in metadataReader.GetCustomAttributes(hasAttribute))
                 {
                     int signatureIndex = GetTargetAttributeSignatureIndex(metadataReader, attributeHandle, description);
                     if (signatureIndex != -1)
@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 AttributeInfo attrInfo = default(AttributeInfo);
-                foreach (var attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
+                foreach (CustomAttributeHandle attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
                 {
                     int signatureIndex = GetTargetAttributeSignatureIndex(attributeHandle, description);
                     if (signatureIndex != -1)
@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis
         internal int GetParamArrayCountOrThrow(EntityHandle hasAttribute)
         {
             int count = 0;
-            foreach (var attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
+            foreach (CustomAttributeHandle attributeHandle in MetadataReader.GetCustomAttributes(hasAttribute))
             {
                 if (GetTargetAttributeSignatureIndex(attributeHandle,
                     AttributeDescription.ParamArrayAttribute) != -1)
@@ -1800,7 +1800,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                foreach (var attributeHandle in MetadataReader.GetCustomAttributes(typeDef))
+                foreach (CustomAttributeHandle attributeHandle in MetadataReader.GetCustomAttributes(typeDef))
                 {
                     int signatureIndex = IsTypeIdentifierAttribute(attributeHandle);
                     if (signatureIndex != -1)
@@ -1974,7 +1974,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 // Iterate over assembly ref rows
-                foreach (var assemblyRef in MetadataReader.AssemblyReferences)
+                foreach (AssemblyReferenceHandle assemblyRef in MetadataReader.AssemblyReferences)
                 {
                     // Check whether matching name                    
                     if (MetadataReader.StringComparer.Equals(MetadataReader.GetAssemblyReference(assemblyRef).Name, assemblyName))
@@ -2010,9 +2010,9 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 // Iterate over type ref rows
-                foreach (var handle in MetadataReader.TypeReferences)
+                foreach (TypeReferenceHandle handle in MetadataReader.TypeReferences)
                 {
-                    var typeRef = MetadataReader.GetTypeReference(handle);
+                    TypeReference typeRef = MetadataReader.GetTypeReference(handle);
 
                     // Check whether matching resolution scope
                     if (typeRef.ResolutionScope != resolutionScope)
@@ -2249,7 +2249,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (attributeCtor.Kind == HandleKind.MethodDefinition)
                 {
-                    var methodDef = metadataReader.GetMethodDefinition((MethodDefinitionHandle)attributeCtor);
+                    MethodDefinition methodDef = metadataReader.GetMethodDefinition((MethodDefinitionHandle)attributeCtor);
 
                     if (!metadataReader.StringComparer.Equals(methodDef.Name, WellKnownMemberNames.InstanceConstructorName))
                     {
@@ -2314,7 +2314,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeDefOrRef.Kind == HandleKind.TypeDefinition)
                 {
-                    var def = metadataReader.GetTypeDefinition((TypeDefinitionHandle)typeDefOrRef);
+                    TypeDefinition def = metadataReader.GetTypeDefinition((TypeDefinitionHandle)typeDefOrRef);
 
                     if (IsNested(def.Attributes))
                     {
@@ -2354,7 +2354,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    foreach (var attributeHandle in MetadataReader.CustomAttributes)
+                    foreach (CustomAttributeHandle attributeHandle in MetadataReader.CustomAttributes)
                     {
                         int signatureIndex = IsTypeIdentifierAttribute(attributeHandle);
                         if (signatureIndex != -1)
@@ -2400,7 +2400,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal void GetMethodSpecificationOrThrow(MethodSpecificationHandle handle, out EntityHandle method, out BlobHandle instantiation)
         {
-            var methodSpec = MetadataReader.GetMethodSpecification(handle);
+            MethodSpecification methodSpec = MetadataReader.GetMethodSpecification(handle);
             method = methodSpec.Method;
             instantiation = methodSpec.Signature;
         }
@@ -2510,7 +2510,7 @@ namespace Microsoft.CodeAnalysis
             out EntityHandle body,
             out EntityHandle declaration)
         {
-            var impl = MetadataReader.GetMethodImplementation(methodImpl);
+            MethodImplementation impl = MetadataReader.GetMethodImplementation(methodImpl);
             body = impl.MethodBody;
             declaration = impl.MethodDeclaration;
         }
@@ -2531,7 +2531,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var methodImport = MetadataReader.GetMethodDefinition(methodDef).GetImport();
+                MethodImport methodImport = MetadataReader.GetMethodDefinition(methodDef).GetImport();
                 if (methodImport.Module.IsNil)
                 {
                     // TODO (tomat): report an error?
@@ -2709,7 +2709,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                var constantHandle = MetadataReader.GetParameter(param).GetDefaultValue();
+                ConstantHandle constantHandle = MetadataReader.GetParameter(param).GetDefaultValue();
 
                 // TODO: Error checking: Throw an error if the table entry cannot be found
                 return constantHandle.IsNil ? ConstantValue.Bad : GetConstantValueOrThrow(constantHandle);
@@ -2726,7 +2726,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                var constantHandle = MetadataReader.GetFieldDefinition(fieldDef).GetDefaultValue();
+                ConstantHandle constantHandle = MetadataReader.GetFieldDefinition(fieldDef).GetDefaultValue();
 
                 // TODO: Error checking: Throw an error if the table entry cannot be found
                 return constantHandle.IsNil ? ConstantValue.Bad : GetConstantValueOrThrow(constantHandle);
@@ -2767,7 +2767,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var blob = GetMarshallingDescriptorHandleOrThrow(fieldOrParameterToken);
+                BlobHandle blob = GetMarshallingDescriptorHandleOrThrow(fieldOrParameterToken);
 
                 if (blob.IsNil)
                 {
@@ -2790,7 +2790,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var blob = GetMarshallingDescriptorHandleOrThrow(fieldOrParameterToken);
+                BlobHandle blob = GetMarshallingDescriptorHandleOrThrow(fieldOrParameterToken);
                 if (blob.IsNil)
                 {
                     // TODO (tomat): report error:
@@ -2826,7 +2826,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private ConstantValue GetConstantValueOrThrow(ConstantHandle handle)
         {
-            var constantRow = MetadataReader.GetConstant(handle);
+            Constant constantRow = MetadataReader.GetConstant(handle);
             BlobReader reader = MetadataReader.GetBlobReader(constantRow.Value);
             switch (constantRow.TypeCode)
             {
@@ -2894,7 +2894,7 @@ namespace Microsoft.CodeAnalysis
                 // this functionality when computing diagnostics.  Note
                 // that we can't store the map case-insensitively, since real metadata name
                 // lookup has to remain case sensitive.
-                foreach (var pair in _lazyForwardedTypesToAssemblyIndexMap)
+                foreach (KeyValuePair<string, (int FirstIndex, int SecondIndex)> pair in _lazyForwardedTypesToAssemblyIndexMap)
                 {
                     if (string.Equals(pair.Key, fullName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -2931,8 +2931,8 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    var forwarders = MetadataReader.ExportedTypes;
-                    foreach (var handle in forwarders)
+                    ExportedTypeHandleCollection forwarders = MetadataReader.ExportedTypes;
+                    foreach (ExportedTypeHandle handle in forwarders)
                     {
                         ExportedType exportedType = MetadataReader.GetExportedType(handle);
                         if (!exportedType.IsForwarder)

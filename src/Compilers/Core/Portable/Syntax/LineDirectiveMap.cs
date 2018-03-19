@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis
         // span, taking into account line directives.
         public FileLinePositionSpan TranslateSpan(SourceText sourceText, string treeFilePath, TextSpan span)
         {
-            var unmappedStartPos = sourceText.Lines.GetLinePosition(span.Start);
-            var unmappedEndPos = sourceText.Lines.GetLinePosition(span.End);
-            var entry = FindEntry(unmappedStartPos.Line);
+            LinePosition unmappedStartPos = sourceText.Lines.GetLinePosition(span.Start);
+            LinePosition unmappedEndPos = sourceText.Lines.GetLinePosition(span.End);
+            LineMappingEntry entry = FindEntry(unmappedStartPos.Line);
 
             return TranslateSpan(entry, treeFilePath, unmappedStartPos, unmappedEndPos);
         }
@@ -105,14 +105,14 @@ namespace Microsoft.CodeAnalysis
         private LineMappingEntry[] CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
         {
             var entries = new LineMappingEntry[directives.Count + 1];
-            var current = InitializeFirstEntry();
+            LineMappingEntry current = InitializeFirstEntry();
             var index = 0;
             entries[index] = current;
 
             if (directives.Count > 0)
             {
-                var sourceText = tree.GetText();
-                foreach (var directive in directives)
+                SourceText sourceText = tree.GetText();
+                foreach (TDirective directive in directives)
                 {
                     current = GetEntry(directive, sourceText, current);
                     ++index;

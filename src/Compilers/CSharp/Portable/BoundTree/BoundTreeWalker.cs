@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var call = unoptimizedForm as BoundCall;
             if (call != null && (object)call.Method != null)
             {
-                var arguments = call.Arguments;
+                ImmutableArray<BoundExpression> arguments = call.Arguments;
                 if (call.Method.Name == "Select")
                 {
                     this.Visit(arguments[arguments.Length - 1]);

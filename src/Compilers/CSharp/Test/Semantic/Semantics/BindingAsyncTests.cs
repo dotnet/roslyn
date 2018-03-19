@@ -26,7 +26,7 @@ class C
         await t;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             Assert.True(method.IsAsync);
         }
@@ -46,17 +46,17 @@ class C
         Action<Task> f3 = async (t) => { await t; };
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var simple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
+            SimpleLambdaExpressionSyntax simple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
             Assert.True(((LambdaSymbol)model.GetSymbolInfo(simple).Symbol).IsAsync);
 
-            var parens = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>();
+            IEnumerable<ParenthesizedLambdaExpressionSyntax> parens = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>();
             Assert.True(parens.Count() == 2, "Expect exactly two parenthesized lambda expressions in the syntax tree.");
-            foreach (var paren in parens)
+            foreach (ParenthesizedLambdaExpressionSyntax paren in parens)
             {
                 Assert.True(((LambdaSymbol)model.GetSymbolInfo(paren).Symbol).IsAsync);
             }
@@ -75,12 +75,12 @@ class C
         Action<Task> f4 = async delegate(Task t) { await t; };
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var del = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            AnonymousMethodExpressionSyntax del = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
             Assert.True(((LambdaSymbol)model.GetSymbolInfo(del).Symbol).IsAsync);
         }
 
@@ -1403,7 +1403,7 @@ class Test
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib45(
+            CSharpCompilation c = CreateCompilationWithMscorlib45(
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
                 TestOptions.UnsafeReleaseDll);
@@ -3045,7 +3045,7 @@ class Test : IDisposable
 @"using System.Threading.Tasks;
 Task.FromResult(1);
 Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (2,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 // Task.FromResult(1);
@@ -3427,7 +3427,7 @@ class Test
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             comp.VerifyDiagnostics(
                 // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async public static Task Main()
@@ -3790,8 +3790,8 @@ class C
 #pragma warning restore CS1998
     }
 }";
-            var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            MetadataReference reference = CompileIL(ilSource);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
             compilation.VerifyEmitDiagnostics();
         }
     }

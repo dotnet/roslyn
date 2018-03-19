@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public void AddRange(SeparatedSyntaxList<TNode> nodes, int count)
         {
-            var list = nodes.GetWithSeparators();
+            SyntaxList<GreenNode> list = nodes.GetWithSeparators();
             this._builder.AddRange(list, this.Count, Math.Min(count * 2, list.Count));
         }
 

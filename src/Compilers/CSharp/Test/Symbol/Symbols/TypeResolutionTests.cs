@@ -118,24 +118,24 @@ namespace System
                         CorLightup.Desktop.GetAssemblyLocation(typeof(TypeTests).GetTypeInfo().Assembly)))
                 });
 
-            var intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);
+            TypeSymbol intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);
             Assert.NotNull(intSym);
             Assert.Equal(SpecialType.System_Int32, intSym.SpecialType);
 
-            var strcmpSym = c.Assembly.GetTypeByReflectionType(typeof(StringComparison), includeReferences: true);
+            TypeSymbol strcmpSym = c.Assembly.GetTypeByReflectionType(typeof(StringComparison), includeReferences: true);
             Assert.NotNull(strcmpSym);
             Assert.Equal("System.StringComparison", strcmpSym.ToDisplayString());
 
-            var arraySym = c.Assembly.GetTypeByReflectionType(typeof(List<int>[][,,]), includeReferences: true);
+            TypeSymbol arraySym = c.Assembly.GetTypeByReflectionType(typeof(List<int>[][,,]), includeReferences: true);
             Assert.NotNull(arraySym);
             Assert.Equal("System.Collections.Generic.List<int>[][*,*,*]", arraySym.ToDisplayString());
 
-            var ptrSym = c.Assembly.GetTypeByReflectionType(typeof(char).MakePointerType().MakePointerType(), includeReferences: true);
+            TypeSymbol ptrSym = c.Assembly.GetTypeByReflectionType(typeof(char).MakePointerType().MakePointerType(), includeReferences: true);
             Assert.NotNull(ptrSym);
             Assert.Equal("char**", ptrSym.ToDisplayString());
 
             string testType1 = typeof(C<,>).DeclaringType.FullName;
-            var nestedSym1 = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, float>.F<byte>), includeReferences: true);
+            TypeSymbol nestedSym1 = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, float>.F<byte>), includeReferences: true);
             Assert.Equal(testType1 + ".C<int, bool>.D.E<double, float>.F<byte>", nestedSym1.ToDisplayString());
 
             // Not supported atm:
@@ -144,7 +144,7 @@ namespace System
             //Assert.Equal(testType2 + ".C<int, bool>.D.E<double, float>.F<byte>", nestedSym2.ToDisplayString());
 
             // Process is defined in System, which isn't referenced:
-            var err = c.Assembly.GetTypeByReflectionType(typeof(C<Process, bool>.D.E<double, float>.F<byte>), includeReferences: true);
+            TypeSymbol err = c.Assembly.GetTypeByReflectionType(typeof(C<Process, bool>.D.E<double, float>.F<byte>), includeReferences: true);
             Assert.Null(err);
 
             err = c.Assembly.GetTypeByReflectionType(typeof(C<int, bool>.D.E<double, Process>.F<byte>), includeReferences: true);

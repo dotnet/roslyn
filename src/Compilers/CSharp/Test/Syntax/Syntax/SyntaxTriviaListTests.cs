@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Equality()
         {
-            var node1 = SyntaxFactory.Token(SyntaxKind.AbstractKeyword);
-            var node2 = SyntaxFactory.Token(SyntaxKind.VirtualKeyword);
+            SyntaxToken node1 = SyntaxFactory.Token(SyntaxKind.AbstractKeyword);
+            SyntaxToken node2 = SyntaxFactory.Token(SyntaxKind.VirtualKeyword);
 
             EqualityTesting.AssertEqual(default(SyntaxTriviaList), default(SyntaxTriviaList));
             EqualityTesting.AssertEqual(new SyntaxTriviaList(node1, node1.Node, 0, 0), new SyntaxTriviaList(node1, node1.Node, 0, 0));
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Reverse_Equality()
         {
-            var node1 = SyntaxFactory.Token(SyntaxKind.AbstractKeyword);
-            var node2 = SyntaxFactory.Token(SyntaxKind.VirtualKeyword);
+            SyntaxToken node1 = SyntaxFactory.Token(SyntaxKind.AbstractKeyword);
+            SyntaxToken node2 = SyntaxFactory.Token(SyntaxKind.VirtualKeyword);
 
             EqualityTesting.AssertEqual(default(SyntaxTriviaList.Reversed), default(SyntaxTriviaList.Reversed));
             EqualityTesting.AssertEqual(new SyntaxTriviaList(node1, node1.Node, 0, 0).Reverse(), new SyntaxTriviaList(node1, node1.Node, 0, 0).Reverse());
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAddInsertRemoveReplace()
         {
-            var list = SyntaxFactory.ParseLeadingTrivia("/*A*//*B*//*C*/");
+            SyntaxTriviaList list = SyntaxFactory.ParseLeadingTrivia("/*A*//*B*//*C*/");
 
             Assert.Equal(3, list.Count);
             Assert.Equal("/*A*/", list[0].ToString());
@@ -54,18 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("/*C*/", list[2].ToString());
             Assert.Equal("/*A*//*B*//*C*/", list.ToFullString());
 
-            var elementA = list[0];
-            var elementB = list[1];
-            var elementC = list[2];
+            SyntaxTrivia elementA = list[0];
+            SyntaxTrivia elementB = list[1];
+            SyntaxTrivia elementC = list[2];
 
             Assert.Equal(0, list.IndexOf(elementA));
             Assert.Equal(1, list.IndexOf(elementB));
             Assert.Equal(2, list.IndexOf(elementC));
 
-            var triviaD = SyntaxFactory.ParseLeadingTrivia("/*D*/")[0];
-            var triviaE = SyntaxFactory.ParseLeadingTrivia("/*E*/")[0];
+            SyntaxTrivia triviaD = SyntaxFactory.ParseLeadingTrivia("/*D*/")[0];
+            SyntaxTrivia triviaE = SyntaxFactory.ParseLeadingTrivia("/*E*/")[0];
 
-            var newList = list.Add(triviaD);
+            SyntaxTriviaList newList = list.Add(triviaD);
             Assert.Equal(4, newList.Count);
             Assert.Equal("/*A*//*B*//*C*//*D*/", newList.ToFullString());
 
@@ -186,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal(0, list.Count);
 
-            var triviaD = SyntaxFactory.ParseLeadingTrivia("/*D*/")[0];
-            var triviaE = SyntaxFactory.ParseLeadingTrivia("/*E*/")[0];
+            SyntaxTrivia triviaD = SyntaxFactory.ParseLeadingTrivia("/*D*/")[0];
+            SyntaxTrivia triviaE = SyntaxFactory.ParseLeadingTrivia("/*E*/")[0];
 
-            var newList = list.Add(triviaD);
+            SyntaxTriviaList newList = list.Add(triviaD);
             Assert.Equal(1, newList.Count);
             Assert.Equal("/*D*/", newList.ToFullString());
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Extensions()
         {
-            var list = SyntaxFactory.ParseLeadingTrivia("/*A*//*B*//*C*/");
+            SyntaxTriviaList list = SyntaxFactory.ParseLeadingTrivia("/*A*//*B*//*C*/");
 
             Assert.Equal(0, list.IndexOf(SyntaxKind.MultiLineCommentTrivia));
             Assert.True(list.Any(SyntaxKind.MultiLineCommentTrivia));

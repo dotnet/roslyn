@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         (int A, int B, (int C, int), int, int, int G, int H, int I) t = (1, 2, (3, 4), 5, 6, 7, 8, 9);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <files>
@@ -67,7 +67,7 @@ class C
         const C<(int A, int B)> c = null;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <files>
@@ -119,7 +119,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <files>
@@ -186,7 +186,7 @@ class C
         (int \u1234, int, int \u005f\u1200\u005f) \u1200 = (1, 2, 3);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <files>
@@ -237,7 +237,7 @@ string.Format(@"<symbols>
         } //10,9
     } //11,5
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <files>
@@ -302,8 +302,8 @@ class C
     }
 }
 ";
-            var c = CreateCompilation(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilation(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size        5 (0x5)

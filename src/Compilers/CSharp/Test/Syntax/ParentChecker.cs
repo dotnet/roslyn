@@ -13,32 +13,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal(expectedSyntaxTree, nodeOrToken.SyntaxTree);
 
-            var span = nodeOrToken.Span;
+            TextSpan span = nodeOrToken.Span;
 
             if (nodeOrToken.IsToken)
             {
-                var token = nodeOrToken.AsToken();
-                foreach (var trivia in token.LeadingTrivia)
+                SyntaxToken token = nodeOrToken.AsToken();
+                foreach (SyntaxTrivia trivia in token.LeadingTrivia)
                 {
-                    var tspan = trivia.Span;
-                    var parentToken = trivia.Token;
+                    TextSpan tspan = trivia.Span;
+                    SyntaxToken parentToken = trivia.Token;
                     Assert.Equal(parentToken, token);
                     if (trivia.HasStructure)
                     {
-                        var parentTrivia = trivia.GetStructure().Parent;
+                        SyntaxNode parentTrivia = trivia.GetStructure().Parent;
                         Assert.Null(parentTrivia);
                         CheckParents((CSharpSyntaxNode)trivia.GetStructure(), expectedSyntaxTree);
                     }
                 }
 
-                foreach (var trivia in token.TrailingTrivia)
+                foreach (SyntaxTrivia trivia in token.TrailingTrivia)
                 {
-                    var tspan = trivia.Span;
-                    var parentToken = trivia.Token;
+                    TextSpan tspan = trivia.Span;
+                    SyntaxToken parentToken = trivia.Token;
                     Assert.Equal(parentToken, token);
                     if (trivia.HasStructure)
                     {
-                        var parentTrivia = trivia.GetStructure().Parent;
+                        SyntaxNode parentTrivia = trivia.GetStructure().Parent;
                         Assert.Null(parentTrivia);
                         CheckParents(trivia.GetStructure(), expectedSyntaxTree);
                     }
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                var node = nodeOrToken.AsNode();
-                foreach (var child in node.ChildNodesAndTokens())
+                SyntaxNode node = nodeOrToken.AsNode();
+                foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
                 {
-                    var parent = child.Parent;
+                    SyntaxNode parent = child.Parent;
                     Assert.Equal(node, parent);
                     CheckParents(child, expectedSyntaxTree);
                 }

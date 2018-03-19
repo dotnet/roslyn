@@ -28,7 +28,7 @@ class C
 ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, Constant: 4) (Syntax: 'sizeof(int)')
   TypeOperand: System.Int32
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -83,7 +83,7 @@ class C
 ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32) (Syntax: 'sizeof(void**)')
   TypeOperand: System.Void**
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
            
             VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeReleaseDll);
         }

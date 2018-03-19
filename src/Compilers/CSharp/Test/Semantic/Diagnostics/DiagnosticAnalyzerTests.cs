@@ -130,7 +130,7 @@ public class C : NotFound
     }
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
-            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
                 new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
 
             CreateCompilationWithMscorlib45(source, options: options/*, analyzers: new IDiagnosticAnalyzerFactory[] { new ComplainAboutX() }*/).VerifyDiagnostics(
@@ -153,7 +153,7 @@ public class C : NotFound
     }
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
-            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
                 new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
 
             CreateCompilationWithMscorlib45(source, options: options).VerifyDiagnostics(
@@ -186,7 +186,7 @@ public class C : NotFound
         return x3 + 1;
     }
 }";
-            var options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
 
             CreateCompilationWithMscorlib45(source, options: options).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
@@ -272,7 +272,7 @@ using System;
 
 [Obsolete]
 public class C { }";
-            var options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
@@ -299,19 +299,19 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             var warningDiag = CodeAnalysis.Diagnostic.Create(warningDiagDescriptor, Location.None);
             var errorDiag = CodeAnalysis.Diagnostic.Create(errorDiagDescriptor, Location.None);
 
-            var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
+            Diagnostic[] diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
 
             // Escalate all diagnostics to error.
             var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
             specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Error);
             specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Error);
             specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.Error);
-            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
 
-            var comp = CreateCompilationWithMscorlib45("", options: options);
-            var effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
+            CSharpCompilation comp = CreateCompilationWithMscorlib45("", options: options);
+            Diagnostic[] effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(diags.Length, effectiveDiags.Length);
-            foreach (var effectiveDiag in effectiveDiags)
+            foreach (Diagnostic effectiveDiag in effectiveDiags)
             {
                 Assert.True(effectiveDiag.Severity == DiagnosticSeverity.Error);
             }
@@ -340,7 +340,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(diags.Length, effectiveDiags.Length);
             var diagIds = new HashSet<string>(diags.Select(d => d.Id));
-            foreach (var effectiveDiag in effectiveDiags)
+            foreach (Diagnostic effectiveDiag in effectiveDiags)
             {
                 Assert.True(diagIds.Remove(effectiveDiag.Id));
 
@@ -383,11 +383,11 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             var warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDescriptor, Location.None);
             var errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDescriptor, Location.None);
 
-            var diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
+            Diagnostic[] diags = new[] { noneDiag, infoDiag, warningDiag, errorDiag };
 
-            var options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default);
-            var comp = CreateCompilationWithMscorlib45("", options: options);
-            var effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45("", options: options);
+            Diagnostic[] effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(4, effectiveDiags.Length);
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
@@ -434,12 +434,12 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             var disabledDiag = CodeAnalysis.Diagnostic.Create(disabledDiagDescriptor, Location.None);
             var enabledDiag = CodeAnalysis.Diagnostic.Create(enabledDiagDescriptor, Location.None);
 
-            var diags = new[] { disabledDiag, enabledDiag };
+            Diagnostic[] diags = new[] { disabledDiag, enabledDiag };
 
             // Verify that only the enabled diag shows up after filtering.
-            var options = TestOptions.ReleaseDll;
-            var comp = CreateCompilationWithMscorlib45("", options: options);
-            var effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
+            CSharpCompilationOptions options = TestOptions.ReleaseDll;
+            CSharpCompilation comp = CreateCompilationWithMscorlib45("", options: options);
+            Diagnostic[] effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray();
             Assert.Equal(1, effectiveDiags.Length);
             Assert.Contains(enabledDiag, effectiveDiags);
 
@@ -512,7 +512,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
             var partiallyDisabledAnalyzer = new PartiallyDisabledAnalyzer();
 
-            var options = TestOptions.ReleaseDll;
+            CSharpCompilationOptions options = TestOptions.ReleaseDll;
             Assert.True(fullyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
             Assert.False(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
 
@@ -703,7 +703,7 @@ public class B
             // These diagnostic descriptor fields show up in the ruleset editor and hence must have a valid value.
 
             var analyzer = new CSharpCompilerDiagnosticAnalyzer();
-            foreach (var descriptor in analyzer.SupportedDiagnostics)
+            foreach (DiagnosticDescriptor descriptor in analyzer.SupportedDiagnostics)
             {
                 Assert.Equal(descriptor.IsEnabledByDefault, true);
 
@@ -923,9 +923,9 @@ public class B
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1);
-            var anotherCompilation = CreateCompilationWithMscorlib45(source2);
-            var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1);
+            CSharpCompilation anotherCompilation = CreateCompilationWithMscorlib45(source2);
+            SyntaxTree treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 
             string message = new ArgumentException(
                 string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.FilePath), "diagnostic").Message;
@@ -950,8 +950,8 @@ public class B
         public void TestReportingDiagnosticWithInvalidSpan()
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1);
-            var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1);
+            SyntaxTree treeInAnotherCompilation = compilation.SyntaxTrees.Single();
 
             var badSpan = new Text.TextSpan(100000, 10000);
 
@@ -1015,7 +1015,7 @@ public class B
             // Verify not configurable enabled diagnostic cannot be suppressed.
             var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
             specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress);
-            var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions);
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
@@ -1160,7 +1160,7 @@ class MyClass
             specificOptions = specificOptions ?? new Dictionary<string, ReportDiagnostic>();
             var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, generalDiagnosticOption: generalOption, specificDiagnosticOptions: specificOptions);
             var descriptor = new DiagnosticDescriptor(id: "Test0001", title: "Test0001", messageFormat: "Test0001", category: "Test0001", defaultSeverity: defaultSeverity, isEnabledByDefault: isEnabledByDefault);
-            var effectiveSeverity = descriptor.GetEffectiveSeverity(options);
+            ReportDiagnostic effectiveSeverity = descriptor.GetEffectiveSeverity(options);
             Assert.Equal(expectedEffectiveSeverity, effectiveSeverity);
         }
 
@@ -1178,7 +1178,7 @@ class MyClass
         public void EffectiveSeverity_DiagnosticDefault2()
         {
             var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", ReportDiagnostic.Default } };
-            var generalOption = ReportDiagnostic.Error;
+            ReportDiagnostic generalOption = ReportDiagnostic.Error;
 
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: ReportDiagnostic.Warn, specificOptions: specificOptions, generalOption: generalOption);
         }
@@ -1188,7 +1188,7 @@ class MyClass
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_GeneralOption()
         {
-            var generalOption = ReportDiagnostic.Error;
+            ReportDiagnostic generalOption = ReportDiagnostic.Error;
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: generalOption, generalOption: generalOption);
         }
 
@@ -1197,9 +1197,9 @@ class MyClass
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_SpecificOption()
         {
-            var specificOption = ReportDiagnostic.Suppress;
+            ReportDiagnostic specificOption = ReportDiagnostic.Suppress;
             var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", specificOption } };
-            var generalOption = ReportDiagnostic.Error;
+            ReportDiagnostic generalOption = ReportDiagnostic.Error;
 
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: specificOption, specificOptions: specificOptions, generalOption: generalOption);
         }
@@ -1209,7 +1209,7 @@ class MyClass
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
         {
-            var generalOption = ReportDiagnostic.Error;
+            ReportDiagnostic generalOption = ReportDiagnostic.Error;
             var enabledByDefault = false;
 
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: ReportDiagnostic.Suppress, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
@@ -1221,9 +1221,9 @@ class MyClass
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
         public void EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
         {
-            var specificOption = ReportDiagnostic.Warn;
+            ReportDiagnostic specificOption = ReportDiagnostic.Warn;
             var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", specificOption } };
-            var generalOption = ReportDiagnostic.Error;
+            ReportDiagnostic generalOption = ReportDiagnostic.Error;
             var enabledByDefault = false;
 
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: specificOption, specificOptions: specificOptions, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
@@ -1251,12 +1251,12 @@ class D
 
         private static Compilation GetCompilationWithConcurrentBuildEnabled(string source)
         {
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
 
             // NOTE: We set the concurrentBuild option to true after creating the compilation as CreateCompilationWithMscorlib
             //       always sets concurrentBuild to false if debugger is attached, even if we had passed options with concurrentBuild = true to that API.
             //       We want the tests using GetCompilationWithConcurrentBuildEnabled to have identical behavior with and without debugger being attached.
-            var options = compilation.Options.WithConcurrentBuild(true);
+            CSharpCompilationOptions options = compilation.Options.WithConcurrentBuild(true);
             return compilation.WithOptions(options);
         }
 
@@ -1275,7 +1275,7 @@ class D
             var analyzers = new DiagnosticAnalyzer[] { new NonConcurrentAnalyzer() };
 
             // Verify no diagnostics.
-            var compilation = GetCompilationWithConcurrentBuildEnabled(source);
+            Compilation compilation = GetCompilationWithConcurrentBuildEnabled(source);
             compilation.VerifyDiagnostics();
             compilation.VerifyAnalyzerDiagnostics(analyzers);
         }
@@ -1300,7 +1300,7 @@ class D
             }
 
             var source = builder.ToString();
-            var compilation = GetCompilationWithConcurrentBuildEnabled(source);
+            Compilation compilation = GetCompilationWithConcurrentBuildEnabled(source);
             compilation.VerifyDiagnostics();
 
             // Verify analyzer diagnostics for Concurrent analyzer only.
@@ -1347,11 +1347,11 @@ class NonGeneratedCode{0}
                 "Test.g.i.cs"
             };
 
-            var builder = ImmutableArray.CreateBuilder<SyntaxTree>();
+            ImmutableArray<SyntaxTree>.Builder builder = ImmutableArray.CreateBuilder<SyntaxTree>();
             int treeNum = 0;
 
             // Trees with non-generated code file names
-            var tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "SourceFileRegular.cs");
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "SourceFileRegular.cs");
             builder.Add(tree);
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "AssemblyInfo.cs");
             builder.Add(tree);
@@ -1374,8 +1374,8 @@ class NonGeneratedCode{0}
             }
 
             // Verify no compiler diagnostics.
-            var trees = builder.ToImmutable();
-            var compilation = CreateCompilationWithMscorlib45(trees, new MetadataReference[] { SystemRef });
+            ImmutableArray<SyntaxTree> trees = builder.ToImmutable();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(trees, new MetadataReference[] { SystemRef });
             compilation.VerifyDiagnostics();
 
             Func<string, bool> isGeneratedFile = fileName => fileName.Contains("SourceFileWithAutoGeneratedComment") || generatedFileNames.Contains(fileName);
@@ -1391,8 +1391,8 @@ class NonGeneratedCode{0}
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             // (4) Ensure warnaserror doesn't produce noise in generated files.
-            var options = compilation.Options.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            var warnAsErrorCompilation = compilation.WithOptions(options);
+            CSharpCompilationOptions options = compilation.Options.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            CSharpCompilation warnAsErrorCompilation = compilation.WithOptions(options);
             VerifyGeneratedCodeAnalyzerDiagnostics(warnAsErrorCompilation, isGeneratedFile, generatedCodeAnalysisFlagsOpt: null);
         }
 
@@ -1409,8 +1409,8 @@ partial class PartialType
 {
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "SourceFileRegular.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, new MetadataReference[] { SystemRef });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "SourceFileRegular.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree }, new MetadataReference[] { SystemRef });
             compilation.VerifyDiagnostics();
 
             var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
@@ -1432,7 +1432,7 @@ partial class PartialType
             // Expected compilation diagnostics
             AddExpectedNonLocalDiagnostic(builder, "PartialType", compilation.SyntaxTrees[0].FilePath);
 
-            var expected = builder.ToArrayAndFree();
+            DiagnosticDescription[] expected = builder.ToArrayAndFree();
 
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt: null);
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.None);
@@ -1451,9 +1451,9 @@ class TypeInUserFile { }
             string source2 = @"
 class TypeInGeneratedFile { }
 ";
-            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "SourceFileRegular.cs");
-            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "SourceFileRegular.Designer.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }, new MetadataReference[] { SystemRef });
+            SyntaxTree tree1 = CSharpSyntaxTree.ParseText(source1, path: "SourceFileRegular.cs");
+            SyntaxTree tree2 = CSharpSyntaxTree.ParseText(source2, path: "SourceFileRegular.Designer.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }, new MetadataReference[] { SystemRef });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer2() };
@@ -1524,7 +1524,7 @@ class C
 
         private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
         {
-            var expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt);
+            DiagnosticDescription[] expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt);
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt);
         }
 
@@ -1640,7 +1640,7 @@ class C
 
             if (!isGeneratedCode || reportInGeneratedCode)
             {
-                var diagnostic = Diagnostic(GeneratedCodeAnalyzer.Warning.Id, squiggledText).WithArguments(arguments).WithLocation(line, column);
+                DiagnosticDescription diagnostic = Diagnostic(GeneratedCodeAnalyzer.Warning.Id, squiggledText).WithArguments(arguments).WithLocation(line, column);
                 builder.Add(diagnostic);
 
                 diagnostic = Diagnostic(GeneratedCodeAnalyzer.Error.Id, squiggledText).WithArguments(arguments).WithLocation(line, column);
@@ -1655,7 +1655,7 @@ class C
 
         private static void AddExpectedDiagnostic(ArrayBuilder<DiagnosticDescription> builder, string diagnosticId, string squiggledText, int line, int column, params string[] arguments)
         {
-            var diagnostic = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column);
+            DiagnosticDescription diagnostic = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column);
             builder.Add(diagnostic);
         }
 
@@ -1664,8 +1664,8 @@ class C
         {
             var source = @"namespace N1.N2 { }";
 
-            var metadataReference = CreateCompilation(source).ToMetadataReference();
-            var compilation = CreateCompilation(source, new[] { metadataReference });
+            CompilationReference metadataReference = CreateCompilation(source).ToMetadataReference();
+            CSharpCompilation compilation = CreateCompilation(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
 
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
@@ -1685,13 +1685,13 @@ public partial class C2 { }
             string source3 = @"
 public partial class C33 { }
 ";
-            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "Source1_File1.cs");
-            var tree2 = CSharpSyntaxTree.ParseText(source1, path: "Source1_File2.cs");
-            var tree3 = CSharpSyntaxTree.ParseText(source2, path: "Source2_File3.cs");
-            var tree4 = CSharpSyntaxTree.ParseText(source3, path: "Source3_File4.generated.cs");
-            var tree5 = CSharpSyntaxTree.ParseText(source3, path: "Source3_File5.designer.cs");
+            SyntaxTree tree1 = CSharpSyntaxTree.ParseText(source1, path: "Source1_File1.cs");
+            SyntaxTree tree2 = CSharpSyntaxTree.ParseText(source1, path: "Source1_File2.cs");
+            SyntaxTree tree3 = CSharpSyntaxTree.ParseText(source2, path: "Source2_File3.cs");
+            SyntaxTree tree4 = CSharpSyntaxTree.ParseText(source3, path: "Source3_File4.generated.cs");
+            SyntaxTree tree5 = CSharpSyntaxTree.ParseText(source3, path: "Source3_File5.designer.cs");
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2, tree3, tree4, tree5 });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2, tree3, tree4, tree5 });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new SharedStateAnalyzer() };
@@ -1723,8 +1723,8 @@ public class C
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1744,8 +1744,8 @@ public class C
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1767,8 +1767,8 @@ public class C
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1788,8 +1788,8 @@ public class C
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1813,8 +1813,8 @@ public class C
     void M4(System.Action<int, int> a) { }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1833,8 +1833,8 @@ public class C
     delegate void D(int x, string y);
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1852,8 +1852,8 @@ public class C
     public static implicit operator int (C c) { return 0; }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1875,8 +1875,8 @@ public class C : I
     void I.M(int c, int d) { }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1896,8 +1896,8 @@ public static class C
     static void M(this int x, int y) { }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1922,8 +1922,8 @@ public class C
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
@@ -1955,8 +1955,8 @@ public class RegularClass
 {
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.None) };
@@ -2020,8 +2020,8 @@ public class Class
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var syntaxKinds = ImmutableArray.Create(SyntaxKind.VariableDeclaration);
@@ -2232,8 +2232,8 @@ internal class C : MyInterface
     private int P2 => 0;
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (51,32): warning CS0067: The event 'C.MyEvent' is never used
                 //     public event Delegate<int> MyEvent;
@@ -2306,8 +2306,8 @@ internal class Derived : Base
     }
 }";
 
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             // Test RegisterOperationBlockAction
@@ -2333,8 +2333,8 @@ internal class A
     public void M() { }
 }";
 
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
@@ -2351,8 +2351,8 @@ internal class A
     public void M(int p = 0) { }
 }";
 
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
@@ -2369,8 +2369,8 @@ internal class A
     public int M() { return 0; } => 0;
 }";
 
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     public int M() { return 0; } => 0;
@@ -2397,8 +2397,8 @@ internal class Derived : Base
     public Derived() : base(Field) { }
 }";
 
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };

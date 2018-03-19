@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> expressions;
             MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions);
             expressions.Insert(0, format);
-            var stringFactory = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
+            Symbols.NamedTypeSymbol stringFactory = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
 
             // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
             // the arguments first in this situation because we do not know what conversions will be
             // produced for the arguments until after we've done overload resolution. So we produce the invocation
             // and then lower it along with its arguments.
-            var result = _factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree(),
+            BoundExpression result = _factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree(),
                 allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int nextFormatPosition = 0;
             for (int i = 0; i <= n; i++)
             {
-                var part = node.Parts[i];
+                BoundExpression part = node.Parts[i];
                 var fillin = part as BoundStringInsert;
                 if (fillin == null)
                 {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         formatString.Builder.Append(":").Append(fillin.Format.ConstantValue.StringValue);
                     }
                     formatString.Builder.Append("}");
-                    var value = fillin.Value;
+                    BoundExpression value = fillin.Value;
                     if (value.Type?.TypeKind == TypeKind.Dynamic)
                     {
                         value = MakeConversionNode(value, _compilation.ObjectType, @checked: false);
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // produced for the arguments until after we've done overload resolution. So we produce the invocation
             // and then lower it along with its arguments.
             expressions.Insert(0, format);
-            var stringType = node.Type;
-            var result = _factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
+            Symbols.TypeSymbol stringType = node.Type;
+            BoundExpression result = _factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
                 allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)

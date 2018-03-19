@@ -35,7 +35,7 @@ class C : I
         System.Console.Write(Tester(false)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
@@ -124,7 +124,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }
@@ -159,7 +159,7 @@ class C : I
         System.Console.Write(Tester(1)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
@@ -285,7 +285,7 @@ class C : I
         System.Console.Write(Tester(-1)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
@@ -414,7 +414,7 @@ class C : I
         System.Console.Write(Tester(-2)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
@@ -563,7 +563,7 @@ public class C : I
         System.Console.Write(Tester(1, 0).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
@@ -647,7 +647,7 @@ public class C : I
         System.Console.Write(Tester(0).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
@@ -737,7 +737,7 @@ public class C : I
         System.Console.Write(Tester(1).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
@@ -843,7 +843,7 @@ public class C : I
         System.Console.Write(Tester(0).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
@@ -930,7 +930,7 @@ class C
         System.Console.WriteLine(b ? 1 : 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -959,7 +959,7 @@ class C
         System.Console.WriteLine(false ? x : y);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 1
 2");
             comp.VerifyDiagnostics();
@@ -992,7 +992,7 @@ class C
         System.Console.WriteLine(s2);
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1032,7 +1032,7 @@ class C
     }
 }";
             // NOTE: this is slightly different from the Dev10 IL, which caches the lambdas in static fields
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1098,7 +1098,7 @@ class C
         return 0;
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1144,7 +1144,7 @@ class C
     }
 }";
             // NOTE: second call is to Write(uint)
-            var comp = CompileAndVerify(source, expectedOutput: "00");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "00");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1197,7 +1197,7 @@ public class Test
     }
 }";
             // NOTE: second call is to Write(uint)
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 first attempt: System.Type[]
 second attempt: System.Type[]");
             comp.VerifyDiagnostics();
@@ -1257,7 +1257,7 @@ public class Test
 }";
             // Note the explicit casts, even though the conversions are
             // implicit reference conversions.
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1303,7 +1303,7 @@ public class Test
 }";
             // Note the explicit casts, even though the conversions are
             // implicit reference conversions.
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1345,7 +1345,7 @@ class Test1 : Base
     public Base m1() { return ((++cnt) & Driver.mask) != 0 ? same : next; } //version1 (explicit impl in original repro)
     public Base m2() { return ((++cnt) & Driver.mask) != 0 ? this : next; } //version2 
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test1.m1", @"
 {
@@ -1423,7 +1423,7 @@ class MainClass
             // implicit reference conversions.
             // CONSIDER: dev10 writes to/reads from a temp to simulate
             // a static cast (instead of using castclass).
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("MainClass.g", @"
 {
@@ -2192,7 +2192,7 @@ public class C : I
         System.Console.Write(Tester(null).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
@@ -2473,7 +2473,7 @@ class Program
         [Fact]
         public void RefReadonlyConditional()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -2704,7 +2704,7 @@ class Program
             string expectedOutput = @"2
 2
 2";
-            var verify = CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompilationVerifier verify = CompileAndVerify(source, expectedOutput: expectedOutput);
 
             verify.VerifyIL("Program.Main",
 @"

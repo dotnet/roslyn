@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CommonSyntaxTriviaSpan_CSharp()
         {
-            var csharpToken = CSharp.SyntaxFactory.ParseExpression("1 + 123 /*hello*/").GetLastToken();
-            var csharpTriviaList = csharpToken.TrailingTrivia;
+            SyntaxToken csharpToken = CSharp.SyntaxFactory.ParseExpression("1 + 123 /*hello*/").GetLastToken();
+            SyntaxTriviaList csharpTriviaList = csharpToken.TrailingTrivia;
             Assert.Equal(2, csharpTriviaList.Count);
 
-            var csharpTrivia = csharpTriviaList.ElementAt(1);
+            SyntaxTrivia csharpTrivia = csharpTriviaList.ElementAt(1);
             Assert.Equal(CSharp.SyntaxKind.MultiLineCommentTrivia, CSharp.CSharpExtensions.Kind(csharpTrivia));
 
-            var correctSpan = csharpTrivia.Span;
+            TextSpan correctSpan = csharpTrivia.Span;
             Assert.Equal(8, correctSpan.Start);
             Assert.Equal(17, correctSpan.End);
 
@@ -123,13 +123,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var commonTriviaList = (SyntaxTriviaList)csharpTriviaList;
 
-            var commonTrivia2 = commonTriviaList[1]; //from converted list
+            SyntaxTrivia commonTrivia2 = commonTriviaList[1]; //from converted list
             Assert.Equal(correctSpan, commonTrivia2.Span);
 
             var commonToken = (SyntaxToken)csharpToken;
-            var commonTriviaList2 = commonToken.TrailingTrivia;
+            SyntaxTriviaList commonTriviaList2 = commonToken.TrailingTrivia;
 
-            var commonTrivia3 = commonTriviaList2[1]; //from converted token
+            SyntaxTrivia commonTrivia3 = commonTriviaList2[1]; //from converted token
             Assert.Equal(correctSpan, commonTrivia3.Span);
 
             var csharpTrivia2 = (SyntaxTrivia)commonTrivia; //direct conversion
@@ -137,21 +137,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var csharpTriviaList2 = (SyntaxTriviaList)commonTriviaList;
 
-            var csharpTrivia3 = csharpTriviaList2.ElementAt(1); //from converted list
+            SyntaxTrivia csharpTrivia3 = csharpTriviaList2.ElementAt(1); //from converted list
             Assert.Equal(correctSpan, csharpTrivia3.Span);
         }
 
         [Fact]
         public void CommonSyntaxTriviaSpan_VisualBasic()
         {
-            var vbToken = VB.SyntaxFactory.ParseExpression("1 + 123 'hello").GetLastToken();
+            SyntaxToken vbToken = VB.SyntaxFactory.ParseExpression("1 + 123 'hello").GetLastToken();
             var vbTriviaList = (SyntaxTriviaList)vbToken.TrailingTrivia;
             Assert.Equal(2, vbTriviaList.Count);
 
-            var vbTrivia = vbTriviaList.ElementAt(1);
+            SyntaxTrivia vbTrivia = vbTriviaList.ElementAt(1);
             Assert.Equal(VB.SyntaxKind.CommentTrivia, VB.VisualBasicExtensions.Kind(vbTrivia));
 
-            var correctSpan = vbTrivia.Span;
+            TextSpan correctSpan = vbTrivia.Span;
             Assert.Equal(8, correctSpan.Start);
             Assert.Equal(14, correctSpan.End);
 
@@ -160,13 +160,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var commonTriviaList = (SyntaxTriviaList)vbTriviaList;
 
-            var commonTrivia2 = commonTriviaList[1]; //from converted list
+            SyntaxTrivia commonTrivia2 = commonTriviaList[1]; //from converted list
             Assert.Equal(correctSpan, commonTrivia2.Span);
 
             var commonToken = (SyntaxToken)vbToken;
-            var commonTriviaList2 = commonToken.TrailingTrivia;
+            SyntaxTriviaList commonTriviaList2 = commonToken.TrailingTrivia;
 
-            var commonTrivia3 = commonTriviaList2[1]; //from converted token
+            SyntaxTrivia commonTrivia3 = commonTriviaList2[1]; //from converted token
             Assert.Equal(correctSpan, commonTrivia3.Span);
 
             var vbTrivia2 = (SyntaxTrivia)commonTrivia; //direct conversion
@@ -174,40 +174,40 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var vbTriviaList2 = (SyntaxTriviaList)commonTriviaList;
 
-            var vbTrivia3 = vbTriviaList2.ElementAt(1); //from converted list
+            SyntaxTrivia vbTrivia3 = vbTriviaList2.ElementAt(1); //from converted list
             Assert.Equal(correctSpan, vbTrivia3.Span);
         }
 
         [Fact, WorkItem(824695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824695")]
         public void CSharpSyntax_VisualBasicKind()
         {
-            var node = CSharp.SyntaxFactory.Identifier("a");
+            SyntaxToken node = CSharp.SyntaxFactory.Identifier("a");
             Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(node));
-            var token = CSharp.SyntaxFactory.Token(CSharp.SyntaxKind.IfKeyword);
+            SyntaxToken token = CSharp.SyntaxFactory.Token(CSharp.SyntaxKind.IfKeyword);
             Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(token));
-            var trivia = CSharp.SyntaxFactory.Comment("c");
+            SyntaxTrivia trivia = CSharp.SyntaxFactory.Comment("c");
             Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(trivia));
         }
 
         [Fact, WorkItem(824695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824695")]
         public void VisualBasicSyntax_CSharpKind()
         {
-            var node = VisualBasic.SyntaxFactory.Identifier("a");
+            SyntaxToken node = VisualBasic.SyntaxFactory.Identifier("a");
             Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(node));
-            var token = VisualBasic.SyntaxFactory.Token(VisualBasic.SyntaxKind.IfKeyword);
+            SyntaxToken token = VisualBasic.SyntaxFactory.Token(VisualBasic.SyntaxKind.IfKeyword);
             Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(token));
-            var trivia = VisualBasic.SyntaxFactory.CommentTrivia("c");
+            SyntaxTrivia trivia = VisualBasic.SyntaxFactory.CommentTrivia("c");
             Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(trivia));
         }
 
         [Fact]
         public void TestTrackNodes()
         {
-            var expr = CSharp.SyntaxFactory.ParseExpression("a + b + c + d");
+            CS.Syntax.ExpressionSyntax expr = CSharp.SyntaxFactory.ParseExpression("a + b + c + d");
 
-            var exprB = expr.DescendantNodes().OfType<CSharp.Syntax.IdentifierNameSyntax>().First(n => n.Identifier.ToString() == "b");
+            CS.Syntax.IdentifierNameSyntax exprB = expr.DescendantNodes().OfType<CSharp.Syntax.IdentifierNameSyntax>().First(n => n.Identifier.ToString() == "b");
 
-            var trackedExpr = expr.TrackNodes(exprB);
+            CS.Syntax.ExpressionSyntax trackedExpr = expr.TrackNodes(exprB);
 
             // replace each expression with a parenthesized expression
             trackedExpr = trackedExpr.ReplaceNodes(
@@ -217,19 +217,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             trackedExpr = trackedExpr.NormalizeWhitespace();
             Assert.Equal("(((a) + (b)) + (c)) + (d)", trackedExpr.ToString());
 
-            var trackedB = trackedExpr.GetCurrentNodes(exprB).First();
+            CS.Syntax.IdentifierNameSyntax trackedB = trackedExpr.GetCurrentNodes(exprB).First();
             Assert.Equal(CSharp.SyntaxKind.ParenthesizedExpression, CSharp.CSharpExtensions.Kind(trackedB.Parent));
         }
 
         [Fact]
         public void TestTrackNodesWithDuplicateIdAnnotations()
         {
-            var expr = CSharp.SyntaxFactory.ParseExpression("a + b + c + d");
+            CS.Syntax.ExpressionSyntax expr = CSharp.SyntaxFactory.ParseExpression("a + b + c + d");
 
-            var exprB = expr.DescendantNodes().OfType<CSharp.Syntax.IdentifierNameSyntax>().First(n => n.Identifier.ToString() == "b");
+            CS.Syntax.IdentifierNameSyntax exprB = expr.DescendantNodes().OfType<CSharp.Syntax.IdentifierNameSyntax>().First(n => n.Identifier.ToString() == "b");
 
-            var trackedExpr = expr.TrackNodes(exprB);
-            var annotation = trackedExpr.GetAnnotatedNodes(SyntaxNodeExtensions.IdAnnotationKind).First()
+            CS.Syntax.ExpressionSyntax trackedExpr = expr.TrackNodes(exprB);
+            SyntaxAnnotation annotation = trackedExpr.GetAnnotatedNodes(SyntaxNodeExtensions.IdAnnotationKind).First()
                                         .GetAnnotations(SyntaxNodeExtensions.IdAnnotationKind).First();
 
             // replace each expression with a parenthesized expression
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             trackedExpr = trackedExpr.NormalizeWhitespace();
             Assert.Equal("(((a) + (b)) + (c)) + (d)", trackedExpr.ToString());
 
-            var trackedB = trackedExpr.GetCurrentNodes(exprB).First();
+            CS.Syntax.IdentifierNameSyntax trackedB = trackedExpr.GetCurrentNodes(exprB).First();
             Assert.Equal(CSharp.SyntaxKind.ParenthesizedExpression, CSharp.CSharpExtensions.Kind(trackedB.Parent));
         }
     }

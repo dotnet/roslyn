@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithm.Sha1;
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<string> sourcePaths = new List<string>();
             List<string> keyFileSearchPaths = new List<string>();
             List<string> usings = new List<string>();
-            var generalDiagnosticOption = ReportDiagnostic.Default;
+            ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default;
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
             var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            var encoding = TryParseEncodingName(value);
+                            Encoding encoding = TryParseEncodingName(value);
                             if (encoding == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_BadCodepage, value);
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value);
+                            SourceHashAlgorithm newChecksumAlgorithm = TryParseHashAlgorithmName(value);
                             if (newChecksumAlgorithm == SourceHashAlgorithm.None)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break; // Dev11 reports unrecognized option
                             }
 
-                            var embeddedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: true);
+                            ResourceDescription embeddedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: true);
                             if (embeddedResource != null)
                             {
                                 managedResources.Add(embeddedResource);
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break; // Dev11 reports unrecognized option
                             }
 
-                            var linkedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: false);
+                            ResourceDescription linkedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: false);
                             if (linkedResource != null)
                             {
                                 managedResources.Add(linkedResource);
@@ -1173,13 +1173,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadSwitch, arg);
             }
 
-            foreach (var o in warnAsErrors)
+            foreach (KeyValuePair<string, ReportDiagnostic> o in warnAsErrors)
             {
                 diagnosticOptions[o.Key] = o.Value;
             }
 
             // Specific nowarn options always override specific warnaserror options.
-            foreach (var o in noWarns)
+            foreach (KeyValuePair<string, ReportDiagnostic> o in noWarns)
             {
                 diagnosticOptions[o.Key] = o.Value;
             }
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDiagnostic(diagnostics, ErrorCode.ERR_CannotEmbedWithoutPdb);
             }
 
-            var parsedFeatures = ParseFeatures(features);
+            ImmutableDictionary<string, string> parsedFeatures = ParseFeatures(features);
 
             string compilationName;
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, sourceFilesSpecified, moduleAssemblyName, ref outputFileName, ref moduleName, out compilationName);
@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE(tomat): Dev10 used to report CS1541: ERR_CantIncludeDirectory if the path was a directory.
                 // Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
 
-                var aliases = (alias != null) ? ImmutableArray.Create(alias) : ImmutableArray<string>.Empty;
+                ImmutableArray<string> aliases = (alias != null) ? ImmutableArray.Create(alias) : ImmutableArray<string>.Empty;
 
                 var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes);
                 yield return new CommandLineReference(path, properties);

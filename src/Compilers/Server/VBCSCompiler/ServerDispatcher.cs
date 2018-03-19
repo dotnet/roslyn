@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                var waitArray = all.Where(x => x != null).ToArray();
+                Task[] waitArray = all.Where(x => x != null).ToArray();
                 Task.WaitAny(waitArray, cancellationToken);
             }
             catch (OperationCanceledException)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             _diagnosticListener.ConnectionReceived();
             var allowCompilationRequests = _state == State.Running;
-            var connectionTask = HandleClientConnection(_listenTask, allowCompilationRequests, cancellationToken);
+            Task<ConnectionData> connectionTask = HandleClientConnection(_listenTask, allowCompilationRequests, cancellationToken);
             _connectionList.Add(connectionTask);
 
             // Timeout and GC are only done when there are no active connections.  Now that we have a new
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var i = 0;
             while (i < _connectionList.Count)
             {
-                var current = _connectionList[i];
+                Task<ConnectionData> current = _connectionList[i];
                 if (!current.IsCompleted)
                 {
                     i++;
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 _connectionList.RemoveAt(i);
                 processedCount++;
 
-                var connectionData = current.Result;
+                ConnectionData connectionData = current.Result;
                 ChangeKeepAlive(connectionData.KeepAlive);
 
                 switch (connectionData.CompletionReason)

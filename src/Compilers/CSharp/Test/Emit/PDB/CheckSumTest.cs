@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         {
             var source1 = "public class C1 { public C1() { } }";
             var source256 = "public class C256 { public C256() { } }";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
-            var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
+            SyntaxTree tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
 
-            var compilation = CreateCompilation(new[] { tree1, tree256 });
+            CSharpCompilation compilation = CreateCompilation(new[] { tree1, tree256 });
             compilation.VerifyPdb(@"
 <symbols>
   <files>
@@ -224,7 +224,7 @@ int y = 1;
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            CSharpCompilation compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
             compilation.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -262,7 +262,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
+            CSharpCompilation comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
 
             // Verify the value of name attribute in file element.
             comp.VerifyPdb("C.M", @"
@@ -346,7 +346,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
+            CSharpCompilation comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
 
             // Verify the fact that there's a single file element for "line.cs" and it has an absolute path.
             // Verify the fact that the path that was already absolute wasn't affected by the base directory.
@@ -408,7 +408,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithChecksums(source, "file.cs", @"b:\base");
+            CSharpCompilation comp = CreateCompilationWithChecksums(source, "file.cs", @"b:\base");
             comp.VerifyDiagnostics();
 
             // Verify the fact that all pragmas are referenced, even though the paths differ before normalization.
@@ -465,7 +465,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithChecksums(source, "file.cs", null);
+            CSharpCompilation comp = CreateCompilationWithChecksums(source, "file.cs", null);
             comp.VerifyDiagnostics();
 
             // Verify nothing blew up.

@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(sourceExpression, source, conv.FromType, ref _useSiteDiagnostics);
                 if (u.Any(isValid))
                 {
-                    var result = MostEncompassedType(u, isValid, conv => conv.FromType, ref _useSiteDiagnostics);
+                    TypeSymbol result = MostEncompassedType(u, isValid, conv => conv.FromType, ref _useSiteDiagnostics);
                     useSiteDiagnostics = _useSiteDiagnostics;
                     return result;
                 }
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(null, conv.ToType, target, ref _useSiteDiagnostics);
             if (u.Any(isValid))
             {
-                var result = MostEncompassingType(u, isValid, conv => conv.ToType, ref _useSiteDiagnostics);
+                TypeSymbol result = MostEncompassingType(u, isValid, conv => conv.ToType, ref _useSiteDiagnostics);
                 useSiteDiagnostics = _useSiteDiagnostics;
                 return result;
             }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to an enum type, because the native compiler did not.  It would be a breaking
             // change.
 
-            var result = ClassifyStandardConversion(expr, a, b, ref useSiteDiagnostics);
+            Conversion result = ClassifyStandardConversion(expr, a, b, ref useSiteDiagnostics);
             return result.IsEnumeration ? Conversion.NoConversion : result;
         }
     }

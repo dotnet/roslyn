@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol(); // type parameter not associated with a method
             }
 
-            var typeParameters = _methodContextOpt.TypeParameters;
+            ImmutableArray<TypeParameterSymbol> typeParameters = _methodContextOpt.TypeParameters;
 
             if (typeParameters.Length <= position)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
         {
-            var result = container.LookupMetadataType(ref emittedName);
+            NamedTypeSymbol result = container.LookupMetadataType(ref emittedName);
             Debug.Assert((object)result != null);
 
             return result;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int referencedAssemblyIndex,
             ref MetadataTypeName emittedName)
         {
-            var assembly = moduleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+            AssemblySymbol assembly = moduleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex);
             if ((object)assembly == null)
             {
                 return new UnsupportedMetadataTypeSymbol();
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Go through all assemblies referenced by the current module and
             // find the one which *exactly* matches the given identity.
             // No unification will be performed
-            var assemblies = this.moduleSymbol.GetReferencedAssemblies();
+            ImmutableArray<AssemblyIdentity> assemblies = this.moduleSymbol.GetReferencedAssemblies();
             for (int i = 0; i < assemblies.Length; i++)
             {
                 if (identity.Equals(assemblies[i]))
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
                         }
 
-                        var arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
+                        ImmutableArray<TypeSymbol> arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 
                         for (i = 0; i < count; i++)

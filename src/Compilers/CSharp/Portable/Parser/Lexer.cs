@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public SyntaxToken Lex(ref LexerMode mode)
         {
-            var result = Lex(mode);
+            SyntaxToken result = Lex(mode);
             mode = _mode;
             return result;
         }
@@ -298,17 +298,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _leadingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
-            var leading = _leadingTriviaCache;
+            SyntaxListBuilder leading = _leadingTriviaCache;
 
             var tokenInfo = default(TokenInfo);
 
             this.Start();
             this.ScanSyntaxToken(ref tokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             _trailingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
-            var trailing = _trailingTriviaCache;
+            SyntaxListBuilder trailing = _trailingTriviaCache;
 
             return Create(ref tokenInfo, leading, trailing, errors);
         }
@@ -333,8 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(info.Kind != SyntaxKind.IdentifierToken || info.StringValue != null);
 
-            var leadingNode = leading?.ToListNode();
-            var trailingNode = trailing?.ToListNode();
+            GreenNode leadingNode = leading?.ToListNode();
+            GreenNode trailingNode = trailing?.ToListNode();
 
             SyntaxToken token;
             if (info.RequiresTextForXmlEntity)
@@ -908,16 +908,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
-            var options = this.Options;
+            CSharpParseOptions options = this.Options;
             if (options.IsFeatureEnabled(feature))
             {
                 return;
             }
 
             LanguageVersion availableVersion = this.Options.LanguageVersion;
-            var requiredVersion = feature.RequiredVersion();
+            LanguageVersion requiredVersion = feature.RequiredVersion();
             if (availableVersion >= requiredVersion) return;
-            var featureName = feature.Localize();
+            LocalizableErrorArgument featureName = feature.Localize();
 
             this.AddError(availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
         }
@@ -2343,7 +2343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsConflictMarkerTrivia()
         {
             var position = TextWindow.Position;
-            var text = TextWindow.Text;
+            SourceText text = TextWindow.Text;
             if (position == 0 || SyntaxFacts.IsNewLine(text[position - 1]))
             {
                 var firstCh = text[position];
@@ -2636,7 +2636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool afterNonWhitespaceOnLine,
             ref SyntaxListBuilder triviaList)
         {
-            var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
+            CSharpSyntaxNode directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
 
             // also lex excluded stuff            
             var branching = directive as BranchingDirectiveTriviaSyntax;
@@ -2651,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (true)
             {
                 bool hasFollowingDirective;
-                var text = this.LexDisabledText(out hasFollowingDirective);
+                CSharpSyntaxNode text = this.LexDisabledText(out hasFollowingDirective);
                 if (text != null)
                 {
                     this.AddTrivia(text, ref triviaList);
@@ -2662,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
                 }
 
-                var directive = this.LexSingleDirective(false, endIsActive, false, false, ref triviaList);
+                CSharpSyntaxNode directive = this.LexSingleDirective(false, endIsActive, false, false, ref triviaList);
                 var branching = directive as BranchingDirectiveTriviaSyntax;
                 if (directive.Kind == SyntaxKind.EndIfDirectiveTrivia || (branching != null && branching.BranchTaken))
                 {
@@ -2689,7 +2689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             CSharpSyntaxNode directive;
-            var saveMode = _mode;
+            LexerMode saveMode = _mode;
 
             using (var dp = new DirectiveParser(this, _directives))
             {
@@ -2759,8 +2759,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Start();
             TokenInfo info = default(TokenInfo);
             this.ScanDirectiveToken(ref info);
-            var errors = this.GetErrors(leadingTriviaWidth: 0);
-            var trailing = this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken);
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(leadingTriviaWidth: 0);
+            SyntaxListBuilder trailing = this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken);
             return Create(ref info, null, trailing, errors);
         }
 
@@ -3009,10 +3009,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private CSharpSyntaxNode LexXmlDocComment(XmlDocCommentStyle style)
         {
-            var saveMode = _mode;
+            LexerMode saveMode = _mode;
             bool isTerminated;
 
-            var mode = style == XmlDocCommentStyle.SingleLine
+            LexerMode mode = style == XmlDocCommentStyle.SingleLine
                     ? LexerMode.XmlDocCommentStyleSingleLine
                     : LexerMode.XmlDocCommentStyleDelimited;
             if (_xmlParser == null)
@@ -3024,7 +3024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _xmlParser.ReInitialize(mode);
             }
 
-            var docComment = _xmlParser.ParseDocumentationComment(out isTerminated);
+            DocumentationCommentTriviaSyntax docComment = _xmlParser.ParseDocumentationComment(out isTerminated);
 
             // We better have finished with the whole comment. There should be error
             // code in the implementation of ParseXmlDocComment that ensures this.
@@ -3055,7 +3055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlToken(ref xmlTokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref xmlTokenInfo, leading, null, errors);
         }
@@ -3406,7 +3406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlElementTagToken(ref tagInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             // PERF: De-dupe common XML element tags
             if (errors == null && tagInfo.ContextualKind == SyntaxKind.None && tagInfo.Kind == SyntaxKind.IdentifierToken)
@@ -3591,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlAttributeTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref info, leading, null, errors);
         }
@@ -3748,7 +3748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlCharacter(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref info, leading, null, errors);
         }
@@ -3804,7 +3804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlCrefToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref info, leading, null, errors);
         }
@@ -4206,7 +4206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlCDataSectionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref info, leading, null, errors);
         }
@@ -4331,7 +4331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlCommentTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref info, leading, null, errors);
         }
@@ -4464,7 +4464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            SyntaxDiagnosticInfo[] errors = this.GetErrors(GetFullWidth(leading));
 
             return Create(ref info, leading, null, errors);
         }

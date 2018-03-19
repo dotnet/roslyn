@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             lock (_gate)
             {
-                var semanticModel = _semanticModel;
+                SemanticModel semanticModel = _semanticModel;
                 if (semanticModel == null && _lazySemanticModel != null)
                 {
                     _semanticModel = semanticModel = _lazySemanticModel.Value;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             lock (_gate)
             {
-                var semanticModel = _semanticModel;
+                SemanticModel semanticModel = _semanticModel;
                 _lazySemanticModel = null;
                 if (semanticModel == null) return;
                 _weakModel = new WeakReference<SemanticModel>(semanticModel);

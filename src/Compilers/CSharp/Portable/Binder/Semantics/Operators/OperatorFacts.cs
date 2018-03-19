@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)
         {
-            var opTokenKind = declaration.OperatorToken.Kind;
+            SyntaxKind opTokenKind = declaration.OperatorToken.Kind;
 
             if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
             {

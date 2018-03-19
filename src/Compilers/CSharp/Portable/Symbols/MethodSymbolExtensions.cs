@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var containingAssembly = method.ContainingAssembly;
-            var errorNamespace = containingAssembly.GlobalNamespace;
+            AssemblySymbol containingAssembly = method.ContainingAssembly;
+            NamespaceSymbol errorNamespace = containingAssembly.GlobalNamespace;
             var conversions = new TypeConversions(containingAssembly.CorLibrary);
 
             // There is absolutely no plausible syntax/tree that we could use for these
             // synthesized literals.  We could be speculatively binding a call to a PE method.
-            var syntaxTree = CSharpSyntaxTree.Dummy;
+            SyntaxTree syntaxTree = CSharpSyntaxTree.Dummy;
             var syntax = (CSharpSyntaxNode)syntaxTree.GetRoot();
 
             // Create an argument value for the "this" argument of specific type,
@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arguments = new BoundExpression[paramCount];
             for (int i = 0; i < paramCount; i++)
             {
-                var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
+                BoundLiteral argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
                 arguments[i] = argument;
             }
 
-            var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+            ImmutableArray<TypeSymbol> typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
                 conversions,
                 method,
                 arguments.AsImmutable(),
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
             // This prevents constraint checking from failing for corresponding type parameters. 
             var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            var typeParams = method.TypeParameters;
-            var typeArgsForConstraintsCheck = typeArgs;
+            ImmutableArray<TypeParameterSymbol> typeParams = method.TypeParameters;
+            ImmutableArray<TypeSymbol> typeArgsForConstraintsCheck = typeArgs;
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
                 if ((object)typeArgsForConstraintsCheck[i] == null)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
-                        var typeArg = typeArgsForConstraintsCheck[i];
+                        TypeSymbol typeArg = typeArgsForConstraintsCheck[i];
                         if ((object)typeArg == null)
                         {
                             notInferredTypeParameters.Add(typeParams[i]);
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     useSiteDiagnostics = new HashSet<DiagnosticInfo>();
                 }
 
-                foreach (var diag in useSiteDiagnosticsBuilder)
+                foreach (TypeParameterDiagnosticInfo diag in useSiteDiagnosticsBuilder)
                 {
                     useSiteDiagnostics.Add(diag.DiagnosticInfo);
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
-            var typeArgsForConstruct = typeArgs;
+            ImmutableArray<TypeSymbol> typeArgsForConstruct = typeArgs;
             if (firstNullInTypeArgs != -1)
             {
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
             method = method.PartialDefinitionPart ?? method;
-            foreach (var reference in method.DeclaringSyntaxReferences)
+            foreach (SyntaxReference reference in method.DeclaringSyntaxReferences)
             {
                 if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
                 {

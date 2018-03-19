@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool badRegion = false;
             try
             {
-                var result = walker.Analyze(ref badRegion);
+                List<Symbol> result = walker.Analyze(ref badRegion);
                 return badRegion ? SpecializedCollections.EmptyEnumerable<Symbol>() : result;
             }
             finally
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var v = base.variableBySlot[i];
+                    VariableIdentifier v = base.variableBySlot[i];
                     if (v.Exists && !(v.Symbol is FieldSymbol))
                     {
                         result.Add(v.Symbol);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _endOfRegionState = this.State.Clone();
             }
 
-            foreach (var branch in base.PendingBranches)
+            foreach (PendingBranch branch in base.PendingBranches)
             {
                 if (branch.Branch != null && RegionContains(branch.Branch.Syntax.Span) && !_labelsInside.Contains(branch.Label))
                 {

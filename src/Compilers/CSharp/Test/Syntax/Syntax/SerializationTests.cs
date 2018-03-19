@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNode()
         {
             var text = "public class C {}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
 
             var stream = new MemoryStream();
             root.SerializeTo(stream);
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
             var dtext = droot.ToFullString();
 
             Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNodeWithDiagnostics()
         {
             var text = "public class C {";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             Assert.Equal(1, root.Errors().Length);
 
             var stream = new MemoryStream();
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNodeWithAnnotation()
         {
             var text = "public class C {}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation = new SyntaxAnnotation();
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation));
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNodeWithMultipleReferencesToSameAnnotation()
         {
             var text = "public class C {}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation = new SyntaxAnnotation();
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation, annotation);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation, annotation);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation));
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNodeWithSpecialAnnotation()
         {
             var text = "public class C {}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation = new SyntaxAnnotation("TestAnnotation", "this is a test");
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation));
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(true, droot.HasAnnotation(annotation));
             Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
 
-            var dannotation = droot.GetAnnotations("TestAnnotation").SingleOrDefault();
+            SyntaxAnnotation dannotation = droot.GetAnnotations("TestAnnotation").SingleOrDefault();
             Assert.NotNull(dannotation);
             Assert.NotSame(annotation, dannotation); // not exact same instance
             Assert.Equal(annotation, dannotation); // equivalent though
@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNodeWithAnnotationsRemoved()
         {
             var text = "public class C {}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation1 = new SyntaxAnnotation("annotation1");
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation1));
-            var removedRoot = root.WithoutAnnotations(annotation1);
+            CompilationUnitSyntax removedRoot = root.WithoutAnnotations(annotation1);
             Assert.Equal(false, removedRoot.ContainsAnnotations);
             Assert.Equal(false, removedRoot.HasAnnotation(annotation1));
 
@@ -148,18 +148,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
 
             Assert.Equal(false, droot.ContainsAnnotations);
             Assert.Equal(false, droot.HasAnnotation(annotation1));
 
             var annotation2 = new SyntaxAnnotation("annotation2");
 
-            var doubleAnnoRoot = droot.WithAdditionalAnnotations(annotation1, annotation2);
+            SyntaxNode doubleAnnoRoot = droot.WithAdditionalAnnotations(annotation1, annotation2);
             Assert.Equal(true, doubleAnnoRoot.ContainsAnnotations);
             Assert.Equal(true, doubleAnnoRoot.HasAnnotation(annotation1));
             Assert.Equal(true, doubleAnnoRoot.HasAnnotation(annotation2));
-            var removedDoubleAnnoRoot = doubleAnnoRoot.WithoutAnnotations(annotation1, annotation2);
+            SyntaxNode removedDoubleAnnoRoot = doubleAnnoRoot.WithoutAnnotations(annotation1, annotation2);
             Assert.Equal(false, removedDoubleAnnoRoot.ContainsAnnotations);
             Assert.Equal(false, removedDoubleAnnoRoot.HasAnnotation(annotation1));
             Assert.Equal(false, removedDoubleAnnoRoot.HasAnnotation(annotation2));
@@ -180,12 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RoundTripSyntaxNodeWithAnnotationRemovedWithMultipleReference()
         {
             var text = "public class C {}";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation1 = new SyntaxAnnotation("MyAnnotationId", "SomeData");
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1, annotation1);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1, annotation1);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation1));
-            var removedRoot = root.WithoutAnnotations(annotation1);
+            CompilationUnitSyntax removedRoot = root.WithoutAnnotations(annotation1);
             Assert.Equal(false, removedRoot.ContainsAnnotations);
             Assert.Equal(false, removedRoot.HasAnnotation(annotation1));
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             stream.Position = 0;
 
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode droot = CSharpSyntaxNode.DeserializeFrom(stream);
 
             Assert.Equal(false, droot.ContainsAnnotations);
             Assert.Equal(false, droot.HasAnnotation(annotation1));
@@ -202,15 +202,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void RoundTrip(string text, bool expectRecursive = true)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var originalText = root.ToFullString();
 
             var stream = new MemoryStream();
             root.SerializeTo(stream);
 
             stream.Position = 0;
-            var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             var newText = newRoot.ToFullString();
 
             Assert.Equal(true, newRoot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
@@ -271,8 +271,8 @@ class C { }");
         {
             var text = @"#pragma disable warning CS0618";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             Assert.True(root.ContainsDirectives);
 
             var stream = new MemoryStream();
@@ -280,7 +280,7 @@ class C { }");
 
             stream.Position = 0;
 
-            var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
+            SyntaxNode newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             Assert.True(newRoot.ContainsDirectives);
         }
 

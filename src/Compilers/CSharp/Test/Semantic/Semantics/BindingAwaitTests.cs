@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact, WorkItem(531516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531516")]
         public void Bug18241()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(" class C { void M() { await X() on ");
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(" class C { void M() { await X() on ");
             SourceText text = tree.GetText();
             TextSpan span = new TextSpan(text.Length, 0);
             TextChange change = new TextChange(span, "/*comment*/");
             SourceText newText = text.WithChanges(change);
             // This line caused an assertion and then crashed in the parser.
-            var newTree = tree.WithChangedText(newText);
+            SyntaxTree newTree = tree.WithChangedText(newText);
         }
 
         [Fact]
@@ -1889,8 +1889,8 @@ class C
         await new Awaitable<T6>();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             var actualIL = verifier.VisualizeIL("C.<F>d__0<T1, T2, T3, T4, T5, T6>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
             var calls = actualIL.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries).Where(s => s.Contains("OnCompleted")).ToArray();
             Assert.Equal(calls.Length, 6);
@@ -2755,7 +2755,7 @@ class Repro
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
@@ -2827,12 +2827,12 @@ class Repro
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
 
-            var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: Verification.Fails);
+            CompilationVerifier compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: Verification.Fails);
 
             compiled.VerifyIL("MyAwaiter.OnCompleted(System.Action)", @"
 {

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return RewriteMultiDimensionalArrayForEachStatement(node);
                 }
             }
-            else if (CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGetter))
             {
                 return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CanRewriteForEachAsFor(SyntaxNode forEachSyntax, TypeSymbol nodeExpressionType, out MethodSymbol indexerGet, out MethodSymbol lengthGet)
         {
             lengthGet = indexerGet = null;
-            var origDefinition = nodeExpressionType.OriginalDefinition;
+            TypeSymbol origDefinition = nodeExpressionType.OriginalDefinition;
 
             if (origDefinition.SpecialType == SpecialType.System_String)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     /* node.Body */
             // }
 
-            var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
+            BoundBlock rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
 
             BoundStatement whileLoop = RewriteWhileStatement(
                 loop: node,
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    location: enumeratorInfo.Location);
 
                 BoundBlock finallyBlockOpt;
-                var idisposableTypeSymbol = disposeMethod.ContainingType;
+                NamedTypeSymbol idisposableTypeSymbol = disposeMethod.ContainingType;
                 var conversions = new TypeConversions(_factory.CurrentMethod.ContainingAssembly.CorLibrary);
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // (D1 d1, ...) = /* expression */
-                var assignment = deconstruction.DeconstructionAssignment;
+                BoundDeconstructionAssignmentOperator assignment = deconstruction.DeconstructionAssignment;
 
                 AddPlaceholderReplacement(deconstruction.TargetPlaceholder, iterationVarValue);
                 BoundExpression loweredAssignment = VisitExpression(assignment);
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static BoundExpression GetUnconvertedCollectionExpression(BoundForEachStatement node)
         {
-            var boundExpression = node.Expression;
+            BoundExpression boundExpression = node.Expression;
             if (boundExpression.Kind == BoundKind.Conversion)
             {
                 return ((BoundConversion)boundExpression).Operand;

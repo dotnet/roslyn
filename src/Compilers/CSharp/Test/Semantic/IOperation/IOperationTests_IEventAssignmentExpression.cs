@@ -47,7 +47,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
                 //     public event EventHandler MyEvent;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("Test.MyEvent").WithLocation(6, 31)
@@ -128,7 +128,7 @@ IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: Sy
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
                 //     public event EventHandler MyEvent;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("Test.MyEvent").WithLocation(6, 31)
@@ -174,7 +174,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
                 //     public static event EventHandler MyEvent;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("Test.MyEvent").WithLocation(6, 38)
@@ -220,7 +220,7 @@ IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: Sy
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
                 //     public static event EventHandler MyEvent;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("Test.MyEvent").WithLocation(6, 38)
@@ -267,7 +267,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
           Children(1):
               IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(18,19): error CS0123: No overload for 'Handler' matches delegate 'EventHandler'
                 //         /*<bind>*/t.MyEvent += Handler/*<bind>*/;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "t.MyEvent += Handler").WithArguments("Handler", "System.EventHandler").WithLocation(18, 19),
@@ -317,7 +317,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(18,19): error CS0176: Member 'Test.MyEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         /*<bind>*/t.MyEvent += Handler/*<bind>*/;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "t.MyEvent").WithArguments("Test.MyEvent").WithLocation(18, 19),
@@ -367,7 +367,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                 // file.cs(17,19): error CS0120: An object reference is required for the non-static field, method, or property 'Test.MyEvent'
                 //         /*<bind>*/Test.MyEvent += Handler/*<bind>*/;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test.MyEvent").WithArguments("Test.MyEvent").WithLocation(17, 19),
@@ -413,7 +413,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Test, IsImplicit) (Syntax: 'Handler')
 ";
-            var expectedDiagnostics = new[] {
+            DiagnosticDescription[] expectedDiagnostics = new[] {
                       // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
                       //     public event EventHandler MyEvent;
                       Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("Test.MyEvent").WithLocation(6, 31)

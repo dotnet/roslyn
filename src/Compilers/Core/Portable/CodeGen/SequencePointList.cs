@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 SyntaxTree currentTree = current._tree;
 
-                foreach (var offsetAndSpan in current._points)
+                foreach (OffsetAndSpan offsetAndSpan in current._points)
                 {
                     TextSpan span = offsetAndSpan.Span;
 
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             
             while (current != null)
             {
-                foreach (var offsetAndSpan in current._points)
+                foreach (OffsetAndSpan offsetAndSpan in current._points)
                 {
                     TextSpan span = offsetAndSpan.Span;
                     bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <param name="array"></param>
         public void AddValues(ArrayBuilder<TElement> array)
         {
-            foreach (var kvp in this.EnsureFullyPopulated())
+            foreach (KeyValuePair<TKey, ImmutableArray<TElement>> kvp in this.EnsureFullyPopulated())
             {
                 array.AddRange(kvp.Value);
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // Check if we're fully populated before trying to retrieve the elements.  If we are
             // and we don't get any elements back, then we don't have to go any further.
-            var localMap = _map;
+            IDictionary<TKey, ImmutableArray<TElement>> localMap = _map;
 
             if (localMap == null)
             {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The added entry. If there was a race, and another thread beat this one, then this returns the previously added entry.</returns>
         private ImmutableArray<TElement> AddToConcurrentMap(ConcurrentDictionary<TKey, ImmutableArray<TElement>> map, TKey key)
         {
-            var elements = _getElementsOfKey(key);
+            ImmutableArray<TElement> elements = _getElementsOfKey(key);
 
             if (elements.IsDefaultOrEmpty)
             {
@@ -212,21 +212,21 @@ namespace Microsoft.CodeAnalysis.Collections
             Debug.Assert(IsNotFullyPopulatedMap(existingMap));
 
             // Enumerate all the keys and attempt to generate values for all of them.
-            var allKeys = _getKeys(_comparer);
+            HashSet<TKey> allKeys = _getKeys(_comparer);
             Debug.Assert(_comparer == allKeys.Comparer);
 
-            var fullyPopulatedMap = CreateDictionaryForFullyPopulatedMap(capacity: allKeys.Count);
+            IDictionary<TKey, ImmutableArray<TElement>> fullyPopulatedMap = CreateDictionaryForFullyPopulatedMap(capacity: allKeys.Count);
             if (existingMap == null)
             {
                 // The concurrent map has never been created.
-                foreach (var key in allKeys)
+                foreach (TKey key in allKeys)
                 {
                     fullyPopulatedMap.Add(key, _getElementsOfKey(key));
                 }
             }
             else
             {
-                foreach (var key in allKeys)
+                foreach (TKey key in allKeys)
                 {
                     // Copy non-empty values from the existing map
                     ImmutableArray<TElement> elements;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             IDictionary<TKey, ImmutableArray<TElement>> fullyPopulatedMap = null;
 
-            var currentMap = _map;
+            IDictionary<TKey, ImmutableArray<TElement>> currentMap = _map;
             while (IsNotFullyPopulatedMap(currentMap))
             {
                 if (fullyPopulatedMap == null)
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     fullyPopulatedMap = CreateFullyPopulatedMap(currentMap);
                 }
 
-                var replacedMap = Interlocked.CompareExchange(ref _map, fullyPopulatedMap, currentMap);
+                IDictionary<TKey, ImmutableArray<TElement>> replacedMap = Interlocked.CompareExchange(ref _map, fullyPopulatedMap, currentMap);
                 if (replacedMap == currentMap)
                 {
                     // Normal exit.

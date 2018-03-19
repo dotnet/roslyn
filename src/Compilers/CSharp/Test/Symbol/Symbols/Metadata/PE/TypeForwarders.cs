@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarder.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderLib.dll,
@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assembly2 = (MetadataOrSourceAssemblySymbol)assemblies[1];
             var assembly3 = (MetadataOrSourceAssemblySymbol)assemblies[2];
 
-            var derived1 = module1.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var base1 = derived1.BaseType();
+            NamedTypeSymbol derived1 = module1.GlobalNamespace.GetTypeMembers("Derived").Single();
+            NamedTypeSymbol base1 = derived1.BaseType();
             BaseTypeResolution.AssertBaseType(base1, "Base");
 
-            var derived4 = module1.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
-            var base4 = derived4.BaseType();
+            NamedTypeSymbol derived4 = module1.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
+            NamedTypeSymbol base4 = derived4.BaseType();
             BaseTypeResolution.AssertBaseType(base4, "GenericBase<K>");
 
-            var derived6 = module1.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
-            var base6 = derived6.BaseType();
+            NamedTypeSymbol derived6 = module1.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
+            NamedTypeSymbol base6 = derived6.BaseType();
             BaseTypeResolution.AssertBaseType(base6, "GenericBase<K>.NestedGenericBase<L>");
 
             Assert.Equal(assembly3, base1.ContainingAssembly);
@@ -69,34 +69,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(base4.OriginalDefinition, assembly3.CachedTypeByEmittedName("GenericBase`1"));
             Assert.Equal(2, assembly3.EmittedNameToTypeMapCount);
 
-            var derived2 = module2.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var base2 = derived2.BaseType();
+            NamedTypeSymbol derived2 = module2.GlobalNamespace.GetTypeMembers("Derived").Single();
+            NamedTypeSymbol base2 = derived2.BaseType();
             BaseTypeResolution.AssertBaseType(base2, "Base");
             Assert.Same(base2, base1);
 
-            var derived3 = module2.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
-            var base3 = derived3.BaseType();
+            NamedTypeSymbol derived3 = module2.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
+            NamedTypeSymbol base3 = derived3.BaseType();
             BaseTypeResolution.AssertBaseType(base3, "GenericBase<S>");
 
-            var derived5 = module2.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
-            var base5 = derived5.BaseType();
+            NamedTypeSymbol derived5 = module2.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
+            NamedTypeSymbol base5 = derived5.BaseType();
             BaseTypeResolution.AssertBaseType(base5, "GenericBase<S1>.NestedGenericBase<S2>");
         }
 
         [Fact]
         public void TypeInNamespace()
         {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
-            var corlibAssembly = compilation.GetReferencedAssemblySymbol(MscorlibRef);
+            AssemblySymbol corlibAssembly = compilation.GetReferencedAssemblySymbol(MscorlibRef);
             Assert.NotNull(corlibAssembly);
-            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(SystemCoreRef);
+            AssemblySymbol systemCoreAssembly = compilation.GetReferencedAssemblySymbol(SystemCoreRef);
             Assert.NotNull(systemCoreAssembly);
 
             const string funcTypeMetadataName = "System.Func`1";
 
             // mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
+            NamedTypeSymbol funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out (AssemblySymbol, AssemblySymbol) _);
             Assert.NotNull(funcType);
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind);
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // The compilation assembly references both mscorlib and System.Core, but finding
             // System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _));
+            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out (AssemblySymbol, AssemblySymbol) _));
         }
 
         /// <summary>
@@ -158,32 +158,32 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
-            var ref3 = CompileIL(il3, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref3 = CompileIL(il3, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
 
-            var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
+            AssemblySymbol ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
             Assert.Equal("pe1", ilAssembly1.Name);
 
-            var ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
+            AssemblySymbol ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
             Assert.NotNull(ilAssembly2);
             Assert.Equal("pe2", ilAssembly2.Name);
 
-            var ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
+            AssemblySymbol ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
             Assert.NotNull(ilAssembly3);
             Assert.Equal("pe3", ilAssembly3.Name);
 
-            var baseType = ilAssembly3.GetTypeByMetadataName("Base");
+            NamedTypeSymbol baseType = ilAssembly3.GetTypeByMetadataName("Base");
             Assert.NotNull(baseType);
             Assert.False(baseType.IsErrorType());
 
             Assert.Equal(baseType, ilAssembly1.ResolveForwardedType("Base"));
             Assert.Equal(baseType, ilAssembly2.ResolveForwardedType("Base"));
 
-            var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            NamedTypeSymbol derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             Assert.Equal(baseType, derivedType.BaseType());
 
             // All forwards resolve to the same type, so there's no issue.
@@ -222,16 +222,16 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1, ref2 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1, ref2 });
 
-            var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
+            AssemblySymbol ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
             Assert.Equal("pe1", ilAssembly1.Name);
 
-            var ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
+            AssemblySymbol ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
             Assert.NotNull(ilAssembly2);
             Assert.Equal("pe2", ilAssembly2.Name);
 
@@ -295,21 +295,21 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
-            var ref3 = CompileIL(il3, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref3 = CompileIL(il3, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
 
-            var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
+            AssemblySymbol ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
             Assert.Equal("pe1", ilAssembly1.Name);
 
-            var ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
+            AssemblySymbol ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
             Assert.NotNull(ilAssembly2);
             Assert.Equal("pe2", ilAssembly2.Name);
 
-            var ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
+            AssemblySymbol ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
             Assert.NotNull(ilAssembly3);
             Assert.Equal("pe3", ilAssembly3.Name);
 
@@ -393,30 +393,30 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
-            var ref3 = CompileIL(il3, prependDefaultHeader: false);
-            var ref4 = CompileIL(il4, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref3 = CompileIL(il3, prependDefaultHeader: false);
+            MetadataReference ref4 = CompileIL(il4, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3, ref4 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3, ref4 });
 
-            var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
+            AssemblySymbol ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
             Assert.Equal("pe1", ilAssembly1.Name);
 
-            var ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
+            AssemblySymbol ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
             Assert.NotNull(ilAssembly2);
             Assert.Equal("pe2", ilAssembly2.Name);
 
-            var ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
+            AssemblySymbol ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
             Assert.NotNull(ilAssembly3);
             Assert.Equal("pe3", ilAssembly3.Name);
 
-            var ilAssembly4 = compilation.GetReferencedAssemblySymbol(ref4);
+            AssemblySymbol ilAssembly4 = compilation.GetReferencedAssemblySymbol(ref4);
             Assert.NotNull(ilAssembly4);
             Assert.Equal("pe4", ilAssembly4.Name);
 
-            var baseType = ilAssembly4.GetTypeByMetadataName("Base");
+            NamedTypeSymbol baseType = ilAssembly4.GetTypeByMetadataName("Base");
             Assert.NotNull(baseType);
             Assert.False(baseType.IsErrorType());
 
@@ -428,7 +428,7 @@ class Derived : Base
             Assert.Null(ilAssembly3.GetTypeByMetadataName("Base"));
             Assert.Equal(baseType, ilAssembly3.ResolveForwardedType("Base"));
 
-            var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            NamedTypeSymbol derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             Assert.Equal(baseType, derivedType.BaseType());
 
             // Find the type even though there's a cycle.
@@ -502,21 +502,21 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
-            var ref3 = CompileIL(il3, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref3 = CompileIL(il3, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
 
-            var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
+            AssemblySymbol ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
             Assert.Equal("pe1", ilAssembly1.Name);
 
-            var ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
+            AssemblySymbol ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
             Assert.NotNull(ilAssembly2);
             Assert.Equal("pe2", ilAssembly2.Name);
 
-            var ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
+            AssemblySymbol ilAssembly3 = compilation.GetReferencedAssemblySymbol(ref3);
             Assert.NotNull(ilAssembly3);
             Assert.Equal("pe3", ilAssembly3.Name);
 
@@ -559,16 +559,16 @@ class Derived
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1, ref2 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1, ref2 });
 
-            var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
+            AssemblySymbol ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
             Assert.Equal("pe1", ilAssembly1.Name);
 
-            var ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
+            AssemblySymbol ilAssembly2 = compilation.GetReferencedAssemblySymbol(ref2);
             Assert.NotNull(ilAssembly2);
             Assert.Equal("pe2", ilAssembly2.Name);
 
@@ -623,8 +623,8 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
@@ -692,8 +692,8 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
@@ -742,11 +742,11 @@ class Test : Derived
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
-            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             // NOTE: not referring to pe3, even though pe2 forwards there.
-            var comp3 = CreateCompilation(csharp, new[] { ref1, ref2 });
+            CSharpCompilation comp3 = CreateCompilation(csharp, new[] { ref1, ref2 });
             comp3.VerifyDiagnostics(
                 // (2,7): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // class Test : Derived
@@ -790,7 +790,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (5,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
@@ -845,7 +845,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             // NOTE: nothing about forwarded types.
             CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
@@ -886,7 +886,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (6,29): error CS1068: The type name 'Forwarded' could not be found in the global namespace. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
@@ -933,7 +933,7 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (8,21): error CS0246: The type or namespace name 'Forwarded' could not be found (are you missing a using directive or an assembly reference?)
@@ -986,9 +986,9 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1 });
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS1070: The type name 'T0' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
@@ -1016,7 +1016,7 @@ class Test
                 //     Ns.Ms.Ls.Nope P7 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
+            IEnumerable<string> actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
                 !ns.StartsWith("System", StringComparison.Ordinal) && 
                 !ns.StartsWith("Windows", StringComparison.Ordinal) && 
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) && 
@@ -1066,9 +1066,9 @@ namespace N1
 }
 ";
 
-            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            MetadataReference ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation(csharp, new[] { ref1 });
+            CSharpCompilation compilation = CreateCompilation(csharp, new[] { ref1 });
 
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1069: The type name 'T' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
@@ -1078,7 +1078,7 @@ namespace N1
                 //         N1.N2.N3.T t4 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T").WithArguments("T", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
+            IEnumerable<string> actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
                 !ns.StartsWith("System", StringComparison.Ordinal) && 
                 !ns.StartsWith("Windows", StringComparison.Ordinal) && 
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) && 
@@ -1094,7 +1094,7 @@ namespace N1
 
         private static IEnumerable<string> EnumerateNamespaces(NamespaceSymbol @namespace, string baseName)
         {
-            foreach (var child in @namespace.GetNamespaceMembers())
+            foreach (NamespaceSymbol child in @namespace.GetNamespaceMembers())
             {
                 var childName = string.IsNullOrEmpty(baseName) ? child.Name : (baseName + "." + child.Name);
                 yield return childName;
@@ -1319,15 +1319,15 @@ namespace NS
         /// <param name="forwardedTypeFullNames">Forwarded type names should be in metadata format (Namespace.Outer`Arity+Inner`Arity).</param>
         private void CheckForwarderEmit(string source1, string source2, params string[] forwardedTypeFullNames)
         {
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
-            var verifier1 = CompileAndVerify(comp1);
-            var ref1 = MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData);
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
+            CompilationVerifier verifier1 = CompileAndVerify(comp1);
+            PortableExecutableReference ref1 = MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData);
 
-            var comp2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
-                var assembly = module.ContainingAssembly;
+                AssemblySymbol assembly = module.ContainingAssembly;
 
                 // Attributes should not actually be emitted.
                 Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
@@ -1350,23 +1350,23 @@ namespace NS
 
                 foreach (var fullName in topLevelTypes)
                 {
-                    var type = assembly.ResolveForwardedType(fullName);
+                    NamedTypeSymbol type = assembly.ResolveForwardedType(fullName);
                     Assert.NotNull(type);
                     Assert.NotEqual(TypeKind.Error, type.TypeKind);
                     Assert.Equal("Asm1", type.ContainingAssembly.Name);
                 }
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
+            CompilationVerifier verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
             {
-                var metadataReader = metadata.Module.GetMetadataReader();
+                MetadataReader metadataReader = metadata.Module.GetMetadataReader();
 
                 Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
 
                 int i = 0;
-                foreach (var exportedType in metadataReader.ExportedTypes)
+                foreach (ExportedTypeHandle exportedType in metadataReader.ExportedTypes)
                 {
                     ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
                     i++;
@@ -1379,38 +1379,38 @@ namespace NS
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Goo{ public static string A = ""Original""; }";
-            var bitsA = CreateCompilation(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
-            var refA = MetadataReference.CreateFromImage(bitsA);
+            ImmutableArray<byte> bitsA = CreateCompilation(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
+            PortableExecutableReference refA = MetadataReference.CreateFromImage(bitsA);
 
             string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Goo.A); } }";
-            var bitsB = CreateCompilation(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
+            ImmutableArray<byte> bitsB = CreateCompilation(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
 
             string module0 = @"public class Goo{ public static string A = ""Substituted""; }";
-            var bits0 = CreateCompilation(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
-            var ref0 = ModuleMetadata.CreateFromImage(bits0).GetReference();
+            ImmutableArray<byte> bits0 = CreateCompilation(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
+            PortableExecutableReference ref0 = ModuleMetadata.CreateFromImage(bits0).GetReference();
 
             string module1 = "using System;";
-            var bits1 = CreateCompilation(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
-            var ref1 = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)).GetReference();
+            ImmutableArray<byte> bits1 = CreateCompilation(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
+            PortableExecutableReference ref1 = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)).GetReference();
 
             string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Goo))]";
-            var bits2 = CreateCompilation(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
+            ImmutableArray<byte> bits2 = CreateCompilation(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
 
             // runtime check:
 
-            var folder = Temp.CreateDirectory();
-            var folderA = folder.CreateDirectory("A");
-            var folderB = folder.CreateDirectory("B");
+            TempDirectory folder = Temp.CreateDirectory();
+            TempDirectory folderA = folder.CreateDirectory("A");
+            TempDirectory folderB = folder.CreateDirectory("B");
 
             folderA.CreateFile("asm2.dll").WriteAllBytes(bitsA);
-            var asmB = folderA.CreateFile("test.exe").WriteAllBytes(bitsB);
+            TempFile asmB = folderA.CreateFile("test.exe").WriteAllBytes(bitsB);
             var result = ProcessUtilities.RunAndGetOutput(asmB.Path);
             Assert.Equal("Original", result.Trim());
 
             folderB.CreateFile("asm0.netmodule").WriteAllBytes(bits0);
-            var asm1 = folderB.CreateFile("asm1.dll").WriteAllBytes(bits1);
-            var asm2 = folderB.CreateFile("asm2.dll").WriteAllBytes(bits2);
-            var asmB2 = folderB.CreateFile("test.exe").WriteAllBytes(bitsB);
+            TempFile asm1 = folderB.CreateFile("asm1.dll").WriteAllBytes(bits1);
+            TempFile asm2 = folderB.CreateFile("asm2.dll").WriteAllBytes(bits2);
+            TempFile asmB2 = folderB.CreateFile("test.exe").WriteAllBytes(bitsB);
 
             result = ProcessUtilities.RunAndGetOutput(asmB2.Path);
             Assert.Equal("Substituted", result.Trim());
@@ -1453,27 +1453,27 @@ using System;
 public class CF1
 {}";
 
-            var forwardedTypesCompilation = CreateCompilation(forwardedTypes, options: TestOptions.ReleaseDll, assemblyName: "ForwarderTargetAssembly");
+            CSharpCompilation forwardedTypesCompilation = CreateCompilation(forwardedTypes, options: TestOptions.ReleaseDll, assemblyName: "ForwarderTargetAssembly");
 
             string mod =
                 @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF1))]
                 ";
 
-            var modCompilation = CreateCompilation(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
-            var modRef1 = modCompilation.EmitToImageReference();
+            CSharpCompilation modCompilation = CreateCompilation(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
+            MetadataReference modRef1 = modCompilation.EmitToImageReference();
 
             string app =
                 @"
                 public class Test { }
                 ";
 
-            var appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+            CSharpCompilation appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
-            var metadata = module.Module;
+            PEModule metadata = module.Module;
 
-            var peReader = metadata.GetMetadataReader();
+            MetadataReader peReader = metadata.GetMetadataReader();
             Assert.Equal(1, peReader.GetTableRowCount(TableIndex.ExportedType));
             ValidateExportedTypeRow(peReader.ExportedTypes.First(), peReader, "CF1");
 
@@ -1484,7 +1484,7 @@ public class CF1
             CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
-                    var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
+                    MetadataReader peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
                     Assert.Equal(1, peReader1.GetTableRowCount(TableIndex.ExportedType));
                     ValidateExportedTypeRow(peReader1.ExportedTypes.First(), peReader1, "CF1");
 
@@ -1520,7 +1520,7 @@ public class CF1
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ";
 
-            var modRef2 = GetILModuleReference(ilSource, prependDefaultHeader: false);
+            MetadataReference modRef2 = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
             appCompilation = CreateCompilation(app, references: new MetadataReference[] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
@@ -1537,7 +1537,7 @@ public class CF1
             CompileAndVerify(appCompilation,
                 symbolValidator: m =>
                 {
-                    var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
+                    MetadataReader peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
                     Assert.Equal(0, peReader1.GetTableRowCount(TableIndex.ExportedType));
 
                     // Attributes should not actually be emitted.
@@ -1546,7 +1546,7 @@ public class CF1
 
 
             appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
-            var appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module;
+            PEModule appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module;
 
             peReader = appModule.GetMetadataReader();
             Assert.Equal(0, peReader.GetTableRowCount(TableIndex.ExportedType));
@@ -1565,23 +1565,23 @@ public class CF1
 
         private void CheckForwarderEmit2(string source0, string source1, string source2, params string[] forwardedTypeFullNames)
         {
-            var folder = Temp.CreateDirectory();
-            var comp0 = CreateCompilation(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
+            TempDirectory folder = Temp.CreateDirectory();
+            CSharpCompilation comp0 = CreateCompilation(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
             var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: Verification.Skipped).EmittedAssemblyData);
-            var ref0 = asm0.GetReference();
+            PortableExecutableReference ref0 = asm0.GetReference();
 
-            var comp1 = CreateCompilation(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
+            CSharpCompilation comp1 = CreateCompilation(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
             var asm1 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp1).EmittedAssemblyData);
 
             var assembly1 = AssemblyMetadata.Create(asm1, asm0);
 
-            var ref1 = assembly1.GetReference();
+            PortableExecutableReference ref1 = assembly1.GetReference();
 
-            var comp2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
-                var assembly = module.ContainingAssembly;
+                AssemblySymbol assembly = module.ContainingAssembly;
 
                 // Attributes should not actually be emitted.
                 Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
@@ -1604,25 +1604,25 @@ public class CF1
 
                 foreach (var fullName in topLevelTypes)
                 {
-                    var type = assembly.ResolveForwardedType(fullName);
+                    NamedTypeSymbol type = assembly.ResolveForwardedType(fullName);
                     Assert.NotNull(type);
                     Assert.NotEqual(TypeKind.Error, type.TypeKind);
                     Assert.Equal("asm1", type.ContainingAssembly.Name);
                 }
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
-            var asm2 = folder.CreateFile("asm2.dll");
+            CompilationVerifier verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
+            TempFile asm2 = folder.CreateFile("asm2.dll");
             asm2.WriteAllBytes(verifier2.EmittedAssemblyData);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
             {
-                var peReader = metadata.Module.GetMetadataReader();
+                MetadataReader peReader = metadata.Module.GetMetadataReader();
 
                 Assert.Equal(forwardedTypeFullNames.Length, peReader.GetTableRowCount(TableIndex.ExportedType));
 
                 int i = 0;
-                foreach (var exportedType in peReader.ExportedTypes)
+                foreach (ExportedTypeHandle exportedType in peReader.ExportedTypes)
                 {
                     ValidateExportedTypeRow(exportedType, peReader, forwardedTypeFullNames[i]);
                     i++;
@@ -1662,43 +1662,43 @@ public class CF1
         [Fact]
         public void MetadataTypeReferenceResolutionThroughATypeForwardedByCompilation()
         {
-            var cA_v1 = CreateCompilation(@"
+            CSharpCompilation cA_v1 = CreateCompilation(@"
 public class Forwarded<T>
 {
 }
 ", options: TestOptions.ReleaseDll, assemblyName: "A");
 
-            var cB = CreateCompilation(@"
+            CSharpCompilation cB = CreateCompilation(@"
 public class B : Forwarded<int>
 {
 }
 ", new[] { new CSharpCompilationReference(cA_v1) }, options: TestOptions.ReleaseDll, assemblyName: "B");
 
-            var cB_ImageRef = cB.EmitToImageReference();
+            MetadataReference cB_ImageRef = cB.EmitToImageReference();
 
-            var cC_v1 = CreateCompilation(@"
+            CSharpCompilation cC_v1 = CreateCompilation(@"
 public class Forwarded<T>
 {
 }
 ", options: TestOptions.ReleaseDll, assemblyName: "C");
 
-            var cC_v1_ImageRef = cC_v1.EmitToImageReference();
+            MetadataReference cC_v1_ImageRef = cC_v1.EmitToImageReference();
 
-            var cA_v2 = CreateCompilation(@"
+            CSharpCompilation cA_v2 = CreateCompilation(@"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Forwarded<byte>))]
 ", new[] { new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
 
-            var cA_v2_ImageRef = cA_v2.EmitToImageReference();
+            MetadataReference cA_v2_ImageRef = cA_v2.EmitToImageReference();
 
-            var cD = CreateCompilation(@"
+            CSharpCompilation cD = CreateCompilation(@"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Forwarded<byte>))]
 ", new[] { new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseModule, assemblyName: "D");
 
-            var cD_ImageRef = cD.EmitToImageReference();
+            MetadataReference cD_ImageRef = cD.EmitToImageReference();
 
-            var cA_v3 = CreateCompilation(@"", new[] { cD_ImageRef, new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
+            CSharpCompilation cA_v3 = CreateCompilation(@"", new[] { cD_ImageRef, new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
 
-            var cC_v2 = CreateCompilation(@"
+            CSharpCompilation cC_v2 = CreateCompilation(@"
 public class Forwarded<T>
 {
 }
@@ -1724,16 +1724,16 @@ public class Forwarded<T>
                 cC_v1_ImageRef
             };
 
-            foreach (var r1 in ref1)
+            foreach (MetadataReference r1 in ref1)
             {
-                foreach (var r2 in ref2)
+                foreach (MetadataReference r2 in ref2)
                 {
-                    foreach (var r3 in ref3)
+                    foreach (MetadataReference r3 in ref3)
                     {
-                        var context = CreateCompilation("", new[] { r1, r2, r3 }, options: TestOptions.ReleaseDll);
+                        CSharpCompilation context = CreateCompilation("", new[] { r1, r2, r3 }, options: TestOptions.ReleaseDll);
 
-                        var forwarded = context.GetTypeByMetadataName("Forwarded`1");
-                        var resolved = context.GetTypeByMetadataName("B").BaseType().OriginalDefinition;
+                        NamedTypeSymbol forwarded = context.GetTypeByMetadataName("Forwarded`1");
+                        NamedTypeSymbol resolved = context.GetTypeByMetadataName("B").BaseType().OriginalDefinition;
 
                         Assert.NotNull(forwarded);
                         Assert.False(resolved.IsErrorType());

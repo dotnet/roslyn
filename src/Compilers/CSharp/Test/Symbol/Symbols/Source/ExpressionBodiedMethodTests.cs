@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         [ClrOnlyFact]
         public void PartialMethods()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 public partial class C
 {
     static partial void goo() => System.Console.WriteLine(""test"");
@@ -29,7 +29,7 @@ public partial class C
 }
 ", sourceSymbolValidator: m =>
             {
-                var gooDef = m.GlobalNamespace
+                SourceOrdinaryMethodSymbol gooDef = m.GlobalNamespace
                     .GetMember<NamedTypeSymbol>("C")
                     .GetMember<SourceOrdinaryMethodSymbol>("goo");
                 Assert.True(gooDef.IsPartial);
@@ -52,7 +52,7 @@ expectedOutput: "test");
         public void Syntax01()
         {
             // Feature is enabled by default
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     public int M() => 1;
@@ -63,7 +63,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int M() {} => 1;
@@ -80,7 +80,7 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 interface C
 {
     int M() => 1;
@@ -94,7 +94,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
   public abstract int M() => 1;
@@ -108,7 +108,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
    public abstract int M() => 1;
@@ -125,7 +125,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
    abstract int M() => 1;
@@ -143,7 +143,7 @@ abstract class C
         [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void Syntax07()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 public class C {
     public bool IsNull<T>(T t) where T : class => t != null;
 }");
@@ -154,7 +154,7 @@ public class C {
         [WorkItem(1029117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029117")]
         public void Syntax08()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 namespace MyNamespace
 {
     public partial struct Goo
@@ -171,7 +171,7 @@ namespace MyNamespace
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 using System;
 class C
 {
@@ -191,20 +191,20 @@ class C
     public static explicit operator C(int i) => new C();
     public static C operator++(C c) => (C)c.M();
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics();
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var m = c.GetMember<SourceMemberMethodSymbol>("M");
+            SourceMemberMethodSymbol m = c.GetMember<SourceMemberMethodSymbol>("M");
             Assert.False(m.IsImplicitlyDeclared);
             Assert.True(m.IsExpressionBodied);
 
-            var pp = c.GetMember<SourceUserDefinedOperatorSymbol>("op_Increment");
+            SourceUserDefinedOperatorSymbol pp = c.GetMember<SourceUserDefinedOperatorSymbol>("op_Increment");
             Assert.False(pp.IsImplicitlyDeclared);
             Assert.True(pp.IsExpressionBodied);
 
-            var conv = c.GetMember<SourceUserDefinedConversionSymbol>("op_Explicit");
+            SourceUserDefinedConversionSymbol conv = c.GetMember<SourceUserDefinedConversionSymbol>("op_Explicit");
             Assert.False(conv.IsImplicitlyDeclared);
             Assert.True(conv.IsExpressionBodied);
         }
@@ -212,7 +212,7 @@ class C
         [Fact]
         public void Override01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class B
 {
     public virtual int M() { return 0; }
@@ -226,7 +226,7 @@ class C : B
         [Fact]
         public void VoidExpression()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public void M() => System.Console.WriteLine(""goo"");
@@ -236,7 +236,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int M() => System.Console.WriteLine(""goo"");
@@ -249,7 +249,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 interface I 
 {
     int M();
@@ -271,18 +271,18 @@ class C : I, J, K
     public decimal O() => M();
 }");
             comp.VerifyDiagnostics();
-            var global = comp.GlobalNamespace;
-            var i = global.GetTypeMember("I");
-            var j = global.GetTypeMember("J");
-            var k = global.GetTypeMember("K");
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol i = global.GetTypeMember("I");
+            NamedTypeSymbol j = global.GetTypeMember("J");
+            NamedTypeSymbol k = global.GetTypeMember("K");
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var iM = i.GetMember<SourceMemberMethodSymbol>("M");
-            var iN = i.GetMember<SourceMemberMethodSymbol>("N");
-            var jN = j.GetMember<SourceMemberMethodSymbol>("N");
+            SourceMemberMethodSymbol iM = i.GetMember<SourceMemberMethodSymbol>("M");
+            SourceMemberMethodSymbol iN = i.GetMember<SourceMemberMethodSymbol>("N");
+            SourceMemberMethodSymbol jN = j.GetMember<SourceMemberMethodSymbol>("N");
 
-            var method = c.GetMember<SourceMemberMethodSymbol>("M");
-            var implements = method.ContainingType.FindImplementationForInterfaceMember(iM);
+            SourceMemberMethodSymbol method = c.GetMember<SourceMemberMethodSymbol>("M");
+            Symbol implements = method.ContainingType.FindImplementationForInterfaceMember(iM);
             Assert.Equal(implements, method);
 
             method = (SourceMemberMethodSymbol)c.GetMethod("I.N");
@@ -302,7 +302,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 abstract class A
 {
     protected abstract string Z();
@@ -333,7 +333,7 @@ class C : B
         System.Console.WriteLine(c.Y());
     }
 }", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput:
 @"2
 4
 2
@@ -345,7 +345,7 @@ goo8");
         [ClrOnlyFact]
         public void Emit02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public void M() { System.Console.WriteLine(""Hello""); }
@@ -362,7 +362,7 @@ class C
         System.Console.WriteLine(c.N(""World""));
     }
 }", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput:
 @"Hello
 2
 World");
@@ -371,7 +371,7 @@ World");
         [Fact]
         public void RefReturningExpressionBodiedMethod()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
@@ -384,7 +384,7 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedMethod()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;

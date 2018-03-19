@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _hostObjectField;
             }
 
-            var hostObjectTypeSymbol = _compilation.GetHostObjectTypeSymbol();
+            TypeSymbol hostObjectTypeSymbol = _compilation.GetHostObjectTypeSymbol();
             if ((object)hostObjectTypeSymbol != null && hostObjectTypeSymbol.Kind != SymbolKind.ErrorType)
             {
                 return _hostObjectField = new SynthesizedFieldSymbol(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void AddToType(NamedTypeSymbol containingType, PEModuleBuilder moduleBeingBuilt)
         {
-            foreach (var field in FieldSymbols)
+            foreach (FieldSymbol field in FieldSymbols)
             {
                 moduleBeingBuilt.AddSynthesizedDefinition(containingType, field);
             }

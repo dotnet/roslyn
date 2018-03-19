@@ -30,7 +30,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilation(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
+                    CSharpCompilation comp = CreateCompilation(src, assemblyName: "Goo1", options: TestOptions.ReleaseDll);
                     s_goo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -55,7 +55,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilation(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
+                    CSharpCompilation comp = CreateCompilation(src, assemblyName: "Goo2", options: TestOptions.ReleaseDll);
                     s_goo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -80,7 +80,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.GetDiagnostics().Verify();
         }
@@ -93,7 +93,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Goo d = new Bar::NS.Goo();
 ";
-            var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics();
         }
@@ -132,7 +132,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.GetDiagnostics().Verify();
         }
@@ -152,7 +152,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics(
                 // (3,1): error CS1537: The using alias 'Bar' appeared previously in this namespace
@@ -180,7 +180,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0430: The extern alias 'bar' was not specified in a /reference option
@@ -207,10 +207,10 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
             var outputMetadata = AssemblyMetadata.CreateFromImage(comp.EmitToArray());
-            var goo1 = outputMetadata.GetReference();
-            var goo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
+            PortableExecutableReference goo1 = outputMetadata.GetReference();
+            PortableExecutableReference goo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
 
             src =
         @"
@@ -224,7 +224,7 @@ namespace NS
 ";
             comp = CreateCompilation(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
             comp = comp.AddReferences(goo1);
-            var goo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
+            PortableExecutableReference goo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
 
             src =
             @"
@@ -258,7 +258,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0246: The type or namespace name 'NS' could not be found (are you missing a using directive or an assembly reference?)
@@ -282,7 +282,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp = comp.AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1537: The using alias 'Bar' appeared previously in this namespace
@@ -309,8 +309,8 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
-            var goo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
+            CSharpCompilation comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+            MetadataReference goo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
 
             src =
             @"
@@ -342,20 +342,20 @@ class Maine
 
 class A : Bar::NS.Goo {}
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
             var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp = comp.AddReferences(Goo1);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             //find the alias qualifier on the base type and get its semantic info.
             var a1 = root.Members[0] as TypeDeclarationSyntax;
             var base1 = a1.BaseList.Types[0].Type as QualifiedNameSyntax;
             var left = base1.Left as AliasQualifiedNameSyntax;
-            var qualifier = left.Alias;
+            IdentifierNameSyntax qualifier = left.Alias;
 
-            var alias1 = model.GetAliasInfo(qualifier);
+            IAliasSymbol alias1 = model.GetAliasInfo(qualifier);
 
             Assert.NotNull(alias1);
             Assert.Equal(SymbolKind.Alias, alias1.Kind);
@@ -377,7 +377,7 @@ class A : Bar::NS.Goo {}
         }
     }
 }";
-            var comp = CreateCompilation(text).AddReferences(Goo1);
+            CSharpCompilation comp = CreateCompilation(text).AddReferences(Goo1);
             comp.VerifyDiagnostics(
                 // (3,5): info CS8020: Unused extern alias.
                 //     extern alias Bar;
@@ -388,26 +388,26 @@ class A : Bar::NS.Goo {}
         [Fact]
         public void SameExternAliasInMultipleTreesValid()
         {
-            var comp1 = CreateCompilation("public class C { }", assemblyName: "A1");
-            var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
+            CSharpCompilation comp1 = CreateCompilation("public class C { }", assemblyName: "A1");
+            MetadataReference ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
-            var comp2 = CreateCompilation("public class D { }", assemblyName: "A2");
-            var ref2 = comp2.EmitToImageReference(aliases: ImmutableArray.Create("X"));
+            CSharpCompilation comp2 = CreateCompilation("public class D { }", assemblyName: "A2");
+            MetadataReference ref2 = comp2.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             const int numFiles = 20;
-            var comp3 = CreateCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), new[] { ref1, ref2 }, assemblyName: "A3.dll");
+            CSharpCompilation comp3 = CreateCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), new[] { ref1, ref2 }, assemblyName: "A3.dll");
 
-            var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
+            NamespaceSymbol[] targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
-                var model = comp3.GetSemanticModel(tree);
+                SemanticModel model = comp3.GetSemanticModel(tree);
 
-                var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
+                ExternAliasDirectiveSyntax aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
-                var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
+                IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
                 return (NamespaceSymbol)aliasSymbol.Target;
             }).ToArray(); //force evaluation
 
-            var firstTarget = targets.First();
+            NamespaceSymbol firstTarget = targets.First();
             Assert.NotNull(firstTarget);
             Assert.IsType<MergedNamespaceSymbol>(firstTarget);
             firstTarget.GetMember<NamedTypeSymbol>("C");
@@ -421,19 +421,19 @@ class A : Bar::NS.Goo {}
         public void SameExternAliasInMultipleTreesInvalid()
         {
             const int numFiles = 20;
-            var comp3 = CreateCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), assemblyName: "A3.dll");
+            CSharpCompilation comp3 = CreateCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), assemblyName: "A3.dll");
 
-            var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
+            NamespaceSymbol[] targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
-                var model = comp3.GetSemanticModel(tree);
+                SemanticModel model = comp3.GetSemanticModel(tree);
 
-                var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
+                ExternAliasDirectiveSyntax aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
-                var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
+                IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
                 return (NamespaceSymbol)aliasSymbol.Target;
             }).ToArray(); //force evaluation
 
-            var firstTarget = targets.First();
+            NamespaceSymbol firstTarget = targets.First();
             Assert.NotNull(firstTarget);
             Assert.IsType<MissingNamespaceSymbol>(firstTarget);
             Assert.Equal(0, firstTarget.GetMembers().Length);
@@ -465,37 +465,37 @@ class Test
     }
 }";
             var libRef = new CSharpCompilationReference(CreateCompilation(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { libRef });
+            CSharpCompilation comp = CreateCompilation(source, new[] { libRef });
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var root = tree.GetRoot();
-            var externAliasSyntax = root.DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
-            var usingSyntax = root.DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            SyntaxNode root = tree.GetRoot();
+            ExternAliasDirectiveSyntax externAliasSyntax = root.DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
+            UsingDirectiveSyntax usingSyntax = root.DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
             var usingTargetSyntax = (QualifiedNameSyntax)usingSyntax.Name;
             var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)usingTargetSyntax.Left;
 
-            var aliasedGlobalNamespace = comp.GetReferencedAssemblySymbol(libRef).GlobalNamespace;
-            var namespaceN = aliasedGlobalNamespace.GetMember<NamespaceSymbol>("N");
-            var typeC = namespaceN.GetMember<NamedTypeSymbol>("C");
+            NamespaceSymbol aliasedGlobalNamespace = comp.GetReferencedAssemblySymbol(libRef).GlobalNamespace;
+            NamespaceSymbol namespaceN = aliasedGlobalNamespace.GetMember<NamespaceSymbol>("N");
+            NamedTypeSymbol typeC = namespaceN.GetMember<NamedTypeSymbol>("C");
 
-            var externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
+            IAliasSymbol externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
             Assert.Equal("A", externAliasSymbol.Name);
             Assert.Equal(aliasedGlobalNamespace, externAliasSymbol.Target);
 
-            var usingAliasSymbol = model.GetDeclaredSymbol(usingSyntax);
+            IAliasSymbol usingAliasSymbol = model.GetDeclaredSymbol(usingSyntax);
             Assert.Equal("C", usingAliasSymbol.Name);
             Assert.Equal(typeC, usingAliasSymbol.Target);
 
-            var qualifiedNameInfo = model.GetSymbolInfo(usingTargetSyntax);
+            SymbolInfo qualifiedNameInfo = model.GetSymbolInfo(usingTargetSyntax);
             Assert.Equal(typeC, qualifiedNameInfo.Symbol);
 
-            var aliasQualifiedNameInfo = model.GetSymbolInfo(aliasQualifiedNameSyntax);
+            SymbolInfo aliasQualifiedNameInfo = model.GetSymbolInfo(aliasQualifiedNameSyntax);
             Assert.Equal(typeC.ContainingNamespace, aliasQualifiedNameInfo.Symbol);
 
-            var aliasNameInfo = model.GetSymbolInfo(aliasQualifiedNameSyntax.Alias);
+            SymbolInfo aliasNameInfo = model.GetSymbolInfo(aliasQualifiedNameSyntax.Alias);
             Assert.Equal(aliasedGlobalNamespace, aliasNameInfo.Symbol);
         }
     }

@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (ResponseFiles != null)
             {
-                foreach (var response in ResponseFiles)
+                foreach (ITaskItem response in ResponseFiles)
                 {
                     commandLine.AppendSwitchIfNotNull("@", response.ItemSpec);
                 }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (ResponseFiles != null)
             {
-                foreach (var scriptResponse in ScriptResponseFiles)
+                foreach (ITaskItem scriptResponse in ScriptResponseFiles)
                 {
                     commandLine.AppendSwitchIfNotNull("@", scriptResponse.ItemSpec);
                 }
@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
-            var commandLineArguments = CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments = CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
+            System.Collections.Generic.IEnumerable<string> commandLineArguments = CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
+            System.Collections.Generic.IEnumerable<string> responseFileArguments = CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
             return commandLineArguments.Concat(responseFileArguments).ToArray();
         }
     }

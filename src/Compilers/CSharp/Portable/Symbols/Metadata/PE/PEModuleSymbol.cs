@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             try
                             {
-                                foreach (var customAttributeHandle in Module.GetCustomAttributesOrThrow(typerefAssemblyAttributesGoHere))
+                                foreach (CustomAttributeHandle customAttributeHandle in Module.GetCustomAttributesOrThrow(typerefAssemblyAttributesGoHere))
                                 {
                                     if (moduleAssemblyAttributesBuilder == null)
                                     {
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal void LoadCustomAttributes(EntityHandle token, ref ImmutableArray<CSharpAttributeData> customAttributes)
         {
-            var loaded = GetCustomAttributesForToken(token);
+            ImmutableArray<CSharpAttributeData> loaded = GetCustomAttributesForToken(token);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ref ImmutableArray<CSharpAttributeData> customAttributes,
             out bool foundExtension)
         {
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out foundExtension);
+            ImmutableArray<CSharpAttributeData> loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out foundExtension);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // Ignore whether or not extension attributes were found
             bool ignore;
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out ignore);
+            ImmutableArray<CSharpAttributeData> loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out ignore);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var customAttributeHandle in _module.GetCustomAttributesOrThrow(token))
+                foreach (CustomAttributeHandle customAttributeHandle in _module.GetCustomAttributesOrThrow(token))
                 {
                     // It is important to capture the last application of the attribute that we run into,
                     // it makes a difference for default and constant values.
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             try
             {
-                foreach (var attr in _module.GetCustomAttributesOrThrow(token))
+                foreach (CustomAttributeHandle attr in _module.GetCustomAttributesOrThrow(token))
                 {
                     return true;
                 }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterExtensions(EntityHandle token, out bool foundExtension)
         {
             CustomAttributeHandle extensionAttribute;
-            var result = GetCustomAttributesForToken(token, out extensionAttribute, AttributeDescription.CaseSensitiveExtensionAttribute);
+            ImmutableArray<CSharpAttributeData> result = GetCustomAttributesForToken(token, out extensionAttribute, AttributeDescription.CaseSensitiveExtensionAttribute);
 
             foundExtension = !extensionAttribute.IsNil;
             return result;
@@ -420,9 +420,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
 
-            foreach (var types in typesDict.Values)
+            foreach (ImmutableArray<PENamedTypeSymbol> types in typesDict.Values)
             {
-                foreach (var type in types)
+                foreach (PENamedTypeSymbol type in types)
                 {
                     bool added;
                     added = TypeHandleToTypeMap.TryAdd(type.Handle, type);
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
                 return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.CompilationRelaxationsAttribute) >= 0;
             }
         }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
                 return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
             }
         }
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (forwarder.Value.SecondIndex >= 0)
                 {
-                    var secondSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.SecondIndex);
+                    AssemblySymbol secondSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.SecondIndex);
                     Debug.Assert((object)secondSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
                     yield return ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(ref name, this, firstSymbol, secondSymbol);

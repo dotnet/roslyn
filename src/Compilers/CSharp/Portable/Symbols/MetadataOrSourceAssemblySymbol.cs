@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
         {
 #if DEBUG
-            foreach (var module in this.Modules)
+            foreach (ModuleSymbol module in this.Modules)
             {
                 Debug.Assert(module.GetReferencedAssemblies().Length == 0);
             }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Symbol GetDeclaredSpecialTypeMember(SpecialMember member)
         {
 #if DEBUG
-            foreach (var module in this.Modules)
+            foreach (ModuleSymbol module in this.Modules)
             {
                 Debug.Assert(module.GetReferencedAssemblies().Length == 0);
             }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Interlocked.CompareExchange(ref _lazySpecialTypeMembers, specialTypeMembers, null);
                 }
 
-                var descriptor = SpecialMembers.GetDescriptor(member);
+                RuntimeMembers.MemberDescriptor descriptor = SpecialMembers.GetDescriptor(member);
                 NamedTypeSymbol type = GetDeclaredSpecialType((SpecialType)descriptor.DeclaringTypeId);
                 Symbol result = null;
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IEnumerable<ImmutableArray<byte>> publicKeys = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name);
 
             //EDMAURER look for one that works, if none work, then return the failure for the last one examined.
-            foreach (var key in publicKeys)
+            foreach (ImmutableArray<byte> key in publicKeys)
             {
                 if (result == IVTConclusion.Match || result == IVTConclusion.OneSignedOneNot)
                 {

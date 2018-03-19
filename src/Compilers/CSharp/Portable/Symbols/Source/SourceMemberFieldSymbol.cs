@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsConst && !type.CanBeConst())
             {
                 SyntaxToken constToken = default(SyntaxToken);
-                foreach (var modifier in ModifiersTokenList)
+                foreach (SyntaxToken modifier in ModifiersTokenList)
                 {
                     if (modifier.Kind() == SyntaxKind.ConstKeyword)
                     {
@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
-            var value = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            ConstantValue value = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
 
             // Synthesize DecimalConstantAttribute when the default value is of type decimal
             if (this.IsConst && value != null
                 && this.Type.SpecialType == SpecialType.System_Decimal)
             {
-                var data = GetDecodedWellKnownAttributeData();
+                CommonFieldWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
 
                 if (data == null || data.ConstValue == CodeAnalysis.ConstantValue.Unset)
                 {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var incompletePart = state.NextIncompletePart;
+                CompletionPart incompletePart = state.NextIncompletePart;
                 switch (incompletePart)
                 {
                     case CompletionPart.Attributes:
@@ -367,16 +367,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsPointerFieldSyntactically()
         {
-            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
+            VariableDeclarationSyntax declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
             if (declaration.Type.Kind() == SyntaxKind.PointerType)
             {
                 // public int * Blah;   // pointer
                 return true;
             }
 
-            foreach (var singleVariable in declaration.Variables)
+            foreach (VariableDeclaratorSyntax singleVariable in declaration.Variables)
             {
-                var argList = singleVariable.ArgumentList;
+                BracketedArgumentListSyntax argList = singleVariable.ArgumentList;
                 if (argList != null && argList.Arguments.Count != 0)
                 {
                     // public int Blah[10];     // fixed buffer
@@ -396,11 +396,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyType;
             }
 
-            var declarator = VariableDeclaratorNode;
-            var fieldSyntax = GetFieldDeclaration(declarator);
-            var typeSyntax = fieldSyntax.Declaration.Type;
+            VariableDeclaratorSyntax declarator = VariableDeclaratorNode;
+            BaseFieldDeclarationSyntax fieldSyntax = GetFieldDeclaration(declarator);
+            TypeSyntax typeSyntax = fieldSyntax.Declaration.Type;
 
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSymbol type;
@@ -428,8 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-                var binder = binderFactory.GetBinder(typeSyntax);
+                BinderFactory binderFactory = compilation.GetBinderFactory(SyntaxTree);
+                Binder binder = binderFactory.GetBinder(typeSyntax);
 
                 binder = binder.WithContainingMemberOrLambda(this);
                 if (!ContainingType.IsScriptClass)
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
 
                             var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
+                            BoundExpression initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
 
                             if (initializerOpt != null)
                             {
@@ -498,11 +498,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type).PointedAtType;
+                    TypeSymbol elementType = ((PointerTypeSymbol)type).PointedAtType;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
-                        var loc = typeSyntax.Location;
+                        Location loc = typeSyntax.Location;
                         diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
                     }
 
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var fieldDeclaration = GetFieldDeclaration(this.SyntaxNode);
+                BaseFieldDeclarationSyntax fieldDeclaration = GetFieldDeclaration(this.SyntaxNode);
                 return fieldDeclaration.SyntaxTree.HasCompilationUnitRoot && fieldDeclaration.Span.IntersectsWith(definedWithinSpan.Value);
             }
 

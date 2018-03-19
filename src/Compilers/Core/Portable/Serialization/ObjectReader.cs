@@ -145,7 +145,7 @@ namespace Roslyn.Utilities
             {
                 // If we're recursing too deep, move the work to another thread to do so we
                 // don't blow the stack.
-                var task = Task.Factory.StartNew(
+                Task<object> task = Task.Factory.StartNew(
                     () => ReadValueWorker(),
                     _cancellationToken,
                     TaskCreationOptions.LongRunning,
@@ -387,7 +387,7 @@ namespace Roslyn.Utilities
             // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
             var elementKind = (EncodingKind)_reader.ReadByte();
 
-            var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
+            Type elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
             if (elementType != null)
             {
                 return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
@@ -603,7 +603,7 @@ namespace Roslyn.Utilities
             // reading an object may recurse.  So we need to grab our ID up front as we'll
             // end up making our sub-objects before we make this object.
 
-            var typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
+            Func<ObjectReader, object> typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);

@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void EmitDebugInfoForSourceTextWithoutEncoding1()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class A { }", encoding: null, path: "Foo.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class B { }", encoding: null, path: "");
-            var tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class C { }", encoding: null), path: "Bar.cs");
-            var tree4 = SyntaxFactory.ParseSyntaxTree("class D { }", encoding: Encoding.UTF8, path: "Baz.cs");
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree("class A { }", encoding: null, path: "Foo.cs");
+            SyntaxTree tree2 = SyntaxFactory.ParseSyntaxTree("class B { }", encoding: null, path: "");
+            SyntaxTree tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class C { }", encoding: null), path: "Bar.cs");
+            SyntaxTree tree4 = SyntaxFactory.ParseSyntaxTree("class D { }", encoding: Encoding.UTF8, path: "Baz.cs");
 
             var comp = CSharpCompilation.Create("Compilation", new[] { tree1, tree2, tree3, tree4 }, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
-            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            EmitResult result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
             result.Diagnostics.Verify(
                 // Foo.cs(1,1): error CS8055: Cannot emit debug information for a source text without encoding.
                 Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, "class A { }").WithLocation(1, 1),
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void EmitDebugInfoForSourceTextWithoutEncoding2()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class B { public void F() { } }", encoding: null, path: "");
-            var tree3 = SyntaxFactory.ParseSyntaxTree("class C { public void F() { } }", encoding: new UTF8Encoding(true, false), path: "Bar.cs");
-            var tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class D { public void F() { } }", new UTF8Encoding(false, false)), path: "Baz.cs");
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
+            SyntaxTree tree2 = SyntaxFactory.ParseSyntaxTree("class B { public void F() { } }", encoding: null, path: "");
+            SyntaxTree tree3 = SyntaxFactory.ParseSyntaxTree("class C { public void F() { } }", encoding: new UTF8Encoding(true, false), path: "Bar.cs");
+            SyntaxTree tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class D { public void F() { } }", new UTF8Encoding(false, false)), path: "Baz.cs");
 
             var comp = CSharpCompilation.Create("Compilation", new[] { tree1, tree2, tree3, tree4 }, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
-            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            EmitResult result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
             result.Diagnostics.Verify();
             Assert.True(result.Success);
 
@@ -92,7 +92,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
 
@@ -126,10 +126,10 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var result = compilation.Emit(
+            EmitResult result = compilation.Emit(
                 peStream: new MemoryStream(),
                 metadataPEStream: null,
                 pdbStream: new MemoryStream(),
@@ -157,10 +157,10 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilation(source0, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
-            var result = compilation.Emit(
+            EmitResult result = compilation.Emit(
                 peStream: new MemoryStream(),
                 metadataPEStream: null,
                 pdbStream: new MemoryStream(),
@@ -188,10 +188,10 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilation(source0, options: TestOptions.DebugDll.WithDeterministic(true));
+            CSharpCompilation compilation = CreateCompilation(source0, options: TestOptions.DebugDll.WithDeterministic(true));
 
             // Verify full metadata contains expected rows.
-            var result = compilation.Emit(
+            EmitResult result = compilation.Emit(
                 peStream: new MemoryStream(),
                 metadataPEStream: null,
                 pdbStream: new MemoryStream(),
@@ -219,10 +219,10 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilation(source0);
+            CSharpCompilation compilation = CreateCompilation(source0);
 
             // Verify full metadata contains expected rows.
-            var result = compilation.Emit(
+            EmitResult result = compilation.Emit(
                 peStream: new MemoryStream(),
                 metadataPEStream: null,
                 pdbStream: new MemoryStream(),
@@ -261,7 +261,7 @@ public class C
 }
 ";
 
-            var debug = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugWinMD);
+            CSharpCompilation debug = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(@"
 <symbols>
     <files>
@@ -300,7 +300,7 @@ public class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
-            var release = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseWinMD);
+            CSharpCompilation release = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
 <symbols>
   <files>
@@ -345,7 +345,7 @@ public class C
     }
 }";
 
-            var debug = CreateCompilation(source, options: TestOptions.DebugWinMD);
+            CSharpCompilation debug = CreateCompilation(source, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
   <files>
@@ -370,7 +370,7 @@ public class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
-            var release = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
+            CSharpCompilation release = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
   <files>
@@ -397,10 +397,10 @@ public class C
             var source1 = @"class C { static void F() { } }";
             var source2 = @"class D { static void F() { } }";
 
-            var tree1 = Parse(source1, @"foo.cs");
-            var tree2 = Parse(source2, @"foo.cs");
+            SyntaxTree tree1 = Parse(source1, @"foo.cs");
+            SyntaxTree tree2 = Parse(source2, @"foo.cs");
 
-            var comp = CreateCompilation(new[] { tree1, tree2 });
+            CSharpCompilation comp = CreateCompilation(new[] { tree1, tree2 });
 
             // the first file wins (checksum CB 22 ...)
             comp.VerifyPdb(@"
@@ -437,8 +437,8 @@ public class C
         {
             var source = @"class C { static void F() { } }";
 
-            var c = CreateCompilation(source, options: TestOptions.DebugDll);
-            var f = c.GetMember<MethodSymbol>("C.F");
+            CSharpCompilation c = CreateCompilation(source, options: TestOptions.DebugDll);
+            MethodSymbol f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
 <symbols>
@@ -460,8 +460,8 @@ public class C
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
 
-            var c = CreateCompilation(source, options: TestOptions.DebugExe);
-            var f = c.GetMember<MethodSymbol>("C.F");
+            CSharpCompilation c = CreateCompilation(source, options: TestOptions.DebugExe);
+            MethodSymbol f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
 <symbols>
@@ -475,8 +475,8 @@ public class C
             var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
             int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
 
-            var mdReader = peReader.GetMetadataReader();
-            var methodDef = mdReader.GetMethodDefinition((MethodDefinitionHandle)MetadataTokens.Handle(peEntryPointToken));
+            MetadataReader mdReader = peReader.GetMetadataReader();
+            MethodDefinition methodDef = mdReader.GetMethodDefinition((MethodDefinitionHandle)MetadataTokens.Handle(peEntryPointToken));
             Assert.Equal("Main", mdReader.GetString(methodDef.Name));
         }
 
@@ -486,25 +486,25 @@ public class C
             var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
             var source2 = @"class C { static void F() { } }";
 
-            var c1 = CreateCompilation(source1, options: TestOptions.DebugDll);
-            var c2 = CreateCompilation(source2, options: TestOptions.DebugDll);
+            CSharpCompilation c1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            CSharpCompilation c2 = CreateCompilation(source2, options: TestOptions.DebugDll);
 
-            var f1 = c1.GetMember<MethodSymbol>("C.F");
-            var f2 = c2.GetMember<MethodSymbol>("C.F");
-            var g = c1.GetMember<MethodSymbol>("D.G");
-            var d = c1.GetMember<NamedTypeSymbol>("D");
+            MethodSymbol f1 = c1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = c2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol g = c1.GetMember<MethodSymbol>("D.G");
+            NamedTypeSymbol d = c1.GetMember<NamedTypeSymbol>("D");
             Assert.NotNull(f1);
             Assert.NotNull(f2);
             Assert.NotNull(g);
             Assert.NotNull(d);
 
-            var stInt = c1.GetSpecialType(SpecialType.System_Int32);
-            var d_t_g_int = g.Construct(stInt);
-            var d_int = d.Construct(stInt);
-            var d_int_g = d_int.GetMember<MethodSymbol>("G");
-            var d_int_g_int = d_int_g.Construct(stInt);
+            NamedTypeSymbol stInt = c1.GetSpecialType(SpecialType.System_Int32);
+            MethodSymbol d_t_g_int = g.Construct(stInt);
+            NamedTypeSymbol d_int = d.Construct(stInt);
+            MethodSymbol d_int_g = d_int.GetMember<MethodSymbol>("G");
+            MethodSymbol d_int_g_int = d_int_g.Construct(stInt);
 
-            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
+            EmitResult result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
             result.Diagnostics.Verify(
                 // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
@@ -544,7 +544,7 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"
 <symbols>
   <files>
@@ -598,7 +598,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
   <files>
@@ -663,7 +663,7 @@ class C
         object y = x;
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
   <files>
@@ -731,7 +731,7 @@ class C
         object y = x;
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
   <files>
@@ -824,7 +824,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -911,7 +911,7 @@ class C
         return g(f)(null);
     };
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -1007,7 +1007,7 @@ class C
     public static void Main1() /*Comment1*/{/*Comment2*/int a = 1;/*Comment3*/}/*Comment4*/
     public static void Main2() {/*Comment2*/int a = 2;/*Comment3*/}/*Comment4*/
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // verify that both syntax offsets are the same
             c.VerifyPdb(@"
@@ -1075,7 +1075,7 @@ class C2
     public static Func<int> g=() => 2;
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // verify that syntax offsets of both .cctor's are the same
             c.VerifyPdb("C1..cctor", @"
@@ -1151,7 +1151,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             // In order to place a breakpoint on the closing brace we need to save the return expression value to 
             // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
@@ -1206,7 +1206,7 @@ class C
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             // In order to place a breakpoint on the closing brace we need to save the return expression value to 
             // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
@@ -1261,7 +1261,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
 {
@@ -1283,7 +1283,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
 {
@@ -1316,7 +1316,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
 {
@@ -1413,7 +1413,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
   <files>
@@ -1526,7 +1526,7 @@ public class SeqPointForWhile
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
             // Offset 0x01 should be:
             //  <entry offset=""0x1"" hidden=""true"" document=""1"" />
@@ -1606,7 +1606,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1657,7 +1657,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1699,7 +1699,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1751,7 +1751,7 @@ public class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -1809,7 +1809,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -1880,7 +1880,7 @@ public class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -1976,7 +1976,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2114,7 +2114,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("C.M", @"
 {
@@ -2172,7 +2172,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2254,7 +2254,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Test()", @"
 {
@@ -2304,7 +2304,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2447,7 +2447,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Test", @"
 {
@@ -2559,7 +2559,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
 
             // Stepping:
             //   After "continue", step to "in".
@@ -2687,7 +2687,7 @@ public class C
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -2776,7 +2776,7 @@ class Program
 }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2846,8 +2846,8 @@ public class C
     }
 }
 ";
-            var c = CreateCompilation(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilation(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
 
             v.VerifyIL("C.Main", @"
 {
@@ -3007,7 +3007,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
 @"<symbols>
   <files>
@@ -3099,7 +3099,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
 @"<symbols>
   <files>
@@ -3199,7 +3199,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate", @"
 <symbols>
   <files>
@@ -3300,9 +3300,9 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             c.VerifyDiagnostics();
-            var verifier = CompileAndVerify(c, expectedOutput: "1M2");
+            CompilationVerifier verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
@@ -3413,9 +3413,9 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
-            var verifier = CompileAndVerify(c, expectedOutput: "1234");
+            CompilationVerifier verifier = CompileAndVerify(c, expectedOutput: "1234");
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
@@ -3612,9 +3612,9 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             c.VerifyDiagnostics();
-            var verifier = CompileAndVerify(c, expectedOutput: "66");
+            CompilationVerifier verifier = CompileAndVerify(c, expectedOutput: "66");
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
@@ -3697,7 +3697,7 @@ public class SeqPointForWhile
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb(@"
 <symbols>
@@ -3800,7 +3800,7 @@ public class SeqPointForWhile
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Dev10 vs. Roslyn
             // 
@@ -3971,7 +3971,7 @@ public class Derived : Base
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -4039,7 +4039,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            CSharpCompilation compilation = CreateCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -4118,7 +4118,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -4174,7 +4174,7 @@ class C
     int x = ((System.Func<int, int>)(z => z))(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -4215,7 +4215,7 @@ class C
     int x = 1, y = 2;
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -4253,7 +4253,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyPdb(@"
 <symbols>
@@ -4346,7 +4346,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -4380,7 +4380,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -4462,7 +4462,7 @@ public class SeqPointAfterReturn
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Expected are current actual output plus Two extra expected SeqPt:
             //  <entry offset=""0x73"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""1"" />
@@ -4610,7 +4610,7 @@ class Test
             // the exception object is assigned to the variable. We don't place that sequence point.
             // Also the scope of he exception variable is different.
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Test.Main", @"
 <symbols>
   <files>
@@ -4687,7 +4687,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
+            CompilationVerifier v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
 
             v.VerifyIL("Test.Main", @"
 {
@@ -4835,7 +4835,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
+            CompilationVerifier v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
@@ -4923,7 +4923,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
+            CompilationVerifier v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
   // Code size       33 (0x21)
@@ -5011,7 +5011,7 @@ class Test
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll));
+            CompilationVerifier v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll));
             v.VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
@@ -5093,7 +5093,7 @@ class Program
 }
 ";
             // Note the hidden sequence point @IL_0019.
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5182,7 +5182,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -5261,8 +5261,8 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size       45 (0x2d)
@@ -5352,8 +5352,8 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size       47 (0x2f)
@@ -5437,8 +5437,8 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size       31 (0x1f)
@@ -5497,8 +5497,8 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size       31 (0x1f)
@@ -5560,8 +5560,8 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size       58 (0x3a)
@@ -5641,7 +5641,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5682,7 +5682,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5736,7 +5736,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5795,7 +5795,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5854,7 +5854,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5929,7 +5929,7 @@ unsafe class C
 }
 ";
             // NOTE: stop on each declarator.
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5995,7 +5995,7 @@ unsafe class C
 }
 ";
             // NOTE: stop on each declarator.
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6063,7 +6063,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6145,7 +6145,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -6223,7 +6223,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6269,7 +6269,7 @@ unsafe class C
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6325,7 +6325,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilation(text1, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
 <symbols>
   <files>
@@ -6431,7 +6431,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
 
             c.VerifyPdb(@"
 <symbols>
@@ -6469,7 +6469,7 @@ class C
     {
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
 
             // Note: Dev10 emitted a hidden sequence point to #line hidden method, 
             // which enabled the debugger to locate the first user visible sequence point starting from the entry point.
@@ -6523,7 +6523,7 @@ class C
         yield return 1;
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             
             // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
             // but it doesn't hurt and removing it would need extra effort that's unnecessary.
@@ -6590,7 +6590,7 @@ namespace N
 	}
 }
 ";
-            var c = CreateCompilation(Parse(source, filename: "file.cs"));
+            CSharpCompilation c = CreateCompilation(Parse(source, filename: "file.cs"));
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6623,7 +6623,7 @@ namespace N
         [Fact]
         public void ExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P => M();
@@ -6664,7 +6664,7 @@ class C
         [Fact]
         public void ExpressionBodiedIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C
@@ -6711,7 +6711,7 @@ class C
         [Fact]
         public void ExpressionBodiedMethod()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C
@@ -6746,7 +6746,7 @@ class C
         [Fact]
         public void ExpressionBodiedOperator()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public static C operator ++(C c) => c;
@@ -6776,7 +6776,7 @@ class C
         [Fact]
         public void ExpressionBodiedConversion()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C
@@ -6811,7 +6811,7 @@ class C
         [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         public void ExpressionBodiedConstructor()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 using System;
 
 class C
@@ -6847,7 +6847,7 @@ class C
         [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         public void ExpressionBodiedDestructor()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int X;
@@ -6879,7 +6879,7 @@ class C
         [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
         public void ExpressionBodiedAccessor()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int x;
@@ -6961,7 +6961,7 @@ class C
         f();
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            CSharpCompilation c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
   <files>
@@ -7006,7 +7006,7 @@ class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            CSharpCompilation c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
   <files>
@@ -7061,7 +7061,7 @@ class C
         c.Select(i => i);
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            CSharpCompilation c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
   <files>
@@ -7113,7 +7113,7 @@ class C
         };
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            CSharpCompilation c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
   <files>
@@ -7173,7 +7173,7 @@ class C
         public void SyntaxOffset_Pattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.F", @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -7208,7 +7208,7 @@ class C
         public void SyntaxOffset_TupleDeconstruction()
         {
             var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7257,8 +7257,8 @@ public class C
     }
 }
 ";
-            var c = CreateCompilation(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
+            CSharpCompilation c = CreateCompilation(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(c);
 
             v.VerifyIL("C.Main", @"
 {
@@ -7291,7 +7291,7 @@ public class C
         public void SyntaxOffset_TupleParenthesized()
         {
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7327,7 +7327,7 @@ public class C
         public void SyntaxOffset_TupleVarDefined()
         {
             var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7362,7 +7362,7 @@ public class C
         public void SyntaxOffset_TupleIgnoreDeconstructionIfVariableDeclared()
         {
             var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
   <files>
@@ -7428,7 +7428,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics(
                 // (9,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.G(out int)'
                 //     int F = G(out var v1);    
@@ -7443,7 +7443,7 @@ class C
         {
             var source = @"class C { int G(out int x) { int z = 1; G(out var y); G(out var w); return x = y; } }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
 <symbols>
   <files>
@@ -7508,7 +7508,7 @@ class A
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
@@ -7575,7 +7575,7 @@ class A
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
@@ -7633,7 +7633,7 @@ class A
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
@@ -7691,7 +7691,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C..ctor", @"
 <symbols>
@@ -7768,7 +7768,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C..ctor", @"
 <symbols>
@@ -7842,7 +7842,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C..ctor", @"
 <symbols>
@@ -7949,7 +7949,7 @@ class A
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
@@ -8027,7 +8027,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
@@ -8118,7 +8118,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
@@ -8219,8 +8219,8 @@ public class C
     }
 }
 ";
-            
-            var tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
+
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
             var c = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef_v46 }, options: TestOptions.DebugDll.WithDebugPlusMode(true));
 
             c.VerifyPdb(
@@ -8284,7 +8284,7 @@ partial class C
 }
 ";
 
-            var c = CreateCompilation(
+            CSharpCompilation c = CreateCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
                 options: TestOptions.DebugDll);
 
@@ -8351,7 +8351,7 @@ partial class C
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL("Program.M",
 @"{
   // Code size      170 (0xaa)
@@ -8519,7 +8519,7 @@ partial class C
         return Local1(args) + Local2(args);          // 12
     }                                                // 13
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
   <files>
@@ -8592,7 +8592,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8671,7 +8671,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8752,7 +8752,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8844,7 +8844,7 @@ class Program
     public static int M(out int x) { x = 0; return 0; }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

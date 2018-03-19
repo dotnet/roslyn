@@ -1292,9 +1292,9 @@ End Class
             Assert.True(pos != null || spans.Count > 0, "Must specify a position or spans marking expected symbols for resolution");
 
             // Get the expected symbol from the given position
-            var syntaxTree = CreateSyntaxTree(source, language);
-            var compilation = CreateCompilation(syntaxTree, language, rootNamespace);
-            var model = compilation.GetSemanticModel(syntaxTree);
+            SyntaxTree syntaxTree = CreateSyntaxTree(source, language);
+            Compilation compilation = CreateCompilation(syntaxTree, language, rootNamespace);
+            SemanticModel model = compilation.GetSemanticModel(syntaxTree);
             var expectedSymbols = new List<ISymbol>();
 
             bool shouldResolveSingleSymbol = pos != null;
@@ -1304,7 +1304,7 @@ End Class
             }
             else
             {
-                foreach (var span in spans.Values.First())
+                foreach (TextSpan span in spans.Values.First())
                 {
                     expectedSymbols.Add(GetSymbolAtPosition(model, span.Start));
                 }
@@ -1313,11 +1313,11 @@ End Class
             // Resolve the symbol based on each given FxCop fully-qualified name
             foreach (var fxCopName in fxCopFullyQualifiedNames)
             {
-                var symbols = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, fxCopName, scope);
+                IEnumerable<ISymbol> symbols = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, fxCopName, scope);
 
                 if (shouldResolveSingleSymbol)
                 {
-                    var expectedSymbol = expectedSymbols.Single();
+                    ISymbol expectedSymbol = expectedSymbols.Single();
 
                     if (symbols.Count() > 1)
                     {
@@ -1326,14 +1326,14 @@ End Class
                                 fxCopName, expectedSymbol, string.Join("\r\n", symbols)));
                     }
 
-                    var symbol = symbols.SingleOrDefault();
+                    ISymbol symbol = symbols.SingleOrDefault();
                     Assert.True(expectedSymbol == symbol,
                         string.Format("Failed to resolve FxCop fully-qualified name '{0}' to symbol '{1}': got '{2}'",
                             fxCopName, expectedSymbol, symbol));
                 }
                 else
                 {
-                    foreach (var symbol in symbols)
+                    foreach (ISymbol symbol in symbols)
                     {
                         Assert.True(expectedSymbols.Contains(symbol),
                             string.Format("Failed to resolve FxCop fully-qualified name '{0}' to symbols:\r\n{1}\r\nResolved to unexpected symbol '{2}'",
@@ -1345,27 +1345,27 @@ End Class
 
         private static ISymbol GetSymbolAtPosition(SemanticModel model, int pos)
         {
-            var token = model.SyntaxTree.GetRoot().FindToken(pos);
+            SyntaxToken token = model.SyntaxTree.GetRoot().FindToken(pos);
             Assert.NotNull(token.Parent);
 
-            var location = token.GetLocation();
-            var q = from node in token.Parent.AncestorsAndSelf()
+            Location location = token.GetLocation();
+            IEnumerable<ISymbol> q = from node in token.Parent.AncestorsAndSelf()
                     let candidate = model.GetDeclaredSymbol(node)
                     where candidate != null && candidate.Locations.Contains(location)
                     select candidate;
 
-            var symbol = q.FirstOrDefault();
+            ISymbol symbol = q.FirstOrDefault();
             Assert.NotNull(symbol);
             return symbol;
         }
 
         private static void VerifyNoResolution(string source, string[] fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope scope, string language, string rootNamespace)
         {
-            var compilation = CreateCompilation(source, language, rootNamespace);
+            Compilation compilation = CreateCompilation(source, language, rootNamespace);
 
             foreach (var fxCopName in fxCopFullyQualifiedNames)
             {
-                var symbols = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, fxCopName, scope);
+                IEnumerable<ISymbol> symbols = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, fxCopName, scope);
 
                 Assert.True(symbols.FirstOrDefault() == null,
                     string.Format("Did not expect FxCop fully-qualified name '{0}' to resolve to any symbol: resolved to:\r\n{1}",

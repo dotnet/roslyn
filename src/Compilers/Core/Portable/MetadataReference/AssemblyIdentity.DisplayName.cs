@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         private string BuildDisplayName(bool fullKey)
         {
             PooledStringBuilder pooledBuilder = PooledStringBuilder.GetInstance();
-            var sb = pooledBuilder.Builder;
+            StringBuilder sb = pooledBuilder.Builder;
             EscapeName(sb, Name);
 
             sb.Append(", Version=");
@@ -189,13 +189,13 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var parsedParts = AssemblyIdentityParts.Name;
-            var seen = AssemblyIdentityParts.Name;
+            AssemblyIdentityParts parsedParts = AssemblyIdentityParts.Name;
+            AssemblyIdentityParts seen = AssemblyIdentityParts.Name;
 
             Version version = null;
             string culture = null;
             bool isRetargetable = false;
-            var contentType = AssemblyContentType.Default;
+            AssemblyContentType contentType = AssemblyContentType.Default;
             var publicKey = default(ImmutableArray<byte>);
             var publicKeyToken = default(ImmutableArray<byte>);
 

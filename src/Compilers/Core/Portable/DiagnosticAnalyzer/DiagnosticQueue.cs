@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SimpleDiagnosticQueue queue;
                 if (TryGetDiagnosticsQueue(analyzer, diagnosticsMap, out queue))
                 {
-                    var builder = ImmutableArray.CreateBuilder<Diagnostic>();
+                    ImmutableArray<Diagnostic>.Builder builder = ImmutableArray.CreateBuilder<Diagnostic>();
                     Diagnostic d;
                     while (queue.TryDequeue(out d))
                     {

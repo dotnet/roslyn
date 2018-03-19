@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumUtilities.GetValues<MethodKind>();
+                MethodKind[] methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
 
                 // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
                 // the declaration modifier mask.
-                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
+                DeclarationModifiers[] declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
                 var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
                 Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ErrorCode.ERR_BadVisOpParam :
                 ErrorCode.ERR_BadVisParamType;
 
-            foreach (var parameter in parameters)
+            foreach (ParameterSymbol parameter in parameters)
             {
                 if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var cc = IsVararg ? Cci.CallingConvention.ExtraArguments : Cci.CallingConvention.Default;
+                Cci.CallingConvention cc = IsVararg ? Cci.CallingConvention.ExtraArguments : Cci.CallingConvention.Default;
 
                 if (IsGenericMethod)
                 {
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var incompletePart = state.NextIncompletePart;
+                CompletionPart incompletePart = state.NextIncompletePart;
                 switch (incompletePart)
                 {
                     case CompletionPart.Attributes:
@@ -777,12 +777,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Type:
-                        var unusedType = this.ReturnType;
+                        TypeSymbol unusedType = this.ReturnType;
                         state.NotePartComplete(CompletionPart.Type);
                         break;
 
                     case CompletionPart.Parameters:
-                        foreach (var parameter in this.Parameters)
+                        foreach (ParameterSymbol parameter in this.Parameters)
                         {
                             parameter.ForceComplete(locationOpt, cancellationToken);
                         }
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.TypeParameters:
-                        foreach (var typeParameter in this.TypeParameters)
+                        foreach (TypeParameterSymbol typeParameter in this.TypeParameters)
                         {
                             typeParameter.ForceComplete(locationOpt, cancellationToken);
                         }
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonMethodEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
         {
-            var attributesBag = _lazyReturnTypeCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyReturnTypeCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetReturnTypeAttributesBag();
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            var bag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> bag = _lazyCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
         {
-            var bag = _lazyReturnTypeCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> bag = _lazyReturnTypeCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool bagCreatedOnThisThread;
             if ((object)copyFrom != null)
             {
-                var attributesBag = forReturnType ? copyFrom.GetReturnTypeAttributesBag() : copyFrom.GetAttributesBag();
+                CustomAttributesBag<CSharpAttributeData> attributesBag = forReturnType ? copyFrom.GetReturnTypeAttributesBag() : copyFrom.GetAttributesBag();
                 bagCreatedOnThisThread = Interlocked.CompareExchange(ref lazyCustomAttributesBag, attributesBag, null) == null;
             }
             else if (forReturnType)
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (bagCreatedOnThisThread)
             {
-                var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
+                CompletionPart part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
                 state.NotePartComplete(part);
             }
 
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
                 {
-                    var boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                    CSharpAttributeData boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                     if (!boundAttribute.HasErrors)
                     {
                         string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
@@ -1094,14 +1094,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonMethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
-                var reference = this.syntaxReferenceOpt;
+                SyntaxReference reference = this.syntaxReferenceOpt;
                 if (reference == null)
                 {
                     // no references -> no attributes
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
@@ -1208,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var compilation = this.DeclaringCompilation;
+                CSharpCompilation compilation = this.DeclaringCompilation;
                 if (attribute.IsSecurityAttribute(compilation))
                 {
                     attribute.DecodeSecurityAttribute<CommonMethodWellKnownAttributeData>(this, compilation, ref arguments);
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool HasAnyOutParameter()
         {
-            foreach (var param in this.Parameters)
+            foreach (ParameterSymbol param in this.Parameters)
             {
                 if (param.RefKind == RefKind.Out)
                 {
@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool? throwOnUnmappable = null;
 
             int position = 1;
-            foreach (var namedArg in attribute.CommonNamedArguments)
+            foreach (KeyValuePair<string, TypedConstant> namedArg in attribute.CommonNamedArguments)
             {
                 switch (namedArg.Key)
                 {
@@ -1533,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var data = GetDecodedWellKnownAttributeData();
+                CommonMethodWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
         }
@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                CommonMethodWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasDynamicSecurityMethodAttribute;
             }
         }
@@ -1554,14 +1554,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = this.GetDecodedWellKnownAttributeData();
+                CommonMethodWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
                 return data != null && data.HasDeclarativeSecurity;
             }
         }
 
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            var attributesBag = this.GetAttributesBag();
+            CustomAttributesBag<CSharpAttributeData> attributesBag = this.GetAttributesBag();
             var wellKnownData = (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override DllImportData GetDllImportData()
         {
-            var data = this.GetDecodedWellKnownAttributeData();
+            CommonMethodWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
             return data != null ? data.DllImportPlatformInvokeData : null;
         }
 
@@ -1585,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = this.GetDecodedReturnTypeWellKnownAttributeData();
+                CommonReturnTypeWellKnownAttributeData data = this.GetDecodedReturnTypeWellKnownAttributeData();
                 return data != null ? data.MarshallingInformation : null;
             }
         }
@@ -1594,8 +1594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
-                var result = (data != null) ? data.MethodImplAttributes : default(System.Reflection.MethodImplAttributes);
+                CommonMethodWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
+                System.Reflection.MethodImplAttributes result = (data != null) ? data.MethodImplAttributes : default(System.Reflection.MethodImplAttributes);
 
                 if (this.ContainingType.IsComImport && this.MethodKind == MethodKind.Constructor)
                 {
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsAsync || this.IsIterator)
             {
-                var compilation = this.DeclaringCompilation;
+                CSharpCompilation compilation = this.DeclaringCompilation;
 
                 // The async state machine type is not synthesized until the async method body is rewritten. If we are
                 // only emitting metadata the method body will not have been rewritten, and the async state machine

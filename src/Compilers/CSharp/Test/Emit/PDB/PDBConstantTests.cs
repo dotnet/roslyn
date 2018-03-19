@@ -27,7 +27,7 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
@@ -92,7 +92,7 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
@@ -201,7 +201,7 @@ public class C<S>
     }
 }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C`1.F", @"
 <symbols>
@@ -329,7 +329,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier c = CompileAndVerify(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -401,7 +401,7 @@ class C
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
             // do that - the <constant> in the <scope> is sufficient.
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -523,11 +523,11 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();
-            var result = compilation.Emit(exebits, pdbbits);
+            EmitResult result = compilation.Emit(exebits, pdbbits);
             result.Diagnostics.Verify();
 
             /*
@@ -601,7 +601,7 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -657,7 +657,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -716,7 +716,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
 <symbols>

@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             _synthesizedLocalOrdinals = synthesizedLocalOrdinals;
             _nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot;
 
-            foreach (var proxy in nonReusableLocalProxies)
+            foreach (KeyValuePair<Symbol, CapturedSymbolReplacement> proxy in nonReusableLocalProxies)
             {
                 this.proxies.Add(proxy.Key, proxy.Value);
             }
 
             // create cache local for reference type "this" in Release
-            var thisParameter = originalMethod.ThisParameter;
+            ParameterSymbol thisParameter = originalMethod.ThisParameter;
             CapturedSymbolReplacement thisProxy;
             if ((object)thisParameter != null && 
                 thisParameter.Type.IsReferenceType &&
@@ -196,9 +196,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass)
         {
-            var oldSyntax = F.Syntax;
+            SyntaxNode oldSyntax = F.Syntax;
             F.Syntax = syntax;
-            var result = F.This();
+            BoundThisReference result = F.This();
             Debug.Assert(frameClass == result.Type);
             F.Syntax = oldSyntax;
             return result;
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Spilled local temps do not appear here in a sequence expression, because any temps in a
             // sequence expression that need to be spilled would have been moved up to the
             // statement level by the AwaitLiftingRewriter.
-            foreach (var local in node.Locals)
+            foreach (LocalSymbol local in node.Locals)
             {
                 Debug.Assert(!NeedsProxy(local) || proxies.ContainsKey(local));
             }
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
-            foreach (var local in locals)
+            foreach (LocalSymbol local in locals)
             {
                 if (!NeedsProxy(local))
                 {
@@ -305,12 +305,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var translatedStatement = wrapped();
+            BoundStatement translatedStatement = wrapped();
             var variableCleanup = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
 
             // produce cleanup code for all fields of locals defined by this block 
             // as well as all proxies allocated by VisitAssignmentOperator within this block:
-            foreach (var local in locals)
+            foreach (LocalSymbol local in locals)
             {
                 CapturedSymbolReplacement proxy;
                 if (!proxies.TryGetValue(local, out proxy))
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    foreach (var field in ((CapturedToExpressionSymbolReplacement)proxy).HoistedFields)
+                    foreach (StateMachineFieldSymbol field in ((CapturedToExpressionSymbolReplacement)proxy).HoistedFields)
                     {
                         AddVariableCleanup(variableCleanup, field);
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (statement.Kind == BoundKind.Block)
             {
                 var rewrittenBlock = (BoundBlock)statement;
-                var rewrittenStatements = rewrittenBlock.Statements;
+                ImmutableArray<BoundStatement> rewrittenStatements = rewrittenBlock.Statements;
                 if (rewrittenStatements.Length == 1 && rewrittenStatements[0].Kind == BoundKind.StateMachineScope)
                 {
                     var stateMachineScope = (BoundStateMachineScope)rewrittenStatements[0];
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.SpecialType == SpecialType.System_TypedReference) return true;
             if (type.SpecialType != SpecialType.None) return false; // int, etc
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
-            foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
+            foreach (FieldSymbol f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
                 if (MightContainReferences(f.Type)) return true;
             }
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<StateMachineFieldSymbol> fields;
             if (_lazyAvailableReusableHoistedFields != null && _lazyAvailableReusableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
-                var field = fields.Last();
+                StateMachineFieldSymbol field = fields.Last();
                 fields.RemoveLast();
                 reused = true;
                 return field;
@@ -488,14 +488,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxOffset = -1;
             }
 
-            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+            BoundExpression replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
             proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
 
             if (needsSacrificialEvaluation)
             {
-                var type = TypeMap.SubstituteType(local.Type).Type;
-                var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
+                TypeSymbol type = TypeMap.SubstituteType(local.Type).Type;
+                LocalSymbol sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
                 Debug.Assert(type == replacement.Type);
                 return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
             }
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var last = sideEffects.Last();
+            BoundExpression last = sideEffects.Last();
             sideEffects.RemoveLast();
             return F.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
         }
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var array = (BoundArrayAccess)expr;
                         BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         var indices = ArrayBuilder<BoundExpression>.GetInstance();
-                        foreach (var index in array.Indices)
+                        foreach (BoundExpression index in array.Indices)
                         {
                             indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
                         }
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
 
-                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        BoundExpression receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
                         {
                             needsSacrificialEvaluation = true; // need the null check in field receiver
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hoistedFields.Add(hoistedField);
 
-                    var replacement = F.Field(F.This(), hoistedField);
+                    BoundFieldAccess replacement = F.Field(F.This(), hoistedField);
                     sideEffects.Add(F.AssignmentExpression(replacement, expr));
                     return replacement;
             }
@@ -645,9 +645,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode Visit(BoundNode node)
         {
             if (node == null) return node;
-            var oldSyntax = F.Syntax;
+            SyntaxNode oldSyntax = F.Syntax;
             F.Syntax = node.Syntax;
-            var result = base.Visit(node);
+            BoundNode result = base.Visit(node);
             F.Syntax = oldSyntax;
             return result;
         }
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newLocalsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
             bool localsRewritten = false;
-            foreach (var local in node.Locals)
+            foreach (LocalSymbol local in node.Locals)
             {
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxies[local]).HoistedField);
             }
 
-            var statements = VisitList(node.Statements);
+            ImmutableArray<BoundStatement> statements = VisitList(node.Statements);
 
             // wrap the node in an iterator scope for debugging
             if (hoistedLocalsWithDebugScopes.Count != 0)
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitAssignmentOperator(node);
             }
 
-            var leftLocal = ((BoundLocal)node.Left).LocalSymbol;
+            LocalSymbol leftLocal = ((BoundLocal)node.Left).LocalSymbol;
             if (!NeedsProxy(leftLocal))
             {
                 return base.VisitAssignmentOperator(node);
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            var oldDispatches = _dispatches;
+            Dictionary<LabelSymbol, List<int>> oldDispatches = _dispatches;
             var oldFinalizerState = _currentFinalizerState;
             var oldHasFinalizerState = _hasFinalizerState;
 
@@ -806,9 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_hasFinalizerState)
                 {
                     // cause the current finalizer state to arrive here and then "return false"
-                    var finalizer = F.GenerateLabel("finalizer");
+                    GeneratedLabelSymbol finalizer = F.GenerateLabel("finalizer");
                     _dispatches.Add(finalizer, new List<int>() { _currentFinalizerState });
-                    var skipFinalizer = F.GenerateLabel("skipFinalizer");
+                    GeneratedLabelSymbol skipFinalizer = F.GenerateLabel("skipFinalizer");
                     tryBlock = F.Block(
                         F.HiddenSequencePoint(),
                         Dispatch(),
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)this.cachedThis != null)
             {
                 CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
-                var fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
+                BoundExpression fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
                 return F.Assignment(F.Local(this.cachedThis), fetchThis);
             }
 
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return F.Local(this.cachedThis);
             }
 
-            var thisParameter = this.OriginalMethod.ThisParameter;
+            ParameterSymbol thisParameter = this.OriginalMethod.ThisParameter;
             CapturedSymbolReplacement proxy;
             if ((object)thisParameter == null || !proxies.TryGetValue(thisParameter, out proxy))
             {

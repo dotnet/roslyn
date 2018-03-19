@@ -38,26 +38,26 @@ class C
     public static bool F() => false;
 }
 ";
-            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
-            var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
+            System.Collections.Immutable.ImmutableArray<byte> peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
 
             using (var peReader = new PEReader(peBlob))
             using (var pdbMetadata = new PinnedMetadata(pdbStream.ToImmutable()))
             {
-                var mdReader = peReader.GetMetadataReader();
-                var pdbReader = pdbMetadata.Reader;
+                MetadataReader mdReader = peReader.GetMetadataReader();
+                MetadataReader pdbReader = pdbMetadata.Reader;
 
-                foreach (var methodHandle in mdReader.MethodDefinitions)
+                foreach (MethodDefinitionHandle methodHandle in mdReader.MethodDefinitions)
                 {
-                    var method = mdReader.GetMethodDefinition(methodHandle);
-                    var methodDebugInfo = pdbReader.GetMethodDebugInformation(methodHandle);
+                    MethodDefinition method = mdReader.GetMethodDefinition(methodHandle);
+                    MethodDebugInformation methodDebugInfo = pdbReader.GetMethodDebugInformation(methodHandle);
 
                     var name = mdReader.GetString(method.Name);
 
                     TextWriter writer = new StringWriter();
-                    foreach (var sp in methodDebugInfo.GetSequencePoints())
+                    foreach (System.Reflection.Metadata.SequencePoint sp in methodDebugInfo.GetSequencePoints())
                     {
                         if (sp.IsHidden)
                         {
@@ -162,22 +162,22 @@ class C
     }
 }
 ";
-            var c = CreateCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll);
 
-            var peBlob = c.EmitToArray(EmitOptions.Default.
+            System.Collections.Immutable.ImmutableArray<byte> peBlob = c.EmitToArray(EmitOptions.Default.
                 WithDebugInformationFormat(DebugInformationFormat.Embedded).
                 WithPdbFilePath(@"a/b/c/d.pdb").
                 WithPdbChecksumAlgorithm(HashAlgorithmName.SHA512));
 
             using (var peReader = new PEReader(peBlob))
             {
-                var entries = peReader.ReadDebugDirectory();
+                System.Collections.Immutable.ImmutableArray<DebugDirectoryEntry> entries = peReader.ReadDebugDirectory();
 
                 AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
 
-                var codeView = entries[0];
-                var checksum = entries[1];
-                var embedded = entries[2];
+                DebugDirectoryEntry codeView = entries[0];
+                DebugDirectoryEntry checksum = entries[1];
+                DebugDirectoryEntry embedded = entries[2];
 
                 // EmbeddedPortablePdb entry:
                 Assert.Equal(0x0100, embedded.MajorVersion);
@@ -185,16 +185,16 @@ class C
                 Assert.Equal(0u, embedded.Stamp);
 
                 BlobContentId pdbId;
-                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
+                using (MetadataReaderProvider embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
                 {
-                    var mdReader = embeddedMetadataProvider.GetMetadataReader();
+                    MetadataReader mdReader = embeddedMetadataProvider.GetMetadataReader();
                     AssertEx.Equal(new[] { "goo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
 
                     pdbId = new BlobContentId(mdReader.DebugMetadataHeader.Id);
                 }
 
                 // CodeView entry:
-                var codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView);
+                CodeViewDebugDirectoryData codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView);
                 Assert.Equal(0x0100, codeView.MajorVersion);
                 Assert.Equal(0x504D, codeView.MinorVersion);
                 Assert.Equal(pdbId.Stamp, codeView.Stamp);
@@ -202,7 +202,7 @@ class C
                 Assert.Equal("d.pdb", codeViewData.Path);
 
                 // Checksum entry:
-                var checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum);
+                PdbChecksumDebugDirectoryData checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum);
                 Assert.Equal("SHA512", checksumData.AlgorithmName);
                 Assert.Equal(64, checksumData.Checksum.Length);
             }
@@ -222,23 +222,23 @@ class C
     }
 }
 ";
-            var c = CreateCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
+            CSharpCompilation c = CreateCompilation(Parse(source, "goo.cs"), options: TestOptions.DebugDll.WithDeterministic(true));
 
-            var peBlob = c.EmitToArray(EmitOptions.Default.
+            System.Collections.Immutable.ImmutableArray<byte> peBlob = c.EmitToArray(EmitOptions.Default.
                 WithDebugInformationFormat(DebugInformationFormat.Embedded).
                 WithPdbChecksumAlgorithm(HashAlgorithmName.SHA384).
                 WithPdbFilePath(@"a/b/c/d.pdb"));
 
             using (var peReader = new PEReader(peBlob))
             {
-                var entries = peReader.ReadDebugDirectory();
+                System.Collections.Immutable.ImmutableArray<DebugDirectoryEntry> entries = peReader.ReadDebugDirectory();
 
                 AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
 
-                var codeView = entries[0];
-                var checksum = entries[1];
-                var reproducible = entries[2];
-                var embedded = entries[3];
+                DebugDirectoryEntry codeView = entries[0];
+                DebugDirectoryEntry checksum = entries[1];
+                DebugDirectoryEntry reproducible = entries[2];
+                DebugDirectoryEntry embedded = entries[3];
 
                 // EmbeddedPortablePdb entry:
                 Assert.Equal(0x0100, embedded.MajorVersion);
@@ -246,16 +246,16 @@ class C
                 Assert.Equal(0u, embedded.Stamp);
 
                 BlobContentId pdbId;
-                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
+                using (MetadataReaderProvider embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
                 {
-                    var mdReader = embeddedMetadataProvider.GetMetadataReader();
+                    MetadataReader mdReader = embeddedMetadataProvider.GetMetadataReader();
                     AssertEx.Equal(new[] { "goo.cs" }, mdReader.Documents.Select(doc => mdReader.GetString(mdReader.GetDocument(doc).Name)));
 
                     pdbId = new BlobContentId(mdReader.DebugMetadataHeader.Id);
                 }
 
                 // CodeView entry:
-                var codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView);
+                CodeViewDebugDirectoryData codeViewData = peReader.ReadCodeViewDebugDirectoryData(codeView);
                 Assert.Equal(0x0100, codeView.MajorVersion);
                 Assert.Equal(0x504D, codeView.MinorVersion);
                 Assert.Equal(pdbId.Stamp, codeView.Stamp);
@@ -263,7 +263,7 @@ class C
                 Assert.Equal("d.pdb", codeViewData.Path);
 
                 // Checksum entry:
-                var checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum);
+                PdbChecksumDebugDirectoryData checksumData = peReader.ReadPdbChecksumDebugDirectoryData(checksum);
                 Assert.Equal("SHA384", checksumData.AlgorithmName);
                 Assert.Equal(48, checksumData.Checksum.Length);
 
@@ -297,7 +297,7 @@ class C
 }
 ");
 
-            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream, sourceLinkStream: new MemoryStream(sourceLinkBlob));
@@ -305,7 +305,7 @@ class C
 
             using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
             {
-                var pdbReader = provider.GetMetadataReader();
+                MetadataReader pdbReader = provider.GetMetadataReader();
 
                 var actualBlob = 
                     (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
@@ -338,17 +338,17 @@ class C
   }
 }
 ");
-            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
 
-            var peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream: new MemoryStream(sourceLinkBlob));
+            System.Collections.Immutable.ImmutableArray<byte> peBlob = c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded), sourceLinkStream: new MemoryStream(sourceLinkBlob));
 
             using (var peReader = new PEReader(peBlob))
             {
-                var embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                DebugDirectoryEntry embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
-                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
+                using (MetadataReaderProvider embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
                 {
-                    var pdbReader = embeddedMetadataProvider.GetMetadataReader();
+                    MetadataReader pdbReader = embeddedMetadataProvider.GetMetadataReader();
 
                     var actualBlob =
                         (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
@@ -377,8 +377,8 @@ class C
 ";
             var sourceLinkStream = new TestStream(canRead: true, readFunc: (_, __, ___) => { throw new Exception("Error!"); });
 
-            var c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
-            var result = c.Emit(new MemoryStream(), new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream: sourceLinkStream);
+            CSharpCompilation c = CreateCompilation(Parse(source, "f:/build/goo.cs"), options: TestOptions.DebugDll);
+            EmitResult result = c.Emit(new MemoryStream(), new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), sourceLinkStream: sourceLinkStream);
             result.Diagnostics.Verify(
                 // error CS0041: Unexpected error writing debug information -- 'Error!'
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Error!").WithLocation(1, 1));

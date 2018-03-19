@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             b.Add("hello");
             b.Add("world");
             Assert.Equal("hello", b[0]);
-            var a = b.AsImmutable();
+            ImmutableArray<string> a = b.AsImmutable();
             Assert.Equal("hello", a[0]);
             var e = (IEnumerable<string>)a;
             Assert.Equal("hello", e.First());
@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var nul = default(ImmutableArray<int>);
             var empty = ImmutableArray.Create<int>();
 
-            var original = new int[] { 1, 2, 3, }.AsImmutableOrNull();
-            var notEqualSubset = new int[] { 1, 2, }.AsImmutableOrNull();
-            var notEqualSuperset = new int[] { 1, 2, 3, 4, }.AsImmutableOrNull();
-            var equalOrder = new int[] { 2, 1, 3, }.AsImmutableOrNull();
-            var equalElements = new int[] { -1, -2, -3 }.AsImmutableOrNull();
-            var equalDuplicate = new int[] { 1, 2, 3, 3, -3 }.AsImmutableOrNull();
+            ImmutableArray<int> original = new int[] { 1, 2, 3, }.AsImmutableOrNull();
+            ImmutableArray<int> notEqualSubset = new int[] { 1, 2, }.AsImmutableOrNull();
+            ImmutableArray<int> notEqualSuperset = new int[] { 1, 2, 3, 4, }.AsImmutableOrNull();
+            ImmutableArray<int> equalOrder = new int[] { 2, 1, 3, }.AsImmutableOrNull();
+            ImmutableArray<int> equalElements = new int[] { -1, -2, -3 }.AsImmutableOrNull();
+            ImmutableArray<int> equalDuplicate = new int[] { 1, 2, 3, 3, -3 }.AsImmutableOrNull();
 
             IEqualityComparer<int> comparer = new AbsoluteValueComparer();
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void IndexOf()
         {
-            var roa = new int[] { 1, 2, 3 }.AsImmutableOrNull();
+            ImmutableArray<int> roa = new int[] { 1, 2, 3 }.AsImmutableOrNull();
             Assert.Equal(1, roa.IndexOf(2));
         }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(true, null == roaNull);
             Assert.Equal(false, null != roaNull);
 
-            var copy = roaNull;
+            ImmutableArray<int> copy = roaNull;
             Assert.Equal(true, copy == roaNull);
             Assert.Equal(false, copy != roaNull);
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void CopyTo()
         {
-            var roa = new int?[] { 1, null, 3 }.AsImmutableOrNull();
+            ImmutableArray<int?> roa = new int?[] { 1, null, 3 }.AsImmutableOrNull();
             var roaCopy = new int?[4];
             roa.CopyTo(roaCopy, 1);
             Assert.False(roaCopy[0].HasValue);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ElementAt()
         {
-            var roa = new int?[] { 1, null, 3 }.AsImmutableOrNull();
+            ImmutableArray<int?> roa = new int?[] { 1, null, 3 }.AsImmutableOrNull();
             Assert.Equal(1, roa.ElementAt(0).Value);
             Assert.False(roa.ElementAt(1).HasValue);
             Assert.Equal(3, roa.ElementAt(2).Value);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ElementAtOrDefault()
         {
-            var roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
+            ImmutableArray<int?> roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
             Assert.False(roa.ElementAtOrDefault(-1).HasValue);
             Assert.Equal(1, roa.ElementAtOrDefault(0).Value);
             Assert.Equal(2, roa.ElementAtOrDefault(1).Value);
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Last()
         {
-            var roa = new int?[] { }.AsImmutableOrNull();
+            ImmutableArray<int?> roa = new int?[] { }.AsImmutableOrNull();
             Assert.Throws(typeof(InvalidOperationException), () => roa.Last());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
             Assert.Throws(typeof(InvalidOperationException), () => roa.Last(i => i < 1));
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void LastOrDefault()
         {
-            var roa = new int?[] { }.AsImmutableOrNull();
+            ImmutableArray<int?> roa = new int?[] { }.AsImmutableOrNull();
             Assert.False(roa.LastOrDefault().HasValue);
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
             Assert.False(roa.LastOrDefault(i => i < 1).HasValue);
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void SingleOrDefault()
         {
-            var roa = new int?[] { }.AsImmutableOrNull();
+            ImmutableArray<int?> roa = new int?[] { }.AsImmutableOrNull();
             Assert.False(roa.SingleOrDefault().HasValue);
             roa = new int?[] { 1 }.AsImmutableOrNull();
             Assert.Equal(1, roa.SingleOrDefault());
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ToDictionary()
         {
-            var roa = new string[] { "one:1", "two:2", "three:3" }.AsImmutableOrNull();
+            ImmutableArray<string> roa = new string[] { "one:1", "two:2", "three:3" }.AsImmutableOrNull();
 
             // Call extension method directly to resolve the ambiguity with EnumerableExtensions.ToDictionary
             var dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First());
@@ -440,9 +440,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Casting()
         {
-            var arrayOfD = new D[] { new D() }.AsImmutableOrNull();
-            var arrayOfC = arrayOfD.Cast<D, C>();
-            var arrayOfD2 = arrayOfC.As<D>();
+            ImmutableArray<D> arrayOfD = new D[] { new D() }.AsImmutableOrNull();
+            ImmutableArray<C> arrayOfC = arrayOfD.Cast<D, C>();
+            ImmutableArray<D> arrayOfD2 = arrayOfC.As<D>();
 
             // the underlying arrays are the same:
             //Assert.True(arrayOfD.Equals(arrayOfC));

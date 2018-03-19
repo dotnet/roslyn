@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"System.Reflection.Missing: System.Reflection.Missing
@@ -136,11 +136,11 @@ public class C
 }
 public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 ";
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.DebugDll);
             comp1.VerifyDiagnostics();
             CompileAndVerify(comp1, sourceSymbolValidator: module =>
                 {
-                    var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                    NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                     VerifyDefaultValueAttribute(type.GetMember<MethodSymbol>("F").Parameters[0], "DecimalConstantAttribute", 1, false);
                     VerifyDefaultValueAttribute(type.GetMember<PropertySymbol>("this[]").Parameters[1], "DecimalConstantAttribute", 2, false);
                     VerifyDefaultValueAttribute(type.GetMember<MethodSymbol>("get_Item").Parameters[1], "DecimalConstantAttribute", 2, false);
@@ -165,7 +165,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
         System.Console.WriteLine(o);   
     }
 }";
-            var comp2a = CreateCompilation(
+            CSharpCompilation comp2a = CreateCompilation(
                 source2,
                 references: new[] { new CSharpCompilationReference(comp1) },
                 options: TestOptions.DebugExe);
@@ -174,7 +174,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 @"1
 2
 3");
-            var comp2b = CreateCompilation(
+            CSharpCompilation comp2b = CreateCompilation(
                 source2,
                 references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
@@ -199,18 +199,18 @@ partial class C
 {
     static partial void F([DecimalConstant(0, 0, 0, 0, 2)]decimal o) { }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, sourceSymbolValidator: module =>
                 {
-                    var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                    NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                     VerifyDefaultValueAttribute(type.GetMember<MethodSymbol>("F").Parameters[0], "DecimalConstantAttribute", 2, false);
                 });
         }
 
         private static void VerifyDefaultValueAttribute(ParameterSymbol parameter, string expectedAttributeName, object expectedDefault, bool hasDefault)
         {
-            var attributes = parameter.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attributes = parameter.GetAttributes();
             if (expectedAttributeName == null)
             {
                 Assert.Equal(attributes.Length, 0);
@@ -218,8 +218,8 @@ partial class C
             else
             {
                 Assert.Equal(attributes.Length, 1);
-                var attribute = attributes[0];
-                var argument = attribute.ConstructorArguments.Last();
+                CSharpAttributeData attribute = attributes[0];
+                TypedConstant argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);
                 Assert.Equal(expectedDefault, argument.Value);
                 Assert.Equal(hasDefault, ((Cci.IParameterDefinition)parameter).HasDefaultValue);
@@ -399,7 +399,7 @@ class C
 
     [DecimalConstant(0, 0, 0, 0, 0)] public const decimal F14 = 1;
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
 // (11,38): error CS0579: Duplicate 'DecimalConstant' attribute
@@ -451,12 +451,12 @@ class C
 {
     [DecimalConstantAttribute(0, 128, 0, 0, 7)] public const decimal F15 = -7;
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var field = (PEFieldSymbol)module.GlobalNamespace.GetTypeMember("C").GetField("F15");
-                var attribute = ((PEModuleSymbol)module).GetCustomAttributesForToken(field.Handle).Single();
+                CSharpAttributeData attribute = ((PEModuleSymbol)module).GetCustomAttributesForToken(field.Handle).Single();
 
                 Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute", attribute.AttributeClass.ToTestDisplayString());
             });

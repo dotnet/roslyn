@@ -234,7 +234,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"B
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"B
 D
 B
 D");
@@ -350,7 +350,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      119 (0x77)
@@ -509,7 +509,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -608,7 +608,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -673,7 +673,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -735,7 +735,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -800,7 +800,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -877,7 +877,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -955,7 +955,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -1127,7 +1127,7 @@ namespace TernaryAndVarianceConversion
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"Testing with ternary test flag == True
 1
 TernaryAndVarianceConversion.Mammal
@@ -1224,19 +1224,19 @@ public enum color {{ Red, Blue, Green }};
 interface I<in T, out U> {{ }}";
 
             var source = string.Format(sourceTemplate, conditionalExpression);
-            var tree = Parse(source, options: parseOptions);
+            SyntaxTree tree = Parse(source, options: parseOptions);
 
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var compUnit = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax compUnit = tree.GetCompilationUnitRoot();
             var classC = (TypeDeclarationSyntax)compUnit.Members.First();
             var methodTest = (MethodDeclarationSyntax)classC.Members.First();
             var stmt = (ExpressionStatementSyntax)methodTest.Body.Statements.Single();
             var invocationExpr = (InvocationExpressionSyntax)stmt.Expression;
             var conditionalExpr = (ConditionalExpressionSyntax)invocationExpr.ArgumentList.Arguments.Single().Expression;
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             if (expectedType != null)
             {
@@ -1278,7 +1278,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1287,14 +1287,14 @@ class TestClass
 System.Action
 ----");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            MemberBindingExpressionSyntax memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
             var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
 
             Assert.Equal(".test", memberBinding.ToString());
             Assert.Equal("receiver?.test", access.ToString());
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
@@ -1333,7 +1333,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1341,8 +1341,8 @@ class TestClass
 Target
 ----");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            MemberBindingExpressionSyntax memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
             var invocation = (InvocationExpressionSyntax)memberBinding.Parent;
             var access = (ConditionalAccessExpressionSyntax)invocation.Parent;
 
@@ -1350,7 +1350,7 @@ Target
             Assert.Equal(".test()", invocation.ToString());
             Assert.Equal("receiver?.test()", access.ToString());
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
@@ -1380,7 +1380,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
     // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -1388,14 +1388,14 @@ class TestClass
     Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "receiver?.test").WithLocation(10, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            MemberBindingExpressionSyntax memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
             var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
 
             Assert.Equal(".test", memberBinding.ToString());
             Assert.Equal("receiver?.test", access.ToString());
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
             Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
@@ -1442,7 +1442,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                                                             parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
 
             CompileAndVerify(compilation, expectedOutput:

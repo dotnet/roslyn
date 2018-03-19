@@ -9,7 +9,7 @@ namespace Roslyn.Utilities
         public static bool AddAll<T>(this ISet<T> set, IEnumerable<T> values)
         {
             var result = false;
-            foreach (var v in values)
+            foreach (T v in values)
             {
                 result |= set.Add(v);
             }
@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
         public static bool RemoveAll<T>(this ISet<T> set, IEnumerable<T> values)
         {
             var result = false;
-            foreach (var v in values)
+            foreach (T v in values)
             {
                 result |= set.Remove(v);
             }

@@ -54,20 +54,20 @@ namespace NA
   }
 }
 ";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree(text1);
+            SyntaxTree tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
             Assert.NotNull(tree2);
-            var decl1 = DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
-            var decl2 = DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
+            RootSingleNamespaceDeclaration decl1 = DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
+            RootSingleNamespaceDeclaration decl2 = DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
             Assert.NotNull(decl1);
             Assert.NotNull(decl2);
             Assert.Equal(string.Empty, decl1.Name);
             Assert.Equal(string.Empty, decl2.Name);
             Assert.Equal(1, decl1.Children.Length);
             Assert.Equal(1, decl2.Children.Length);
-            var na1 = decl1.Children.Single();
-            var na2 = decl2.Children.Single();
+            SingleNamespaceOrTypeDeclaration na1 = decl1.Children.Single();
+            SingleNamespaceOrTypeDeclaration na2 = decl2.Children.Single();
             Assert.NotNull(na1);
             Assert.NotNull(na2);
             Assert.Equal(DeclarationKind.Namespace, na1.Kind);
@@ -76,8 +76,8 @@ namespace NA
             Assert.Equal("NA", na2.Name);
             Assert.Equal(1, na1.Children.Length);
             Assert.Equal(1, na2.Children.Length);
-            var nb1 = na1.Children.Single();
-            var nb2 = na2.Children.Single();
+            SingleNamespaceOrTypeDeclaration nb1 = na1.Children.Single();
+            SingleNamespaceOrTypeDeclaration nb2 = na2.Children.Single();
             Assert.NotNull(nb1);
             Assert.NotNull(nb2);
             Assert.Equal(DeclarationKind.Namespace, nb1.Kind);
@@ -103,8 +103,8 @@ namespace NA
             Assert.Equal(DeclarationKind.Class, c1.Kind);
             Assert.Equal("C", c1.Name);
             Assert.Equal(0, c1.Arity);
-            var d1 = ct1.Children.Single();
-            var d2 = ct2.Children.Single();
+            SingleTypeDeclaration d1 = ct1.Children.Single();
+            SingleTypeDeclaration d2 = ct2.Children.Single();
             Assert.NotNull(d1);
             Assert.NotNull(d2);
             Assert.Equal(DeclarationKind.Class, d1.Kind);
@@ -116,8 +116,8 @@ namespace NA
             Assert.Equal(0, d1.Children.Length);
             Assert.Equal(0, d2.Children.Length);
 
-            var table = DeclarationTable.Empty;
-            var mr = table.CalculateMergedRoot(null);
+            DeclarationTable table = DeclarationTable.Empty;
+            MergedNamespaceDeclaration mr = table.CalculateMergedRoot(null);
             Assert.NotNull(mr);
             Assert.True(mr.Declarations.IsEmpty);
             Assert.True(table.TypeNames.IsEmpty());
@@ -131,25 +131,25 @@ namespace NA
             Assert.Equal(DeclarationKind.Namespace, mr.Kind);
             Assert.Equal(string.Empty, mr.Name);
 
-            var na = mr.Children.Single();
+            MergedNamespaceOrTypeDeclaration na = mr.Children.Single();
             Assert.Equal(DeclarationKind.Namespace, na.Kind);
             Assert.Equal("NA", na.Name);
 
-            var nb = na.Children.Single();
+            Declaration nb = na.Children.Single();
             Assert.Equal(DeclarationKind.Namespace, nb.Kind);
             Assert.Equal("NB", nb.Name);
 
-            var ct = nb.Children.OfType<MergedTypeDeclaration>().Single(x => x.Arity == 1);
+            MergedTypeDeclaration ct = nb.Children.OfType<MergedTypeDeclaration>().Single(x => x.Arity == 1);
             Assert.Equal(1, ct.Arity);
             Assert.Equal(DeclarationKind.Class, ct.Kind);
             Assert.Equal("C", ct.Name);
 
-            var c = nb.Children.OfType<MergedTypeDeclaration>().Single(x => x.Arity == 0);
+            MergedTypeDeclaration c = nb.Children.OfType<MergedTypeDeclaration>().Single(x => x.Arity == 0);
             Assert.Equal(0, c.Arity);
             Assert.Equal(DeclarationKind.Class, c.Kind);
             Assert.Equal("C", c.Name);
 
-            var d = ct.Children.Single();
+            MergedTypeDeclaration d = ct.Children.Single();
             Assert.Equal(0, d.Arity);
             Assert.Equal(DeclarationKind.Class, d.Kind);
             Assert.Equal("D", d.Name);
@@ -223,14 +223,14 @@ namespace NA
   }
 }
 ";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree(text1);
+            SyntaxTree tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
             Assert.NotNull(tree2);
-            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
-            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
+            Lazy<RootSingleNamespaceDeclaration> decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
+            Lazy<RootSingleNamespaceDeclaration> decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
 
-            var table = DeclarationTable.Empty;
+            DeclarationTable table = DeclarationTable.Empty;
             table = table.AddRootDeclaration(decl1);
 
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "A", "B" }));
@@ -269,7 +269,7 @@ namespace NA
         [NoIOperationValidationFact]
         public void OnlyOneParse()
         {
-            var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
 
 class C
@@ -278,7 +278,7 @@ class C
     C(){}
 }
 ");
-            var foreignType = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree foreignType = SyntaxFactory.ParseSyntaxTree(@"
 public class B
 {
   public int member(string s) { return s.Length; }
@@ -288,17 +288,17 @@ public class B
 
             var countedTree = new CountedSyntaxTree(foreignType);
 
-            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree });
+            CSharpCompilation compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree });
 
-            var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
+            NamedTypeSymbol type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal(1, countedTree.AccessCount);   // parse once to build the decl table
 
             // We shouldn't need to go back to syntax to get info about the member names.
-            var memberNames = type.MemberNames;
+            System.Collections.Generic.IEnumerable<string> memberNames = type.MemberNames;
             Assert.Equal(1, countedTree.AccessCount);
 
             // Getting the interfaces will cause us to do some more binding of the current type.
-            var interfaces = type.Interfaces();
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> interfaces = type.Interfaces();
             Assert.Equal(1, countedTree.AccessCount);
 
             // Now bind the members.
@@ -306,10 +306,10 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
 
             // Once we have the method, we shouldn't need to go back to syntax again.
-            var returnType = method.ReturnType;
+            TypeSymbol returnType = method.ReturnType;
             Assert.Equal(1, countedTree.AccessCount);
 
-            var parameterType = method.Parameters.Single();
+            ParameterSymbol parameterType = method.Parameters.Single();
             Assert.Equal(1, countedTree.AccessCount);
         }
 
@@ -344,11 +344,11 @@ public class B
                     // Note: It's important for us to maintain identity of nodes/trees, so we find
                     // the equivalent node in our CountedSyntaxTree.
                     _countedSyntaxTree.AccessCount++;
-                    var nodeInUnderlying = _underlyingSyntaxReference.GetSyntax(cancellationToken);
+                    SyntaxNode nodeInUnderlying = _underlyingSyntaxReference.GetSyntax(cancellationToken);
 
 
-                    var token = _countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
-                    for (var node = token.Parent; node != null; node = node.Parent)
+                    SyntaxToken token = _countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
+                    for (SyntaxNode node = token.Parent; node != null; node = node.Parent)
                     {
                         if (node.Span == nodeInUnderlying.Span && node.RawKind == nodeInUnderlying.RawKind)
                         {

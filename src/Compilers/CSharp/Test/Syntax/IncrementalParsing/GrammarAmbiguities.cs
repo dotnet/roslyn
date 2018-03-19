@@ -84,21 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             var code = codeBefore + codeToBeReplaced + codeAfter;
 
-            var originalTree = SyntaxFactory.ParseSyntaxTree(code);
+            SyntaxTree originalTree = SyntaxFactory.ParseSyntaxTree(code);
             Assert.False(originalTree.GetCompilationUnitRoot().ContainsDiagnostics);
 
-            var incrementalTree = originalTree.WithReplace(start, length, replacement);
+            SyntaxTree incrementalTree = originalTree.WithReplace(start, length, replacement);
 
             dynamic r = incrementalTree.GetCompilationUnitRoot();
-            var args = r.Members[0].Members[0].Body.Statements[0].Expression.ArgumentList.Arguments;
+            dynamic args = r.Members[0].Members[0].Body.Statements[0].Expression.ArgumentList.Arguments;
 
             VerifyIdenticalStructure(incrementalTree);
         }
 
         private void VerifyIdenticalStructure(SyntaxTree syntaxTree)
         {
-            var incrementalRoot = syntaxTree.GetCompilationUnitRoot();
-            var parsedRoot = SyntaxFactory.ParseCompilationUnit(syntaxTree.GetText().ToString());
+            CompilationUnitSyntax incrementalRoot = syntaxTree.GetCompilationUnitRoot();
+            CompilationUnitSyntax parsedRoot = SyntaxFactory.ParseCompilationUnit(syntaxTree.GetText().ToString());
 
             AssertNodesAreEquivalent(parsedRoot, incrementalRoot);
         }

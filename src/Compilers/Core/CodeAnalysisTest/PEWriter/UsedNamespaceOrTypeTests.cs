@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void EqualsTargetTypeSameObject()
         {
-            var ref1 = CreateEqualsInterface<ITypeReference>("ref1");
-            var ref2 = CreateEqualsInterface<ITypeReference>("ref2");
+            Mock<ITypeReference> ref1 = CreateEqualsInterface<ITypeReference>("ref1");
+            Mock<ITypeReference> ref2 = CreateEqualsInterface<ITypeReference>("ref2");
 
             var value = UsedNamespaceOrType.CreateType(ref1.Object, "alias");
-            var unit = EqualityUnit
+            EqualityUnit<UsedNamespaceOrType> unit = EqualityUnit
                 .Create(value)
                 .WithEqualValues(
                     value,
@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void EqualsTargetTypeSameValue()
         {
-            var type1 = CreateEqualsInterface<ITypeReference>("type name");
-            var type2 = CreateEqualsInterface<ITypeReference>("type name");
-            var type3 = CreateEqualsInterface<ITypeReference>("other type name");
+            Mock<ITypeReference> type1 = CreateEqualsInterface<ITypeReference>("type name");
+            Mock<ITypeReference> type2 = CreateEqualsInterface<ITypeReference>("type name");
+            Mock<ITypeReference> type3 = CreateEqualsInterface<ITypeReference>("other type name");
 
             Assert.True(type1.Object.Equals(type2.Object));
             Assert.False(type1.Object.Equals(type3.Object));
             Assert.True(object.Equals(type1.Object, type2.Object));
 
             var value = UsedNamespaceOrType.CreateType(type1.Object, "alias");
-            var unit = EqualityUnit
+            EqualityUnit<UsedNamespaceOrType> unit = EqualityUnit
                 .Create(value)
                 .WithEqualValues(
                     value,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         public void EqualsExternAlias()
         {
             var value = UsedNamespaceOrType.CreateExternAlias("alias1");
-            var unit = EqualityUnit
+            EqualityUnit<UsedNamespaceOrType> unit = EqualityUnit
                 .Create(value)
                 .WithEqualValues(
                     value,
@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void EqualsNamespace()
         {
-            var ns1 = CreateEqualsInterface<INamespace>("namespace");
-            var ns2 = CreateEqualsInterface<INamespace>("namespace");
-            var ns3 = CreateEqualsInterface<INamespace>("other namespace");
+            Mock<INamespace> ns1 = CreateEqualsInterface<INamespace>("namespace");
+            Mock<INamespace> ns2 = CreateEqualsInterface<INamespace>("namespace");
+            Mock<INamespace> ns3 = CreateEqualsInterface<INamespace>("other namespace");
 
             var value = UsedNamespaceOrType.CreateNamespace(ns1.Object);
-            var unit = EqualityUnit
+            EqualityUnit<UsedNamespaceOrType> unit = EqualityUnit
                 .Create(value)
                 .WithEqualValues(
                     value,
@@ -120,15 +120,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void EqualsNamespaceAndAssembly()
         {
-            var assembly1 = CreateEqualsInterface<IAssemblyReference>("assembly");
-            var assembly2 = CreateEqualsInterface<IAssemblyReference>("assembly");
-            var assembly3 = CreateEqualsInterface<IAssemblyReference>("other assembly");
-            var ns1 = CreateEqualsInterface<INamespace>("namespace");
-            var ns2 = CreateEqualsInterface<INamespace>("namespace");
-            var ns3 = CreateEqualsInterface<INamespace>("other namespace");
+            Mock<IAssemblyReference> assembly1 = CreateEqualsInterface<IAssemblyReference>("assembly");
+            Mock<IAssemblyReference> assembly2 = CreateEqualsInterface<IAssemblyReference>("assembly");
+            Mock<IAssemblyReference> assembly3 = CreateEqualsInterface<IAssemblyReference>("other assembly");
+            Mock<INamespace> ns1 = CreateEqualsInterface<INamespace>("namespace");
+            Mock<INamespace> ns2 = CreateEqualsInterface<INamespace>("namespace");
+            Mock<INamespace> ns3 = CreateEqualsInterface<INamespace>("other namespace");
 
             var value = UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly1.Object);
-            var unit = EqualityUnit
+            EqualityUnit<UsedNamespaceOrType> unit = EqualityUnit
                 .Create(value)
                 .WithEqualValues(
                     value,

@@ -46,31 +46,31 @@ public class Top : A<E> { // base is A<E>
   public class BF : B<F> {} // base is A<E>.B<F>
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var at = global.GetTypeMembers("A", 1).Single(); // A<T>
-            var t = at.TypeParameters[0];
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol at = global.GetTypeMembers("A", 1).Single(); // A<T>
+            TypeParameterSymbol t = at.TypeParameters[0];
             Assert.Equal(t, TypeArg(at.GetTypeMembers("TBox", 0).Single().BaseType()));
-            var atbu = at.GetTypeMembers("B", 1).Single(); // A<T>.B<U>
-            var u = atbu.TypeParameters[0];
-            var c = atbu.GetTypeMembers("C", 0).Single(); // A<T>.B<U>.C
+            NamedTypeSymbol atbu = at.GetTypeMembers("B", 1).Single(); // A<T>.B<U>
+            TypeParameterSymbol u = atbu.TypeParameters[0];
+            NamedTypeSymbol c = atbu.GetTypeMembers("C", 0).Single(); // A<T>.B<U>.C
             Assert.Equal(atbu, c.ContainingType);
             Assert.Equal(u, TypeArg(c.ContainingType));
             Assert.Equal(at, c.ContainingType.ContainingType);
             Assert.Equal(t, TypeArg(c.ContainingType.ContainingType));
-            var e = global.GetTypeMembers("E", 0).Single(); // E
-            var f = global.GetTypeMembers("F", 0).Single(); // F
-            var top = global.GetTypeMembers("Top", 0).Single(); // Top
-            var ae = top.BaseType(); // A<E>
+            NamedTypeSymbol e = global.GetTypeMembers("E", 0).Single(); // E
+            NamedTypeSymbol f = global.GetTypeMembers("F", 0).Single(); // F
+            NamedTypeSymbol top = global.GetTypeMembers("Top", 0).Single(); // Top
+            NamedTypeSymbol ae = top.BaseType(); // A<E>
             Assert.Equal(at, ae.OriginalDefinition);
             Assert.Equal(at, at.ConstructedFrom);
             Assert.Equal(e, TypeArg(ae));
-            var bf = top.GetTypeMembers("BF", 0).Single(); // Top.BF
+            NamedTypeSymbol bf = top.GetTypeMembers("BF", 0).Single(); // Top.BF
             Assert.Equal(top, bf.ContainingType);
-            var aebf = bf.BaseType();
+            NamedTypeSymbol aebf = bf.BaseType();
             Assert.Equal(f, TypeArg(aebf));
             Assert.Equal(ae, aebf.ContainingType);
-            var aebfc = aebf.GetTypeMembers("C", 0).Single(); // A<E>.B<F>.C
+            NamedTypeSymbol aebfc = aebf.GetTypeMembers("C", 0).Single(); // A<E>.B<F>.C
             Assert.Equal(c, aebfc.OriginalDefinition);
             Assert.NotEqual(c, aebfc.ConstructedFrom);
             Assert.Equal(f, TypeArg(aebfc.ContainingType));
@@ -103,10 +103,10 @@ class C
     NonExistentType<int> field;
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
-            var global = comp.GlobalNamespace;
+            NamespaceSymbol global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             var field = c.GetMembers("field").Single() as FieldSymbol;
             var neti = field.Type as NamedTypeSymbol;
@@ -128,28 +128,28 @@ class C1<C1T1, C1T2>
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var _int = compilation.GetSpecialType(SpecialType.System_Int32);
-            var _byte = compilation.GetSpecialType(SpecialType.System_Byte);
-            var _char = compilation.GetSpecialType(SpecialType.System_Char);
-            var C1 = compilation.GetTypeByMetadataName("C1`2");
-            var c1OfByteChar = C1.Construct(_byte, _char);
+            NamedTypeSymbol _int = compilation.GetSpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol _byte = compilation.GetSpecialType(SpecialType.System_Byte);
+            NamedTypeSymbol _char = compilation.GetSpecialType(SpecialType.System_Char);
+            NamedTypeSymbol C1 = compilation.GetTypeByMetadataName("C1`2");
+            NamedTypeSymbol c1OfByteChar = C1.Construct(_byte, _char);
 
             Assert.Equal("C1<System.Byte, System.Char>", c1OfByteChar.ToTestDisplayString());
 
             var c1OfByteChar_c2 = (NamedTypeSymbol)(c1OfByteChar.GetMembers()[0]);
-            var c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_int, _int);
+            NamedTypeSymbol c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_int, _int);
 
             Assert.Equal("C1<System.Byte, System.Char>.C2<System.Int32, System.Int32>", c1OfByteChar_c2OfIntInt.ToTestDisplayString());
 
             var c1OfByteChar_c2OfIntInt_c3 = (NamedTypeSymbol)(c1OfByteChar_c2OfIntInt.GetMembers()[0]);
-            var c1OfByteChar_c2OfIntInt_c3OfIntByte = c1OfByteChar_c2OfIntInt_c3.Construct(_int, _byte);
+            NamedTypeSymbol c1OfByteChar_c2OfIntInt_c3OfIntByte = c1OfByteChar_c2OfIntInt_c3.Construct(_int, _byte);
 
             Assert.Equal("C1<System.Byte, System.Char>.C2<System.Int32, System.Int32>.C3<System.Int32, System.Byte>", c1OfByteChar_c2OfIntInt_c3OfIntByte.ToTestDisplayString());
 
-            var v1 = c1OfByteChar_c2OfIntInt_c3OfIntByte.GetMembers().OfType<FieldSymbol>().First();
-            var type = v1.Type;
+            FieldSymbol v1 = c1OfByteChar_c2OfIntInt_c3OfIntByte.GetMembers().OfType<FieldSymbol>().First();
+            TypeSymbol type = v1.Type;
 
             Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.ToTestDisplayString());
         }
@@ -170,20 +170,20 @@ class C1<C1T1, C1T2>
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var _int = compilation.GetSpecialType(SpecialType.System_Int32);
-            var _byte = compilation.GetSpecialType(SpecialType.System_Byte);
-            var _char = compilation.GetSpecialType(SpecialType.System_Char);
-            var C1 = compilation.GetTypeByMetadataName("C1`2");
+            NamedTypeSymbol _int = compilation.GetSpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol _byte = compilation.GetSpecialType(SpecialType.System_Byte);
+            NamedTypeSymbol _char = compilation.GetSpecialType(SpecialType.System_Char);
+            NamedTypeSymbol C1 = compilation.GetTypeByMetadataName("C1`2");
 
-            var c1OfByteChar = C1.Construct(_byte, _char);
+            NamedTypeSymbol c1OfByteChar = C1.Construct(_byte, _char);
 
             Assert.Equal("C1<System.Byte, System.Char>", c1OfByteChar.ToTestDisplayString());
             var c1OfByteChar_c2 = (NamedTypeSymbol)(c1OfByteChar.GetMembers()[0]);
             Assert.Throws<ArgumentException>(() =>
             {
-                var c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_byte, _char, _int, _int);
+                NamedTypeSymbol c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_byte, _char, _int, _int);
             });
         }
     }

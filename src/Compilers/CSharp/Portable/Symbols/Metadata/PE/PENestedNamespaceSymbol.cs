@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override void EnsureAllMembersLoaded()
         {
-            var typesByNS = _typesByNS;
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS = _typesByNS;
 
             if (lazyTypes == null || lazyNamespaces == null)
             {

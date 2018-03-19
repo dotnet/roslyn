@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
-            var voidType = binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
-            var objectType = binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
-            var intPtrType = binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax);
+            NamedTypeSymbol voidType = binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
+            NamedTypeSymbol objectType = binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
+            NamedTypeSymbol intPtrType = binder.GetSpecialType(SpecialType.System_IntPtr, diagnostics, syntax);
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // WinRT delegates don't have Begin/EndInvoke methods
                 !delegateType.IsCompilationOutputWinMdObj())
             {
-                var iAsyncResultType = binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax);
-                var asyncCallbackType = binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax);
+                NamedTypeSymbol iAsyncResultType = binder.GetSpecialType(SpecialType.System_IAsyncResult, diagnostics, syntax);
+                NamedTypeSymbol asyncCallbackType = binder.GetSpecialType(SpecialType.System_AsyncCallback, diagnostics, syntax);
 
                 // (3) BeginInvoke
                 symbols.Add(new BeginInvokeMethod(invoke, iAsyncResultType, objectType, asyncCallbackType, syntax));
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
-            foreach (var parameter in invoke.Parameters)
+            foreach (ParameterSymbol parameter in invoke.Parameters)
             {
                 if (!parameter.Type.IsAtLeastAsVisibleAs(delegateType, ref useSiteDiagnostics))
                 {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this._refKind = refKind;
 
                 SyntaxToken arglistToken;
-                var parameters = ParameterHelpers.MakeParameters(
+                ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                     binder, this, syntax.ParameterList, out arglistToken,
                     allowRefOrOut: true,
                     allowThis: false,
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
+                    NamedTypeSymbol modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
                     _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
                 }
                 else
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsUnique(ArrayBuilder<ParameterSymbol> currentParameters, string name)
         {
-            foreach (var p in currentParameters)
+            foreach (ParameterSymbol p in currentParameters)
             {
                 if (string.CompareOrdinal(p.Name, name) == 0)
                 {

@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            var syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
-            var rewrittenSections = VisitSwitchSections(node.SwitchSections);
+            ImmutableArray<BoundSwitchSection> rewrittenSections = VisitSwitchSections(node.SwitchSections);
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the expression are being executed.
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenExpression = _instrumenter.InstrumentSwitchStatementExpression(node, rewrittenExpression, _factory);
             }
 
-            var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, node.BreakLabel, node);
+            BoundStatement rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, node.BreakLabel, node);
 
             // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
             if (this.Instrument && !node.WasCompilerGenerated)
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rewrittenExpression.Type.IsNullableType());
 
-            var exprSyntax = rewrittenExpression.Syntax;
-            var exprNullableType = rewrittenExpression.Type;
+            SyntaxNode exprSyntax = rewrittenExpression.Syntax;
+            TypeSymbol exprNullableType = rewrittenExpression.Type;
 
             var statementBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
@@ -191,12 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LabelSymbol fallThroughLabel = breakLabel;
 
-            foreach (var section in sections)
+            foreach (BoundSwitchSection section in sections)
             {
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = (SourceLabelSymbol)boundLabel.Label;
-                    var labelConstant = boundLabel.ConstantValueOpt;
+                    ConstantValue labelConstant = boundLabel.ConstantValueOpt;
 
                     if (labelConstant == ConstantValue.Null)
                     {
@@ -241,13 +241,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static int CountLabels(ImmutableArray<BoundSwitchSection> rewrittenSections)
         {
             int count = 0;
-            foreach (var section in rewrittenSections)
+            foreach (BoundSwitchSection section in rewrittenSections)
             {
-                foreach (var boundLabel in section.SwitchLabels)
+                foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     if (boundLabel.ConstantValueOpt != null)
                     {
-                        var value = boundLabel.ConstantValueOpt;
+                        ConstantValue value = boundLabel.ConstantValueOpt;
                         Debug.Assert(value.IsString || value.IsNull);
                         count++;
                     }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Creates the method if needed.
         private void EnsureStringHashFunction(ImmutableArray<BoundSwitchSection> rewrittenSections, SyntaxNode syntaxNode)
         {
-            var module = this.EmitModule;
+            Emit.PEModuleBuilder module = this.EmitModule;
             if (module == null)
             {
                 return;
@@ -276,14 +276,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we have already generated the helper, possibly for another switch
             // or on another thread, we don't need to regenerate it.
-            var privateImplClass = module.GetPrivateImplClass(syntaxNode, _diagnostics);
+            PrivateImplementationDetails privateImplClass = module.GetPrivateImplClass(syntaxNode, _diagnostics);
             if (privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
             {
                 return;
             }
 
             // cannot emit hash method if have no access to Chars.
-            var charsMember = _compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
+            Symbol charsMember = _compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
             if ((object)charsMember == null || charsMember.GetUseSiteDiagnostic() != null)
             {
                 return;

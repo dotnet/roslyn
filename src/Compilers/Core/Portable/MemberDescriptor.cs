@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         {
             int count = nameTable.Length;
 
-            var builder = ImmutableArray.CreateBuilder<MemberDescriptor>(count);
-            var signatureBuilder = ImmutableArray.CreateBuilder<byte>();
+            ImmutableArray<MemberDescriptor>.Builder builder = ImmutableArray.CreateBuilder<MemberDescriptor>(count);
+            ImmutableArray<byte>.Builder signatureBuilder = ImmutableArray.CreateBuilder<byte>();
 
             for (int i = 0; i < count; i++)
             {

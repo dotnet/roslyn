@@ -579,7 +579,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new string[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -601,7 +601,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -627,7 +627,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -652,7 +652,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -674,7 +674,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -720,7 +720,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -742,7 +742,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -850,7 +850,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -905,7 +905,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -957,7 +957,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1009,7 +1009,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1061,7 +1061,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1113,7 +1113,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1165,7 +1165,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1211,7 +1211,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1260,7 +1260,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1322,7 +1322,7 @@ class Program : TestBase
         Check<T>(() => default(T), expected);
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "123k");
         }
@@ -1344,7 +1344,7 @@ class P
         Console.WriteLine(expr);
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput:
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
@@ -1445,7 +1445,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1467,7 +1467,7 @@ class Program
         Expression<Func<int>> efi2 = () => sizeof(S);
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
 
             c.VerifyDiagnostics(
                 // (9,43): error CS1944: An expression tree may not contain an unsafe pointer operation
@@ -1496,7 +1496,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1564,7 +1564,7 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMember
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] D ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=System.String S Expression=Add(Constant(hello Type:System.String) Call(Parameter(x Type:Node).[System.String ToString()]() Type:System.String) Method:[System.String Concat(System.String, System.String)] Type:System.String))] Type:Node)";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput);
         }
@@ -1593,7 +1593,7 @@ partial class Program
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1618,7 +1618,7 @@ class A
         Console.WriteLine(e.ToString());
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
         }
@@ -1656,7 +1656,7 @@ partial class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1719,7 +1719,7 @@ partial class Program : TestBase
         return (s == null) ? ""null"" : ""S"";
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            CompilationVerifier compilation = CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 expectedOutput: @"null
 S");
@@ -2246,7 +2246,7 @@ class Program
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
 
             c.VerifyDiagnostics(
                 // (10,46): error CS1944: An expression tree may not contain an unsafe pointer operation
@@ -2332,7 +2332,7 @@ public class Test
 }
                     ");
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp45 = CreateCompilationWithMscorlib45(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 options: TestOptions.ReleaseExe);
@@ -3012,7 +3012,7 @@ unsafe class Test
     }
 }";
 
-            var c = CompileAndVerifyUtil(text,
+            CompilationVerifier c = CompileAndVerifyUtil(text,
                 options: TestOptions.UnsafeReleaseDll,
                 verify: Verification.Fails);
 
@@ -3382,7 +3382,7 @@ class Program
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
                 new[] { MscorlibRef, SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -3392,7 +3392,7 @@ class Program
             //NOTE: different shape of delegate creation in 45+ is bydesign and matches behavior of the with old compiler.
             string expectedOutput45 = @"Convert(Call(Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo).[System.Delegate CreateDelegate(System.Type, System.Object)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1)) Type:System.Delegate) Type:Del)";
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp45 = CreateCompilationWithMscorlib45(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 TestOptions.ReleaseExe);
@@ -3845,7 +3845,7 @@ Convert(Convert(Convert(Parameter(x Type:E) Type:System.Int32) Method:[System.De
 Convert(Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Method:[System.Decimal op_Implicit(Int32)] Type:System.Decimal) Lifted LiftedToNull Type:System.Nullable`1[System.Decimal])
 ".Trim();
 
-            var verifier = CompileAndVerifyUtil(
+            CompilationVerifier verifier = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput);
 
@@ -3996,7 +3996,7 @@ Convert(Convert(Convert(Parameter(x Type:E) Type:System.Int32) Method:[System.De
 Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[System.Decimal op_Implicit(Int32)] Type:System.Nullable`1[System.Decimal])
 ".Trim();
 
-            var verifier = CompileAndVerifyUtil(
+            CompilationVerifier verifier = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput);
 
@@ -5063,7 +5063,7 @@ Public Class Cells
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
 
             var source2 =
 @"class A
@@ -5178,11 +5178,11 @@ class C
 {
     static Expression<D> E = () => new C();
 }";
-            var compilation = CreateEmptyCompilation(text);
+            CSharpCompilation compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
-                var result = compilation.Emit(stream);
+                CodeAnalysis.Emit.EmitResult result = compilation.Emit(stream);
                 result.Diagnostics.Verify(
                     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
@@ -5240,11 +5240,11 @@ class B<T>
     static object F = null;
     static Expression<D> G = () => F;
 }";
-            var compilation = CreateEmptyCompilation(text);
+            CSharpCompilation compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
-                var result = compilation.Emit(stream);
+                CodeAnalysis.Emit.EmitResult result = compilation.Emit(stream);
                 result.Diagnostics.Verify(
     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -5313,11 +5313,11 @@ class B<T>
     static void M() { }
     B(object o) { }
 }";
-            var compilation = CreateEmptyCompilation(text);
+            CSharpCompilation compilation = CreateEmptyCompilation(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
-                var result = compilation.Emit(stream);
+                CodeAnalysis.Emit.EmitResult result = compilation.Emit(stream);
                 result.Diagnostics.Verify(
     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -5817,9 +5817,9 @@ class C : TestBase
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
 }";
-            var compilation1 = CreateCompilationWithMscorlib45(source1);
+            CSharpCompilation compilation1 = CreateCompilationWithMscorlib45(source1);
             compilation1.VerifyDiagnostics();
-            var reference1 = compilation1.EmitToImageReference();
+            MetadataReference reference1 = compilation1.EmitToImageReference();
 
             var source2 =
 @"using System.Linq.Expressions;
@@ -5828,12 +5828,12 @@ class C
 {
     static Expression<D> E = () => 1;
 }";
-            var compilation2 = CreateCompilationWithMscorlib45(source2, references: new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilationWithMscorlib45(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
 
             using (var stream = new MemoryStream())
             {
-                var result = compilation2.Emit(stream);
+                CodeAnalysis.Emit.EmitResult result = compilation2.Emit(stream);
                 result.Diagnostics.Verify();
             }
         }

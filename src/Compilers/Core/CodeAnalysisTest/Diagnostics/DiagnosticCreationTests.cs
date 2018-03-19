@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact, WorkItem(547049, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547049")]
         public void TestDiagnosticCreationWithOverriddenSeverity()
         {
-            var defaultSeverity = DiagnosticSeverity.Info;
-            var effectiveSeverity = DiagnosticSeverity.Error;
+            DiagnosticSeverity defaultSeverity = DiagnosticSeverity.Info;
+            DiagnosticSeverity effectiveSeverity = DiagnosticSeverity.Error;
             var descriptor = new DiagnosticDescriptor("ID", "Title", "MessageFormat", "Category", defaultSeverity, isEnabledByDefault: true);
             var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null);
             Assert.Equal(effectiveSeverity, diagnostic.Severity);

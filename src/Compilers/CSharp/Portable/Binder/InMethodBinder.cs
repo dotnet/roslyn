@@ -202,12 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var parameterMap = _lazyParameterMap;
+            MultiDictionary<string, ParameterSymbol> parameterMap = _lazyParameterMap;
             if (parameterMap == null)
             {
-                var parameters = _methodSymbol.Parameters;
+                ImmutableArray<ParameterSymbol> parameters = _methodSymbol.Parameters;
                 parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
-                foreach (var parameter in parameters)
+                foreach (ParameterSymbol parameter in parameters)
                 {
                     parameterMap.Add(parameter.Name, parameter);
                 }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _lazyParameterMap = parameterMap;
             }
 
-            foreach (var parameterSymbol in parameterMap[name])
+            foreach (ParameterSymbol parameterSymbol in parameterMap[name])
             {
                 result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (options.CanConsiderMembers())
             {
-                foreach (var parameter in _methodSymbol.Parameters)
+                foreach (ParameterSymbol parameter in _methodSymbol.Parameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+            Location oldLocation = parameter.Locations[0];
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
             SymbolKind parameterKind = parameter.Kind;
@@ -304,15 +304,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol existingDeclaration;
 
 
-            var parameters = _methodSymbol.Parameters;
-            var typeParameters = _methodSymbol.TypeParameters;
+            ImmutableArray<ParameterSymbol> parameters = _methodSymbol.Parameters;
+            ImmutableArray<TypeParameterSymbol> typeParameters = _methodSymbol.TypeParameters;
 
             if (parameters.IsEmpty && typeParameters.IsEmpty)
             {
                 return false;
             }
 
-            var map = _lazyDefinitionMap;
+            SmallDictionary<string, Symbol> map = _lazyDefinitionMap;
 
             if (map == null)
             {

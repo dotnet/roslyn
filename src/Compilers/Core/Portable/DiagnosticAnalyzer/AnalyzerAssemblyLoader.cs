@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
             lock (_guard)
             {
-                if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
+                if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out List<string> paths))
                 {
                     _knownAssemblyPathsBySimpleName.Add(simpleName, new List<string>() { fullPath });
                 }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             Assembly loadedAssembly = null;
             lock (_guard)
             {
-                if (_loadedAssembliesByPath.TryGetValue(fullPath, out var existingAssembly))
+                if (_loadedAssembliesByPath.TryGetValue(fullPath, out Assembly existingAssembly))
                 {
                     loadedAssembly = existingAssembly;
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // The same assembly may be loaded from two different full paths (e.g. when loaded from GAC, etc.),
                 // or another thread might have loaded the assembly after we checked above.
-                if (_loadedAssembliesByIdentity.TryGetValue(identity, out var existingAssembly))
+                if (_loadedAssembliesByIdentity.TryGetValue(identity, out Assembly existingAssembly))
                 {
                     assembly = existingAssembly;
                 }
@@ -123,13 +123,13 @@ namespace Microsoft.CodeAnalysis
 
             lock (_guard)
             {
-                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity))
+                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out AssemblyIdentity existingIdentity))
                 {
                     return existingIdentity;
                 }
             }
 
-            var identity = AssemblyIdentityUtils.TryGetAssemblyIdentity(fullPath);
+            AssemblyIdentity identity = AssemblyIdentityUtils.TryGetAssemblyIdentity(fullPath);
             return AddToCache(fullPath, identity);
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         {
             lock (_guard)
             {
-                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity) && existingIdentity != null)
+                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out AssemblyIdentity existingIdentity) && existingIdentity != null)
                 {
                     identity = existingIdentity;
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis
 
         public Assembly Load(string displayName)
         {
-            if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
+            if (!AssemblyIdentity.TryParseDisplayName(displayName, out AssemblyIdentity requestedIdentity))
             {
                 return null;
             }
@@ -162,12 +162,12 @@ namespace Microsoft.CodeAnalysis
             {
 
                 // First, check if this loader already loaded the requested assembly:
-                if (_loadedAssembliesByIdentity.TryGetValue(requestedIdentity, out var existingAssembly))
+                if (_loadedAssembliesByIdentity.TryGetValue(requestedIdentity, out Assembly existingAssembly))
                 {
                     return existingAssembly;
                 }
                 // Second, check if an assembly file of the same simple name was registered with the loader:
-                if (!_knownAssemblyPathsBySimpleName.TryGetValue(requestedIdentity.Name, out var pathList))
+                if (!_knownAssemblyPathsBySimpleName.TryGetValue(requestedIdentity.Name, out List<string> pathList))
                 {
                     return null;
                 }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
             // Load the one that matches the requested identity (if any).
             foreach (var candidatePath in candidatePaths)
             {
-                var candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
+                AssemblyIdentity candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
 
                 if (requestedIdentity.Equals(candidateIdentity))
                 {

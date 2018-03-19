@@ -270,8 +270,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 // Make sure custom modifiers are the same.
-                var mod = this.CustomModifiers;
-                var otherMod = other.CustomModifiers;
+                ImmutableArray<CustomModifier> mod = this.CustomModifiers;
+                ImmutableArray<CustomModifier> otherMod = other.CustomModifiers;
 
                 int count = mod.Length;
 

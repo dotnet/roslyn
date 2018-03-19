@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var memberAccess = this.MemberAccessExpressionSyntax;
+                MemberAccessExpressionSyntax memberAccess = this.MemberAccessExpressionSyntax;
                 if (memberAccess != null)
                 {
                     return memberAccess.Name;

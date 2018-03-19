@@ -19,7 +19,7 @@ class C
     public C()
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // file.cs(4,15): error CS1002: ; expected
@@ -30,10 +30,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
 
@@ -46,7 +46,7 @@ class C
     public C() : base()
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,24): error CS1002: ; expected
@@ -57,8 +57,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -88,12 +88,12 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -124,12 +124,12 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -162,12 +162,12 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -193,12 +193,12 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -227,7 +227,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -237,8 +237,8 @@ class C
     => throw null;").WithLocation(4, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -267,7 +267,7 @@ class C
     public C();
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // file.cs(4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
@@ -275,10 +275,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            ConstructorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
     }

@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void EmptyFile()
         {
             var code = "#load \"\"";
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MissingFile()
         {
             var code = "#load \"missing\"";
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FileWithErrors()
         {
             var code = "#load \"a.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(
+            SourceReferenceResolver resolver = TestSourceReferenceResolver.Create(
                 KeyValuePair.Create("a.csx", @"
                     #load ""b.csx""
                     asdf();"));
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Equal(2, compilation.SyntaxTrees.Length);
             compilation.GetParseDiagnostics().Verify(
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FileThatCannotBeDecoded()
         {
             var code = "#load \"b.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(
+            SourceReferenceResolver resolver = TestSourceReferenceResolver.Create(
                 KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
                 KeyValuePair.Create<string, object>("b.csx", "#load \"a.csx\""));
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
-            var external1 = compilation.SyntaxTrees.Last();
-            var external2 = Parse(code, "external2.csx", TestOptions.Script);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
+            SyntaxTree external1 = compilation.SyntaxTrees.Last();
+            SyntaxTree external2 = Parse(code, "external2.csx", TestOptions.Script);
             compilation = compilation.AddSyntaxTrees(external2);
 
             Assert.Equal(3, compilation.SyntaxTrees.Length);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // #load "a.csx"
                 Diagnostic(ErrorCode.ERR_BinaryFile, @"""a.csx""").WithArguments("a.csx").WithLocation(1, 7));
 
-            var external3 = Parse(@"
+            SyntaxTree external3 = Parse(@"
                 #load ""b.csx""
                 #load ""a.csx""", filename: "external3.csx", options: TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(external1, external3);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // #load "a.csx"
                 Diagnostic(ErrorCode.ERR_BinaryFile, @"""a.csx""").WithArguments("a.csx").WithLocation(1, 7));
 
-            var external4 = Parse("#load \"a.csx\"", "external4.csx", TestOptions.Script);
+            SyntaxTree external4 = Parse("#load \"a.csx\"", "external4.csx", TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(external3, external4);
 
             Assert.Equal(3, compilation.SyntaxTrees.Length);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NoSourceReferenceResolver()
         {
             var code = "#load \"test\"";
-            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #if undefined
 #load nothing
 #endif";
-            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics();
@@ -145,14 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Cycles()
         {
             var code = "#load \"a.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", code));
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            SourceReferenceResolver resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", code));
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Equal(2, compilation.SyntaxTrees.Length);
             compilation.VerifyDiagnostics();
 
-            var newTree = Parse(code, "a.csx", TestOptions.Script);
+            SyntaxTree newTree = Parse(code, "a.csx", TestOptions.Script);
             compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Last(), newTree);
 
             Assert.Equal(2, compilation.SyntaxTrees.Length);

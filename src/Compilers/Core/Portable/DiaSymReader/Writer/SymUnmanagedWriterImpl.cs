@@ -92,7 +92,7 @@ namespace Microsoft.DiaSymReader
 
         private void CloseSymWriter()
         {
-            var symWriter = Interlocked.Exchange(ref _symWriter, null);
+            ISymUnmanagedWriter5 symWriter = Interlocked.Exchange(ref _symWriter, null);
             if (symWriter == null)
             {
                 return;
@@ -144,7 +144,7 @@ namespace Microsoft.DiaSymReader
                 throw new ArgumentNullException(nameof(name));
             }
 
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             int index = _documentWriters.Count;
             ISymUnmanagedDocumentWriter documentWriter;
@@ -205,7 +205,7 @@ namespace Microsoft.DiaSymReader
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
 
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -226,7 +226,7 @@ namespace Microsoft.DiaSymReader
 
         public override void OpenMethod(int methodToken)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -240,7 +240,7 @@ namespace Microsoft.DiaSymReader
 
         public override void CloseMethod()
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
             try
 
             {
@@ -254,7 +254,7 @@ namespace Microsoft.DiaSymReader
 
         public override void OpenScope(int startOffset)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -268,7 +268,7 @@ namespace Microsoft.DiaSymReader
 
         public override void CloseScope(int endOffset)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -282,7 +282,7 @@ namespace Microsoft.DiaSymReader
 
         public override void DefineLocalVariable(int index, string name, int attributes, int localSignatureToken)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -297,7 +297,7 @@ namespace Microsoft.DiaSymReader
 
         public override bool DefineLocalConstant(string name, object value, int constantSignatureToken)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             switch (value)
             {
@@ -440,7 +440,7 @@ namespace Microsoft.DiaSymReader
                 throw new ArgumentNullException(nameof(importString));
             }
 
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -517,7 +517,7 @@ namespace Microsoft.DiaSymReader
                 return;
             }
 
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -535,7 +535,7 @@ namespace Microsoft.DiaSymReader
 
         public override void SetEntryPoint(int entryMethodToken)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -549,7 +549,7 @@ namespace Microsoft.DiaSymReader
 
         public override void UpdateSignature(Guid guid, uint stamp, int age)
         {
-            var symWriter = GetSymWriter8();
+            ISymUnmanagedWriter8 symWriter = GetSymWriter8();
 
             try
             {
@@ -573,7 +573,7 @@ namespace Microsoft.DiaSymReader
                 return;
             }
 
-            var symWriter = GetSymWriter8();
+            ISymUnmanagedWriter8 symWriter = GetSymWriter8();
 
             try
             {
@@ -600,7 +600,7 @@ namespace Microsoft.DiaSymReader
                 return;
             }
 
-            var symWriter = GetSymWriter8();
+            ISymUnmanagedWriter8 symWriter = GetSymWriter8();
 
             try
             {
@@ -617,7 +617,7 @@ namespace Microsoft.DiaSymReader
 
         public override void OpenTokensToSourceSpansMap()
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -636,7 +636,7 @@ namespace Microsoft.DiaSymReader
                 throw new ArgumentOutOfRangeException(nameof(documentIndex));
             }
 
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -656,7 +656,7 @@ namespace Microsoft.DiaSymReader
 
         public override void CloseTokensToSourceSpansMap()
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             try
             {
@@ -670,7 +670,7 @@ namespace Microsoft.DiaSymReader
 
         public unsafe override void GetSignature(out Guid guid, out uint stamp, out int age)
         {
-            var symWriter = GetSymWriter();
+            ISymUnmanagedWriter5 symWriter = GetSymWriter();
 
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
             // The writer only sets two values of the ImageDebugDirectory struct.

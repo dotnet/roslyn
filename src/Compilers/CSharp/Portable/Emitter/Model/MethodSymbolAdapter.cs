@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            foreach (var arg in this.TypeArguments)
+            foreach (TypeSymbol arg in this.TypeArguments)
             {
                 yield return moduleBeingBuilt.Translate(arg,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                foreach (var @param in this.TypeParameters)
+                foreach (TypeParameterSymbol @param in this.TypeParameters)
                 {
                     Debug.Assert(@param.IsDefinition);
                     yield return @param;

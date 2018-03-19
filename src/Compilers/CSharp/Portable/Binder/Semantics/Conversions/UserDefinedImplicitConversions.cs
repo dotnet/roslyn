@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the types is an interface type, but due to a desire to be compatible with a 
             // dev10 bug, we allow it. See the comment regarding bug 17021 above for more details.
 
-            var result = ClassifyStandardImplicitConversion(aExpr, a, b, ref useSiteDiagnostics);
+            Conversion result = ClassifyStandardImplicitConversion(aExpr, a, b, ref useSiteDiagnostics);
             return IsEncompassingImplicitConversionKind(result.Kind) ? result : Conversion.NoConversion;
         }
 
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamedTypeSymbol MakeNullableType(TypeSymbol type)
         {
-            var nullable = this.corLibrary.GetDeclaredSpecialType(SpecialType.System_Nullable_T);
+            NamedTypeSymbol nullable = this.corLibrary.GetDeclaredSpecialType(SpecialType.System_Nullable_T);
             return nullable.Construct(type);
         }
 

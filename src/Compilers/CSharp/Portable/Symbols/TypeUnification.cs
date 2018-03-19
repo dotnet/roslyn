@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         }
 
-                        var nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics;
-                        var nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics;
+                        ImmutableArray<TypeSymbol> nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics;
+                        ImmutableArray<TypeSymbol> nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics;
 
                         var nt1HasModifiers = nt1.HasTypeArgumentsCustomModifiers;
                         var nt2HasModifiers = nt2.HasTypeArgumentsCustomModifiers;

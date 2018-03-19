@@ -1377,7 +1377,7 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
   IgnoredCondition: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

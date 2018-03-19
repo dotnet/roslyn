@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue Create(object value, SpecialType st)
         {
-            var discriminator = GetDiscriminator(st);
+            ConstantValueTypeDiscriminator discriminator = GetDiscriminator(st);
             Debug.Assert(discriminator != ConstantValueTypeDiscriminator.Bad);
             return Create(value, discriminator);
         }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue Default(SpecialType st)
         {
-            var discriminator = GetDiscriminator(st);
+            ConstantValueTypeDiscriminator discriminator = GetDiscriminator(st);
             Debug.Assert(discriminator != ConstantValueTypeDiscriminator.Bad);
             return Default(discriminator);
         }

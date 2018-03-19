@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: parameter array and allow the candidate to be applicable in its
                 // SPEC VIOLATION: expanded form.
 
-                var name = arguments.Names[argumentPosition];
+                IdentifierNameSyntax name = arguments.Names[argumentPosition];
                 for (int p = 0; p < memberParameters.Length; ++p)
                 {
                     // p is initialized to zero; it is ok for a named argument to "correspond" to

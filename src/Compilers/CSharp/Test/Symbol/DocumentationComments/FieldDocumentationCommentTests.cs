@@ -60,8 +60,8 @@ namespace Acme
         [Fact]
         public void TestFieldInStruct()
         {
-            var total1 = _valueType.GetMembers("total1").Single();
-            var total2 = _valueType.GetMembers("total2").Single();
+            Symbol total1 = _valueType.GetMembers("total1").Single();
+            Symbol total2 = _valueType.GetMembers("total2").Single();
             Assert.Equal("F:Acme.ValueType.total1", total1.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""F:Acme.ValueType.total1"">
@@ -134,7 +134,7 @@ namespace Acme
         [Fact]
         public void TestEnumField()
         {
-            var field = _enumSymbol.GetMembers("A").Single();
+            Symbol field = _enumSymbol.GetMembers("A").Single();
             Assert.Equal("F:Acme.E.A", field.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""F:Acme.E.A"">

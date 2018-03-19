@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations?.Length > 0)
             {
-                foreach (var annotation in annotations)
+                foreach (SyntaxAnnotation annotation in annotations)
                 {
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations?.Length > 0)
             {
-                foreach (var annotation in annotations)
+                foreach (SyntaxAnnotation annotation in annotations)
                 {
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             int offset = 0;
             for (int i = 0; i < index; i++)
             {
-                var child = this.GetSlot(i);
+                GreenNode child = this.GetSlot(i);
                 if (child != null)
                 {
                     offset += child.FullWidth;
@@ -194,14 +194,14 @@ namespace Microsoft.CodeAnalysis
 
             while (stack.Count > 0)
             {
-                var en = stack.Pop();
+                Syntax.InternalSyntax.ChildSyntaxList.Enumerator en = stack.Pop();
                 if (!en.MoveNext())
                 {
                     // no more down this branch
                     continue;
                 }
 
-                var current = en.Current;
+                GreenNode current = en.Current;
                 stack.Push(en); // put it back on stack (struct enumerator)
 
                 yield return current;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
             for (i = 0; ; i++)
             {
                 Debug.Assert(i < SlotCount);
-                var child = GetSlot(i);
+                GreenNode child = GetSlot(i);
                 if (child != null)
                 {
                     accumulatedWidth += child.FullWidth;
@@ -466,13 +466,13 @@ namespace Microsoft.CodeAnalysis
         #region Annotations 
         public bool HasAnnotations(string annotationKind)
         {
-            var annotations = this.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)
             {
                 return false;
             }
 
-            foreach (var a in annotations)
+            foreach (SyntaxAnnotation a in annotations)
             {
                 if (a.Kind == annotationKind)
                 {
@@ -485,13 +485,13 @@ namespace Microsoft.CodeAnalysis
 
         public bool HasAnnotations(IEnumerable<string> annotationKinds)
         {
-            var annotations = this.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)
             {
                 return false;
             }
 
-            foreach (var a in annotations)
+            foreach (SyntaxAnnotation a in annotations)
             {
                 if (annotationKinds.Contains(a.Kind))
                 {
@@ -504,13 +504,13 @@ namespace Microsoft.CodeAnalysis
 
         public bool HasAnnotation(SyntaxAnnotation annotation)
         {
-            var annotations = this.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)
             {
                 return false;
             }
 
-            foreach (var a in annotations)
+            foreach (SyntaxAnnotation a in annotations)
             {
                 if (a == annotation)
                 {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(annotationKind));
             }
 
-            var annotations = this.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.GetAnnotations();
 
             if (annotations == s_noAnnotations)
             {
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis
 
         private static IEnumerable<SyntaxAnnotation> GetAnnotationsSlow(SyntaxAnnotation[] annotations, string annotationKind)
         {
-            foreach (var annotation in annotations)
+            foreach (SyntaxAnnotation annotation in annotations)
             {
                 if (annotation.Kind == annotationKind)
                 {
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(annotationKinds));
             }
 
-            var annotations = this.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.GetAnnotations();
 
             if (annotations == s_noAnnotations)
             {
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis
 
         private static IEnumerable<SyntaxAnnotation> GetAnnotationsSlow(SyntaxAnnotation[] annotations, IEnumerable<string> annotationKinds)
         {
-            foreach (var annotation in annotations)
+            foreach (SyntaxAnnotation annotation in annotations)
             {
                 if (annotationKinds.Contains(annotation.Kind))
                 {
@@ -653,8 +653,8 @@ namespace Microsoft.CodeAnalysis
         {
             while (stack.Count > 0)
             {
-                var current = stack.Pop();
-                var currentNode = current.node;
+                (GreenNode node, bool leading, bool trailing) current = stack.Pop();
+                GreenNode currentNode = current.node;
                 var currentLeading = current.leading;
                 var currentTrailing = current.trailing;
 
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis
 
                 for (var i = lastIndex; i >= firstIndex; i--)
                 {
-                    var child = currentNode.GetSlot(i);
+                    GreenNode child = currentNode.GetSlot(i);
                     if (child != null)
                     {
                         var first = i == firstIndex;
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis
             int firstIndex = 0;
             for (; firstIndex < n; firstIndex++)
             {
-                var child = node.GetSlot(firstIndex);
+                GreenNode child = node.GetSlot(firstIndex);
                 if (child != null)
                 {
                     break;
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis
             int lastIndex = n - 1;
             for (; lastIndex >= 0; lastIndex--)
             {
-                var child = node.GetSlot(lastIndex);
+                GreenNode child = node.GetSlot(lastIndex);
                 if (child != null)
                 {
                     break;
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis
                 GreenNode firstChild = null;
                 for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
-                    var child = node.GetSlot(i);
+                    GreenNode child = node.GetSlot(i);
                     if (child != null)
                     {
                         firstChild = child;
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis
                 GreenNode lastChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
-                    var child = node.GetSlot(i);
+                    GreenNode child = node.GetSlot(i);
                     if (child != null)
                     {
                         lastChild = child;
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis
                 GreenNode nonmissingChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
-                    var child = node.GetSlot(i);
+                    GreenNode child = node.GetSlot(i);
                     if (child != null && !child.IsMissing)
                     {
                         nonmissingChild = child;
@@ -868,8 +868,8 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < n; i++)
             {
-                var node1Child = node1.GetSlot(i);
-                var node2Child = node2.GetSlot(i);
+                GreenNode node1Child = node1.GetSlot(i);
+                GreenNode node2Child = node2.GetSlot(i);
                 if (node1Child != null && node2Child != null && !node1Child.IsEquivalentTo(node2Child))
                 {
                     return false;
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var list = nodes.ToArray();
+            GreenNode[] list = nodes.ToArray();
 
             switch (list.Length)
             {
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis
             int cnt = this.SlotCount;
             for (int i = 0; i < cnt; i++)
             {
-                var child = GetSlot(i);
+                GreenNode child = GetSlot(i);
                 if (child != null)
                 {
                     code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
             Debug.Assert(!_sealed);
 #endif
-            var currentValue = QuickAttributes.None;
+            QuickAttributes currentValue = QuickAttributes.None;
             _nameToAttributeMap.TryGetValue(name, out currentValue);
 
             QuickAttributes newValue = newAttributes | currentValue;
@@ -84,14 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             QuickAttributeChecker newChecker = null;
 
-            foreach (var usingDirective in usingsSyntax)
+            foreach (UsingDirectiveSyntax usingDirective in usingsSyntax)
             {
                 if (usingDirective.Alias != null)
                 {
                     string name = usingDirective.Alias.Name.Identifier.ValueText;
                     string target = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
 
-                    if (_nameToAttributeMap.TryGetValue(target, out var foundAttributes))
+                    if (_nameToAttributeMap.TryGetValue(target, out QuickAttributes foundAttributes))
                     {
                         // copy the QuickAttributes from alias target to alias name
                         (newChecker ?? (newChecker = new QuickAttributeChecker(this))).AddName(name, foundAttributes);

@@ -80,7 +80,7 @@ class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "123456789X");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "123456789X");
         }
 
         [Fact]
@@ -117,7 +117,7 @@ class C
         foreach (var i in IE()) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0123456789");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "0123456789");
         }
 
         [Fact]
@@ -163,7 +163,7 @@ class Program
         foreach (var i in new C(4).IE(5, 6)) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
+            CompilationVerifier compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
 
             compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
@@ -297,7 +297,7 @@ class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
 
             compilation.VerifyIL("Program.<Int0>d__0.System.Collections.IEnumerator.MoveNext()", @"
 {
@@ -1169,7 +1169,7 @@ class Program
         yield return x;
     }
 }";
-            var rel = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier rel = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1186,7 +1186,7 @@ class Program
   IL_0001:  newobj     ""Program.<M>d__1..ctor(int)""
   IL_0006:  ret
 }");
-            var dbg = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier dbg = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1931,9 +1931,9 @@ class Program
 }
 ";
             //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
-            var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib45(parsed);
-            var verifier = this.CompileAndVerify(comp);
+            SyntaxTree[] parsed = new[] { Parse(source) };
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(parsed);
+            CompilationVerifier verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
@@ -1963,10 +1963,10 @@ namespace System
 }
 
 ";
-            var parsed = new[] { Parse(source) };
-            var comp = CreateCompilation(parsed);
+            SyntaxTree[] parsed = new[] { Parse(source) };
+            CSharpCompilation comp = CreateCompilation(parsed);
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
-            var verifier = this.CompileAndVerify(comp);
+            CompilationVerifier verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
@@ -2382,8 +2382,8 @@ public class C
     }
 }";
             // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            var compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
-            var verifier = CompileAndVerify(compilation, verify: Verification.Fails);
+            CSharpCompilation compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
+            CompilationVerifier verifier = CompileAndVerify(compilation, verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
@@ -2426,7 +2426,7 @@ public class C
 {
     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
+            CSharpCompilation compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2490,7 +2490,7 @@ public class C
 {
     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
+            CSharpCompilation compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             // No error about IEnumerable
             compilation.VerifyEmitDiagnostics(

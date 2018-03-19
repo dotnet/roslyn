@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // we should probably did into trivia if this is a Token, but we won't
 
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
             {
                 if (TryFindNodeOrToken(child, kind, ref occurrence, ref foundNode))
                 {
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static bool HasUnresolvedReferencesByComparisonTo(this AssemblySymbol @this, AssemblySymbol that)
         {
-            var thisRefs = @this.BoundReferences();
-            var thatRefs = that.BoundReferences();
+            AssemblySymbol[] thisRefs = @this.BoundReferences();
+            AssemblySymbol[] thatRefs = that.BoundReferences();
 
             for (int i = 0; i < Math.Max(thisRefs.Length, thatRefs.Length); i++)
             {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string qualifiedName)
         {
             NamespaceOrTypeSymbol lastContainer;
-            var members = GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
+            ImmutableArray<Symbol> members = GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
             if (members.IsEmpty)
             {
                 Assert.True(false, string.Format("Could not find member named '{0}'.  Available members:\r\n{1}",
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {
-            var parts = SplitMemberName(qualifiedName);
+            ImmutableArray<string> parts = SplitMemberName(qualifiedName);
 
             lastContainer = container;
             for (int i = 0; i < parts.Length - 1; i++)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static Symbol GetMember(this NamespaceOrTypeSymbol container, string qualifiedName)
         {
             NamespaceOrTypeSymbol lastContainer;
-            var members = GetMembers(container, qualifiedName, out lastContainer);
+            ImmutableArray<Symbol> members = GetMembers(container, qualifiedName, out lastContainer);
             if (members.Length == 0)
             {
                 return null;
@@ -294,16 +294,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static void VerifyValue<T>(this CSharpAttributeData attr, int i, TypedConstantKind kind, T v)
         {
-            var arg = attr.CommonConstructorArguments[i];
+            TypedConstant arg = attr.CommonConstructorArguments[i];
             Assert.Equal(kind, arg.Kind);
             Assert.True(IsEqual(arg, v));
         }
 
         public static void VerifyNamedArgumentValue<T>(this CSharpAttributeData attr, int i, string name, TypedConstantKind kind, T v)
         {
-            var namedArg = attr.CommonNamedArguments[i];
+            KeyValuePair<string, TypedConstant> namedArg = attr.CommonNamedArguments[i];
             Assert.Equal(namedArg.Key, name);
-            var arg = namedArg.Value;
+            TypedConstant arg = namedArg.Value;
             Assert.Equal(arg.Kind, kind);
             Assert.True(IsEqual(arg, v));
         }
@@ -384,8 +384,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     return false;
                 }
-                var expArgs = expType.GetGenericArguments();
-                var actArgs = namedType.TypeArguments();
+                Type[] expArgs = expType.GetGenericArguments();
+                ImmutableArray<TypeSymbol> actArgs = namedType.TypeArguments();
                 if (!(expArgs.Count() == actArgs.Length))
                 {
                     return false;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             for (var i = 0; i <= a.Length - 1; i++)
             {
                 var v = a.GetValue(i);
-                var c = tc[i];
+                TypedConstant c = tc[i];
                 ret = ret & IsEqual(c, v);
             }
             return ret;
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Contains(accessor, propertyOrEvent.ContainingType.GetMembers(accessor.Name));
 
-            var propertyOrEventType = propertyOrEvent.GetTypeOrReturnType();
+            TypeSymbol propertyOrEventType = propertyOrEvent.GetTypeOrReturnType();
             switch (accessor.MethodKind)
             {
                 case MethodKind.EventAdd:
@@ -480,13 +480,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.Equal(propertyOrEventType, accessor.ReturnType);
                     }
 
-                    var propertyParameters = property.Parameters;
-                    var accessorParameters = accessor.Parameters;
+                    ImmutableArray<ParameterSymbol> propertyParameters = property.Parameters;
+                    ImmutableArray<ParameterSymbol> accessorParameters = accessor.Parameters;
                     Assert.Equal(propertyParameters.Length, accessorParameters.Length - (isSetter ? 1 : 0));
                     for (int i = 0; i < propertyParameters.Length; i++)
                     {
-                        var propertyParam = propertyParameters[i];
-                        var accessorParam = accessorParameters[i];
+                        ParameterSymbol propertyParam = propertyParameters[i];
+                        ParameterSymbol accessorParam = accessorParameters[i];
                         Assert.Equal(propertyParam.Type, accessorParam.Type);
                         Assert.Equal(propertyParam.RefKind, accessorParam.RefKind);
                         Assert.Equal(propertyParam.Name, accessorParam.Name);
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                     if (isSetter)
                     {
-                        var valueParameter = accessorParameters[propertyParameters.Length];
+                        ParameterSymbol valueParameter = accessorParameters[propertyParameters.Length];
                         Assert.Equal(propertyOrEventType, valueParameter.Type);
                         Assert.Equal(RefKind.None, valueParameter.RefKind);
                         Assert.Equal(ParameterSymbol.ValueParameterName, valueParameter.Name);

@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbol> ConstraintTypesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var result = ConstraintTypesNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> result = ConstraintTypesNoUseSiteDiagnostics;
 
             AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
 
-            foreach (var constraint in result)
+            foreach (TypeSymbol constraint in result)
             {
                 ((TypeSymbol)constraint.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NamedTypeSymbol EffectiveBaseClass(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
-            var result = EffectiveBaseClassNoUseSiteDiagnostics;
+            NamedTypeSymbol result = EffectiveBaseClassNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeSymbol DeducedBaseType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
-            var result = DeducedBaseTypeNoUseSiteDiagnostics;
+            TypeSymbol result = DeducedBaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
@@ -338,17 +338,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<NamedTypeSymbol> AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var result = AllEffectiveInterfacesNoUseSiteDiagnostics;
+            ImmutableArray<NamedTypeSymbol> result = AllEffectiveInterfacesNoUseSiteDiagnostics;
 
             // Since bases affect content of AllInterfaces set, we need to make sure they all are good.
-            var current = DeducedBaseType(ref useSiteDiagnostics);
+            TypeSymbol current = DeducedBaseType(ref useSiteDiagnostics);
 
             while ((object)current != null)
             {
                 current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             }
 
-            foreach (var iface in result)
+            foreach (NamedTypeSymbol iface in result)
             {
                 iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -369,10 +369,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected static void EnsureAllConstraintsAreResolved(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            foreach (var typeParameter in typeParameters)
+            foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
                 // Invoke any method that forces constraints to be resolved.
-                var unused = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
+                ImmutableArray<TypeSymbol> unused = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
             }
         }
 
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // > (e.g. "class A<S, T> where S : T, where T : class" does not guarantee that S is ObjRef)
         internal static bool IsReferenceTypeFromConstraintTypes(ImmutableArray<TypeSymbol> constraintTypes)
         {
-            foreach (var constraintType in constraintTypes)
+            foreach (TypeSymbol constraintType in constraintTypes)
             {
                 if (ConstraintImpliesReferenceType(constraintType))
                 {
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsValueTypeFromConstraintTypes(ImmutableArray<TypeSymbol> constraintTypes)
         {
-            foreach (var constraintType in constraintTypes)
+            foreach (TypeSymbol constraintType in constraintTypes)
             {
                 if (constraintType.IsValueType)
                 {

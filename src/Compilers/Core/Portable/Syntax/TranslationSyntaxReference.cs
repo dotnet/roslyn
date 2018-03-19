@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public sealed override SyntaxNode GetSyntax(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var node = Translate(_reference, cancellationToken);
+            SyntaxNode node = Translate(_reference, cancellationToken);
             Debug.Assert(node.SyntaxTree == _reference.SyntaxTree);
             return node;
         }

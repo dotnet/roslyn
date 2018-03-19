@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             string toolLocation = null;
 
-            var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
+            Assembly buildTask = typeof(Utilities).GetTypeInfo().Assembly;
             var assemblyPath = TryGetAssemblyPath(buildTask);
 
             if (assemblyPath != null)

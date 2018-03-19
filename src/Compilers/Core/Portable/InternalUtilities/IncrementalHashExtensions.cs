@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
     {
         internal static void AppendData(this IncrementalHash hash, IEnumerable<Blob> blobs)
         {
-            foreach (var blob in blobs)
+            foreach (Blob blob in blobs)
             {
                 hash.AppendData(blob.GetBytes());
             }
@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
 
         internal static void AppendData(this IncrementalHash hash, IEnumerable<ArraySegment<byte>> blobs)
         {
-            foreach (var blob in blobs)
+            foreach (ArraySegment<byte> blob in blobs)
             {
                 hash.AppendData(blob);
             }

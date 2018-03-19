@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
             for (int slot = 0; slot < previousLocals.Length; slot++)
             {
-                var localInfo = previousLocals[slot];
+                EncLocalInfo localInfo = previousLocals[slot];
                 Debug.Assert(!localInfo.IsDefault);
                 if (localInfo.IsUnused)
                 {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return null;
             }
 
-            var previousType = _symbolMap.MapReference(currentType);
+            Cci.ITypeReference previousType = _symbolMap.MapReference(currentType);
             if (previousType == null)
             {
                 return null;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            var previousType = _symbolMap.MapReference(currentType);
+            Cci.ITypeReference previousType = _symbolMap.MapReference(currentType);
             if (previousType == null)
             {
                 slotIndex = -1;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody 
+            SyntaxNode currentLambdaSyntax = isLambdaBody 
                 ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax) 
                 : lambdaOrLambdaBodySyntax;
 

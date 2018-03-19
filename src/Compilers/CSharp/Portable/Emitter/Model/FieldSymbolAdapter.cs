@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            var customModifiers = this.CustomModifiers;
+            ImmutableArray<CustomModifier> customModifiers = this.CustomModifiers;
             var isFixed = this.IsFixed;
-            var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : this.Type;
-            var type = moduleBeingBuilt.Translate(implType,
+            TypeSymbol implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : this.Type;
+            Cci.ITypeReference type = moduleBeingBuilt.Translate(implType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                   diagnostics: context.Diagnostics);
 

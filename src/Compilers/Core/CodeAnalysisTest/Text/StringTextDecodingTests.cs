@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ShiftJisGetEncoding()
         {
             var sjis = Encoding.GetEncoding(932);
-            var data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, () => sjis);
+            SourceText data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, () => sjis);
 
             Assert.Equal(932, data.Encoding?.WindowsCodePage);
             Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ShiftJisFile()
         {
             var sjis = Encoding.GetEncoding(932);
-            var data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, sjis);
+            SourceText data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, sjis);
 
             Assert.Equal(932, data.Encoding?.WindowsCodePage);
             Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
@@ -71,65 +71,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CheckSum002()
         {
-            var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.ASCII, readEncodingOpt: null);
+            SourceText data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.ASCII, readEncodingOpt: null);
 
             // this is known to be "2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", see http://en.wikipedia.org/wiki/SHA-1
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("2fd4e1c6 7a2d28fc ed849ee1 bb76e739 1b93eb12", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]
         public void CheckSum003()
         {
-            var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.Unicode, readEncodingOpt: null);
+            SourceText data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.Unicode, readEncodingOpt: null);
 
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("9d0047c0 8c84a7ef a55a955e aa3b4aae f62c9c39", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]
         public void CheckSum004()
         {
-            var data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.BigEndianUnicode, readEncodingOpt: null);
+            SourceText data = CreateMemoryStreamBasedEncodedText("The quick brown fox jumps over the lazy dog", Encoding.BigEndianUnicode, readEncodingOpt: null);
 
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("72b2beae c76188ac 5b38c16c 4f9d518a 2be0a34c", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]
         public void CheckSum006()
         {
-            var data = CreateMemoryStreamBasedEncodedText("", Encoding.ASCII, readEncodingOpt: null);
+            SourceText data = CreateMemoryStreamBasedEncodedText("", Encoding.ASCII, readEncodingOpt: null);
 
             // this is known to be "da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", see http://en.wikipedia.org/wiki/SHA-1
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]
         public void CheckSum007()
         {
-            var data = CreateMemoryStreamBasedEncodedText("", Encoding.Unicode, readEncodingOpt: null);
+            SourceText data = CreateMemoryStreamBasedEncodedText("", Encoding.Unicode, readEncodingOpt: null);
 
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("d62636d8 caec13f0 4e28442a 0a6fa1af eb024bbb", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]
         public void CheckSum008()
         {
-            var data = CreateMemoryStreamBasedEncodedText("", Encoding.BigEndianUnicode, readEncodingOpt: null);
+            SourceText data = CreateMemoryStreamBasedEncodedText("", Encoding.BigEndianUnicode, readEncodingOpt: null);
 
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("26237800 2c95ae7e 29535cb9 f438db21 9adf98f5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
         [Fact]
         public void CheckSum_SHA256()
         {
-            var data = CreateMemoryStreamBasedEncodedText("", Encoding.UTF8, readEncodingOpt: null, algorithm: SourceHashAlgorithm.Sha256);
+            SourceText data = CreateMemoryStreamBasedEncodedText("", Encoding.UTF8, readEncodingOpt: null, algorithm: SourceHashAlgorithm.Sha256);
 
-            var checksum = data.GetChecksum();
+            System.Collections.Immutable.ImmutableArray<byte> checksum = data.GetChecksum();
             Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Detect encoding should correctly pick CodePage 1252
             using (var stream = new MemoryStream(bytes))
             {
-                var sourceText = EncodedStringText.Create(stream);
+                SourceText sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
 
                 // Check for a complete Encoding implementation.
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Detect encoding should correctly pick UTF-8
             using (var stream = new MemoryStream(bytes))
             {
-                var sourceText = EncodedStringText.Create(stream);
+                SourceText sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
                 Assert.Equal(Encoding.UTF8.EncodingName, sourceText.Encoding.EncodingName);
                 Assert.True(stream.CanRead);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var sourceText = EncodedStringText.Create(stream);
+                    SourceText sourceText = EncodedStringText.Create(stream);
                     Assert.Equal(expectedText, sourceText.ToString());
                 }
             });
@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
             };
 
-            foreach (var writeEncoding in encodings)
+            foreach (Encoding writeEncoding in encodings)
             {
-                foreach (var readEncoding in encodings)
+                foreach (Encoding readEncoding in encodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
+                    SourceText text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }
@@ -263,11 +263,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 null,
             };
 
-            foreach (var writeEncoding in writeEncodings)
+            foreach (Encoding writeEncoding in writeEncodings)
             {
-                foreach (var readEncoding in readEncodings)
+                foreach (Encoding readEncoding in readEncodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
+                    SourceText text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }
@@ -296,15 +296,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
             };
 
-            foreach (var encoding in encodings)
+            foreach (Encoding encoding in encodings)
             {
-                var tmpFile = Temp.CreateFile();
+                CodeAnalysis.Test.Utilities.TempFile tmpFile = Temp.CreateFile();
 
                 File.WriteAllText(tmpFile.Path, expectedText, encoding);
 
                 using (FileStream fs = new FileStream(tmpFile.Path, FileMode.Open, FileAccess.Read))
                 {
-                    var encodedText = EncodedStringText.Create(fs);
+                    SourceText encodedText = EncodedStringText.Create(fs);
                     Assert.Equal(encoding.CodePage, encodedText.Encoding.CodePage);
                     Assert.Equal(expectedText, encodedText.ToString());
                 }
@@ -314,11 +314,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FileStreamEncodedTextEmpty()
         {
-            var tmpFile = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile tmpFile = Temp.CreateFile();
 
             using (FileStream fs = new FileStream(tmpFile.Path, FileMode.Open, FileAccess.Read))
             {
-                var encodedText = EncodedStringText.Create(fs);
+                SourceText encodedText = EncodedStringText.Create(fs);
                 Assert.Equal(0, encodedText.Length);
             }
         }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             byte[] srcBytes = new[] { (byte)0x85 };
             using (var ms = new MemoryStream(srcBytes))
             {
-                var sourceText = EncodedStringText.Create(ms);
+                SourceText sourceText = EncodedStringText.Create(ms);
                 Assert.Equal('\u2026', sourceText[0]);
             }
         }

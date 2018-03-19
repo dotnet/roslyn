@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private static IReadOnlyDictionary<IMethodSymbol, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
         {
             var mappedMethods = new Dictionary<IMethodSymbol, MappedMethod>();
-            foreach (var edit in edits)
+            foreach (SemanticEdit edit in edits)
             {
                 // We should always "preserve locals" of iterator and async methods since the state machine 
                 // might be active without MoveNext method being on stack. We don't enforce this requirement here,
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (stateMachineType != null)
                 {
                     // method is async/iterator kickoff method
-                    var localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
+                    ImmutableArray<LocalSlotDebugInfo> localSlotDebugInfo = debugInfo.LocalSlots.NullToEmpty();
                     GetStateMachineFieldMapFromMetadata(stateMachineType, localSlotDebugInfo, out hoistedLocalMap, out awaiterMap, out awaiterSlotCount);
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
 
@@ -354,13 +354,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
             for (int i = 0; i < lambdaDebugInfo.Length; i++)
             {
-                var lambdaInfo = lambdaDebugInfo[i];
+                LambdaDebugInfo lambdaInfo = lambdaDebugInfo[i];
                 lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
             }
 
             for (int i = 0; i < closureDebugInfo.Length; i++)
             {
-                var closureInfo = closureDebugInfo[i];
+                ClosureDebugInfo closureInfo = closureDebugInfo[i];
                 closures[closureInfo.SyntaxOffset] = closureInfo.ClosureId;
             }
 
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             for (int slotIndex = 0; slotIndex < hoistedLocalSlots.Length; slotIndex++)
             {
-                var slot = hoistedLocalSlots[slotIndex];
+                EncHoistedLocalInfo slot = hoistedLocalSlots[slotIndex];
                 if (slot.IsUnused)
                 {
                     // Unused field.
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             for (int slotIndex = 0; slotIndex < hoistedAwaiters.Length; slotIndex++)
             {
-                var slot = hoistedAwaiters[slotIndex];
+                Cci.ITypeReference slot = hoistedAwaiters[slotIndex];
                 if (slot == null)
                 {
                     // Unused awaiter.

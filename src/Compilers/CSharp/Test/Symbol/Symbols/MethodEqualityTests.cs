@@ -26,14 +26,14 @@ class Class2
     void Method1() { }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var class1 = global.GetTypeMembers("Class1").Single();
+            NamedTypeSymbol class1 = global.GetTypeMembers("Class1").Single();
             var class1Method1 = (MethodSymbol)class1.GetMembers("Method1").Single();
             var class1Method2 = (MethodSymbol)class1.GetMembers("Method2").Single();
 
-            var class2 = global.GetTypeMembers("Class2").Single();
+            NamedTypeSymbol class2 = global.GetTypeMembers("Class2").Single();
             var class2Method1 = (MethodSymbol)class2.GetMembers("Method1").Single();
 
             Assert.Equal(class1Method1, class1Method1);
@@ -73,20 +73,20 @@ class Derived2 : Base<int>
 {
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var baseClass = global.GetTypeMembers("Base").Single();
+            NamedTypeSymbol baseClass = global.GetTypeMembers("Base").Single();
             var baseClassMethod1 = (MethodSymbol)baseClass.GetMembers("Method").First();
             var baseClassMethod2 = (MethodSymbol)baseClass.GetMembers("Method").Last();
 
-            var derivedClass1 = global.GetTypeMembers("Derived1").Single();
-            var substitutedBaseClass = derivedClass1.BaseType();
+            NamedTypeSymbol derivedClass1 = global.GetTypeMembers("Derived1").Single();
+            NamedTypeSymbol substitutedBaseClass = derivedClass1.BaseType();
             var substitutedBaseClassMethod1 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").First();
             var substitutedBaseClassMethod2 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").Last();
 
-            var derivedClass2 = global.GetTypeMembers("Derived2").Single();
-            var constructedBaseClass = derivedClass2.BaseType();
+            NamedTypeSymbol derivedClass2 = global.GetTypeMembers("Derived2").Single();
+            NamedTypeSymbol constructedBaseClass = derivedClass2.BaseType();
             var constructedBaseClassMethod1 = (MethodSymbol)constructedBaseClass.GetMembers("Method").First();
             var constructedBaseClassMethod2 = (MethodSymbol)constructedBaseClass.GetMembers("Method").Last();
 
@@ -133,20 +133,20 @@ class Derived2 : Base<int>
 {
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var baseClass = global.GetTypeMembers("Base").Single();
+            NamedTypeSymbol baseClass = global.GetTypeMembers("Base").Single();
             var baseClassMethod1 = (MethodSymbol)baseClass.GetMembers("Method").First();
             var baseClassMethod2 = (MethodSymbol)baseClass.GetMembers("Method").Last();
 
-            var derivedClass1 = global.GetTypeMembers("Derived1").Single();
-            var substitutedBaseClass = derivedClass1.BaseType();
+            NamedTypeSymbol derivedClass1 = global.GetTypeMembers("Derived1").Single();
+            NamedTypeSymbol substitutedBaseClass = derivedClass1.BaseType();
             var substitutedBaseClassMethod1 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").First();
             var substitutedBaseClassMethod2 = (MethodSymbol)substitutedBaseClass.GetMembers("Method").Last();
 
-            var derivedClass2 = global.GetTypeMembers("Derived2").Single();
-            var constructedBaseClass = derivedClass2.BaseType();
+            NamedTypeSymbol derivedClass2 = global.GetTypeMembers("Derived2").Single();
+            NamedTypeSymbol constructedBaseClass = derivedClass2.BaseType();
             var constructedBaseClassMethod1 = (MethodSymbol)constructedBaseClass.GetMembers("Method").First();
             var constructedBaseClassMethod2 = (MethodSymbol)constructedBaseClass.GetMembers("Method").Last();
 
@@ -192,24 +192,24 @@ class Class
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var @class = global.GetTypeMembers("Class").Single();
+            NamedTypeSymbol @class = global.GetTypeMembers("Class").Single();
             var classMethodDeclaration = (MethodSymbol)@class.GetMembers("Method").Single();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var root = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var cDecl = (TypeDeclarationSyntax)root.Members[0];
             var mDecl = (MethodDeclarationSyntax)cDecl.Members[0];
-            var stmts = mDecl.Body.Statements;
+            SyntaxList<StatementSyntax> stmts = mDecl.Body.Statements;
 
-            var invokedMethods = stmts.Select(stmt =>
+            MethodSymbol[] invokedMethods = stmts.Select(stmt =>
             {
                 var exprStmt = (ExpressionStatementSyntax)stmt;
-                var semanticInfo = model.GetSymbolInfo(exprStmt.Expression);
+                SymbolInfo semanticInfo = model.GetSymbolInfo(exprStmt.Expression);
                 return (MethodSymbol)semanticInfo.Symbol;
             }).ToArray();
 
@@ -242,9 +242,9 @@ class Class
                 invokedMethods[5],
             };
 
-            foreach (var method1 in pairWiseNotEqual)
+            foreach (MethodSymbol method1 in pairWiseNotEqual)
             {
-                foreach (var method2 in pairWiseNotEqual)
+                foreach (MethodSymbol method2 in pairWiseNotEqual)
                 {
                     if (ReferenceEquals(method1, method2))
                     {

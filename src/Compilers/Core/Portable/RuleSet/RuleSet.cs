@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis
                 case ReportDiagnostic.Warn:
                 case ReportDiagnostic.Info:
                 case ReportDiagnostic.Hidden:
-                    var generalOption = _generalDiagnosticOption == ReportDiagnostic.Default ? ReportDiagnostic.Default : action;
+                    ReportDiagnostic generalOption = _generalDiagnosticOption == ReportDiagnostic.Default ? ReportDiagnostic.Default : action;
                     var specificOptions = _specificDiagnosticOptions.ToBuilder();
-                    foreach (var item in _specificDiagnosticOptions)
+                    foreach (KeyValuePair<string, ReportDiagnostic> item in _specificDiagnosticOptions)
                     {
                         if (item.Value != ReportDiagnostic.Suppress && item.Value != ReportDiagnostic.Default)
                         {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private RuleSet GetEffectiveRuleSet(HashSet<string> includedRulesetPaths)
         {
-            var effectiveGeneralOption = _generalDiagnosticOption;
+            ReportDiagnostic effectiveGeneralOption = _generalDiagnosticOption;
             var effectiveSpecificOptions = new Dictionary<string, ReportDiagnostic>();
 
             // If we don't have any include then there's nothing to resolve.
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            foreach (var ruleSetInclude in _includes)
+            foreach (RuleSetInclude ruleSetInclude in _includes)
             {
                 // If the include has been suppressed then there's nothing to do.
                 if (ruleSetInclude.Action == ReportDiagnostic.Suppress)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var ruleSet = ruleSetInclude.LoadRuleSet(this);
+                RuleSet ruleSet = ruleSetInclude.LoadRuleSet(this);
 
                 // If we couldn't load the ruleset file, then there's nothing to do.
                 if (ruleSet == null)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
 
                 // Recursively get the effective ruleset of the included file, in case they in turn
                 // contain includes.
-                var effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
+                RuleSet effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
 
                 // Apply the includeAction on this ruleset.
                 effectiveRuleset = effectiveRuleset.WithEffectiveAction(ruleSetInclude.Action);
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Copy every rule in the ruleset and change the action if there's a stricter one.
-                foreach (var item in effectiveRuleset.SpecificDiagnosticOptions)
+                foreach (KeyValuePair<string, ReportDiagnostic> item in effectiveRuleset.SpecificDiagnosticOptions)
                 {
-                    if (effectiveSpecificOptions.TryGetValue(item.Key, out var value))
+                    if (effectiveSpecificOptions.TryGetValue(item.Key, out ReportDiagnostic value))
                     {
                         if (IsStricterThan(item.Value, value))
                         {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
 
             // Finally, copy all the rules in the current ruleset. This overrides the actions
             // of any included ruleset - therefore, no strictness check.
-            foreach (var item in _specificDiagnosticOptions)
+            foreach (KeyValuePair<string, ReportDiagnostic> item in _specificDiagnosticOptions)
             {
                 if (effectiveSpecificOptions.ContainsKey(item.Key))
                 {
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<string> GetEffectiveIncludes()
         {
-            var arrayBuilder = ImmutableArray.CreateBuilder<string>();
+            ImmutableArray<string>.Builder arrayBuilder = ImmutableArray.CreateBuilder<string>();
 
             GetEffectiveIncludesCore(arrayBuilder);
 
@@ -198,9 +198,9 @@ namespace Microsoft.CodeAnalysis
         {
             arrayBuilder.Add(this.FilePath);
 
-            foreach (var ruleSetInclude in _includes)
+            foreach (RuleSetInclude ruleSetInclude in _includes)
             {
-                var ruleSet = ruleSetInclude.LoadRuleSet(this);
+                RuleSet ruleSet = ruleSetInclude.LoadRuleSet(this);
 
                 // If we couldn't load the ruleset file, then there's nothing to do.
                 if (ruleSet == null)
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public static RuleSet LoadEffectiveRuleSetFromFile(string filePath)
         {
-            var ruleSet = RuleSetProcessor.LoadFromFile(filePath);
+            RuleSet ruleSet = RuleSetProcessor.LoadFromFile(filePath);
             if (ruleSet != null)
             {
                 return ruleSet.GetEffectiveRuleSet(new HashSet<string>());
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public static ImmutableArray<string> GetEffectiveIncludesFromFile(string filePath)
         {
-            var ruleSet = RuleSetProcessor.LoadFromFile(filePath);
+            RuleSet ruleSet = RuleSetProcessor.LoadFromFile(filePath);
             if (ruleSet != null)
             {
                 return ruleSet.GetEffectiveIncludes();
@@ -302,12 +302,12 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(resolvedPath != null);
 
-            var generalDiagnosticOption = ReportDiagnostic.Default;
+            ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default;
             try
             {
                 var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(resolvedPath);
                 generalDiagnosticOption = ruleSet.GeneralDiagnosticOption;
-                foreach (var rule in ruleSet.SpecificDiagnosticOptions)
+                foreach (KeyValuePair<string, ReportDiagnostic> rule in ruleSet.SpecificDiagnosticOptions)
                 {
                     diagnosticOptions.Add(rule.Key, rule.Value);
                 }

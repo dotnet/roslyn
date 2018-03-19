@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
-            var boolType = node.Type; // we can re-use the bool type
+            TypeSymbol boolType = node.Type; // we can re-use the bool type
             var initEffects = ArrayBuilder<BoundExpression>.GetInstance();
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
 
             BoundExpression newLeft = ReplaceTerminalElementsWithTemps(node.Left, node.Operators, initEffects, temps);
             BoundExpression newRight = ReplaceTerminalElementsWithTemps(node.Right, node.Operators, initEffects, temps);
 
-            var returnValue = RewriteTupleNestedOperators(node.Operators, newLeft, newRight, boolType, temps, node.OperatorKind);
+            BoundExpression returnValue = RewriteTupleNestedOperators(node.Operators, newLeft, newRight, boolType, temps, node.OperatorKind);
             BoundExpression result = MakeSequenceOrResultValue(temps.ToImmutableAndFree(), initEffects.ToImmutableAndFree(), returnValue);
             return result;
         }
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Arguments.Length);
                     for (int i = 0; i < tuple.Arguments.Length; i++)
                     {
-                        var argument = tuple.Arguments[i];
-                        var newArgument = ReplaceTerminalElementsWithTemps(argument, multiple.Operators[i], initEffects, temps);
+                        BoundExpression argument = tuple.Arguments[i];
+                        BoundExpression newArgument = ReplaceTerminalElementsWithTemps(argument, multiple.Operators[i], initEffects, temps);
                         builder.Add(newArgument);
                     }
                     return new BoundTupleLiteral(tuple.Syntax, tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, builder.ToImmutableAndFree(), tuple.Type, tuple.HasErrors);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var logicalOperator = operatorKind == BinaryOperatorKind.Equal ? BinaryOperatorKind.LogicalBoolAnd : BinaryOperatorKind.LogicalBoolOr;
+                    BinaryOperatorKind logicalOperator = operatorKind == BinaryOperatorKind.Equal ? BinaryOperatorKind.LogicalBoolAnd : BinaryOperatorKind.LogicalBoolOr;
                     currentResult = _factory.Binary(logicalOperator, type, currentResult, nextLogicalOperand);
                 }
             }

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void DescriptorIdCollision()
         {
-            var descriptors = new[] {
+            DiagnosticDescriptor[] descriptors = new[] {
                 // Toughest case: generation of TST001-001 collides with with actual TST001-001 and must be bumped to TST001-002
                 new DiagnosticDescriptor("TST001-001",    "_TST001-001_",     "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001_",         "", "", DiagnosticSeverity.Warning, true),
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    foreach (var descriptor in descriptors)
+                    foreach (DiagnosticDescriptor descriptor in descriptors)
                     {
                         logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None));
                     }

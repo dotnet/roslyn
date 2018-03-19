@@ -66,18 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string constructedFromDescription,
             string reducedAndConstructedFromDescription)
         {
-            var reducedFrom = reducedMethod.ReducedFrom;
+            MethodSymbol reducedFrom = reducedMethod.ReducedFrom;
             CheckReducedExtensionMethod(reducedMethod, reducedFrom);
             Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type, reducedMethod.ReceiverType);
 
-            var constructedFrom = reducedMethod.ConstructedFrom;
+            MethodSymbol constructedFrom = reducedMethod.ConstructedFrom;
             CheckConstructedMethod(reducedMethod, constructedFrom);
 
-            var reducedAndConstructedFrom = constructedFrom.ReducedFrom;
+            MethodSymbol reducedAndConstructedFrom = constructedFrom.ReducedFrom;
             CheckReducedExtensionMethod(constructedFrom, reducedAndConstructedFrom);
             Assert.Same(reducedFrom, reducedAndConstructedFrom);
 
-            var constructedAndExtendedFrom = reducedFrom.ConstructedFrom;
+            MethodSymbol constructedAndExtendedFrom = reducedFrom.ConstructedFrom;
             CheckConstructedMethod(reducedFrom, constructedAndExtendedFrom);
 
             CheckSymbol(reducedMethod, reducedMethodDescription);
@@ -121,10 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void CheckTypeParameters(IMethodSymbol method)
         {
-            var constructedFrom = method.ConstructedFrom;
+            IMethodSymbol constructedFrom = method.ConstructedFrom;
             Assert.NotNull(constructedFrom);
 
-            foreach (var typeParameter in method.TypeParameters)
+            foreach (ITypeParameterSymbol typeParameter in method.TypeParameters)
             {
                 Assert.Equal<ISymbol>(typeParameter.ContainingSymbol, constructedFrom);
             }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static TypeParameterConstraintKind GetTypeParameterConstraints(ITypeParameterSymbol typeParameter)
         {
-            var constraints = TypeParameterConstraintKind.None;
+            TypeParameterConstraintKind constraints = TypeParameterConstraintKind.None;
             if (typeParameter.HasConstructorConstraint)
             {
                 constraints |= TypeParameterConstraintKind.Constructor;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 symbolInfo = semanticModel.GetSymbolInfo(expr);
                 summary.ConstantValue = semanticModel.GetConstantValue(expr);
-                var typeInfo = semanticModel.GetTypeInfo(expr);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(expr);
                 summary.Type = (TypeSymbol)typeInfo.Type;
                 summary.ConvertedType = (TypeSymbol)typeInfo.ConvertedType;
                 summary.ImplicitConversion = semanticModel.GetConversion(expr);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (node is AttributeSyntax attribute)
             {
                 symbolInfo = semanticModel.GetSymbolInfo(attribute);
-                var typeInfo = semanticModel.GetTypeInfo(attribute);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(attribute);
                 summary.Type = (TypeSymbol)typeInfo.Type;
                 summary.ConvertedType = (TypeSymbol)typeInfo.ConvertedType;
                 summary.ImplicitConversion = semanticModel.GetConversion(attribute);
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (node is ConstructorInitializerSyntax initializer)
             {
                 symbolInfo = semanticModel.GetSymbolInfo(initializer);
-                var typeInfo = semanticModel.GetTypeInfo(initializer);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(initializer);
                 summary.Type = (TypeSymbol)typeInfo.Type;
                 summary.ConvertedType = (TypeSymbol)typeInfo.ConvertedType;
                 summary.ImplicitConversion = semanticModel.GetConversion(initializer);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ExpressionSyntax expr = (ExpressionSyntax)node;
                 symbolInfo = semanticModel.GetSpeculativeSymbolInfo(position, expr, bindingOption);
                 //summary.ConstantValue = semanticModel.GetSpeculativeConstantValue(expr);
-                var typeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, bindingOption);
+                TypeInfo typeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, bindingOption);
                 summary.Type = (TypeSymbol)typeInfo.Type;
                 summary.ConvertedType = (TypeSymbol)typeInfo.ConvertedType;
                 summary.ImplicitConversion = semanticModel.GetSpeculativeConversion(position, expr, bindingOption);
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.True(!useBaseReferenceAccessibility || (object)container == null);
             Assert.True(!useBaseReferenceAccessibility || !namespacesAndTypesOnly);
-            var symbols = useBaseReferenceAccessibility
+            ImmutableArray<ISymbol> symbols = useBaseReferenceAccessibility
                 ? model.LookupBaseMembers(position)
                 : namespacesAndTypesOnly
                     ? model.LookupNamespacesAndTypes(position, container)

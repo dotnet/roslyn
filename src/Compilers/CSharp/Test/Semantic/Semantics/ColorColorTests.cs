@@ -157,7 +157,7 @@ class Color
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
                     // Dev10 does not give a warning about unused variable. Should we?
@@ -580,18 +580,18 @@ class F
 ";
             // Can't use CheckExpressionAndParent because we're using alias.
 
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            var alias = model.GetAliasInfo(expr);
+            IAliasSymbol alias = model.GetAliasInfo(expr);
             Assert.Equal(SymbolKind.Alias, alias.Kind);
             Assert.Equal("Q=E", alias.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Equal(SymbolKind.Method, parentInfo.Symbol.Kind);
             Assert.Equal("void E.M(params System.Int32[] a)", parentInfo.Symbol.ToTestDisplayString());
@@ -619,26 +619,26 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (13,44): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         System.Console.WriteLine(/*<bind>*/Color/*</bind>*/.M is object);
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Color/*</bind>*/.M is object").WithLocation(13, 44));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(SymbolKind.Local, info.Symbol.Kind);
             Assert.Equal("Color Color", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Null(parentInfo.Symbol); // the lexically first matching method
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
@@ -716,11 +716,11 @@ class Program
         var x = /*<bind>*/args.Select/*</bind>*/(a => x.
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
-            var model = comp.GetSemanticModel(tree);
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            var info = model.GetSymbolInfo(expr);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
         }
 
@@ -1049,25 +1049,25 @@ class F
     }
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
@@ -1094,25 +1094,25 @@ class F
     }
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            CSharpCompilation comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
@@ -1139,25 +1139,25 @@ class F
     }
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,34): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""Hello""").WithArguments("1", "string", "int"));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
@@ -1184,25 +1184,25 @@ class F
     }
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            CSharpCompilation comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(
             // (14,58): error CS0123: No overload for 'M' matches delegate 'System.Action<string>'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action<string>"));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
@@ -1225,28 +1225,28 @@ class F
     }
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (10,19): error CS0079: The event 'F.E' can only appear on the left hand side of += or -=
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("F.E"));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.NotAValue, info.CandidateReason);
-            var candidate = info.CandidateSymbols.Single();
+            ISymbol candidate = info.CandidateSymbols.Single();
             Assert.Equal(SymbolKind.Event, candidate.Kind);
             Assert.Equal("event E F.E", candidate.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Equal(WellKnownMemberNames.DelegateInvokeName, parentInfo.Symbol.Name); // Succeeded even though the receiver has an error.
         }
@@ -1262,25 +1262,25 @@ enum Color
     Navy = /*<bind>*/Color/*</bind>*/.Blue,
 }
 ";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (6,18): error CS1061: 'int' does not contain a definition for 'Blue' and no extension method 'Blue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Blue").WithArguments("int", "Blue"));
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(SymbolKind.Field, info.Symbol.Kind);
             Assert.Equal("Color.Color", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
@@ -1510,7 +1510,7 @@ static class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
@@ -1569,8 +1569,8 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
-            var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            PortableExecutableReference ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '04f2260a-2ee6-4e74-938a-c47b6dc61d9c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
@@ -1610,8 +1610,8 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
-            var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            PortableExecutableReference ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
@@ -1648,8 +1648,8 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
-            var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            PortableExecutableReference ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '499975c2-0b0d-4d9b-8f1f-4d91133627db, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
@@ -1689,8 +1689,8 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
-            var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            PortableExecutableReference ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in 'cb07e894-1bb8-4db2-93ba-747f45e89f22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
@@ -1727,7 +1727,7 @@ class X
     public bool Instance() { return true; }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
@@ -1776,7 +1776,7 @@ public class Example
 
                 var memberAccessExpression = context.Node as MemberAccessExpressionSyntax;
 
-                var actualSymbol = context.SemanticModel.GetSymbolInfo(memberAccessExpression.Expression);
+                SymbolInfo actualSymbol = context.SemanticModel.GetSymbolInfo(memberAccessExpression.Expression);
 
                 Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
                 Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
@@ -1798,19 +1798,19 @@ public class Example
     public Lifetime Lifetime => Lifetime.Persistent;
     //                          ^^^^^^^^
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            var syntaxTree = comp.SyntaxTrees[0];
-            var syntaxRoot = syntaxTree.GetRoot();
+            SyntaxTree syntaxTree = comp.SyntaxTrees[0];
+            SyntaxNode syntaxRoot = syntaxTree.GetRoot();
 
-            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+            SemanticModel semanticModel = comp.GetSemanticModel(syntaxTree, false);
 
             var memberAccess = syntaxRoot.DescendantNodes().Single(node => node.IsKind(SyntaxKind.SimpleMemberAccessExpression)) as MemberAccessExpressionSyntax;
             Assert.Equal("Lifetime", memberAccess.Expression.ToString());
             Assert.Equal("Lifetime.Persistent", memberAccess.ToString());
 
-            var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression);
+            SymbolInfo actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression);
 
             Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
@@ -1827,23 +1827,23 @@ public class Example
             string parentDisplayString,
             params DiagnosticDescription[] expectedDiagnostics)
         {
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
-            var info = model.GetSymbolInfo(expr);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info);
             Assert.Equal(exprSymbolKind, info.Symbol.Kind);
             Assert.Equal(exprDisplayString, info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
-            var parentInfo = model.GetSymbolInfo(parentExpr);
+            SymbolInfo parentInfo = model.GetSymbolInfo(parentExpr);
             Assert.NotNull(parentInfo);
             Assert.Equal(parentSymbolKind, parentInfo.Symbol.Kind);
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
@@ -1868,21 +1868,21 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees[0];
-            var model1 = compilation.GetSemanticModel(tree);
-            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model1 = compilation.GetSemanticModel(tree);
+            MemberAccessExpressionSyntax node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             Assert.Equal("E.A", node1.ToString());
             Assert.Equal("E", node1.Expression.ToString());
 
-            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+            SymbolInfo symbolInfo = model1.GetSymbolInfo(node1.Expression);
 
             Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
 
-            var model2 = compilation.GetSemanticModel(tree);
-            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+            SemanticModel model2 = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
 
             Assert.Equal("= E", node2.Parent.ToString());
 
@@ -1925,21 +1925,21 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees[0];
-            var model1 = compilation.GetSemanticModel(tree);
-            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model1 = compilation.GetSemanticModel(tree);
+            MemberAccessExpressionSyntax node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             Assert.Equal("E.A", node1.ToString());
             Assert.Equal("E", node1.Expression.ToString());
 
-            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+            SymbolInfo symbolInfo = model1.GetSymbolInfo(node1.Expression);
 
             Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
 
-            var model2 = compilation.GetSemanticModel(tree);
-            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+            SemanticModel model2 = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
 
             Assert.Equal("= E", node2.Parent.ToString());
 
@@ -1982,21 +1982,21 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees[0];
-            var model1 = compilation.GetSemanticModel(tree);
-            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model1 = compilation.GetSemanticModel(tree);
+            MemberAccessExpressionSyntax node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             Assert.Equal("E.A", node1.ToString());
             Assert.Equal("E", node1.Expression.ToString());
 
-            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+            SymbolInfo symbolInfo = model1.GetSymbolInfo(node1.Expression);
 
             Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
 
-            var model2 = compilation.GetSemanticModel(tree);
-            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+            SemanticModel model2 = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
 
             Assert.Equal("= E", node2.Parent.ToString());
 
@@ -2032,20 +2032,20 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees[0];
-            var model1 = compilation.GetSemanticModel(tree);
-            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model1 = compilation.GetSemanticModel(tree);
+            MemberAccessExpressionSyntax node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             Assert.Equal("E.A", node1.ToString());
             Assert.Equal("E", node1.Expression.ToString());
 
-            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+            SymbolInfo symbolInfo = model1.GetSymbolInfo(node1.Expression);
 
             Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
 
-            var model2 = compilation.GetSemanticModel(tree);
-            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+            SemanticModel model2 = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
 
             Assert.Equal("= E", node2.Parent.ToString());
 
@@ -2072,7 +2072,7 @@ class C
 public enum Color { Red }
 ";
 
-            var refLib = CreateEmptyCompilation(
+            CSharpCompilation refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
                 references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
@@ -2090,7 +2090,7 @@ class M
 }
 ";
 
-            var main = CreateEmptyCompilation(
+            CSharpCompilation main = CreateEmptyCompilation(
                 sourceMain,
                 assemblyName: "Main",
                 references: new MetadataReference[]
@@ -2099,7 +2099,7 @@ class M
                     TestReferences.NetFx.v4_0_30319.mscorlib
                 });
 
-            var unifyReferenceWarning =
+            DiagnosticDescription unifyReferenceWarning =
                 // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'RefLib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments(
                     "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
@@ -2130,7 +2130,7 @@ class M
 }
 ";
 
-            var compilation = CreateCompilation(source, assemblyName: "Main");
+            CSharpCompilation compilation = CreateCompilation(source, assemblyName: "Main");
 
             DiagnosticDescription obsoleteWarning =
                 // warning CS0612: 'Color.Red' is obsolete

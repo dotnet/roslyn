@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         {
             // PERF: Expansion of "return collections.Any(c => c.Contains(item));"
             // to avoid allocating a lambda.
-            foreach (var c in _collections)
+            foreach (ICollection<T> c in _collections)
             {
                 if (c.Contains(item))
                 {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
         public void CopyTo(T[] array, int arrayIndex)
         {
             var index = arrayIndex;
-            foreach (var collection in _collections)
+            foreach (ICollection<T> collection in _collections)
             {
                 collection.CopyTo(array, index);
                 index += collection.Count;

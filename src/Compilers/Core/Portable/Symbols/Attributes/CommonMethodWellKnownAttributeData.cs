@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                var result = _attributes;
+                MethodImplAttributes result = _attributes;
 
                 if (_dllImportPreserveSig || _preserveSigIndex >= 0)
                 {

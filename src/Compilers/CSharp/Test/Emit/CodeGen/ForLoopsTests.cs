@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", x);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "81");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "81");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 1");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "1, 1");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 0");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "1, 0");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0, 0");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "0, 0");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "5, 3, 4, 4");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "5, 3, 4, 4");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "6");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "6");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "6");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "6");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -719,7 +719,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            CodeAnalysis.Test.Utilities.CompilationVerifier c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {
@@ -900,7 +900,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            CodeAnalysis.Test.Utilities.CompilationVerifier c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
             c.VerifyIL("C.Main", @"
 {
   // Code size       24 (0x18)
@@ -954,7 +954,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            CodeAnalysis.Test.Utilities.CompilationVerifier c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {
@@ -1258,7 +1258,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            CodeAnalysis.Test.Utilities.CompilationVerifier c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
             c.VerifyIL("C.Main", @"
@@ -1614,7 +1614,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1650,7 +1650,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1699,7 +1699,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"1
 4
 9
 16");
@@ -1806,7 +1806,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3
 4");
@@ -1829,7 +1829,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3
 4");
@@ -1856,7 +1856,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"-1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"-1
 -2
 -3
 -4
@@ -1909,7 +1909,7 @@ class Program
 }
 ";
 
-            var c = CompileAndVerify(text, options: TestOptions.DebugExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier c = CompileAndVerify(text, options: TestOptions.DebugExe);
 
             c.VerifyIL("Program.Main", @"
 {

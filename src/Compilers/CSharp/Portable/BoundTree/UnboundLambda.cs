@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useSiteDiagnostics = new HashSet<DiagnosticInfo>();
                 }
 
-                foreach (var info in _inferredReturnTypeUseSiteDiagnostics)
+                foreach (DiagnosticInfo info in _inferredReturnTypeUseSiteDiagnostics)
                 {
                     useSiteDiagnostics.Add(info);
                 }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool inferredFromSingleType)
         {
             int numberOfDistinctReturns;
-            var resultTypes = BlockReturns.GetReturnTypes(block, out refKind, out numberOfDistinctReturns);
+            ImmutableArray<TypeSymbol> resultTypes = BlockReturns.GetReturnTypes(block, out refKind, out numberOfDistinctReturns);
 
             inferredFromSingleType = numberOfDistinctReturns < 2;
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Some non-void best type T was found; use delegate InvokeMethod
             // or infer type Task<T> if delegate type not available.
-            var taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
+            NamedTypeSymbol taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
                 taskType :
                 binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
             return taskTypeT.Construct(bestResultType);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var inferrer = new BlockReturns();
                 inferrer.Visit(block);
                 refKind = inferrer.refKind;
-                var result = inferrer._types.ToImmutableAndFree();
+                ImmutableArray<TypeSymbol> result = inferrer._types.ToImmutableAndFree();
                 numberOfDistinctReturns = result.Length;
                 if (inferrer._hasReturnWithoutArgument)
                 {
@@ -239,10 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKind = node.RefKind;
                 }
 
-                var expression = node.ExpressionOpt;
+                BoundExpression expression = node.ExpressionOpt;
                 if (expression != null)
                 {
-                    var returnType = expression.Type;
+                    TypeSymbol returnType = expression.Type;
                     // This is potentially inefficient if there are a large number of returns each with
                     // a different type. This seems unlikely.
                     if (!_types.Contains(returnType))
@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool any = false;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            foreach (var lambda in _returnInferenceCache.Values)
+            foreach (BoundLambda lambda in _returnInferenceCache.Values)
             {
-                var type = lambda.InferredReturnType(ref useSiteDiagnostics);
+                TypeSymbol type = lambda.InferredReturnType(ref useSiteDiagnostics);
                 if ((object)type != null)
                 {
                     any = true;
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!any)
             {
-                var type = BindForErrorRecovery().InferredReturnType(ref useSiteDiagnostics);
+                TypeSymbol type = BindForErrorRecovery().InferredReturnType(ref useSiteDiagnostics);
                 if ((object)type != null)
                 {
                     yield return type;
@@ -416,9 +416,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
         {
-            var invokeMethod = DelegateInvokeMethod(delegateType);
+            MethodSymbol invokeMethod = DelegateInvokeMethod(delegateType);
             RefKind refKind;
-            var returnType = DelegateReturnType(invokeMethod, out refKind);
+            TypeSymbol returnType = DelegateReturnType(invokeMethod, out refKind);
 
             LambdaSymbol lambdaSymbol;
             Binder lambdaBodyBinder;
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType: null,
                 diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
-            var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+            BoundBlock block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             var result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: true)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
@@ -617,8 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
                 // in such case we would want something trivial with no parameters
-                var parameterTypes = ImmutableArray<TypeSymbol>.Empty;
-                var parameterRefKinds = ImmutableArray<RefKind>.Empty;
+                ImmutableArray<TypeSymbol> parameterTypes = ImmutableArray<TypeSymbol>.Empty;
+                ImmutableArray<RefKind> parameterRefKinds = ImmutableArray<RefKind>.Empty;
                 NamedTypeSymbol taskLikeReturnTypeOpt = null;
                 MethodSymbol invoke = DelegateInvokeMethod(delegateType);
                 if ((object)invoke != null)
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(parameterCount);
                         var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameterCount);
 
-                        foreach (var p in invoke.Parameters)
+                        foreach (ParameterSymbol p in invoke.Parameters)
                         {
                             refKindsBuilder.Add(p.RefKind);
                             typesBuilder.Add(p.Type);
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = PooledStringBuilder.GetInstance();
 
-            foreach (var parameter in lambda.Parameters)
+            foreach (ParameterSymbol parameter in lambda.Parameters)
             {
                 builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
@@ -787,9 +787,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // two errors; we can for example simply take the one that is lower in alphabetical
             // order when converted to a string.
 
-            var convBags = from boundLambda in _bindingCache select boundLambda.Value.Diagnostics;
-            var retBags = from boundLambda in _returnInferenceCache.Values select boundLambda.Diagnostics;
-            var allBags = convBags.Concat(retBags);
+            IEnumerable<ImmutableArray<Diagnostic>> convBags = from boundLambda in _bindingCache select boundLambda.Value.Diagnostics;
+            IEnumerable<ImmutableArray<Diagnostic>> retBags = from boundLambda in _returnInferenceCache.Values select boundLambda.Diagnostics;
+            IEnumerable<ImmutableArray<Diagnostic>> allBags = convBags.Concat(retBags);
 
             FirstAmongEqualsSet<Diagnostic> intersection = null;
             foreach (ImmutableArray<Diagnostic> bag in allBags)
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool PreventsSuccessfulDelegateConversion(FirstAmongEqualsSet<Diagnostic> set)
         {
-            foreach (var diagnostic in set)
+            foreach (Diagnostic diagnostic in set)
             {
                 if (ErrorFacts.PreventsSuccessfulDelegateConversion((ErrorCode)diagnostic.Code))
                 {
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Location ParameterLocation(int index)
         {
             Debug.Assert(HasSignature && 0 <= index && index < ParameterCount);
-            var syntax = UnboundLambda.Syntax;
+            SyntaxNode syntax = UnboundLambda.Syntax;
             switch (syntax.Kind())
             {
                 default:

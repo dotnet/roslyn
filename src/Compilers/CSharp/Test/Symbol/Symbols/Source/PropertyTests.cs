@@ -175,19 +175,19 @@ struct S
     public decimal R { get; } = 300;
 }";
 
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var p = c.GetMember<PropertySymbol>("P");
+            PropertySymbol p = c.GetMember<PropertySymbol>("P");
             Assert.NotNull(p.GetMethod);
             Assert.NotNull(p.SetMethod);
 
-            var q = c.GetMember<PropertySymbol>("Q");
+            PropertySymbol q = c.GetMember<PropertySymbol>("Q");
             Assert.NotNull(q.GetMethod);
             Assert.Null(q.SetMethod);
 
-            var r = c.GetMember<PropertySymbol>("R");
+            PropertySymbol r = c.GetMember<PropertySymbol>("R");
             Assert.NotNull(r.GetMethod);
             Assert.Null(r.SetMethod);
         }
@@ -203,7 +203,7 @@ struct S
     public decimal R { get; } = 300;
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
     // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int P { get; set; } = 1;
@@ -226,7 +226,7 @@ struct S
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int P { get; set; } = 1;
@@ -236,18 +236,18 @@ struct S
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
 );
 
-            var global = comp.GlobalNamespace;
-            var s = global.GetTypeMember("S");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol s = global.GetTypeMember("S");
 
-            var p = s.GetMember<PropertySymbol>("P");
+            PropertySymbol p = s.GetMember<PropertySymbol>("P");
             Assert.NotNull(p.GetMethod);
             Assert.NotNull(p.SetMethod);
 
-            var q = s.GetMember<PropertySymbol>("Q");
+            PropertySymbol q = s.GetMember<PropertySymbol>("Q");
             Assert.NotNull(q.GetMethod);
             Assert.Null(q.SetMethod);
 
-            var r = s.GetMember<PropertySymbol>("R");
+            PropertySymbol r = s.GetMember<PropertySymbol>("R");
             Assert.NotNull(r.GetMethod);
             Assert.Null(r.SetMethod);
         }
@@ -259,7 +259,7 @@ struct S
 {
     int P { get; } = 0;
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
                 // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
@@ -274,7 +274,7 @@ struct S
 {
     public int P { get; }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics();
         }
@@ -288,7 +288,7 @@ struct S
     public int Q { set; } = 0;
     public int R { set; }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
 // (4,20): error CS8034: Auto-implemented properties must have get accessors.
@@ -306,7 +306,7 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("
 {
     public ref int P { get; }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
 // (3,20): error CS8080: Auto-implemented properties cannot return by reference
@@ -322,7 +322,7 @@ class C
 {
     public ref readonly int P1 { get; set; }
 }";
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (4,29): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly int P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithArguments("C.P1").WithLocation(4, 29),
@@ -351,10 +351,10 @@ interface I
             // Per design meeting (see bug 11253), in C#, if there's a "get" or "set" written,
             // then IsImplicitDeclared should be false.
 
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var i = global.GetTypeMembers("I", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol i = global.GetTypeMembers("I", 0).Single();
 
             var p = a.GetMembers("P").SingleOrDefault() as PropertySymbol;
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
@@ -384,16 +384,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var type01 = global.GetTypeMembers("C").Single();
-            var type02 = type01.GetTypeMembers("S").Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol type01 = global.GetTypeMembers("C").Single();
+            NamedTypeSymbol type02 = type01.GetTypeMembers("S").Single();
 
-            var mems = type01.GetMembers();
+            System.Collections.Immutable.ImmutableArray<Symbol> mems = type01.GetMembers();
             FieldSymbol backField = null;
             // search but not use internal backfield name 
             // there is exact ONE field symbol in this test
-            foreach (var m in mems)
+            foreach (Symbol m in mems)
             {
                 if (m.Kind == SymbolKind.Field)
                 {
@@ -412,7 +412,7 @@ class C
             backField = null;
             // search but not use internal backfield name 
             // there is exact ONE field symbol in this test
-            foreach (var m in mems)
+            foreach (Symbol m in mems)
             {
                 if (m.Kind == SymbolKind.Field)
                 {
@@ -442,7 +442,7 @@ class C1
     };
 }
 ";
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             PropertySymbol ein = (PropertySymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
@@ -470,7 +470,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
+            CompilationVerifier compilation = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -511,8 +511,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileWithCustomPropertiesAssembly(source);
-            var actualErrors = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CompileWithCustomPropertiesAssembly(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = compilation.GetDiagnostics();
             compilation.VerifyDiagnostics(
             // (6,11): error CS1061: 'Mismatched' does not contain a definition for 'Instance' and no extension method 'Instance' accepting a first argument of type 'Mismatched' could be found (are you missing a using directive or an assembly reference?)
             //         i.Instance = 0;
@@ -559,7 +559,7 @@ class C : B<string>
             Action<ModuleSymbol> validator = module =>
             {
                 // Non-generic type.
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
                 Assert.Equal(type.TypeParameters.Length, 0);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
@@ -594,7 +594,7 @@ class C : B<string>
             Assert.Equal(type, accessor.ContainingType);
             Assert.Equal(type, accessor.ContainingSymbol);
 
-            var method = type.GetMembers(accessor.Name).Single();
+            Symbol method = type.GetMembers(accessor.Name).Single();
             Assert.NotNull(method);
             Assert.Equal(accessor, method);
 
@@ -616,8 +616,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileWithCustomPropertiesAssembly(source);
-            var actualErrors = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CompileWithCustomPropertiesAssembly(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = compilation.GetDiagnostics();
             DiagnosticsUtils.VerifyErrorCodes(actualErrors,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoSuchMemberOrExtension, Line = 6, Column = 11 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoSuchMember, Line = 6, Column = 34 });
@@ -656,7 +656,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
+            CompilationVerifier compilation = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -691,7 +691,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
+            CompilationVerifier verifier = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
 
             verifier.VerifyIL("Program.Main",
 @"{
@@ -763,7 +763,7 @@ class Program
 
             if (associatedProperty != null)
             {
-                var method = (methodKind == MethodKind.PropertyGet) ? associatedProperty.GetMethod : associatedProperty.SetMethod;
+                MethodSymbol method = (methodKind == MethodKind.PropertyGet) ? associatedProperty.GetMethod : associatedProperty.SetMethod;
                 Assert.Equal(accessor, method);
             }
         }
@@ -783,7 +783,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileWithCustomPropertiesAssembly(source, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CSharpCompilation compilation = CompileWithCustomPropertiesAssembly(source, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var type = (PENamedTypeSymbol)compilation.GlobalNamespace.GetMembers("FamilyAssembly").Single();
 
             VerifyAccessibility(
@@ -1633,8 +1633,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(Parse(text));
-            var diagnostics = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(Parse(text));
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = comp.GetDiagnostics();
             Assert.Empty(diagnostics);
         }
 
@@ -1670,8 +1670,8 @@ class MyClass : MyBase
     }
 }
 ";
-            var comp = CreateCompilation(Parse(text));
-            var diagnostics = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(Parse(text));
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = comp.GetDiagnostics();
             Assert.Empty(diagnostics);
         }
 
@@ -1705,8 +1705,8 @@ class MyClass : MyInter
     }
 }
 ";
-            var comp = CreateCompilation(Parse(text));
-            var diagnostics = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(Parse(text));
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = comp.GetDiagnostics();
             Assert.Empty(diagnostics);
         }
 
@@ -1725,9 +1725,9 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
 
-            var globalNamespace = comp.GlobalNamespace;
+            NamespaceSymbol globalNamespace = comp.GlobalNamespace;
 
             var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
             Assert.Equal(TypeKind.Interface, @interface.TypeKind);
@@ -1759,9 +1759,9 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text);
 
-            var globalNamespace = comp.GlobalNamespace;
+            NamespaceSymbol globalNamespace = comp.GlobalNamespace;
 
             var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
             Assert.Equal(TypeKind.Interface, @interface.TypeKind);
@@ -1796,9 +1796,9 @@ class C : N.I<int>
 }
 ";
 
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
 
-            var globalNamespace = comp.GlobalNamespace;
+            NamespaceSymbol globalNamespace = comp.GlobalNamespace;
             var @namespace = (NamespaceSymbol)globalNamespace.GetMembers("N").Single();
 
             var @interface = (NamedTypeSymbol)@namespace.GetTypeMembers("I").Single();
@@ -1811,7 +1811,7 @@ class C : N.I<int>
 
             var classProperty = (PropertySymbol)@class.GetMembers("N.I<System.Int32>.P").Single();
 
-            var substitutedInterface = @class.Interfaces().Single();
+            NamedTypeSymbol substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceProperty = (PropertySymbol)substitutedInterface.GetMembers("P").Single();
@@ -1847,19 +1847,19 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 new[] { TestReferences.SymbolsTests.Properties },
                 TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> validator = module =>
             {
-                var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program");
-                var field = program.GetMember<FieldSymbol>("testClass");
-                var type = field.Type;
+                NamedTypeSymbol program = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program");
+                FieldSymbol field = program.GetMember<FieldSymbol>("testClass");
+                TypeSymbol type = field.Type;
                 // Non-generic type.
                 //var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("WithParameterizedProps");
-                var getters = type.GetMembers("get_P").OfType<MethodSymbol>();
+                System.Collections.Generic.IEnumerable<MethodSymbol> getters = type.GetMembers("get_P").OfType<MethodSymbol>();
                 Assert.Equal(2, getters.Count(getter => getter.Parameters.Length == 1));
                 Assert.Equal(1, getters.Count(getter => getter.Parameters.Length == 2));
 
@@ -1902,18 +1902,18 @@ public class A : Attribute
     public A X { get; set; }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var xs = a.GetMembers("X");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            System.Collections.Immutable.ImmutableArray<Symbol> xs = a.GetMembers("X");
             Assert.Equal(2, xs.Length);
-            foreach (var x in xs)
+            foreach (Symbol x in xs)
             {
                 Assert.Equal(a, (x as PropertySymbol).Type); // duplicate, but all the same.
             }
 
-            var errors = comp.GetDeclarationDiagnostics();
-            var one = errors.Single();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errors = comp.GetDeclarationDiagnostics();
+            Diagnostic one = errors.Single();
             Assert.Equal(ErrorCode.ERR_DuplicateNameInClass, (ErrorCode)one.Code);
         }
 
@@ -1932,16 +1932,16 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var globalNamespace = comp.SourceModule.GlobalNamespace;
+            NamespaceSymbol globalNamespace = comp.SourceModule.GlobalNamespace;
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Test").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
             var accessor = @class.GetMembers("get_Item").Single() as MethodSymbol;
             Assert.Equal(1, accessor.Parameters.Length);
-            var locs = accessor.Parameters[0].Locations;
+            System.Collections.Immutable.ImmutableArray<Location> locs = accessor.Parameters[0].Locations;
             // i
             Assert.Equal(1, locs.Length);
             Assert.True(locs[0].IsInSource, "InSource");
@@ -1985,7 +1985,7 @@ Public Class B2
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"class C
 {
@@ -1998,7 +1998,7 @@ End Class";
         o = b.Q();
     }
 }";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 });
+            CompilationVerifier compilation2 = CompileAndVerify(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilation2.VerifyIL("C.M(B1)",
 @"{
@@ -2028,7 +2028,7 @@ End Class";
         o = b.Q();
     }
 }";
-            var compilation3 = CreateCompilation(source3, new[] { reference1 });
+            CSharpCompilation compilation3 = CreateCompilation(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
                 // (6,16): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 16),
@@ -2055,7 +2055,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             // Property with parameters hiding property with parameters.
             var source2 =
 @"class C
@@ -2066,7 +2066,7 @@ End Class";
         o = b.P;
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS1546: Property, indexer, or event 'B.P[object]' is not supported by the language; try directly calling accessor method 'B.get_P(object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "P").WithArguments("B.P[object]", "B.get_P(object)").WithLocation(6, 15));
@@ -2084,7 +2084,7 @@ static class E
 {
     internal static object P(this object o) { return null; }
 }";
-            var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
+            CSharpCompilation compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
                 // (6,15): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 15));
@@ -2171,7 +2171,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"class C : B
 {
@@ -2205,7 +2205,7 @@ class D
         o = b.P9();
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (9,18): error CS1955: Non-invocable member 'B.P4[object]' cannot be used like a method.
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "P4").WithArguments("B.P4[object]").WithLocation(9, 18),
@@ -2248,7 +2248,7 @@ class D
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"class B
 {
@@ -2260,7 +2260,7 @@ End Class";
         o = a.P3;
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS1546: Property, indexer, or event 'A.P1[object]' is not supported by the language; try directly calling accessor method 'A.get_P1(object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "P1").WithArguments("A.P1[object]", "A.get_P1(object)").WithLocation(6, 15),
@@ -2283,7 +2283,7 @@ End Class";
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"class B
 {
@@ -2296,7 +2296,7 @@ End Class";
         a.set_P(null, o);
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS1545: Property, indexer, or event 'A<object>.P[object]' is not supported by the language; try directly calling accessor methods 'A<object>.get_P(object)' or 'A<object>.set_P(object, object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A<object>.P[object]", "A<object>.get_P(object)", "A<object>.set_P(object, object)").WithLocation(6, 15),
@@ -2407,7 +2407,7 @@ End Class";
     .set instance void A9::set_P(object, object& v)
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"class C
 {
@@ -2426,7 +2426,7 @@ End Class";
         _9[ref y] = _9[ref x];
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (8,9): error CS1545: Property, indexer, or event 'A2.this[object]' is not supported by the language; try directly calling accessor methods 'A2.get_P(object)' or 'A2.set_P(ref object, object)'
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "_2[y]").WithArguments("A2.this[object]", "A2.get_P(object)", "A2.set_P(ref object, object)").WithLocation(8, 9),
@@ -2466,16 +2466,16 @@ End Class";
 
         private static void CheckPropertyExplicitImplementation(NamedTypeSymbol @class, PropertySymbol classProperty, PropertySymbol interfaceProperty)
         {
-            var interfacePropertyGetter = interfaceProperty.GetMethod;
+            MethodSymbol interfacePropertyGetter = interfaceProperty.GetMethod;
             Assert.NotNull(interfacePropertyGetter);
-            var interfacePropertySetter = interfaceProperty.SetMethod;
+            MethodSymbol interfacePropertySetter = interfaceProperty.SetMethod;
             Assert.NotNull(interfacePropertySetter);
 
             Assert.Equal(interfaceProperty, classProperty.ExplicitInterfaceImplementations.Single());
 
-            var classPropertyGetter = classProperty.GetMethod;
+            MethodSymbol classPropertyGetter = classProperty.GetMethod;
             Assert.NotNull(classPropertyGetter);
-            var classPropertySetter = classProperty.SetMethod;
+            MethodSymbol classPropertySetter = classProperty.SetMethod;
             Assert.NotNull(classPropertySetter);
 
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
@@ -2486,17 +2486,17 @@ End Class";
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
+            System.Collections.Generic.IEnumerable<Cci.MethodImplementation> explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
-            var getterOverride = explicitOverrides.First();
+            Cci.MethodImplementation getterOverride = explicitOverrides.First();
             Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
             Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
 
-            var setterOverride = explicitOverrides.Last();
+            Cci.MethodImplementation setterOverride = explicitOverrides.Last();
             Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod);
             Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context));
             Assert.Equal(interfacePropertySetter.Name, setterOverride.ImplementedMethod.Name);
@@ -2505,16 +2505,16 @@ End Class";
 
         private static void CheckRefPropertyExplicitImplementation(NamedTypeSymbol @class, PropertySymbol classProperty, PropertySymbol interfaceProperty)
         {
-            var interfacePropertyGetter = interfaceProperty.GetMethod;
+            MethodSymbol interfacePropertyGetter = interfaceProperty.GetMethod;
             Assert.NotNull(interfacePropertyGetter);
-            var interfacePropertySetter = interfaceProperty.SetMethod;
+            MethodSymbol interfacePropertySetter = interfaceProperty.SetMethod;
             Assert.Null(interfacePropertySetter);
 
             Assert.Equal(interfaceProperty, classProperty.ExplicitInterfaceImplementations.Single());
 
-            var classPropertyGetter = classProperty.GetMethod;
+            MethodSymbol classPropertyGetter = classProperty.GetMethod;
             Assert.NotNull(classPropertyGetter);
-            var classPropertySetter = classProperty.SetMethod;
+            MethodSymbol classPropertySetter = classProperty.SetMethod;
             Assert.Null(classPropertySetter);
 
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
@@ -2524,12 +2524,12 @@ End Class";
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
+            System.Collections.Generic.IEnumerable<Cci.MethodImplementation> explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(1, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
-            var getterOverride = explicitOverrides.Single();
+            Cci.MethodImplementation getterOverride = explicitOverrides.Single();
             Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
             Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
@@ -2587,25 +2587,25 @@ public interface IA
                 references: new MetadataReference[] { MscorlibRef });
 
             var refData = AssemblyMetadata.CreateFromImage(refComp.EmitToArray());
-            var mdRef = refData.GetReference(embedInteropTypes: false);
-            var comp = CreateCompilationWithMscorlib46("", new[] { mdRef });
+            PortableExecutableReference mdRef = refData.GetReference(embedInteropTypes: false);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46("", new[] { mdRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.False(comp.ExternalReferences[1].Properties.EmbedInteropTypes);
 
-            var ia = comp.GetTypeByMetadataName("IA");
+            NamedTypeSymbol ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
-            var iap = ia.GetMember<PropertySymbol>("P");
+            PropertySymbol iap = ia.GetMember<PropertySymbol>("P");
             Assert.False(iap.Type.IsDynamic());
-            var iam = ia.GetMember<MethodSymbol>("M");
+            MethodSymbol iam = ia.GetMember<MethodSymbol>("M");
             Assert.False(iam.ReturnType.IsDynamic());
 
-            var iap2 = ia.GetMember<PropertySymbol>("P2");
+            PropertySymbol iap2 = ia.GetMember<PropertySymbol>("P2");
             Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
-            var iam2 = ia.GetMember<MethodSymbol>("M2");
+            MethodSymbol iam2 = ia.GetMember<MethodSymbol>("M2");
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
-            var compRef = refComp.ToMetadataReference(embedInteropTypes: false);
+            CompilationReference compRef = refComp.ToMetadataReference(embedInteropTypes: false);
             comp = CreateCompilationWithMscorlib46("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
@@ -2741,7 +2741,7 @@ public interface IA
 }";
             Func<string[], Action<ModuleSymbol>> getValidator = expectedMembers => m =>
             {
-                var actualMembers =
+                Symbol[] actualMembers =
                     m.GlobalNamespace.GetMember<NamespaceSymbol>("Test").
                     GetMember<NamedTypeSymbol>("C").GetMembers().ToArray();
 
@@ -2750,10 +2750,10 @@ public interface IA
 
             VerifyType verify = (winmd, expected) =>
              {
-                 var validator = getValidator(expected);
+                 Action<ModuleSymbol> validator = getValidator(expected);
 
                  // We should see the same members from both source and metadata
-                 var verifier = CompileAndVerify(
+                 CompilationVerifier verifier = CompileAndVerify(
                       libSrc,
                       sourceSymbolValidator: validator,
                       symbolValidator: validator,
@@ -2799,7 +2799,7 @@ public interface IA
         public void set_A(int value) {}
     }
 }";
-            var comp = CreateCompilation(libSrc, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(libSrc, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
     // (7,18): error CS0082: Type 'Test.C' already reserves a member called 'set_A' with the same parameter types
     //             get; set;
@@ -2937,7 +2937,7 @@ interface I1
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.GetDeclarationDiagnostics().Verify(
     // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
     //     public string Prop1 { get; }

@@ -83,7 +83,7 @@ namespace Microsoft.Cci
 
             OpenMethod(methodToken, methodBody.MethodDefinition);
 
-            var localScopes = methodBody.LocalScopes;
+            ImmutableArray<LocalScope> localScopes = methodBody.LocalScopes;
 
             // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
             if (localScopes.Length > 0)
@@ -121,7 +121,7 @@ namespace Microsoft.Cci
                     ImmutableInt32ArrayInterop.DangerousGetUnderlyingArray(asyncMoveNextInfo.ResumeOffsets));
             }
 
-            var compilationOptions = Context.Module.CommonCompilation.Options;
+            CompilationOptions compilationOptions = Context.Module.CommonCompilation.Options;
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
@@ -147,19 +147,19 @@ namespace Microsoft.Cci
 
         private void DefineNamespaceScopes(IMethodBody methodBody)
         {
-            var module = Module;
+            CommonPEModuleBuilder module = Module;
             bool isVisualBasic = module.GenerateVisualBasicStylePdb;
 
             IMethodDefinition method = methodBody.MethodDefinition;
 
-            var namespaceScopes = methodBody.ImportScope;
+            IImportScope namespaceScopes = methodBody.ImportScope;
 
             PooledHashSet<string> lazyDeclaredExternAliases = null;
             if (!isVisualBasic)
             {
-                for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
+                for (IImportScope scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    foreach (var import in scope.GetUsedNamespaces())
+                    foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
                     {
                         if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
@@ -410,7 +410,7 @@ namespace Microsoft.Cci
             // no extern alias defined in scope at all -> error in compiler
             Debug.Assert(declaredExternAliases != null);
 
-            var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
+            ImmutableArray<AssemblyReferenceAlias> allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
             foreach (AssemblyReferenceAlias alias in allAliases)
             {
                 // Multiple aliases may be given to an assembly reference.
@@ -445,7 +445,7 @@ namespace Microsoft.Cci
 
             for (int i = 1; i < scopes.Length; i++)
             {
-                var currentScope = scopes[i];
+                LocalScope currentScope = scopes[i];
 
                 // Close any scopes that have finished.
                 while (scopeStack.Count > 0)
@@ -480,7 +480,7 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                var signatureHandle = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
+                StandaloneSignatureHandle signatureHandle = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
                     _symWriter.DefineLocalConstant(
@@ -508,7 +508,7 @@ namespace Microsoft.Cci
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
             // Do not look for COM registered diasymreader when determinism is needed as it doesn't support it.
-            var options =
+            SymUnmanagedWriterCreationOptions options =
                 (IsDeterministic ? SymUnmanagedWriterCreationOptions.Deterministic : SymUnmanagedWriterCreationOptions.UseComRegistry) |
                 SymUnmanagedWriterCreationOptions.UseAlternativeLoadPath;
 
@@ -639,11 +639,11 @@ namespace Microsoft.Cci
             int lastDocumentIndex = -1;
             DebugSourceDocument lastDocument = null;
 
-            foreach (var sequencePoint in sequencePoints)
+            foreach (SequencePoint sequencePoint in sequencePoints)
             {
                 Debug.Assert(sequencePoint.Document != null);
 
-                var document = sequencePoint.Document;
+                DebugSourceDocument document = sequencePoint.Document;
 
                 int documentIndex;
                 if (lastDocument == document)
@@ -673,9 +673,9 @@ namespace Microsoft.Cci
         // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
         public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {
-            foreach (var kvp in file2definitions)
+            foreach (KeyValuePair<DebugSourceDocument, MultiDictionary<DebugSourceDocument, DefinitionWithLocation>.ValueSet> kvp in file2definitions)
             {
-                foreach (var definition in kvp.Value)
+                foreach (DefinitionWithLocation definition in kvp.Value)
                 {
                     EntityHandle handle = _metadataWriter.GetDefinitionHandle(definition.Definition);
                     Debug.Assert(!handle.IsNil);
@@ -689,9 +689,9 @@ namespace Microsoft.Cci
             // Only open and close the map if we have any mapping.
             bool open = false;
 
-            foreach (var kvp in file2definitions)
+            foreach (KeyValuePair<DebugSourceDocument, MultiDictionary<DebugSourceDocument, DefinitionWithLocation>.ValueSet> kvp in file2definitions)
             {
-                foreach (var definition in kvp.Value)
+                foreach (DefinitionWithLocation definition in kvp.Value)
                 {
                     if (!open)
                     {
@@ -750,7 +750,7 @@ namespace Microsoft.Cci
         /// </remarks>
         public void WriteRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> embeddedDocuments)
         {
-            foreach (var document in embeddedDocuments)
+            foreach (DebugSourceDocument document in embeddedDocuments)
             {
                 Debug.Assert(!document.GetSourceInfo().EmbeddedTextBlob.IsDefault);
                 GetDocumentIndex(document);

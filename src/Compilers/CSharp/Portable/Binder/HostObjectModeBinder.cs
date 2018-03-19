@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var hostObjectType = GetHostObjectType();
+            TypeSymbol hostObjectType = GetHostObjectType();
             if (hostObjectType.Kind == SymbolKind.ErrorType)
             {
                 // The name '{0}' does not exist in the current context (are you missing a reference to assembly '{1}'?)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            var hostObjectType = GetHostObjectType();
+            TypeSymbol hostObjectType = GetHostObjectType();
             if (hostObjectType.Kind != SymbolKind.ErrorType)
             {
                 AddMemberLookupSymbolsInfo(result, hostObjectType, options, originalBinder);

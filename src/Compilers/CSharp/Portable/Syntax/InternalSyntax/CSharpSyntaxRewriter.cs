@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitToken(SyntaxToken token)
         {
-            var leading = this.VisitList(token.LeadingTrivia);
-            var trailing = this.VisitList(token.TrailingTrivia);
+            SyntaxList<CSharpSyntaxNode> leading = this.VisitList(token.LeadingTrivia);
+            SyntaxList<CSharpSyntaxNode> trailing = this.VisitList(token.TrailingTrivia);
 
             if (leading != token.LeadingTrivia || trailing != token.TrailingTrivia)
             {
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxListBuilder alternate = null;
             for (int i = 0, n = list.Count; i < n; i++)
             {
-                var item = list[i];
-                var visited = this.Visit(item);
+                TNode item = list[i];
+                CSharpSyntaxNode visited = this.Visit(item);
                 if (item != visited && alternate == null)
                 {
                     alternate = new SyntaxListBuilder(n);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // derive from InternalSyntax.CSharpSyntaxNode.  So this cast is appropriately
             // typesafe.
             var withSeps = (SyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
-            var result = this.VisitList(withSeps);
+            SyntaxList<CSharpSyntaxNode> result = this.VisitList(withSeps);
             if (result != withSeps)
             {
                 return result.AsSeparatedList<TNode>();

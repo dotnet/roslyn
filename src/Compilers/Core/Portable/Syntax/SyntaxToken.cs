@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
                 return token;
             }
 
-            var annotations = this.Node.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.Node.GetAnnotations();
             if (annotations?.Length > 0)
             {
                 return new SyntaxToken(
@@ -416,14 +416,14 @@ namespace Microsoft.CodeAnalysis
                     return default(SyntaxTriviaList);
                 }
 
-                var leading = Node.GetLeadingTriviaCore();
+                GreenNode leading = Node.GetLeadingTriviaCore();
                 int index = 0;
                 if (leading != null)
                 {
                     index = leading.IsList ? leading.SlotCount : 1;
                 }
 
-                var trailingGreen = Node.GetTrailingTriviaCore();
+                GreenNode trailingGreen = Node.GetTrailingTriviaCore();
                 int trailingPosition = Position + this.FullWidth;
                 if (trailingGreen != null)
                 {
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            IEnumerable<GreenNode> greenList = trivia?.Select(t => t.UnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            IEnumerable<GreenNode> greenList = trivia?.Select(t => t.UnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            var tree = SyntaxTree;
+            SyntaxTree tree = SyntaxTree;
 
             return tree == null
                 ? Location.None
@@ -655,11 +655,11 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerable<Diagnostic>();
             }
 
-            var tree = SyntaxTree;
+            SyntaxTree tree = SyntaxTree;
 
             if (tree == null)
             {
-                var diagnostics = Node.GetDiagnostics();
+                DiagnosticInfo[] diagnostics = Node.GetDiagnostics();
 
                 return diagnostics.Length == 0
                     ? SpecializedCollections.EmptyEnumerable<Diagnostic>()

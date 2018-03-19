@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             //There are cases where the platform does contain the interfaces.
             //So it is fine not to have them listed under the type
-            var iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
+            NamedTypeSymbol iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
             if (!iListOfT.IsErrorType())
             {
                 constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, ImmutableArray.Create(new TypeWithModifiers(elementType))));
             }
 
-            var iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T);
+            NamedTypeSymbol iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T);
 
             if (!iReadOnlyListOfT.IsErrorType())
             {
@@ -178,14 +178,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.Sizes.SequenceEqual(other.Sizes))
             {
-                var thisLowerBounds = this.LowerBounds;
+                ImmutableArray<int> thisLowerBounds = this.LowerBounds;
 
                 if (thisLowerBounds.IsDefault)
                 {
                     return other.LowerBounds.IsDefault;
                 }
 
-                var otherLowerBounds = other.LowerBounds;
+                ImmutableArray<int> otherLowerBounds = other.LowerBounds;
 
                 return !otherLowerBounds.IsDefault && thisLowerBounds.SequenceEqual(otherLowerBounds);
             }
@@ -369,8 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make sure custom modifiers and bounds are the same.
             if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
-                var mod = this.CustomModifiers;
-                var otherMod = other.CustomModifiers;
+                ImmutableArray<CustomModifier> mod = this.CustomModifiers;
+                ImmutableArray<CustomModifier> otherMod = other.CustomModifiers;
                 var count = mod.Length;
 
                 if (count != otherMod.Length)

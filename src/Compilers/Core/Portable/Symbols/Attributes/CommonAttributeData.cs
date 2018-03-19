@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal T GetConstructorArgument<T>(int i, SpecialType specialType)
         {
-            var constructorArgs = this.CommonConstructorArguments;
+            ImmutableArray<TypedConstant> constructorArgs = this.CommonConstructorArguments;
             return constructorArgs[i].DecodeValue<T>(specialType);
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
 
             // We should not end up in this code path unless we know we have one of them.
 
-            var parameters = AttributeConstructor.Parameters;
+            ImmutableArray<IParameterSymbol> parameters = AttributeConstructor.Parameters;
             ImmutableArray<TypedConstant> args = this.CommonConstructorArguments;
 
             Debug.Assert(parameters.Length == 5);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ObsoleteAttributeData DecodeDeprecatedAttribute()
         {
-            var args = this.CommonConstructorArguments;
+            ImmutableArray<TypedConstant> args = this.CommonConstructorArguments;
 
             // DeprecatedAttribute() 
             string message = null;
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             MethodImplOptions options;
-            var attribute = arguments.Attribute;
+            TAttributeData attribute = arguments.Attribute;
             if (attribute.CommonConstructorArguments.Length == 1)
             {
                 if (attribute.AttributeConstructor.Parameters[0].Type.SpecialType == SpecialType.System_Int16)
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis
 
             MethodImplAttributes codeType = MethodImplAttributes.IL;
             int position = 1;
-            foreach (var namedArg in attribute.CommonNamedArguments)
+            foreach (KeyValuePair<string, TypedConstant> namedArg in attribute.CommonNamedArguments)
             {
                 if (namedArg.Key == "MethodCodeType")
                 {
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            TAttributeData attribute = arguments.Attribute;
 
             CharSet charSet = (defaultCharSet != Cci.Constants.CharSet_None) ? defaultCharSet : CharSet.Ansi;
             int? size = null;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             int position = 1;
-            foreach (var namedArg in attribute.CommonNamedArguments)
+            foreach (KeyValuePair<string, TypedConstant> namedArg in attribute.CommonNamedArguments)
             {
                 switch (namedArg.Key)
                 {

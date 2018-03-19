@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis
             IAssemblyName bestCandidate = null;
             Version bestVersion = null;
             string bestCulture = null;
-            foreach (var candidate in candidates)
+            foreach (IAssemblyName candidate in candidates)
             {
                 if (bestCandidate != null)
                 {

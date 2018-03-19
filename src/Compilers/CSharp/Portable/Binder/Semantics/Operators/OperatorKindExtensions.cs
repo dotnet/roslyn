@@ -399,9 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((kind & BinaryOperatorKind.Lifted) != 0) b.Append("Lifted");
             if ((kind & BinaryOperatorKind.Logical) != 0) b.Append("Logical");
             if ((kind & BinaryOperatorKind.Checked) != 0) b.Append("Checked");
-            var type = kind & BinaryOperatorKind.TypeMask;
+            BinaryOperatorKind type = kind & BinaryOperatorKind.TypeMask;
             if (type != 0) b.Append(type.ToString());
-            var op = kind & BinaryOperatorKind.OpMask;
+            BinaryOperatorKind op = kind & BinaryOperatorKind.OpMask;
             if (op != 0) b.Append(op.ToString());
             return b.ToString();
         }
@@ -411,9 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var b = new StringBuilder();
             if ((kind & UnaryOperatorKind.Lifted) != 0) b.Append("Lifted");
             if ((kind & UnaryOperatorKind.Checked) != 0) b.Append("Checked");
-            var type = kind & UnaryOperatorKind.TypeMask;
+            UnaryOperatorKind type = kind & UnaryOperatorKind.TypeMask;
             if (type != 0) b.Append(type.ToString());
-            var op = kind & UnaryOperatorKind.OpMask;
+            UnaryOperatorKind op = kind & UnaryOperatorKind.OpMask;
             if (op != 0) b.Append(op.ToString());
             return b.ToString();
         }

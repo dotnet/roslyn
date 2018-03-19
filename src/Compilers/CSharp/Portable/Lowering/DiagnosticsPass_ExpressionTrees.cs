@@ -316,8 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
-            var indexer = node.Indexer;
-            var method = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
+            PropertySymbol indexer = node.Indexer;
+            MethodSymbol method = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
             if ((object)method != null)
             {
                 VisitCall(method, indexer, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
@@ -328,8 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            var property = node.PropertySymbol;
-            var method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
+            PropertySymbol property = node.PropertySymbol;
+            MethodSymbol method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
             if ((object)method != null && _inExpressionLambda && method.RefKind != RefKind.None)
             {
                 Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var lambda = node.ExpressionSymbol as MethodSymbol;
                             if ((object)lambda != null)
                             {
-                                foreach (var p in lambda.Parameters)
+                                foreach (ParameterSymbol p in lambda.Parameters)
                                 {
                                     if (p.RefKind != RefKind.None && p.Locations.Length != 0)
                                     {
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var result = base.VisitConversion(node);
+            BoundNode result = base.VisitConversion(node);
             _inExpressionLambda = wasInExpressionLambda;
             _reportedUnsafe = oldReportedUnsafe;
             return result;

@@ -29,7 +29,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Indices(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -54,7 +54,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Indices(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -84,7 +84,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Indices(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -110,7 +110,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -136,7 +136,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -168,7 +168,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -197,7 +197,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Indices(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -232,7 +232,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Indices(1):
       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -268,7 +268,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -296,7 +296,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         Operand: 
           IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'b')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -324,7 +324,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         Operand: 
           IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Double) (Syntax: 'd')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -357,7 +357,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         Operand: 
           IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -390,7 +390,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
         Operand: 
           IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -423,7 +423,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Indices(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

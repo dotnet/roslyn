@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -120,7 +120,7 @@ public class Test
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -187,7 +187,7 @@ public class Test
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -250,7 +250,7 @@ public class Test
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -417,7 +417,7 @@ public delegate void M<T>() where T : unmanaged;";
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Virtual_Compilation()
         {
-            var reference = CompileAndVerify(@"
+            CompilationVerifier reference = CompileAndVerify(@"
 public class Parent
 {
     public virtual string M<T>() where T : unmanaged => ""Parent"";
@@ -427,13 +427,13 @@ public class Child : Parent
     public override string M<T>() => ""Child"";
 }", symbolValidator: module =>
             {
-                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
-                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
@@ -456,13 +456,13 @@ Child");
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Virtual_Reference()
         {
-            var parent = CompileAndVerify(@"
+            CompilationVerifier parent = CompileAndVerify(@"
 public class Parent
 {
     public virtual string M<T>() where T : unmanaged => ""Parent"";
 }", symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -470,13 +470,13 @@ public class Parent
             });
 
 
-            var child = CompileAndVerify(@"
+            CompilationVerifier child = CompileAndVerify(@"
 public class Child : Parent
 {
     public override string M<T>() => ""Child"";
 }", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -499,7 +499,7 @@ Child");
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Abstract_Compilation()
         {
-            var reference = CompileAndVerify(@"
+            CompilationVerifier reference = CompileAndVerify(@"
 public abstract class Parent
 {
     public abstract string M<T>() where T : unmanaged;
@@ -509,13 +509,13 @@ public class Child : Parent
     public override string M<T>() => ""Child"";
 }", symbolValidator: module =>
             {
-                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
-                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
@@ -535,13 +535,13 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Abstract_Reference()
         {
-            var parent = CompileAndVerify(@"
+            CompilationVerifier parent = CompileAndVerify(@"
 public abstract class Parent
 {
     public abstract string M<T>() where T : unmanaged;
 }", symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -549,13 +549,13 @@ public abstract class Parent
             });
 
 
-            var child = CompileAndVerify(@"
+            CompilationVerifier child = CompileAndVerify(@"
 public class Child : Parent
 {
     public override string M<T>() => ""Child"";
 }", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -575,7 +575,7 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Nonvirtual_Compilation()
         {
-            var reference = CompileAndVerify(@"
+            CompilationVerifier reference = CompileAndVerify(@"
 public interface Parent
 {
     string M<T>() where T : unmanaged;
@@ -585,13 +585,13 @@ public class Child : Parent
     public string M<T>() where T : unmanaged => ""Child"";
 }", symbolValidator: module =>
             {
-                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
-                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
@@ -611,13 +611,13 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Nonvirtual_Reference()
         {
-            var parent = CompileAndVerify(@"
+            CompilationVerifier parent = CompileAndVerify(@"
 public interface Parent
 {
     string M<T>() where T : unmanaged;
 }", symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -625,13 +625,13 @@ public interface Parent
             });
 
 
-            var child = CompileAndVerify(@"
+            CompilationVerifier child = CompileAndVerify(@"
 public class Child : Parent
 {
     public string M<T>() where T : unmanaged => ""Child"";
 }", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -651,7 +651,7 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Virtual_Compilation()
         {
-            var reference = CompileAndVerify(@"
+            CompilationVerifier reference = CompileAndVerify(@"
 public interface Parent
 {
     string M<T>() where T : unmanaged;
@@ -661,13 +661,13 @@ public class Child : Parent
     public virtual string M<T>() where T : unmanaged => ""Child"";
 }", symbolValidator: module =>
             {
-                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
-                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
@@ -687,13 +687,13 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Virtual_Reference()
         {
-            var parent = CompileAndVerify(@"
+            CompilationVerifier parent = CompileAndVerify(@"
 public interface Parent
 {
     string M<T>() where T : unmanaged;
 }", symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -701,13 +701,13 @@ public interface Parent
             });
 
 
-            var child = CompileAndVerify(@"
+            CompilationVerifier child = CompileAndVerify(@"
 public class Child : Parent
 {
     public virtual string M<T>() where T : unmanaged => ""Child"";
 }", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -727,7 +727,7 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Explicit_Compilation()
         {
-            var reference = CompileAndVerify(@"
+            CompilationVerifier reference = CompileAndVerify(@"
 public interface Parent
 {
     string M<T>() where T : unmanaged;
@@ -737,13 +737,13 @@ public class Child : Parent
     string Parent.M<T>() => ""Child"";
 }", symbolValidator: module =>
             {
-                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
-                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
@@ -764,13 +764,13 @@ class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Explicit_Reference()
         {
-            var parent = CompileAndVerify(@"
+            CompilationVerifier parent = CompileAndVerify(@"
 public interface Parent
 {
     string M<T>() where T : unmanaged;
 }", symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -778,13 +778,13 @@ public interface Parent
             });
 
 
-            var child = CompileAndVerify(@"
+            CompilationVerifier child = CompileAndVerify(@"
 public class Child : Parent
 {
     string Parent.M<T>() => ""Child"";
 }", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
@@ -830,13 +830,13 @@ public class Program
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
             {
-                var delegateTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
+                Symbols.TypeParameterSymbol delegateTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
                 Assert.True(delegateTypeParameter.HasValueTypeConstraint);
                 Assert.True(delegateTypeParameter.HasUnmanagedTypeConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, delegateTypeParameter, module.ContainingAssembly.Name);
 
-                var lambdaTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
+                Symbols.TypeParameterSymbol lambdaTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
                 Assert.True(lambdaTypeParameter.HasValueTypeConstraint);
                 Assert.True(lambdaTypeParameter.HasUnmanagedTypeConstraint);
 
@@ -847,7 +847,7 @@ public class Program
         [Fact]
         public void UnmanagedTypeModreqIsCopiedToLambda_Reference()
         {
-            var reference = CompileAndVerify(@"
+            CompilationVerifier reference = CompileAndVerify(@"
 public delegate T D<T>() where T : unmanaged;
 public class TestRef
 {
@@ -857,7 +857,7 @@ public class TestRef
     }
 }", symbolValidator: module =>
             {
-                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
+                Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);   // .ctor  is an artifact of emit, we will ignore it on importing.
@@ -884,7 +884,7 @@ public class Program
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
+                    Symbols.TypeParameterSymbol typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
                     Assert.True(typeParameter.HasValueTypeConstraint);
                     Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                     Assert.False(typeParameter.HasConstructorConstraint);  // .ctor  is an artifact of emit, we will ignore it on importing.
@@ -902,8 +902,8 @@ namespace System.Runtime.InteropServices
     public class UnmanagedType {}
 }";
 
-            var ref1 = CreateCompilation(refCode).EmitToImageReference();
-            var ref2 = CreateCompilation(refCode).EmitToImageReference();
+            MetadataReference ref1 = CreateCompilation(refCode).EmitToImageReference();
+            MetadataReference ref2 = CreateCompilation(refCode).EmitToImageReference();
 
             var user = @"
 public class Test<T> where T : unmanaged
@@ -947,7 +947,7 @@ public class Test<T> where T : unmanaged
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -1003,7 +1003,7 @@ public class Test
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -1052,7 +1052,7 @@ public class Test
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -1107,7 +1107,7 @@ public class Test
 
 }";
 
-            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+            MetadataReference reference = CompileIL(ilSource, prependDefaultHeader: false);
 
             var code = @"
 public class Test
@@ -1124,7 +1124,7 @@ public class Test
     struct S1{}
 }";
 
-            var c = CreateCompilation(code, references: new[] { reference });
+            CSharpCompilation c = CreateCompilation(code, references: new[] { reference });
             
             c.VerifyDiagnostics(
                 // (10,23): error CS0315: The type 'Test.S1' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no boxing conversion from 'Test.S1' to 'System.IComparable'.
@@ -1132,7 +1132,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<S1>").WithArguments("TestRef.M<T>()", "System.IComparable", "T", "Test.S1").WithLocation(10, 23)
                 );
 
-            var typeParameter = c.GlobalNamespace.GetTypeMember("TestRef").GetMethod("M").TypeParameters.Single();
+            Symbols.TypeParameterSymbol typeParameter = c.GlobalNamespace.GetTypeMember("TestRef").GetMethod("M").TypeParameters.Single();
             Assert.True(typeParameter.HasUnmanagedTypeConstraint);
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);

@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
 
-            var loweredReceiver = this.VisitExpression(node.Receiver);
-            var receiverType = loweredReceiver.Type;
+            BoundExpression loweredReceiver = this.VisitExpression(node.Receiver);
+            TypeSymbol receiverType = loweredReceiver.Type;
 
             // Check trivial case
             if (loweredReceiver.IsDefaultValue() && receiverType.IsReferenceType)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            var previousConditionalAccessTarget = _currentConditionalAccessTarget;
+            BoundExpression previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
 
             LocalSymbol temp = null;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result;
-            var objectType = _compilation.GetSpecialType(SpecialType.System_Object);
+            NamedTypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
             switch (loweringKind)
             {
@@ -172,11 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConditionalAccessLoweringKind.Ternary:
                     {
                         // (object)r != null ? access : default(T)
-                        var condition = _factory.ObjectNotEqual(
+                        BoundBinaryOperator condition = _factory.ObjectNotEqual(
                                 _factory.Convert(objectType, loweredReceiver),
                                 _factory.Null(objectType));
 
-                        var consequence = loweredAccessExpression;
+                        BoundExpression consequence = loweredAccessExpression;
 
                         result = RewriteConditionalOperator(node.Syntax,
                             condition,
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
-            var newtarget = _currentConditionalAccessTarget;
+            BoundExpression newtarget = _currentConditionalAccessTarget;
 
             if (newtarget.Type.IsNullableType())
             {

@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                  " + topLevelStatement + @";
                 }}";
 
-            var oldTree = SyntaxFactory.ParseSyntaxTree(topLevel ? topLevelStatement : code, options: options);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(topLevel ? topLevelStatement : code, options: options);
 
             // Make the change to the node
-            var newTree = oldTree.WithReplaceFirst(oldName, newName);
-            var binNode = topLevel ? GetGlobalStatementSyntaxChange(newTree) : GetExpressionSyntaxChange(newTree);
+            SyntaxTree newTree = oldTree.WithReplaceFirst(oldName, newName);
+            AssignmentExpressionSyntax binNode = topLevel ? GetGlobalStatementSyntaxChange(newTree) : GetExpressionSyntaxChange(newTree);
             Assert.Equal(binNode.Kind(), newSyntaxKind);
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         {
             var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var method = classType.Members[0] as MethodDeclarationSyntax;
-            var block = method.Body;
+            BlockSyntax block = method.Body;
             var statement = block.Statements[0] as ExpressionStatementSyntax;
             var expression = statement.Expression as AssignmentExpressionSyntax;
             return expression;

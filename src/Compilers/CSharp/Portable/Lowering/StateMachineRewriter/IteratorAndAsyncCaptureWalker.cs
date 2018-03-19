@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Returns deterministically ordered list of variables that ought to be hoisted.
         public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
-            var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
+            HashSet<Symbol> initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
             var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, new NeverEmptyStructTypeCache(), initiallyAssignedVariables);
 
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
@@ -62,18 +62,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.CaptureVariable(method.ThisParameter, node.Syntax);
             }
 
-            var variablesToHoist = walker._variablesToHoist;
-            var lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
-            var allVariables = walker.variableBySlot;
+            OrderedSet<Symbol> variablesToHoist = walker._variablesToHoist;
+            MultiDictionary<Symbol, SyntaxNode> lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
+            VariableIdentifier[] allVariables = walker.variableBySlot;
 
             walker.Free();
 
             if (lazyDisallowedCaptures != null)
             {
-                foreach (var kvp in lazyDisallowedCaptures)
+                foreach (KeyValuePair<Symbol, MultiDictionary<Symbol, SyntaxNode>.ValueSet> kvp in lazyDisallowedCaptures)
                 {
-                    var variable = kvp.Key;
-                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
+                    Symbol variable = kvp.Key;
+                    TypeSymbol type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
                     foreach (CSharpSyntaxNode syntax in kvp.Value)
                     {
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(variablesToHoist.Count == 0);
 
                 // In debug build we hoist all locals and parameters:
-                foreach (var v in allVariables)
+                foreach (VariableIdentifier v in allVariables)
                 {
-                    var symbol = v.Symbol;
+                    Symbol symbol = v.Symbol;
                     if ((object)symbol != null && HoistInDebugBuild(symbol))
                     {
                         variablesToHoist.Add(symbol);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < nextVariableSlot; i++)
             {
-                var symbol = variableBySlot[i].Symbol;
+                Symbol symbol = variableBySlot[i].Symbol;
 
                 if ((object)symbol != null)
                 {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
-            var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
+            TypeSymbol type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
                 // error has already been reported:
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.ThisReference)
             {
-                var thisSymbol = topLevelMethod.ThisParameter;
+                ParameterSymbol thisSymbol = topLevelMethod.ThisParameter;
                 CaptureVariable(thisSymbol, node.Syntax);
             }
 
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void AddVariables(ImmutableArray<LocalSymbol> locals)
             {
-                foreach (var local in locals)
+                foreach (LocalSymbol local in locals)
                 {
                     AddVariable(local);
                 }

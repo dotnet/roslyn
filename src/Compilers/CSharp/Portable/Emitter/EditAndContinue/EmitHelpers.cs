@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
+            EmitOptions emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
             string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
-            var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
-            var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
+            Cci.ModulePropertiesForSerialization serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
+            IEnumerable<ResourceDescription> manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
             PEDeltaAssemblyBuilder moduleBeingBuilt;
             try
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 testData.Module = moduleBeingBuilt;
             }
 
-            var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-            var changes = moduleBeingBuilt.Changes;
+            CSharpDefinitionMap definitionMap = moduleBeingBuilt.PreviousDefinitions;
+            SymbolChanges changes = moduleBeingBuilt.Changes;
 
             EmitBaseline newBaseline = null;
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // Map the definitions from the previous compilation to the current compilation.
                 // This must be done after compiling above since synthesized definitions
                 // (generated when compiling method bodies) may be required.
-                var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
+                EmitBaseline mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
 
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             CSharpCompilation compilation,
             PEDeltaAssemblyBuilder moduleBeingBuilt)
         {
-            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
+            EmitBaseline previousGeneration = moduleBeingBuilt.PreviousGeneration;
             Debug.Assert(previousGeneration.Compilation != compilation);
 
             if (previousGeneration.Ordinal == 0)
@@ -119,11 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
+            System.Collections.Immutable.ImmutableDictionary<Cci.ITypeDefinition, System.Collections.Immutable.ImmutableArray<Cci.ITypeDefinitionMember>> currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
 
             // Mapping from previous compilation to the current.
-            var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
-            var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
+            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            Symbols.SourceAssemblySymbol sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 otherContext,
                 currentSynthesizedMembers);
 
-            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+            System.Collections.Immutable.ImmutableDictionary<Cci.ITypeDefinition, System.Collections.Immutable.ImmutableArray<Cci.ITypeDefinitionMember>> mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(

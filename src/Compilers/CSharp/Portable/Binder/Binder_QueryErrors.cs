@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool nonUnique = false;
-            var originalType = instanceType.OriginalDefinition;
-            var ienumerable_t = Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-            var iqueryable_t = Compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T);
+            TypeSymbol originalType = instanceType.OriginalDefinition;
+            NamedTypeSymbol ienumerable_t = Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+            NamedTypeSymbol iqueryable_t = Compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T);
             bool isIenumerable = originalType == ienumerable_t || HasUniqueInterface(instanceType, ienumerable_t, ref nonUnique, ref useSiteDiagnostics);
             bool isQueryable = originalType == iqueryable_t || HasUniqueInterface(instanceType, iqueryable_t, ref nonUnique, ref useSiteDiagnostics);
             return isIenumerable != isQueryable && !nonUnique;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool HasUniqueInterface(TypeSymbol instanceType, NamedTypeSymbol interfaceType, ref bool nonUnique, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             TypeSymbol candidate = null;
-            foreach (var i in instanceType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (NamedTypeSymbol i in instanceType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 if (i.OriginalDefinition == interfaceType)
                 {
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasCastToQueryProvider(TypeSymbol instanceType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var originalType = instanceType.OriginalDefinition;
-            var ienumerable = Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
-            var iqueryable = Compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable);
+            TypeSymbol originalType = instanceType.OriginalDefinition;
+            NamedTypeSymbol ienumerable = Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+            NamedTypeSymbol iqueryable = Compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable);
             bool isIenumerable = originalType == ienumerable || HasUniqueInterface(instanceType, ienumerable, ref useSiteDiagnostics);
             bool isQueryable = originalType == iqueryable || HasUniqueInterface(instanceType, iqueryable, ref useSiteDiagnostics);
             return isIenumerable != isQueryable;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arg.Kind == BoundKind.UnboundLambda)
             {
                 var unbound = (UnboundLambda)arg;
-                foreach (var t in unbound.Data.InferredReturnTypes())
+                foreach (TypeSymbol t in unbound.Data.InferredReturnTypes())
                 {
                     if (!t.IsErrorType())
                     {

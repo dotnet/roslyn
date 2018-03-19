@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal GreenNode ItemUntyped(int index)
         {
-            var node = this._node;
+            GreenNode node = this._node;
             if (node.IsList)
             {
                 return node.GetSlot(index);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public bool Any(int kind)
         {
-            foreach (var element in this)
+            foreach (TNode element in this)
             {
                 if (element.RawKind == kind)
                 {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             get
             {
-                var node = this._node;
+                GreenNode node = this._node;
                 if (node.IsList)
                 {
                     return (TNode)node.GetSlot(node.SlotCount - 1);

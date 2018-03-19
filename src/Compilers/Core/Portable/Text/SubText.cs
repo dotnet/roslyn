@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            var span = GetCompositeSpan(sourceIndex, count);
+            TextSpan span = GetCompositeSpan(sourceIndex, count);
             UnderlyingText.CopyTo(span.Start, destination, destinationIndex, span.Length);
         }
 

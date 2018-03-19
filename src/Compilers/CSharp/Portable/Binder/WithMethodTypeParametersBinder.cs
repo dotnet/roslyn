@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_lazyTypeParameterMap == null)
                 {
                     var result = new MultiDictionary<string, TypeParameterSymbol>();
-                    foreach (var typeParameter in _methodSymbol.TypeParameters)
+                    foreach (TypeParameterSymbol typeParameter in _methodSymbol.TypeParameters)
                     {
                         result.Add(typeParameter.Name, typeParameter);
                     }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanConsiderTypeParameters(options))
             {
-                foreach (var parameter in _methodSymbol.TypeParameters)
+                foreach (TypeParameterSymbol parameter in _methodSymbol.TypeParameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {

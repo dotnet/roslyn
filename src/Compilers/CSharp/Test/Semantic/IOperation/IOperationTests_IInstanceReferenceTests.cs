@@ -31,7 +31,7 @@ public class C2 : C1
             string expectedOperationTree = @"
 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'base')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BaseExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

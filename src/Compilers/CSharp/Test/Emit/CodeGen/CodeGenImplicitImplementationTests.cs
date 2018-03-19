@@ -770,7 +770,7 @@ class C1 : IBase1, IBase2
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var typeSymbol = module.GlobalNamespace.GetTypeMembers("C1").Single();
+                NamedTypeSymbol typeSymbol = module.GlobalNamespace.GetTypeMembers("C1").Single();
                 Assert.True(typeSymbol.Interfaces().All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
             };
 
@@ -952,7 +952,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(2, 3, c)
@@ -1208,7 +1208,7 @@ class Test
         i.Property = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Base2.Method()
 Derived2.Method(1)
 Derived4.Method<U>(1, 0)
@@ -1352,7 +1352,7 @@ class Test
         i.Property = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived2.Method()
 Derived2.Method(1)
 Base2.Method<U>(1, 0)
@@ -1425,7 +1425,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
@@ -1485,7 +1485,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
@@ -1546,7 +1546,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method(T)
 Base.Method()");
 
@@ -1608,7 +1608,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1673,7 +1673,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Derived`2.Method(int)
@@ -1738,7 +1738,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1806,7 +1806,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1852,7 +1852,7 @@ class Test
 }
 ";
             // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
-            var comp = CompileAndVerify(text,
+            CompilationVerifier comp = CompileAndVerify(text,
                 expectedOutput: "23123",
                 expectedSignatures: new[]
                 {
@@ -2049,7 +2049,7 @@ class Test : Base, I3
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 I3.M1
 I1.M2
 I3.M2
@@ -2288,10 +2288,10 @@ D.M").VerifyDiagnostics(); // No errors
         /// </summary>
         private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
         {
-            var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
+            CSharpCompilation libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
+            CSharpCompilation exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
             exeComp.VerifyDiagnostics();
 
             return exeComp;

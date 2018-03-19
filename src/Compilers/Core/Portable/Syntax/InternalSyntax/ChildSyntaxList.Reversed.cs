@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 get
                 {
                     var result = new List<GreenNode>();
-                    foreach (var n in this)
+                    foreach (GreenNode n in this)
                     {
                         result.Add(n);
                     }

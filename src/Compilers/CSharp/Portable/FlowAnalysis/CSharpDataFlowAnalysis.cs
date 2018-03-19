@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_variablesDeclared.IsDefault)
                 {
-                    var result = Succeeded
+                    ImmutableArray<ISymbol> result = Succeeded
                         ? Sort(VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _variablesDeclared, result);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_unassignedVariables == null)
                 {
-                    var result = Succeeded
+                    HashSet<Symbol> result = Succeeded
                         ? UnassignedVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
                         : new HashSet<Symbol>();
                     Interlocked.CompareExchange(ref _unassignedVariables, result, null);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_dataFlowsIn.IsDefault)
                 {
                     _succeeded = !_context.Failed;
-                    var result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
+                    ImmutableArray<ISymbol> result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
                         Sort(DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded));
                     ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsIn, result);
                 }
@@ -109,10 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var discarded = DataFlowsIn; // force DataFlowsIn to be computed
+                ImmutableArray<ISymbol> discarded = DataFlowsIn; // force DataFlowsIn to be computed
                 if (_dataFlowsOut.IsDefault)
                 {
-                    var result = Succeeded
+                    ImmutableArray<ISymbol> result = Succeeded
                         ? Sort(DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsOut, result);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_alwaysAssigned.IsDefault)
                 {
-                    var result = Succeeded
+                    ImmutableArray<ISymbol> result = Succeeded
                         ? Sort(AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _alwaysAssigned, result);
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_unassignedVariableAddressOfSyntaxes == null)
                 {
-                    var result = Succeeded
+                    HashSet<PrefixUnaryExpressionSyntax> result = Succeeded
                         ? UnassignedAddressTakenVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
                         : new HashSet<PrefixUnaryExpressionSyntax>();
                     Interlocked.CompareExchange(ref _unassignedVariableAddressOfSyntaxes, result, null);
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_succeeded == null)
                 {
-                    var discarded = DataFlowsIn;
+                    ImmutableArray<ISymbol> discarded = DataFlowsIn;
                 }
 
                 return _succeeded.Value;

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (var stream = _resource.DataProvider())
+                    using (Stream stream = _resource.DataProvider())
                     {
                         if (stream == null)
                         {

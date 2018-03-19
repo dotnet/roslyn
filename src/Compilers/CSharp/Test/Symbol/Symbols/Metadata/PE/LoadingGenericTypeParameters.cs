@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
-            var module0 = assembly.Modules[0];
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            ModuleSymbol module0 = assembly.Modules[0];
 
-            var objectType = module0.GlobalNamespace.GetMembers("System").
+            NamedTypeSymbol objectType = module0.GlobalNamespace.GetMembers("System").
                 OfType<NamespaceSymbol>().Single().
                 GetTypeMembers("Object").Single();
 
@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.MDTestLib1);
             module0 = assembly.Modules[0];
 
-            var varC1 = module0.GlobalNamespace.GetTypeMembers("C1").Single();
+            NamedTypeSymbol varC1 = module0.GlobalNamespace.GetTypeMembers("C1").Single();
 
             Assert.Equal(1, varC1.Arity);
             Assert.Equal(1, varC1.TypeParameters.Length);
             Assert.Equal(1, varC1.TypeArguments().Length);
 
-            var varC1_T = varC1.TypeParameters[0];
+            TypeParameterSymbol varC1_T = varC1.TypeParameters[0];
 
             Assert.Equal(varC1_T, varC1.TypeArguments()[0]);
 
@@ -72,39 +72,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(module0, varC1_T.Locations.Single().MetadataModule);
             Assert.Equal(0, varC1_T.ConstraintTypes().Length);
 
-            var varC2 = varC1.GetTypeMembers("C2").Single();
+            NamedTypeSymbol varC2 = varC1.GetTypeMembers("C2").Single();
             Assert.Equal(1, varC2.Arity);
             Assert.Equal(1, varC2.TypeParameters.Length);
             Assert.Equal(1, varC2.TypeArguments().Length);
 
-            var varC2_T = varC2.TypeParameters[0];
+            TypeParameterSymbol varC2_T = varC2.TypeParameters[0];
 
             Assert.Equal("C2_T", varC2_T.Name);
             Assert.Equal(varC2, varC2_T.ContainingType);
 
-            var varC3 = varC1.GetTypeMembers("C3").Single();
+            NamedTypeSymbol varC3 = varC1.GetTypeMembers("C3").Single();
             Assert.Equal(0, varC3.Arity);
             Assert.Equal(0, varC3.TypeParameters.Length);
             Assert.Equal(0, varC3.TypeArguments().Length);
 
-            var varC4 = varC3.GetTypeMembers("C4").Single();
+            NamedTypeSymbol varC4 = varC3.GetTypeMembers("C4").Single();
             Assert.Equal(1, varC4.Arity);
             Assert.Equal(1, varC4.TypeParameters.Length);
             Assert.Equal(1, varC4.TypeArguments().Length);
 
-            var varC4_T = varC4.TypeParameters[0];
+            TypeParameterSymbol varC4_T = varC4.TypeParameters[0];
 
             Assert.Equal("C4_T", varC4_T.Name);
             Assert.Equal(varC4, varC4_T.ContainingType);
 
-            var varTC2 = module0.GlobalNamespace.GetTypeMembers("TC2").Single();
+            NamedTypeSymbol varTC2 = module0.GlobalNamespace.GetTypeMembers("TC2").Single();
 
             Assert.Equal(2, varTC2.Arity);
             Assert.Equal(2, varTC2.TypeParameters.Length);
             Assert.Equal(2, varTC2.TypeArguments().Length);
 
-            var varTC2_T1 = varTC2.TypeParameters[0];
-            var varTC2_T2 = varTC2.TypeParameters[1];
+            TypeParameterSymbol varTC2_T1 = varTC2.TypeParameters[0];
+            TypeParameterSymbol varTC2_T2 = varTC2.TypeParameters[1];
 
             Assert.Equal(varTC2_T1, varTC2.TypeArguments()[0]);
             Assert.Equal(varTC2_T2, varTC2.TypeArguments()[1]);
@@ -117,21 +117,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(varTC2, varTC2_T2.ContainingType);
             Assert.Equal(1, varTC2_T2.Ordinal);
 
-            var varC100 = module0.GlobalNamespace.GetTypeMembers("C100").Single();
-            var varT = varC100.TypeParameters[0];
+            NamedTypeSymbol varC100 = module0.GlobalNamespace.GetTypeMembers("C100").Single();
+            TypeParameterSymbol varT = varC100.TypeParameters[0];
             Assert.False(varT.HasConstructorConstraint);
             Assert.False(varT.HasReferenceTypeConstraint);
             Assert.False(varT.HasValueTypeConstraint);
             Assert.Equal(VarianceKind.Out, varT.Variance);
 
-            var varC101 = module0.GlobalNamespace.GetTypeMembers("C101").Single();
+            NamedTypeSymbol varC101 = module0.GlobalNamespace.GetTypeMembers("C101").Single();
             varT = varC101.TypeParameters[0];
             Assert.False(varT.HasConstructorConstraint);
             Assert.False(varT.HasReferenceTypeConstraint);
             Assert.False(varT.HasValueTypeConstraint);
             Assert.Equal(VarianceKind.In, varT.Variance);
 
-            var varC102 = module0.GlobalNamespace.GetTypeMembers("C102").Single();
+            NamedTypeSymbol varC102 = module0.GlobalNamespace.GetTypeMembers("C102").Single();
             varT = varC102.TypeParameters[0];
             Assert.True(varT.HasConstructorConstraint);
             Assert.False(varT.HasReferenceTypeConstraint);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(VarianceKind.None, varT.Variance);
             Assert.Equal(0, varT.ConstraintTypes().Length);
 
-            var varC103 = module0.GlobalNamespace.GetTypeMembers("C103").Single();
+            NamedTypeSymbol varC103 = module0.GlobalNamespace.GetTypeMembers("C103").Single();
             varT = varC103.TypeParameters[0];
             Assert.False(varT.HasConstructorConstraint);
             Assert.True(varT.HasReferenceTypeConstraint);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(VarianceKind.None, varT.Variance);
             Assert.Equal(0, varT.ConstraintTypes().Length);
 
-            var varC104 = module0.GlobalNamespace.GetTypeMembers("C104").Single();
+            NamedTypeSymbol varC104 = module0.GlobalNamespace.GetTypeMembers("C104").Single();
             varT = varC104.TypeParameters[0];
             Assert.False(varT.HasConstructorConstraint);
             Assert.False(varT.HasReferenceTypeConstraint);
@@ -155,29 +155,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(VarianceKind.None, varT.Variance);
             Assert.Equal(0, varT.ConstraintTypes().Length);
 
-            var varC105 = module0.GlobalNamespace.GetTypeMembers("C105").Single();
+            NamedTypeSymbol varC105 = module0.GlobalNamespace.GetTypeMembers("C105").Single();
             varT = varC105.TypeParameters[0];
             Assert.True(varT.HasConstructorConstraint);
             Assert.True(varT.HasReferenceTypeConstraint);
             Assert.False(varT.HasValueTypeConstraint);
             Assert.Equal(VarianceKind.None, varT.Variance);
 
-            var varC106 = module0.GlobalNamespace.GetTypeMembers("C106").Single();
+            NamedTypeSymbol varC106 = module0.GlobalNamespace.GetTypeMembers("C106").Single();
             varT = varC106.TypeParameters[0];
             Assert.True(varT.HasConstructorConstraint);
             Assert.True(varT.HasReferenceTypeConstraint);
             Assert.False(varT.HasValueTypeConstraint);
             Assert.Equal(VarianceKind.Out, varT.Variance);
 
-            var varI101 = module0.GlobalNamespace.GetTypeMembers("I101").Single();
-            var varI102 = module0.GlobalNamespace.GetTypeMembers("I102").Single();
+            NamedTypeSymbol varI101 = module0.GlobalNamespace.GetTypeMembers("I101").Single();
+            NamedTypeSymbol varI102 = module0.GlobalNamespace.GetTypeMembers("I102").Single();
 
-            var varC201 = module0.GlobalNamespace.GetTypeMembers("C201").Single();
+            NamedTypeSymbol varC201 = module0.GlobalNamespace.GetTypeMembers("C201").Single();
             varT = varC201.TypeParameters[0];
             Assert.Equal(1, varT.ConstraintTypes().Length);
             Assert.Same(varI101, varT.ConstraintTypes().ElementAt(0));
 
-            var localC202 = module0.GlobalNamespace.GetTypeMembers("C202").Single();
+            NamedTypeSymbol localC202 = module0.GlobalNamespace.GetTypeMembers("C202").Single();
             varT = localC202.TypeParameters[0];
             Assert.Equal(2, varT.ConstraintTypes().Length);
             Assert.Same(varI101, varT.ConstraintTypes().ElementAt(0));
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             // .class public C`2<T1,T2>
             // .class nested public D<S1>
-            var mdRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidGenericType.AsImmutableOrNull());
+            PortableExecutableReference mdRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidGenericType.AsImmutableOrNull());
             string source = "class X : C<int, int>.D { }";
             CreateCompilation(source, new[] { mdRef }).VerifyDiagnostics(
                 // (2,11): error CS0648: 'C<T1, T2>.D' is a type not supported by the language
@@ -235,7 +235,7 @@ class CT_0_T : IT<object>.I0.IT { }
 class CT_T_0 : IT<object>.IT.I0 { }
 class CT_TU_T : IT<object>.ITU<int>.IT { }
 ";
-            var compilation1 = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation1 = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation1.VerifyDiagnostics(
                 // (2,7): error CS0648: 'I0.IT<T>.I0' is a type not supported by the language
                 // class C0_T_0 : I0.IT<object>.I0 { }

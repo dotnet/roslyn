@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
-            var searchPathsEmpty = ImmutableArray<string>.Empty;
+            ImmutableArray<string> searchPathsEmpty = ImmutableArray<string>.Empty;
 
             // relative path
             path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);

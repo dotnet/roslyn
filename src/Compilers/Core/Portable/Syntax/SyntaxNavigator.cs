@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         private static Func<SyntaxTrivia, bool> GetStepIntoFunction(
             bool skipped, bool directives, bool docComments)
         {
-            var index = (skipped ? SyntaxKinds.SkippedTokens : 0) |
+            SyntaxKinds index = (skipped ? SyntaxKinds.SkippedTokens : 0) |
                         (directives ? SyntaxKinds.Directives : 0) |
                         (docComments ? SyntaxKinds.DocComments : 0);
             return s_stepIntoFunctions[(int)index];
@@ -92,21 +92,21 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxToken GetFirstToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
         {
-            var stack = s_childEnumeratorStackPool.Allocate();
+            Stack<ChildSyntaxList.Enumerator> stack = s_childEnumeratorStackPool.Allocate();
             try
             {
                 stack.Push(current.ChildNodesAndTokens().GetEnumerator());
 
                 while (stack.Count > 0)
                 {
-                    var en = stack.Pop();
+                    ChildSyntaxList.Enumerator en = stack.Pop();
                     if (en.MoveNext())
                     {
-                        var child = en.Current;
+                        SyntaxNodeOrToken child = en.Current;
 
                         if (child.IsToken)
                         {
-                            var token = GetFirstToken(child.AsToken(), predicate, stepInto);
+                            SyntaxToken token = GetFirstToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -137,22 +137,22 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxToken GetLastToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
         {
-            var stack = s_childReversedEnumeratorStackPool.Allocate();
+            Stack<ChildSyntaxList.Reversed.Enumerator> stack = s_childReversedEnumeratorStackPool.Allocate();
             try
             {
                 stack.Push(current.ChildNodesAndTokens().Reverse().GetEnumerator());
 
                 while (stack.Count > 0)
                 {
-                    var en = stack.Pop();
+                    ChildSyntaxList.Reversed.Enumerator en = stack.Pop();
 
                     if (en.MoveNext())
                     {
-                        var child = en.Current;
+                        SyntaxNodeOrToken child = en.Current;
 
                         if (child.IsToken)
                         {
-                            var token = GetLastToken(child.AsToken(), predicate, stepInto);
+                            SyntaxToken token = GetLastToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -184,12 +184,12 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto)
         {
             Debug.Assert(stepInto != null);
-            foreach (var trivia in triviaList)
+            foreach (SyntaxTrivia trivia in triviaList)
             {
                 if (trivia.HasStructure && stepInto(trivia))
                 {
-                    var structure = trivia.GetStructure();
-                    var token = GetFirstToken(structure, predicate, stepInto);
+                    SyntaxNode structure = trivia.GetStructure();
+                    SyntaxToken token = GetFirstToken(structure, predicate, stepInto);
                     if (token.RawKind != None)
                     {
                         return token;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(stepInto != null);
 
-            foreach (var trivia in list.Reverse())
+            foreach (SyntaxTrivia trivia in list.Reverse())
             {
                 SyntaxToken token;
                 if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
             if (stepInto != null)
             {
                 // search in leading trivia
-                var firstToken = GetFirstToken(token.LeadingTrivia, predicate, stepInto);
+                SyntaxToken firstToken = GetFirstToken(token.LeadingTrivia, predicate, stepInto);
                 if (firstToken.RawKind != None)
                 {
                     return firstToken;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
             if (stepInto != null)
             {
                 // search in trailing trivia
-                var firstToken = GetFirstToken(token.TrailingTrivia, predicate, stepInto);
+                SyntaxToken firstToken = GetFirstToken(token.TrailingTrivia, predicate, stepInto);
                 if (firstToken.RawKind != None)
                 {
                     return firstToken;
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
             if (stepInto != null)
             {
                 // search in leading trivia
-                var lastToken = GetLastToken(token.TrailingTrivia, predicate, stepInto);
+                SyntaxToken lastToken = GetLastToken(token.TrailingTrivia, predicate, stepInto);
                 if (lastToken.RawKind != None)
                 {
                     return lastToken;
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
             if (stepInto != null)
             {
                 // search in trailing trivia
-                var lastToken = GetLastToken(token.LeadingTrivia, predicate, stepInto);
+                SyntaxToken lastToken = GetLastToken(token.LeadingTrivia, predicate, stepInto);
                 if (lastToken.RawKind != None)
                 {
                     return lastToken;
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
             bool returnNext = false;
 
             // look inside leading trivia for current & next
-            var token = GetNextToken(current, current.Token.LeadingTrivia, predicate, stepInto, ref returnNext);
+            SyntaxToken token = GetNextToken(current, current.Token.LeadingTrivia, predicate, stepInto, ref returnNext);
             if (token.RawKind != None)
             {
                 return token;
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
             bool returnPrevious = false;
 
             // look inside leading trivia for current & next
-            var token = GetPreviousToken(current, current.Token.TrailingTrivia, predicate, stepInto, ref returnPrevious);
+            SyntaxToken token = GetPreviousToken(current, current.Token.TrailingTrivia, predicate, stepInto, ref returnPrevious);
             if (token.RawKind != None)
             {
                 return token;
@@ -376,14 +376,14 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto,
             ref bool returnNext)
         {
-            foreach (var trivia in list)
+            foreach (SyntaxTrivia trivia in list)
             {
                 if (returnNext)
                 {
                     if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                     {
-                        var structure = trivia.GetStructure();
-                        var token = GetFirstToken(structure, predicate, stepInto);
+                        SyntaxNode structure = trivia.GetStructure();
+                        SyntaxToken token = GetFirstToken(structure, predicate, stepInto);
                         if (token.RawKind != None)
                         {
                             return token;
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto,
             ref bool returnPrevious)
         {
-            foreach (var trivia in list.Reverse())
+            foreach (SyntaxTrivia trivia in list.Reverse())
             {
                 if (returnPrevious)
                 {
@@ -435,13 +435,13 @@ namespace Microsoft.CodeAnalysis
                 // walk forward in parent's child list until we find ourselves and then return the
                 // next token
                 bool returnNext = false;
-                foreach (var child in node.Parent.ChildNodesAndTokens())
+                foreach (SyntaxNodeOrToken child in node.Parent.ChildNodesAndTokens())
                 {
                     if (returnNext)
                     {
                         if (child.IsToken)
                         {
-                            var token = GetFirstToken(child.AsToken(), predicate, stepInto);
+                            SyntaxToken token = GetFirstToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetFirstToken(child.AsNode(), predicate, stepInto);
+                            SyntaxToken token = GetFirstToken(child.AsNode(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -484,13 +484,13 @@ namespace Microsoft.CodeAnalysis
                 // walk forward in parent's child list until we find ourselves and then return the
                 // previous token
                 bool returnPrevious = false;
-                foreach (var child in node.Parent.ChildNodesAndTokens().Reverse())
+                foreach (SyntaxNodeOrToken child in node.Parent.ChildNodesAndTokens().Reverse())
                 {
                     if (returnPrevious)
                     {
                         if (child.IsToken)
                         {
-                            var token = GetLastToken(child.AsToken(), predicate, stepInto);
+                            SyntaxToken token = GetLastToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetLastToken(child.AsNode(), predicate, stepInto);
+                            SyntaxToken token = GetLastToken(child.AsNode(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis
                 // look inside trailing trivia for structure
                 if (searchInsideCurrentTokenTrailingTrivia)
                 {
-                    var firstToken = GetFirstToken(current.TrailingTrivia, predicate, stepInto);
+                    SyntaxToken firstToken = GetFirstToken(current.TrailingTrivia, predicate, stepInto);
                     if (firstToken.RawKind != None)
                     {
                         return firstToken;
@@ -541,13 +541,13 @@ namespace Microsoft.CodeAnalysis
                 // walk forward in parent's child list until we find ourself 
                 // and then return the next token
                 bool returnNext = false;
-                foreach (var child in current.Parent.ChildNodesAndTokens())
+                foreach (SyntaxNodeOrToken child in current.Parent.ChildNodesAndTokens())
                 {
                     if (returnNext)
                     {
                         if (child.IsToken)
                         {
-                            var token = GetFirstToken(child.AsToken(), predicate, stepInto);
+                            SyntaxToken token = GetFirstToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetFirstToken(child.AsNode(), predicate, stepInto);
+                            SyntaxToken token = GetFirstToken(child.AsNode(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis
                 // look inside trailing trivia for structure
                 if (searchInsideCurrentTokenLeadingTrivia)
                 {
-                    var lastToken = GetLastToken(current.LeadingTrivia, predicate, stepInto);
+                    SyntaxToken lastToken = GetLastToken(current.LeadingTrivia, predicate, stepInto);
                     if (lastToken.RawKind != None)
                     {
                         return lastToken;
@@ -594,13 +594,13 @@ namespace Microsoft.CodeAnalysis
                 // walk forward in parent's child list until we find ourself 
                 // and then return the next token
                 bool returnPrevious = false;
-                foreach (var child in current.Parent.ChildNodesAndTokens().Reverse())
+                foreach (SyntaxNodeOrToken child in current.Parent.ChildNodesAndTokens().Reverse())
                 {
                     if (returnPrevious)
                     {
                         if (child.IsToken)
                         {
-                            var token = GetLastToken(child.AsToken(), predicate, stepInto);
+                            SyntaxToken token = GetLastToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetLastToken(child.AsNode(), predicate, stepInto);
+                            SyntaxToken token = GetLastToken(child.AsNode(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;

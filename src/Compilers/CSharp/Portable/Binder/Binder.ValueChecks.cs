@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodGroup = (BoundMethodGroup)expr;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
+                MethodGroupResolution resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
                 diagnostics.Add(expr.Syntax, useSiteDiagnostics);
                 Symbol otherSymbol = null;
                 bool resolvedToMethodGroup = resolution.MethodGroup != null;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!resolvedToMethodGroup)
                 {
                     Debug.Assert(methodGroup.ResultKind != LookupResultKind.Viable);
-                    var receiver = methodGroup.ReceiverOpt;
+                    BoundExpression receiver = methodGroup.ReceiverOpt;
                     if ((object)otherSymbol != null && receiver?.Kind == BoundKind.TypeOrValueExpression)
                     {
                         // Since we're not accessing a method, this can't be a Color Color case, so TypeOrValueExpression should not have been used.
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return expr;
             }
 
-            var resultKind = (valueKind == BindValueKind.RValue || valueKind == BindValueKind.RValueOrMethodGroup) ?
+            LookupResultKind resultKind = (valueKind == BindValueKind.RValue || valueKind == BindValueKind.RValueOrMethodGroup) ?
                 LookupResultKind.NotAValue :
                 LookupResultKind.NotAVariable;
 
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckFieldValueKind(SyntaxNode node, BoundFieldAccess fieldAccess, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
         {
-            var fieldSymbol = fieldAccess.FieldSymbol;
+            FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
             var fieldIsStatic = fieldSymbol.IsStatic;
 
             if (RequiresAssignableVariable(valueKind))
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
-            var fieldSymbol = fieldAccess.FieldSymbol;
+            FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
             if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
-            var eventSymbol = eventAccess.EventSymbol;
+            EventSymbol eventSymbol = eventAccess.EventSymbol;
 
             // field-like events that are static or belong to reference types can ref escape anywhere
             if (eventSymbol.IsStatic || eventSymbol.ContainingType.IsReferenceType)
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression receiver;
             SyntaxNode propertySyntax;
-            var propertySymbol = GetPropertySymbol(expr, out receiver, out propertySyntax);
+            PropertySymbol propertySymbol = GetPropertySymbol(expr, out receiver, out propertySyntax);
 
             Debug.Assert((object)propertySymbol != null);
             Debug.Assert(propertySyntax != null);
@@ -898,11 +898,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var requiresSet = RequiresAssignableVariable(valueKind) && propertySymbol.RefKind == RefKind.None;
             if (requiresSet)
             {
-                var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
+                MethodSymbol setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
 
                 if ((object)setMethod == null)
                 {
-                    var containing = this.ContainingMemberOrLambda;
+                    Symbol containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var accessThroughType = this.GetAccessThroughType(receiver);
+                    TypeSymbol accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isAccessible = this.IsAccessible(setMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics);
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var requiresGet = !RequiresAssignmentOnly(valueKind) || propertySymbol.RefKind != RefKind.None;
             if (requiresGet)
             {
-                var getMethod = propertySymbol.GetOwnOrInheritedGetMethod();
+                MethodSymbol getMethod = propertySymbol.GetOwnOrInheritedGetMethod();
 
                 if ((object)getMethod == null)
                 {
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var accessThroughType = this.GetAccessThroughType(receiver);
+                    TypeSymbol accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isAccessible = this.IsAccessible(getMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics);
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
-                    var argument = argsOpt[argIndex];
+                    BoundExpression argument = argsOpt[argIndex];
                     if (argument.Kind == BoundKind.ArgListOperator)
                     {
                         Debug.Assert(argIndex == argsOpt.Length - 1, "vararg must be the last");
@@ -1153,7 +1153,7 @@ moreArguments:
 moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
-                    var argument = argsOpt[argIndex];
+                    BoundExpression argument = argsOpt[argIndex];
                     if (argument.Kind == BoundKind.ArgListOperator)
                     {
                         Debug.Assert(argIndex == argsOpt.Length - 1, "vararg must be the last");
@@ -1251,7 +1251,7 @@ moreArguments:
             uint escapeTo = scopeOfTheContainingExpression;
 
             // collect all writeable ref-like arguments, including receiver
-            var receiverType = receiverOpt?.Type;
+            TypeSymbol receiverType = receiverOpt?.Type;
             if (receiverType?.IsByRefLikeType == true && receiverType?.IsReadOnly == false)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
@@ -1262,7 +1262,7 @@ moreArguments:
                 BoundArgListOperator argList = null;
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
-                    var argument = argsOpt[argIndex];
+                    BoundExpression argument = argsOpt[argIndex];
                     if (argument.Kind == BoundKind.ArgListOperator)
                     {
                         Debug.Assert(argIndex == argsOpt.Length - 1, "vararg must be the last");
@@ -1270,7 +1270,7 @@ moreArguments:
                         break;
                     }
 
-                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
+                    RefKind refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
                     if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
@@ -1279,13 +1279,13 @@ moreArguments:
 
                 if (argList != null)
                 {
-                    var argListArgs = argList.Arguments;
-                    var argListRefKindsOpt = argList.ArgumentRefKindsOpt;
+                    ImmutableArray<BoundExpression> argListArgs = argList.Arguments;
+                    ImmutableArray<RefKind> argListRefKindsOpt = argList.ArgumentRefKindsOpt;
 
                     for (var argIndex = 0; argIndex < argListArgs.Length; argIndex++)
                     {
-                        var argument = argListArgs[argIndex];
-                        var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
+                        BoundExpression argument = argListArgs[argIndex];
+                        RefKind refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
                         if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
@@ -1306,7 +1306,7 @@ moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
                     // check val escape of all arguments
-                    var argument = argsOpt[argIndex];
+                    BoundExpression argument = argsOpt[argIndex];
                     if (argument.Kind == BoundKind.ArgListOperator)
                     {
                         Debug.Assert(argIndex == argsOpt.Length - 1, "vararg must be the last");
@@ -1369,7 +1369,7 @@ moreArguments:
             ImmutableArray<int> argsToParamsOpt, 
             ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
-            var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
+            RefKind effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
             if ((effectiveRefKind == RefKind.None || effectiveRefKind == RefKind.In) && argIndex < parameters.Length)
             {
                 var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
@@ -1398,7 +1398,7 @@ moreArguments:
                 {
                     for (int i = 0; i < parameters.Length; i++)
                     {
-                        var parameter = parameters[i];
+                        ParameterSymbol parameter = parameters[i];
                         if (parameter.IsParams)
                         {
                             break;
@@ -1634,7 +1634,7 @@ moreArguments:
                 return;
             }
 
-            var symbolKind = symbol.Kind.Localize();
+            LocalizableErrorArgument symbolKind = symbol.Kind.Localize();
 
             ErrorCode[] ReadOnlyErrors =
             {
@@ -1729,7 +1729,7 @@ moreArguments:
                     break;
 
                 case BoundKind.Parameter:
-                    var parameter = ((BoundParameter)expr).ParameterSymbol;
+                    ParameterSymbol parameter = ((BoundParameter)expr).ParameterSymbol;
 
                     // byval parameters can escape to method's top level.
                     // others can be escape further, unless they are ref-like.
@@ -1769,7 +1769,7 @@ moreArguments:
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
-                    var fieldSymbol = fieldAccess.FieldSymbol;
+                    FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
 
                     // fields that are static or belong to reference types can ref escape anywhere
                     if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
@@ -1788,7 +1788,7 @@ moreArguments:
                         break;
                     }
 
-                    var eventSymbol = eventAccess.EventSymbol;
+                    EventSymbol eventSymbol = eventAccess.EventSymbol;
 
                     // field-like events that are static or belong to reference types can ref escape anywhere
                     if (eventSymbol.IsStatic || eventSymbol.ContainingType.IsReferenceType)
@@ -1802,7 +1802,7 @@ moreArguments:
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
 
-                    var methodSymbol = call.Method;
+                    MethodSymbol methodSymbol = call.Method;
                     if (methodSymbol.RefKind == RefKind.None)
                     {
                         break;
@@ -1820,7 +1820,7 @@ moreArguments:
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    PropertySymbol indexerSymbol = indexerAccess.Indexer;
 
                     return GetInvocationEscapeScope(
                         indexerSymbol,
@@ -1982,7 +1982,7 @@ moreArguments:
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
 
-                    var methodSymbol = call.Method;
+                    MethodSymbol methodSymbol = call.Method;
                     if (methodSymbol.RefKind == RefKind.None)
                     {
                         break;
@@ -2004,7 +2004,7 @@ moreArguments:
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    PropertySymbol indexerSymbol = indexerAccess.Indexer;
 
                     if (indexerSymbol.RefKind == RefKind.None)
                     {
@@ -2027,7 +2027,7 @@ moreArguments:
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
-                    var propertySymbol = propertyAccess.PropertySymbol;
+                    PropertySymbol propertySymbol = propertyAccess.PropertySymbol;
 
                     if (propertySymbol.RefKind == RefKind.None)
                     {
@@ -2075,7 +2075,7 @@ moreArguments:
         internal static uint GetBroadestValEscape(BoundTupleExpression expr, uint scopeOfTheContainingExpression)
         {
             uint broadest = scopeOfTheContainingExpression;
-            foreach (var element in expr.Arguments)
+            foreach (BoundExpression element in expr.Arguments)
             {
                 uint valEscape;
                 if (element.Kind == BoundKind.TupleLiteral)
@@ -2175,7 +2175,7 @@ moreArguments:
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
-                    var fieldSymbol = fieldAccess.FieldSymbol;
+                    FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
 
                     if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
                     {
@@ -2201,7 +2201,7 @@ moreArguments:
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    PropertySymbol indexerSymbol = indexerAccess.Indexer;
 
                     return GetInvocationEscapeScope(
                         indexerSymbol,
@@ -2229,7 +2229,7 @@ moreArguments:
 
                 case BoundKind.ObjectCreationExpression:
                     var objectCreation = (BoundObjectCreationExpression)expr;
-                    var constructorSymbol = objectCreation.Constructor;
+                    MethodSymbol constructorSymbol = objectCreation.Constructor;
 
                     var escape = GetInvocationEscapeScope(
                         constructorSymbol,
@@ -2241,7 +2241,7 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
-                    var initializerOpt = objectCreation.InitializerExpressionOpt;
+                    BoundExpression initializerOpt = objectCreation.InitializerExpressionOpt;
                     if (initializerOpt != null)
                     {
                         escape = Math.Max(escape, GetValEscape(initializerOpt, scopeOfTheContainingExpression));
@@ -2324,7 +2324,7 @@ moreArguments:
         private static uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
         {
             uint narrowestScope = scopeOfTheContainingExpression;
-            foreach (var element in elements)
+            foreach (BoundExpression element in elements)
             {
                 narrowestScope = Math.Max(narrowestScope, GetValEscape(element, scopeOfTheContainingExpression));
             }
@@ -2335,7 +2335,7 @@ moreArguments:
         private static uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
         {
             var result = Binder.ExternalScope;
-            foreach (var expression in initExpr.Initializers)
+            foreach (BoundExpression expression in initExpr.Initializers)
             {
                 if (expression.Kind == BoundKind.AssignmentOperator)
                 {
@@ -2357,7 +2357,7 @@ moreArguments:
         private static uint GetValEscape(ImmutableArray<BoundExpression> expressions, uint scopeOfTheContainingExpression)
         {
             var result = Binder.ExternalScope;
-            foreach (var expression in expressions)
+            foreach (BoundExpression expression in expressions)
             {
                 result = Math.Max(result, GetValEscape(expression, scopeOfTheContainingExpression));
             }
@@ -2433,7 +2433,7 @@ moreArguments:
                     return true;
 
                 case BoundKind.Local:
-                    var localSymbol = ((BoundLocal)expr).LocalSymbol;
+                    LocalSymbol localSymbol = ((BoundLocal)expr).LocalSymbol;
                     if (localSymbol.ValEscapeScope > escapeTo)
                     {
                         Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, localSymbol);
@@ -2466,7 +2466,7 @@ moreArguments:
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
-                    var fieldSymbol = fieldAccess.FieldSymbol;
+                    FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
 
                     if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
                     {
@@ -2479,7 +2479,7 @@ moreArguments:
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
-                    var methodSymbol = call.Method;
+                    MethodSymbol methodSymbol = call.Method;
 
                     return CheckInvocationEscape(
                         call.Syntax,
@@ -2497,7 +2497,7 @@ moreArguments:
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    PropertySymbol indexerSymbol = indexerAccess.Indexer;
 
                     return CheckInvocationEscape(
                         indexerAccess.Syntax,
@@ -2533,7 +2533,7 @@ moreArguments:
 
                 case BoundKind.ObjectCreationExpression:
                     var objectCreation = (BoundObjectCreationExpression)expr;
-                    var constructorSymbol = objectCreation.Constructor;
+                    MethodSymbol constructorSymbol = objectCreation.Constructor;
 
                     var escape = CheckInvocationEscape(
                         objectCreation.Syntax,
@@ -2549,7 +2549,7 @@ moreArguments:
                         diagnostics,
                         isRefEscape: false);
 
-                    var initializerExpr = objectCreation.InitializerExpressionOpt;
+                    BoundExpression initializerExpr = objectCreation.InitializerExpressionOpt;
                     if (initializerExpr != null)
                     {
                         escape = escape && 
@@ -2600,11 +2600,11 @@ moreArguments:
                            CheckValEscape(uo.Right.Syntax, uo.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.QueryClause:
-                    var clauseValue = ((BoundQueryClause)expr).Value;
+                    BoundExpression clauseValue = ((BoundQueryClause)expr).Value;
                     return CheckValEscape(clauseValue.Syntax, clauseValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                case BoundKind.RangeVariable:  
-                    var variableValue = ((BoundRangeVariable)expr).Value;
+                case BoundKind.RangeVariable:
+                    BoundExpression variableValue = ((BoundRangeVariable)expr).Value;
                     return CheckValEscape(variableValue.Syntax, variableValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.ObjectInitializerExpression:
@@ -2624,11 +2624,11 @@ moreArguments:
                     return CheckValEscape(colElement.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.PointerElementAccess:
-                    var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
+                    BoundExpression accessedExpression = ((BoundPointerElementAccess)expr).Expression;
                     return CheckValEscape(accessedExpression.Syntax, accessedExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.PointerIndirectionOperator:
-                    var operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
+                    BoundExpression operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
                     return CheckValEscape(operandExpression.Syntax, operandExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 default:
@@ -2769,7 +2769,7 @@ moreArguments:
 
         private static bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
-            foreach (var element in elements)
+            foreach (BoundExpression element in elements)
             {
                 if (!CheckValEscape(element.Syntax, element, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
                 {
@@ -2782,7 +2782,7 @@ moreArguments:
 
         private static bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
-            foreach (var expression in initExpr.Initializers)
+            foreach (BoundExpression expression in initExpr.Initializers)
             {
                 if (expression.Kind == BoundKind.AssignmentOperator)
                 {
@@ -2812,7 +2812,7 @@ moreArguments:
 
         private static bool CheckValEscape(ImmutableArray<BoundExpression> expressions, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
-            foreach (var expression in expressions)
+            foreach (BoundExpression expression in expressions)
             {
                 if (!CheckValEscape(expression.Syntax, expression, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
                 {

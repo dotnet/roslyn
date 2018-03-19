@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static SeparatedSyntaxList<TOther> AsSeparatedList<TOther>(this SyntaxNodeOrTokenList list) where TOther : SyntaxNode
         {
             var builder = SeparatedSyntaxListBuilder<TOther>.Create();
-            foreach (var i in list)
+            foreach (SyntaxNodeOrToken i in list)
             {
-                var node = i.AsNode();
+                SyntaxNode node = i.AsNode();
                 if (node != null)
                 {
                     builder.Add((TOther)node);

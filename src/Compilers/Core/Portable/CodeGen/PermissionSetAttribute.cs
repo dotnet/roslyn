@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
 #if DEBUG
             // Must have exactly 1 named argument.
-            var namedArgs = _sourceAttribute.GetNamedArguments(context);
+            ImmutableArray<Cci.IMetadataNamedArgument> namedArgs = _sourceAttribute.GetNamedArguments(context);
             Debug.Assert(namedArgs.Length == 1);
 
             // Named argument must be 'File' property of string type
-            var fileArg = namedArgs.First();
+            Cci.IMetadataNamedArgument fileArg = namedArgs.First();
             Debug.Assert(fileArg.ArgumentName == FilePropertyName);
             Debug.Assert(context.Module.IsPlatformType(fileArg.Type, Cci.PlatformType.SystemString));
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Read the file contents at the resolved file path into a byte array.
             // May throw PermissionSetFileReadException, which is handled in Compilation.Emit.
-            var resolver = context.Module.CommonCompilation.Options.XmlReferenceResolver;
+            XmlReferenceResolver resolver = context.Module.CommonCompilation.Options.XmlReferenceResolver;
 
             // If the resolver isn't available we won't get here since we had to use it to resolve the path.
             Debug.Assert(resolver != null);

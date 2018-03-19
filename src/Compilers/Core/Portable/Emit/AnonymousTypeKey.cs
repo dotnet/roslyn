@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private string GetDebuggerDisplay()
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
+            System.Text.StringBuilder builder = pooledBuilder.Builder;
             for (int i = 0; i < this.Fields.Length; i++)
             {
                 if (i > 0)

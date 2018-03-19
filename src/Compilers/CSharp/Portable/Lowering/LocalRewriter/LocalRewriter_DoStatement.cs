@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenBody = (BoundStatement)Visit(node.Body);
             var startLabel = new GeneratedLabelSymbol("start");
 
-            var syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.

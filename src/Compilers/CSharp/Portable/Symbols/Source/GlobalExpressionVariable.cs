@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
-            var syntaxReference = syntax.GetReference();
+            SyntaxReference syntaxReference = syntax.GetReference();
             return typeSyntax.IsVar
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
@@ -67,15 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyType;
             }
 
-            var typeSyntax = TypeSyntax;
+            TypeSyntax typeSyntax = TypeSyntax;
 
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSymbol type;
 
-            var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-            var binder = binderFactory.GetBinder(typeSyntax);
+            BinderFactory binderFactory = compilation.GetBinderFactory(SyntaxTree);
+            Binder binder = binderFactory.GetBinder(typeSyntax);
 
             bool isVar;
             type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override void InferFieldType(ConsList<FieldSymbol> fieldsBeingBound, Binder binder)
             {
-                var nodeToBind = _nodeToBind.GetSyntax();
+                SyntaxNode nodeToBind = _nodeToBind.GetSyntax();
 
                 if ((object)_containingFieldOpt != null && nodeToBind.Kind() != SyntaxKind.VariableDeclarator)
                 {

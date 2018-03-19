@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             Assert.Equal(1, request.Arguments.Count);
 
-            var argument = request.Arguments[0];
+            BuildRequest.Argument argument = request.Arguments[0];
             Assert.Equal(BuildProtocolConstants.ArgumentId.Shutdown, argument.ArgumentId);
             Assert.Equal(0, argument.ArgumentIndex);
             Assert.Equal("", argument.Value);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             await request.WriteAsync(memoryStream, default(CancellationToken));
             Assert.True(memoryStream.Position > 0);
             memoryStream.Position = 0;
-            var read = await BuildRequest.ReadAsync(memoryStream, default(CancellationToken));
+            BuildRequest read = await BuildRequest.ReadAsync(memoryStream, default(CancellationToken));
             Assert.Equal(BuildProtocolConstants.ProtocolVersion, read.ProtocolVersion);
             Assert.Equal(RequestLanguage.VisualBasicCompile, read.Language);
             Assert.Equal(2, read.Arguments.Count);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             VerifyShutdownRequest(request);
             Assert.Equal(1, request.Arguments.Count);
 
-            var argument = request.Arguments[0];
+            BuildRequest.Argument argument = request.Arguments[0];
             Assert.Equal(BuildProtocolConstants.ArgumentId.Shutdown, argument.ArgumentId);
             Assert.Equal(0, argument.ArgumentIndex);
             Assert.Equal("", argument.Value);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var request = BuildRequest.CreateShutdown();
             await request.WriteAsync(memoryStream, CancellationToken.None);
             memoryStream.Position = 0;
-            var read = await BuildRequest.ReadAsync(memoryStream, CancellationToken.None);
+            BuildRequest read = await BuildRequest.ReadAsync(memoryStream, CancellationToken.None);
             VerifyShutdownRequest(read);
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             await response.WriteAsync(memoryStream, CancellationToken.None);
             memoryStream.Position = 0;
 
-            var read = await BuildResponse.ReadAsync(memoryStream, CancellationToken.None);
+            BuildResponse read = await BuildResponse.ReadAsync(memoryStream, CancellationToken.None);
             Assert.Equal(BuildResponse.ResponseType.Shutdown, read.Type);
             var typed = (ShutdownBuildResponse)read;
             Assert.Equal(42, typed.ServerProcessId);

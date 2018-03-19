@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
             //  prepare
-            var initializers = node.Initializers;
+            SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers = node.Initializers;
             int fieldCount = initializers.Count;
             bool hasError = false;
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (field.Name != null)
                     {
                         //  get property symbol and create a bound property declaration node
-                        foreach (var symbol in anonymousType.GetMembers(field.Name))
+                        foreach (Symbol symbol in anonymousType.GetMembers(field.Name))
                         {
                             if (symbol.Kind == SymbolKind.Property)
                             {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool IsAnonymousTypesAllowed()
         {
-            var member = this.ContainingMemberOrLambda;
+            Symbol member = this.ContainingMemberOrLambda;
             if ((object)member == null)
             {
                 return false;

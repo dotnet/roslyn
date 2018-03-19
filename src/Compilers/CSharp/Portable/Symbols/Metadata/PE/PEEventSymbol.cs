@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                var module = moduleSymbol.Module;
+                PEModule module = moduleSymbol.Module;
                 module.GetEventDefPropsOrThrow(handle, out _name, out mdFlags, out eventType);
             }
             catch (BadImageFormatException mrEx)
@@ -370,12 +370,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return ImmutableArray<EventSymbol>.Empty;
                 }
 
-                var implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_addMethod);
+                ISet<EventSymbol> implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_addMethod);
                 implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_removeMethod));
 
                 var builder = ArrayBuilder<EventSymbol>.GetInstance();
 
-                foreach (var @event in implementedEvents)
+                foreach (EventSymbol @event in implementedEvents)
                 {
                     builder.Add(@event);
                 }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
+            ParamInfo<TypeSymbol>[] methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
 
             if (mrEx != null)
             {

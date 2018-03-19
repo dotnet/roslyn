@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void InitializeTest()
         {
             var code = @"class C { void M() { return; } }";
-            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
+            CSharpParseOptions parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
                 .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
-            var compilation = CreateCompilation(code, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(code, parseOptions: parseOptions);
 
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockAction));
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockStartAction));
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private static void Verify(Compilation compilation, string context)
         {
             var analyzer = new Analyzer(s => context == s);
-            var diagnostics = compilation.GetAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer });
+            ImmutableArray<Diagnostic> diagnostics = compilation.GetAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer });
 
             Assert.Equal(1, diagnostics.Length);
             Assert.True(diagnostics[0].Descriptor.Description.ToString().IndexOf(analyzer.Info.GetContext()) >= 0);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             string fileName = "Test.cs";
             string projectName = "TestProject";
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName, options: parseOptions);
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName, options: parseOptions);
 
             return CSharpCompilation.Create(
                 projectName,

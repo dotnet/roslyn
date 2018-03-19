@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void SpanAssignmentExpression()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -39,7 +39,7 @@ class C
         [Fact]
         public void SpanToSpanSwitch()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -58,7 +58,7 @@ class C
         [Fact]
         public void SpanToObjectPatternSwitch()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class C
@@ -86,7 +86,7 @@ class C
         [Fact]
         public void SpanToGenericPatternSwitch()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -113,7 +113,7 @@ class C
         [Fact]
         public void SpanToGenericPatternSwitch2()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -140,7 +140,7 @@ class C
         [Fact]
         public void ObjectToSpanPatternSwitch()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -173,7 +173,7 @@ class C
         [Fact]
         public void GenericToSpanPatternSwitch()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -198,7 +198,7 @@ class C
         [Fact]
         public void GenericToSpanPatternSwitch2()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -223,7 +223,7 @@ class C
         [Fact]
         public void SpanToSpanIsExpr()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -238,7 +238,7 @@ class C
         [Fact]
         public void ObjectToSpanIsExpr()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -262,7 +262,7 @@ class C
         [Fact]
         public void GenericToSpanIsExpr()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -286,7 +286,7 @@ class C
         [Fact]
         public void SpanToObjectIsExpr()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -308,7 +308,7 @@ class C
         [Fact]
         public void SpanToGenericIsExpr()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -330,7 +330,7 @@ class C
         [Fact]
         public void SpanToGenericIsExpr2()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -1195,7 +1195,7 @@ namespace System
     public struct Span<T> { }
     public struct ReadOnlySpan<T> { }
 }";
-            var reference = CreateEmptyCompilation(
+            CSharpCompilation reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
@@ -1212,7 +1212,7 @@ class Program
     }
 }
 ";
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1229,7 +1229,7 @@ namespace System
     public ref struct Span<T> { }
     public ref struct ReadOnlySpan<T> { }
 }";
-            var reference = CreateEmptyCompilation(
+            CSharpCompilation reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
@@ -1246,7 +1246,7 @@ class Program
     }
 }
 ";
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1273,7 +1273,7 @@ namespace System
         }
     }
 }";
-            var reference = CreateEmptyCompilation(
+            CSharpCompilation reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
@@ -1290,7 +1290,7 @@ class Program
     }
 }
 ";
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1314,7 +1314,7 @@ namespace System
         }
     }
 }";
-            var reference = CreateEmptyCompilation(
+            CSharpCompilation reference = CreateEmptyCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
@@ -1331,7 +1331,7 @@ class Program
     }
 }
 ";
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: TestOptions.ReleaseExe);
@@ -1409,7 +1409,7 @@ ref struct Program
         [WorkItem(24627, "https://github.com/dotnet/roslyn/issues/24627")]
         public void ArgMixingBogusInstanceCall()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 class Program
 {
     ref struct S1

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             get
             {
-                var innerNode = _nodes[index];
+                GreenNode innerNode = _nodes[index];
                 if (innerNode?.IsToken == true)
                 {
                     // getting internal token so we do not know the position
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void Add(IEnumerable<SyntaxNodeOrToken> nodeOrTokens)
         {
-            foreach (var n in nodeOrTokens)
+            foreach (SyntaxNodeOrToken n in nodeOrTokens)
             {
                 this.Add(n);
             }

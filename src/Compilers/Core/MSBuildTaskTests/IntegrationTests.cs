@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             IEnumerable<KeyValuePair<string, string>> filesInDirectory,
             IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
-            foreach (var pair in filesInDirectory)
+            foreach (KeyValuePair<string, string> pair in filesInDirectory)
             {
                 TempFile file = currentDirectory.CreateFile(pair.Key);
                 file.WriteAllText(pair.Value);
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         private void VerifyResultAndOutput(ProcessResult result, TempDirectory path, string expectedOutput)
         {
-            using (var resultFile = GetResultFile(path, "hello.exe"))
+            using (DisposableFile resultFile = GetResultFile(path, "hello.exe"))
             {
                 VerifyResult(result);
 
-                var runningResult = RunCompilerOutput(resultFile);
+                ProcessResult runningResult = RunCompilerOutput(resultFile);
                 Assert.Equal(expectedOutput, runningResult.Output);
             }
         }
@@ -405,9 +405,9 @@ End Class
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
+            ProcessResult result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
-            using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
+            using (DisposableFile resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
             {
                 // once we stop issuing BC40998 (NYI), we can start making stronger assertions
                 // about our output in the general case
@@ -417,7 +417,7 @@ End Class
                     Assert.Equal("", result.Errors);
                 }
                 Assert.Equal(0, result.ExitCode);
-                var runningResult = RunCompilerOutput(resultFile);
+                ProcessResult runningResult = RunCompilerOutput(resultFile);
                 Assert.Equal("Hello\r\nthere\r\nWorld\r\n", runningResult.Output);
             }
         }
@@ -604,7 +604,7 @@ End Class
         public void ReportAnalyzerMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
+            ProcessResult result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
                 { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
 
@@ -615,8 +615,8 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
-            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
-            var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
+            TempDirectory testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
+            TempFile slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2005
@@ -644,8 +644,8 @@ Global
     EndGlobalSection
 EndGlobal
 ");
-            var appDir = testDir.CreateDirectory(@"Console;!@(goo)'^(Application1");
-            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(goo)'^(Application1.csproj").WriteAllText(
+            TempDirectory appDir = testDir.CreateDirectory(@"Console;!@(goo)'^(Application1");
+            TempFile appProjFile = appDir.CreateFile(@"Cons.ole;!@(goo)'^(Application1.csproj").WriteAllText(
     @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -695,7 +695,7 @@ EndGlobal
 </Project>
 ");
 
-            var appProgramFile = appDir.CreateFile("Program.cs").WriteAllText(
+            TempFile appProgramFile = appDir.CreateFile("Program.cs").WriteAllText(
     @"
 using System;
 using System.Collections.Generic;
@@ -712,8 +712,8 @@ namespace Console____goo____Application1
     }
 }");
 
-            var libraryDir = testDir.CreateDirectory(@"Class;!@(goo)'^(Library1");
-            var libraryProjFile = libraryDir.CreateFile("Class;!@(goo)'^(Library1.csproj").WriteAllText(
+            TempDirectory libraryDir = testDir.CreateDirectory(@"Class;!@(goo)'^(Library1");
+            TempFile libraryProjFile = libraryDir.CreateFile("Class;!@(goo)'^(Library1.csproj").WriteAllText(
     @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -769,7 +769,7 @@ namespace Console____goo____Application1
 </Project>
 ");
 
-            var libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
+            TempFile libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
     @"
 namespace Class____goo____Library1
 {
@@ -779,7 +779,7 @@ namespace Class____goo____Library1
 }
 ");
 
-            var result = RunCommandLineCompiler(s_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
+            ProcessResult result = RunCommandLineCompiler(s_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("", result.Errors);
         }

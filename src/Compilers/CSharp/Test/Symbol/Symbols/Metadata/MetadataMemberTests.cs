@@ -144,15 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolCtor01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal(RuntimeCorLibName.Name, mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("StringComparer").Single() as NamedTypeSymbol;
-            var ctor = type1.InstanceConstructors.Single();
+            MethodSymbol ctor = type1.InstanceConstructors.Single();
 
             Assert.Equal(type1, ctor.ContainingSymbol);
             Assert.Equal(WellKnownMemberNames.InstanceConstructorName, ctor.Name);
@@ -179,10 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("Microsoft").Single() as NamespaceSymbol;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ns3 = ns2.GetMembers("Hosting").Single() as NamespaceSymbol;
 
             var class1 = ns3.GetTypeMembers("StrongNameHelpers").First() as NamedTypeSymbol;
-            var members = class1.GetMembers("StrongNameSignatureGeneration");
+            System.Collections.Immutable.ImmutableArray<Symbol> members = class1.GetMembers("StrongNameSignatureGeneration");
             // 4 overloads
             Assert.Equal(4, members.Length);
             var member1 = members.Last() as MethodSymbol;
@@ -231,17 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("Microsoft").Single() as NamespaceSymbol;
             var ns2 = (ns1.GetMembers("Runtime").Single() as NamespaceSymbol).GetMembers("Hosting").Single() as NamespaceSymbol;
 
             var class1 = ns2.GetTypeMembers("StrongNameHelpers").First() as NamedTypeSymbol;
-            var members = class1.GetMembers("StrongNameSignatureGeneration");
+            System.Collections.Immutable.ImmutableArray<Symbol> members = class1.GetMembers("StrongNameSignatureGeneration");
             var member1 = members.Last() as MethodSymbol;
 
             Assert.Equal(6, member1.Parameters.Length);
@@ -289,10 +289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataMethodSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             var ns1 = (mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol).GetMembers("Collections").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Generic").Single() as NamespaceSymbol;
 
@@ -334,10 +334,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataParameterSymbolGen02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             var ns1 = (mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol).GetMembers("Collections").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Generic").Single() as NamespaceSymbol;
 
@@ -383,9 +383,9 @@ class C
     C() { }
     static C() { }
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             Assert.False(compilation.GetDiagnostics().Any());
-            var classC = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
+            NamedTypeSymbol classC = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             // NamedTypeSymbol.Constructors only contains instance constructors
             Assert.Equal(1, classC.InstanceConstructors.Length);
             Assert.Equal(1, classC.GetMembers(WellKnownMemberNames.StaticConstructorName).Length);
@@ -430,11 +430,11 @@ class B {
 ";
             var csharp = @"";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-            var namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
+            NamespaceSymbol namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
 
-            var members = namespaceA.GetMembers("B");
+            System.Collections.Immutable.ImmutableArray<Symbol> members = namespaceA.GetMembers("B");
             Assert.Equal(2, members.Length);
             Assert.NotNull(members[0]);
             Assert.NotNull(members[1]);
@@ -454,11 +454,11 @@ class B {
 ";
             var csharp = @"";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-            var namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
+            NamespaceSymbol namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
 
-            var members = namespaceA.GetMembers("B");
+            System.Collections.Immutable.ImmutableArray<Symbol> members = namespaceA.GetMembers("B");
             Assert.Equal(2, members.Length);
             Assert.NotNull(members[0]);
             Assert.NotNull(members[1]);
@@ -471,10 +471,10 @@ class B {
         {
             var csharp = @"";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapClassIL);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapClassIL);
             comp.VerifyDiagnostics();
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Class");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Class");
             AssertEx.None(type.GetMembersUnordered(), symbol => symbol.Name.StartsWith("_VtblGap", StringComparison.Ordinal));
 
             // Dropped entirely.
@@ -484,13 +484,13 @@ class B {
             Assert.Equal(0, type.GetMembers("BothAccessorsAreGaps").Length);
 
             // Getter is silently dropped, property appears valid and write-only.
-            var propWithoutGetter = type.GetMember<PropertySymbol>("GetterIsGap");
+            PropertySymbol propWithoutGetter = type.GetMember<PropertySymbol>("GetterIsGap");
             Assert.Null(propWithoutGetter.GetMethod);
             Assert.NotNull(propWithoutGetter.SetMethod);
             Assert.False(propWithoutGetter.MustCallMethodsDirectly);
 
             // Setter is silently dropped, property appears valid and read-only.
-            var propWithoutSetter = type.GetMember<PropertySymbol>("SetterIsGap");
+            PropertySymbol propWithoutSetter = type.GetMember<PropertySymbol>("SetterIsGap");
             Assert.NotNull(propWithoutSetter.GetMethod);
             Assert.Null(propWithoutSetter.SetMethod);
             Assert.False(propWithoutSetter.MustCallMethodsDirectly);
@@ -522,7 +522,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapClassIL);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapClassIL);
             comp.VerifyDiagnostics(
                 // (8,11): error CS1061: 'Class' does not contain a definition for '_VtblGap1_1' and no extension method '_VtblGap1_1' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
                 //         c._VtblGap1_1();
@@ -567,7 +567,7 @@ class Explicit : Interface
 }
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapInterfaceIL);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharp, VTableGapInterfaceIL);
             comp.VerifyDiagnostics(
                 // (2,7): error CS0535: 'Empty' does not implement interface member 'Interface.SetterIsGap'
                 // class Empty : Interface
@@ -608,9 +608,9 @@ class Test
 ";
             var members = new[] { "F", "P", "E", "M" };
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
 
-            var test1 = comp1.GetTypeByMetadataName("Test");
+            NamedTypeSymbol test1 = comp1.GetTypeByMetadataName("Test");
             var memberNames1 = new HashSet<string>(test1.MemberNames);
 
             foreach (var m in members)
@@ -618,9 +618,9 @@ class Test
                 Assert.True(memberNames1.Contains(m), m);
             }
 
-            var comp2 = CreateCompilation("", new[] { comp1.EmitToImageReference() });
+            CSharpCompilation comp2 = CreateCompilation("", new[] { comp1.EmitToImageReference() });
 
-            var test2 = comp2.GetTypeByMetadataName("Test");
+            NamedTypeSymbol test2 = comp2.GetTypeByMetadataName("Test");
             var memberNames2 = new HashSet<string>(test2.MemberNames);
 
             foreach (var m in members)
@@ -648,9 +648,9 @@ class Test
 ";
             var members = new[] { "F", "P", "E", "M" };
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
 
-            var test1 = comp1.GetTypeByMetadataName("Test");
+            NamedTypeSymbol test1 = comp1.GetTypeByMetadataName("Test");
             test1.GetMembers();
             var memberNames1 = new HashSet<string>(test1.MemberNames);
 
@@ -659,9 +659,9 @@ class Test
                 Assert.True(memberNames1.Contains(m), m);
             }
 
-            var comp2 = CreateCompilation("", new[] { comp1.EmitToImageReference() });
+            CSharpCompilation comp2 = CreateCompilation("", new[] { comp1.EmitToImageReference() });
 
-            var test2 = comp2.GetTypeByMetadataName("Test");
+            NamedTypeSymbol test2 = comp2.GetTypeByMetadataName("Test");
             test2.GetMembers();
             var memberNames2 = new HashSet<string>(test2.MemberNames);
 
@@ -674,7 +674,7 @@ class Test
         [Fact]
         public void TestMetadataImportOptions_01()
         {
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // error CS7088: Invalid 'MetadataImportOptions' value: '255'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
@@ -720,11 +720,11 @@ public class C
     private int P3 {get; set;}
 }
 ";
-            var compilation0 = CreateCompilation(source);
+            CSharpCompilation compilation0 = CreateCompilation(source);
 
             options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            var compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
-            var c = compilation.GetTypeByMetadataName("C");
+            CSharpCompilation compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
+            NamedTypeSymbol c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.Empty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));
@@ -756,7 +756,7 @@ public class C
         [Fact]
         public void TestMetadataImportOptions_02()
         {
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // error CS7088: Invalid 'MetadataImportOptions' value: '255'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
@@ -783,10 +783,10 @@ public class C
     private int P3 {get; set;}
 }
 ";
-            var compilation0 = CreateCompilation(source);
+            CSharpCompilation compilation0 = CreateCompilation(source);
 
-            var compilation = CreateCompilation("", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
-            var c = compilation.GetTypeByMetadataName("C");
+            CSharpCompilation compilation = CreateCompilation("", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
+            NamedTypeSymbol c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _parameterSyntaxKind |= ParameterSyntaxKind.ExtensionThisParameter;
             }
 
-            var parameterSyntax = this.CSharpSyntaxNode;
+            ParameterSyntax parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax != null && parameterSyntax.Default != null)
             {
                 _parameterSyntaxKind |= ParameterSyntaxKind.DefaultParameter;
@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // in which case the declaring compilation is the wrong one.
         protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
         {
-            var parameterSyntax = this.CSharpSyntaxNode;
+            ParameterSyntax parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
                 return ConstantValue.NotAvailable;
             }
 
-            var defaultSyntax = parameterSyntax.Default;
+            EqualsValueClauseSyntax defaultSyntax = parameterSyntax.Default;
             if (defaultSyntax == null)
             {
                 return ConstantValue.NotAvailable;
@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (binder == null)
             {
-                var syntaxTree = _syntaxRef.SyntaxTree;
-                var compilation = this.DeclaringCompilation;
-                var binderFactory = compilation.GetBinderFactory(syntaxTree);
+                SyntaxTree syntaxTree = _syntaxRef.SyntaxTree;
+                CSharpCompilation compilation = this.DeclaringCompilation;
+                BinderFactory binderFactory = compilation.GetBinderFactory(syntaxTree);
                 binder = binderFactory.GetBinder(defaultSyntax);
             }
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // represent default(struct) by a Null constant:
-            var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
+            ConstantValue value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
             return value;
         }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return base.MetadataName;
                 }
 
-                var definition = sourceMethod.SourcePartialDefinition;
+                SourceOrdinaryMethodSymbol definition = sourceMethod.SourcePartialDefinition;
                 if ((object)definition == null)
                 {
                     return base.MetadataName;
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var impl = sourceMethod.SourcePartialImplementation;
+                SourceOrdinaryMethodSymbol impl = sourceMethod.SourcePartialImplementation;
                 if ((object)impl == null)
                 {
                     return null;
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var syntax = this.CSharpSyntaxNode;
+                ParameterSyntax syntax = this.CSharpSyntaxNode;
                 return (syntax != null) ? syntax.AttributeLists : default(SyntaxList<AttributeListSyntax>);
             }
         }
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonParameterWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal ParameterEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -380,12 +380,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool bagCreatedOnThisThread;
                 if ((object)copyFrom != null)
                 {
-                    var attributesBag = copyFrom.GetAttributesBag();
+                    CustomAttributesBag<CSharpAttributeData> attributesBag = copyFrom.GetAttributesBag();
                     bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
                 }
                 else
                 {
-                    var attributeSyntax = this.GetAttributeDeclarations();
+                    OneOrMany<SyntaxList<AttributeListSyntax>> attributeSyntax = this.GetAttributeDeclarations();
                     bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, binderOpt: ParameterBinderOpt);
                 }
 
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 description.Equals(AttributeDescription.DateTimeConstantAttribute));
 
             bool hasAnyDiagnostics;
-            var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+            CSharpAttributeData attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
             ConstantValue value;
             if (attribute.HasErrors)
             {
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 value = DecodeDefaultParameterValueAttribute(description, attribute, arguments.AttributeSyntax, diagnose: false, diagnosticsOpt: null);
             }
 
-            var paramData = arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>();
+            ParameterEarlyWellKnownAttributeData paramData = arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>();
             if (paramData.DefaultParameterValue == ConstantValue.Unset)
             {
                 paramData.DefaultParameterValue = value;
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
@@ -580,14 +580,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeDefaultParameterValueAttribute(AttributeDescription description, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            var attribute = arguments.Attribute;
-            var syntax = arguments.AttributeSyntaxOpt;
-            var diagnostics = arguments.Diagnostics;
+            CSharpAttributeData attribute = arguments.Attribute;
+            AttributeSyntax syntax = arguments.AttributeSyntaxOpt;
+            DiagnosticBag diagnostics = arguments.Diagnostics;
 
             Debug.Assert(syntax != null);
             Debug.Assert(diagnostics != null);
 
-            var value = DecodeDefaultParameterValueAttribute(description, attribute, syntax, diagnose: true, diagnosticsOpt: diagnostics);
+            ConstantValue value = DecodeDefaultParameterValueAttribute(description, attribute, syntax, diagnose: true, diagnosticsOpt: diagnostics);
             if (!value.IsBad)
             {
                 VerifyParamDefaultValueMatchesAttributeIfAny(value, syntax, diagnostics);
@@ -601,10 +601,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private void VerifyParamDefaultValueMatchesAttributeIfAny(ConstantValue value, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            var data = GetEarlyDecodedWellKnownAttributeData();
+            ParameterEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
             if (data != null)
             {
-                var attrValue = data.DefaultParameterValue;
+                ConstantValue attrValue = data.DefaultParameterValue;
                 if ((attrValue != ConstantValue.Unset) &&
                     (value != attrValue))
                 {
@@ -658,14 +658,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(attribute.CommonConstructorArguments.Length == 1);
 
             // the type of the value is the type of the expression in the attribute:
-            var arg = attribute.CommonConstructorArguments[0];
+            TypedConstant arg = attribute.CommonConstructorArguments[0];
 
             SpecialType specialType = arg.Kind == TypedConstantKind.Enum ?
                 ((INamedTypeSymbol)arg.Type).EnumUnderlyingType.SpecialType :
                 arg.Type.SpecialType;
 
-            var compilation = this.DeclaringCompilation;
-            var constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType);
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            ConstantValueTypeDiscriminator constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (constantValueDiscriminator == ConstantValueTypeDiscriminator.Bad)
             {
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var method = ContainingSymbol as MethodSymbol;
             if ((object)method == null) return false;
-            var impl = method.IsPartialImplementation() ? method : method.PartialImplementationPart;
+            MethodSymbol impl = method.IsPartialImplementation() ? method : method.PartialImplementationPart;
             if ((object)impl == null) return false;
             var paramList =
                 node     // AttributeSyntax
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (paramList == null) return false;
             var methDecl = paramList.Parent as MethodDeclarationSyntax;
             if (methDecl == null) return false;
-            foreach (var r in impl.DeclaringSyntaxReferences)
+            foreach (SyntaxReference r in impl.DeclaringSyntaxReferences)
             {
                 if (r.GetSyntax() == methDecl) return true;
             }
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // lazyHasOptionalAttribute is decoded early, hence we cannot reach here when binding attributes for this symbol.
                         // So it is fine to force complete attributes here.
 
-                        var attributes = GetAttributes();
+                        ImmutableArray<CSharpAttributeData> attributes = GetAttributes();
 
                         if (!attributes.Any())
                         {
@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, cancellationToken);
 
             // Force binding of default value.
-            var unused = this.ExplicitDefaultConstantValue;
+            ConstantValue unused = this.ExplicitDefaultConstantValue;
         }
     }
 

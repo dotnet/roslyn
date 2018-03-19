@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
 
         internal static string GetNumeral(int number)
         {
-            var numerals = s_lazyNumerals;
+            ImmutableArray<string> numerals = s_lazyNumerals;
             if (numerals.IsDefault)
             {
                 numerals = ImmutableArray.Create("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
@@ -151,7 +151,7 @@ namespace Roslyn.Utilities
             out string result)
         {
             const string AttributeSuffix = "Attribute";
-            var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            StringComparison comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             if (name.Length > AttributeSuffix.Length && name.EndsWith(AttributeSuffix, comparison))
             {
                 result = name.Substring(0, name.Length - AttributeSuffix.Length);

@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            var addMethod = this.AddMethod;
+            MethodSymbol addMethod = this.AddMethod;
             Debug.Assert((object)addMethod != null);
             if (addMethod.ShouldInclude(context))
             {
                 yield return addMethod;
             }
 
-            var removeMethod = this.RemoveMethod;
+            MethodSymbol removeMethod = this.RemoveMethod;
             Debug.Assert((object)removeMethod != null);
             if (removeMethod.ShouldInclude(context))
             {

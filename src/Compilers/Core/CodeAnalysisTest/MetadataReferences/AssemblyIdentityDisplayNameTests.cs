@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(AssemblyIdentity.TryParseVersion(value, out actual, out actualParts));
 
             // compare with fusion
-            var fusionName = FusionAssemblyIdentity.ToAssemblyNameObject("Name, Version=" + value);
+            FusionAssemblyIdentity.IAssemblyName fusionName = FusionAssemblyIdentity.ToAssemblyNameObject("Name, Version=" + value);
             if (fusionName != null)
             {
                 AssemblyIdentityParts fusionParts = 0;
-                var fusionVersion = FusionAssemblyIdentity.GetVersion(fusionName, out fusionParts);
+                Version fusionVersion = FusionAssemblyIdentity.GetVersion(fusionName, out fusionParts);
 
                 // name parsing succeeds but there is no version:
                 Assert.Equal((AssemblyIdentityParts)0, fusionParts);
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(major, minor, build, revision), actualVersion);
 
             // compare with fusion
-            var fusionName = FusionAssemblyIdentity.ToAssemblyNameObject("Name, Version=" + value);
+            FusionAssemblyIdentity.IAssemblyName fusionName = FusionAssemblyIdentity.ToAssemblyNameObject("Name, Version=" + value);
             Assert.NotNull(fusionName);
 
             AssemblyIdentityParts fusionParts = 0;
-            var fusionVersion = FusionAssemblyIdentity.GetVersion(fusionName, out fusionParts);
+            Version fusionVersion = FusionAssemblyIdentity.GetVersion(fusionName, out fusionParts);
             Assert.Equal(fusionVersion, actualVersion);
 
             // Test limitation:
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void TestParseSimpleName(string displayName, string expected, string expectedFusion)
         {
-            var fusionName = FusionAssemblyIdentity.ToAssemblyNameObject(displayName);
+            FusionAssemblyIdentity.IAssemblyName fusionName = FusionAssemblyIdentity.ToAssemblyNameObject(displayName);
             var actual = (fusionName != null) ? FusionAssemblyIdentity.GetName(fusionName) : null;
             Assert.Equal(expectedFusion, actual);
 

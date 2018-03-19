@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool synthesized = !ReferenceEquals(oldTypeParameters[0].ContainingSymbol.OriginalDefinition, newOwner.OriginalDefinition);
 
             int ordinal = 0;
-            foreach (var tp in oldTypeParameters)
+            foreach (TypeParameterSymbol tp in oldTypeParameters)
             {
-                var newTp = synthesized ?
+                SubstitutedTypeParameterSymbol newTp = synthesized ?
                     new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, new TypeWithModifiers(newTp));
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             while (oldOwner != null && oldOwner != stopAt)
             {
-                var currentParameters = oldOwner.OriginalDefinition.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> currentParameters = oldOwner.OriginalDefinition.TypeParameters;
 
                 for (int i = currentParameters.Length - 1; i >= 0; i--)
                 {

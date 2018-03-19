@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             var underlyingMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             _underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
-            foreach (var underlyingMethod in underlyingMethods)
+            foreach (MethodSymbol underlyingMethod in underlyingMethods)
             {
                 methods.Add(this.RetargetingTranslator.Retarget(underlyingMethod));
             }

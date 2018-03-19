@@ -35,15 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
         {
-            var parseOptions = Arguments.ParseOptions;
+            CSharpParseOptions parseOptions = Arguments.ParseOptions;
 
             // We compute script parse options once so we don't have to do it repeatedly in
             // case there are many script files.
-            var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
+            CSharpParseOptions scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
             bool hadErrors = false;
 
-            var sourceFiles = Arguments.SourceFiles;
+            ImmutableArray<CommandLineSourceFile> sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree[sourceFiles.Length];
             var normalizedFilePaths = new string[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
+            DesktopAssemblyIdentityComparer assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
             var appConfigPath = this.Arguments.AppConfigPath;
             if (appConfigPath != null)
             {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger);
 
             MetadataReferenceResolver referenceDirectiveResolver;
-            var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
+            List<MetadataReference> resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return null;
@@ -160,11 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             out string normalizedFilePath)
         {
             var fileDiagnostics = new List<DiagnosticInfo>();
-            var content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
+            SourceText content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
 
             if (content == null)
             {
-                foreach (var info in fileDiagnostics)
+                foreach (DiagnosticInfo info in fileDiagnostics)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(info));
                 }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceText content,
             CommandLineSourceFile file)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(
                 content,
                 file.IsScript ? scriptParseOptions : parseOptions,
                 file.Path);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol entryPoint = comp.ScriptClass;
                 if ((object)entryPoint == null)
                 {
-                    var method = comp.GetEntryPoint(cancellationToken);
+                    Symbols.MethodSymbol method = comp.GetEntryPoint(cancellationToken);
                     if ((object)method != null)
                     {
                         entryPoint = method.PartialImplementationPart ?? method;
@@ -268,8 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void PrintLangVersions(TextWriter consoleOutput)
         {
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LangVersions, Culture));
-            var defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
-            var latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
+            LanguageVersion defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            LanguageVersion latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
             foreach (LanguageVersion v in Enum.GetValues(typeof(LanguageVersion)))
             {
                 if (v == defaultVersion)

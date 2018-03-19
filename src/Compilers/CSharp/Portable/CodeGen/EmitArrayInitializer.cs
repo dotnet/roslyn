@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private void EmitArrayInitializers(ArrayTypeSymbol arrayType, BoundArrayInitialization inits)
         {
-            var initExprs = inits.Initializers;
-            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType, initExprs);
+            ImmutableArray<BoundExpression> initExprs = inits.Initializers;
+            ArrayInitializerStyle initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType, initExprs);
 
             if (initializationStyle == ArrayInitializerStyle.Element)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             for (int i = 0; i < inits.Length; i++)
             {
-                var init = inits[i];
+                BoundExpression init = inits[i];
                 if (ShouldEmitInitExpression(includeConstants, init))
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                                          ArrayBuilder<IndexDesc> indices,
                                                          bool includeConstants)
         {
-            var top = indices.Peek();
-            var inits = top.Initializers;
+            IndexDesc top = indices.Peek();
+            ImmutableArray<BoundExpression> inits = top.Initializers;
 
             if (IsMultidimensionalInitializer(inits))
             {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // leaf case
                 for (int i = 0; i < inits.Length; i++)
                 {
-                    var init = inits[i];
+                    BoundExpression init = inits[i];
                     if (ShouldEmitInitExpression(includeConstants, init))
                     {
                         // emit array ref
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         Debug.Assert(indices.Count == arrayType.Rank - 1);
 
                         // emit values of all indices that are in progress
-                        foreach (var row in indices)
+                        foreach (IndexDesc row in indices)
                         {
                             _builder.EmitIntConstant(row.Index);
                         }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // emit the leaf index
                         _builder.EmitIntConstant(i);
 
-                        var initExpr = inits[i];
+                        BoundExpression initExpr = inits[i];
                         EmitExpression(initExpr, true);
                         EmitArrayElementStore(arrayType, init.Syntax);
                     }
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            foreach (var init in inits)
+            foreach (BoundExpression init in inits)
             {
                 var asArrayInit = init as BoundArrayInitialization;
 
@@ -321,14 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (inits[0].Kind == BoundKind.ArrayInitialization)
                 {
-                    foreach (var init in inits)
+                    foreach (BoundExpression init in inits)
                     {
                         SerializeArrayRecursive(bw, ((BoundArrayInitialization)init).Initializers);
                     }
                 }
                 else
                 {
-                    foreach (var init in inits)
+                    foreach (BoundExpression init in inits)
                     {
                         AsConstOrDefault(init).Serialize(bw);
                     }
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return -1;
             }
 
-            var initializers = initializer.Initializers;
+            ImmutableArray<BoundExpression> initializers = initializer.Initializers;
             if (initializers.Any(init => init.ConstantValue == null))
             {
                 return -1;
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var writer = new BlobBuilder(initializers.Length * 4);
 
-            foreach (var init in initializer.Initializers)
+            foreach (BoundExpression init in initializer.Initializers)
             {
                 init.ConstantValue.Serialize(writer);
             }

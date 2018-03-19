@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             bool first = true;
 
-            foreach (var p in _argListParams)
+            foreach (Cci.IParameterTypeInformation p in _argListParams)
             {
                 if (first)
                 {

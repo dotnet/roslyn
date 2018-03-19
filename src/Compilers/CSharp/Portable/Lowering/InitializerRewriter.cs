@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((method.MethodKind == MethodKind.Constructor) || (method.MethodKind == MethodKind.StaticConstructor));
 
             var sourceMethod = method as SourceMemberMethodSymbol;
-            var syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
+            CSharpSyntaxNode syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
             return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
         }
 
@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!boundInitializers.IsDefault);
 
             var boundStatements = ArrayBuilder<BoundStatement>.GetInstance(boundInitializers.Length);
-            var submissionResultType = method.ResultType;
+            TypeSymbol submissionResultType = method.ResultType;
             var hasSubmissionResultType = (object)submissionResultType != null;
             BoundStatement lastStatement = null;
             BoundExpression trailingExpression = null;
 
-            foreach (var initializer in boundInitializers)
+            foreach (BoundInitializer initializer in boundInitializers)
             {
                 // The value of the last expression statement (if any) is returned from the submission initializer,
                 // unless this is a #load'ed tree.  I the #load'ed tree case, we'll execute the trailing expression
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.DeclaringCompilation.IsSubmissionSyntaxTree(initializer.SyntaxTree))
                 {
                     lastStatement = ((BoundGlobalStatementInitializer)initializer).Statement;
-                    var expression = GetTrailingScriptExpression(lastStatement);
+                    BoundExpression expression = GetTrailingScriptExpression(lastStatement);
                     if (expression != null &&
                         (object)expression.Type != null &&
                         expression.Type.SpecialType != SpecialType.System_Void)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxNode syntax = fieldInit.Syntax;
             syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
-            var boundReceiver = fieldInit.Field.IsStatic ? null :
+            BoundThisReference boundReceiver = fieldInit.Field.IsStatic ? null :
                                         new BoundThisReference(syntax, fieldInit.Field.ContainingType);
 
             BoundStatement boundStatement =

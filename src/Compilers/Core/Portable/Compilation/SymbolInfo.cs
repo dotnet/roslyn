@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             const NamespaceKind NamespaceKindNamespaceGroup = (NamespaceKind)0;
             Debug.Assert((object)symbol == null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
-            foreach (var item in _candidateSymbols)
+            foreach (ISymbol item in _candidateSymbols)
             {
                 Debug.Assert(item.Kind != SymbolKind.Namespace || ((INamespaceSymbol)item).NamespaceKind != NamespaceKindNamespaceGroup);
             }

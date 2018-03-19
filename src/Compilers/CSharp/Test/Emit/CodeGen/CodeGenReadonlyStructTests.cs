@@ -44,7 +44,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -100,8 +100,8 @@ class Program
     }
 ";
 
-            var comp1 = CreateCompilation(text1, assemblyName: "A");
-            var ref1 = comp1.EmitToImageReference();
+            CSharpCompilation comp1 = CreateCompilation(text1, assemblyName: "A");
+            MetadataReference ref1 = comp1.EmitToImageReference();
 
             var text = @"
 class Program
@@ -115,7 +115,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            CompilationVerifier comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -181,7 +181,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -254,7 +254,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -317,8 +317,8 @@ class Program
     }
 ";
 
-            var comp1 = CreateCompilation(text1, assemblyName: "A");
-            var ref1 = comp1.EmitToImageReference();
+            CSharpCompilation comp1 = CreateCompilation(text1, assemblyName: "A");
+            MetadataReference ref1 = comp1.EmitToImageReference();
 
             var text = @"
 class Program
@@ -334,7 +334,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            CompilationVerifier comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -407,7 +407,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -453,7 +453,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -504,7 +504,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -555,7 +555,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
 
             comp.VerifyIL("Program.S1..ctor(int)", @"
 {
@@ -623,7 +623,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (27,13): error CS1604: Cannot assign to 'this' because it is read-only
                 //             this = default; // error
@@ -695,7 +695,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (19,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
                 //             void F() { x = i;} // Error           
@@ -809,7 +809,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -820,7 +820,7 @@ class Program
 
             void validate(ModuleSymbol module)
             {
-                var test = module.ContainingAssembly.GetTypeByMetadataName("Program+S1");
+                NamedTypeSymbol test = module.ContainingAssembly.GetTypeByMetadataName("Program+S1");
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)test).Handle));
@@ -894,7 +894,7 @@ class Program
             Assert.False(type.IsReadOnly);
 
             // S1 from image
-            var clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+            CSharpCompilation clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
             NamedTypeSymbol s1 = clientComp.GetTypeByMetadataName("Program+S1");
             Assert.True(s1.IsReadOnly);
             Assert.Empty(s1.GetAttributes());
@@ -980,10 +980,10 @@ class Program
     delegate int D1();
 }
 ";
-            var comp1 = CreateCompilation(text1, assemblyName: "A");
-            var ref1 = comp1.EmitToImageReference();
+            CSharpCompilation comp1 = CreateCompilation(text1, assemblyName: "A");
+            MetadataReference ref1 = comp1.EmitToImageReference();
 
-            var comp = CreateCompilation("//NO CODE HERE", new[] { ref1 }, parseOptions: TestOptions.Regular);
+            CSharpCompilation comp = CreateCompilation("//NO CODE HERE", new[] { ref1 }, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -1061,7 +1061,7 @@ class Program
         [Fact]
         public void CorrectOverloadOfStackAllocSpanChosen()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class Test
 {
@@ -1083,7 +1083,7 @@ class Test
         [Fact]
         public void StackAllocExpressionIL()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class Test
 {
@@ -1120,7 +1120,7 @@ class Test
         [Fact]
         public void StackAllocSpanLengthNotEvaluatedTwice()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class Test
 {
@@ -1178,7 +1178,7 @@ class Test
         [Fact]
         public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 unsafe class Test
 {
@@ -1208,7 +1208,7 @@ unsafe class Test
         [Fact]
         public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 unsafe class Test
 {

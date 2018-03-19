@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
-            var newValue = RoundTrip(value, writeAction, readAction, recursive);
+            T newValue = RoundTrip(value, writeAction, readAction, recursive);
             Assert.True(Equalish(value, newValue));
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void TestRoundTripValue<T>(T value, bool recursive)
         {
-            var newValue = RoundTripValue(value, recursive);
+            T newValue = RoundTripValue(value, recursive);
             Assert.True(Equalish(value, newValue));
         }
 
@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
-                    foreach (var instance in instances)
+                    foreach (TypeWithTwoMembers<int, string> instance in instances)
                     {
                         writer.WriteValue(instance);
                     }
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {
-                        foreach (var instance in instances)
+                        foreach (TypeWithTwoMembers<int, string> instance in instances)
                         {
                             var obj = reader.ReadValue();
                             Assert.NotNull(obj);
@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestWideObjectGraph()
         {
             int id = 0;
-            var graph = ConstructGraph(ref id, 5, 3);
+            Node graph = ConstructGraph(ref id, 5, 3);
             TestRoundTripValue(graph);
         }
 
@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestDeepObjectGraph_RecursiveSucceeds()
         {
             int id = 0;
-            var graph = ConstructGraph(ref id, 1, 1000);
+            Node graph = ConstructGraph(ref id, 1, 1000);
             TestRoundTripValue(graph);
         }
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestDeepObjectGraph_NonRecursiveSucceeds()
         {
             int id = 0;
-            var graph = ConstructGraph(ref id, 1, 1000);
+            Node graph = ConstructGraph(ref id, 1, 1000);
             TestRoundTripValue(graph, recursive: false);
         }
 

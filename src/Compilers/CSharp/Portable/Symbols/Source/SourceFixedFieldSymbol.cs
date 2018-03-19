@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
-            var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
-            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            NamedTypeSymbol systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
+            NamedTypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
             var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
             var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 int nElements = _field.FixedSize;
-                var elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
+                TypeSymbol elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
                 int elementSize = elementType.FixedBufferElementSizeInBytes();
                 const int alignment = 0;
                 int totalSize = nElements * elementSize;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            var compilation = ContainingSymbol.DeclaringCompilation;
+            CSharpCompilation compilation = ContainingSymbol.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
         }
 

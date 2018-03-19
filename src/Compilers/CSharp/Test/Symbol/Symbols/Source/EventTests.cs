@@ -33,9 +33,9 @@ class main1
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var actualSymbols = comp.Assembly.GlobalNamespace.GetMembers();
+            System.Collections.Immutable.ImmutableArray<Symbol> actualSymbols = comp.Assembly.GlobalNamespace.GetMembers();
             var actual = string.Join(", ", actualSymbols.Select(symbol => symbol.Name).OrderBy(name => name));
             Assert.Equal("main1, Test1", actual);
         }
@@ -51,7 +51,7 @@ class C1
     event @out @in;
 }
 ";
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             //EventSymbol ein = c1.GetMembers("in").Single();
             //Assert.Equal("in", ein.Name);
@@ -70,30 +70,30 @@ class C
     public virtual event System.Action E;
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var @class = global.GetMember<NamedTypeSymbol>("C");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            EventSymbol @event = @class.GetMember<EventSymbol>("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Public, @event.DeclaredAccessibility);
             Assert.True(@event.IsVirtual);
             Assert.False(@event.IsStatic);
 
-            var addMethod = @event.AddMethod;
+            MethodSymbol addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
             addMethod.CheckAccessorShape(@event);
 
-            var removeMethod = @event.RemoveMethod;
+            MethodSymbol removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
             removeMethod.CheckAccessorShape(@event);
 
             Assert.True(@event.HasAssociatedField);
 
-            var associatedField = @event.AssociatedField;
+            FieldSymbol associatedField = @event.AssociatedField;
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.False(associatedField.IsStatic);
@@ -109,29 +109,29 @@ class C
     internal static event System.Action E;
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var @class = global.GetMember<NamedTypeSymbol>("C");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            EventSymbol @event = @class.GetMember<EventSymbol>("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Internal, @event.DeclaredAccessibility);
             Assert.True(@event.IsStatic);
 
-            var addMethod = @event.AddMethod;
+            MethodSymbol addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
             addMethod.CheckAccessorShape(@event);
 
-            var removeMethod = @event.RemoveMethod;
+            MethodSymbol removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
             removeMethod.CheckAccessorShape(@event);
 
             Assert.True(@event.HasAssociatedField);
 
-            var associatedField = @event.AssociatedField;
+            FieldSymbol associatedField = @event.AssociatedField;
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.True(associatedField.IsStatic);
@@ -147,23 +147,23 @@ class C
     protected event System.Action E { add { } remove { } }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var @class = global.GetMember<NamedTypeSymbol>("C");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            EventSymbol @event = @class.GetMember<EventSymbol>("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Protected, @event.DeclaredAccessibility);
             Assert.False(@event.IsVirtual);
             Assert.False(@event.IsStatic);
 
-            var addMethod = @event.AddMethod;
+            MethodSymbol addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
             addMethod.CheckAccessorShape(@event);
 
-            var removeMethod = @event.RemoveMethod;
+            MethodSymbol removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
             removeMethod.CheckAccessorShape(@event);
@@ -182,23 +182,23 @@ class C
     private static event System.Action E { add { } remove { } }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var @class = global.GetMember<NamedTypeSymbol>("C");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            EventSymbol @event = @class.GetMember<EventSymbol>("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Private, @event.DeclaredAccessibility);
             Assert.False(@event.IsVirtual);
             Assert.True(@event.IsStatic);
 
-            var addMethod = @event.AddMethod;
+            MethodSymbol addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
             addMethod.CheckAccessorShape(@event);
 
-            var removeMethod = @event.RemoveMethod;
+            MethodSymbol removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
             removeMethod.CheckAccessorShape(@event);
@@ -295,9 +295,9 @@ public class E
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "T1H1H2T2H2T3T4H1H2T5H2T6");
+            CompilationVerifier compVerifier = CompileAndVerify(text, expectedOutput: "T1H1H2T2H2T3T4H1H2T5H2T6");
             compVerifier.VerifyDiagnostics(DiagnosticDescription.None);
-            var semanticModel = compVerifier.Compilation.GetSemanticModel(compVerifier.Compilation.SyntaxTrees.Single());
+            SemanticModel semanticModel = compVerifier.Compilation.GetSemanticModel(compVerifier.Compilation.SyntaxTrees.Single());
 
             var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
             Assert.NotNull(eventSymbol1);
@@ -317,7 +317,7 @@ class C
     internal event D FieldLikeEvent;
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             NamedTypeSymbol type01 = comp.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             var fevent = type01.GetMembers("FieldLikeEvent").Single() as EventSymbol;
             Assert.NotNull(fevent.AddMethod);
@@ -339,10 +339,10 @@ class A
             Action<ModuleSymbol> validator = module =>
             {
                 var peModule = (PEModuleSymbol)module;
-                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                var e1 = type.GetMember<EventSymbol>("E1");
-                var e2 = type.GetMember<EventSymbol>("E2");
-                var p = type.GetMember<PropertySymbol>("P");
+                NamedTypeSymbol type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                EventSymbol e1 = type.GetMember<EventSymbol>("E1");
+                EventSymbol e2 = type.GetMember<EventSymbol>("E2");
+                PropertySymbol p = type.GetMember<PropertySymbol>("P");
 
                 Assert.Equal("System.Action<dynamic>", e1.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
@@ -364,7 +364,7 @@ class A
                 Assert.Equal(1, e2.GetAttributes(AttributeDescription.DynamicAttribute).Count());
                 Assert.Equal(1, p.GetAttributes(AttributeDescription.DynamicAttribute).Count());
             };
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+            CSharpCompilation comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef });
             CompileAndVerify(comp, symbolValidator: validator);
         }
 
@@ -376,7 +376,7 @@ public class A
 {
     public event System.Action<dynamic> E1;
 }";
-            var libComp = CreateEmptyCompilation(source, new[] { MscorlibRef }).VerifyDiagnostics(
+            CSharpCompilation libComp = CreateEmptyCompilation(source, new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32),
@@ -393,7 +393,7 @@ public class A
 {
     public event System.Action<dynamic> E1 { add {} remove {} }
 }";
-            var libComp = CreateEmptyCompilation(source, references: new[] { MscorlibRef }).VerifyDiagnostics(
+            CSharpCompilation libComp = CreateEmptyCompilation(source, references: new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32));
@@ -409,8 +409,8 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilation(source: libText).VerifyDiagnostics();
-            var libAssemblyRef = libComp.EmitToImageReference();
+            CSharpCompilation libComp = CreateCompilation(source: libText).VerifyDiagnostics();
+            MetadataReference libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
 class LambdaConsumer
@@ -425,18 +425,18 @@ class LambdaConsumer
             Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                var tree = compilation.SyntaxTrees.First();
-                var model = compilation.GetSemanticModel(tree);
+                CSharpCompilation compilation = sourceModule.DeclaringCompilation;
+                SyntaxTree tree = compilation.SyntaxTrees.First();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+                SimpleLambdaExpressionSyntax lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
                 Assert.Equal("f => f.Print()", lambdaSyntax.ToFullString());
 
-                var lambdaTypeInfo = model.GetTypeInfo(lambdaSyntax);
+                TypeInfo lambdaTypeInfo = model.GetTypeInfo(lambdaSyntax);
                 Assert.Equal("System.Action<dynamic>", lambdaTypeInfo.ConvertedType.ToTestDisplayString());
 
-                var parameterSyntax = lambdaSyntax.DescendantNodes().OfType<ParameterSyntax>().First();
-                var parameterSymbol = model.GetDeclaredSymbol(parameterSyntax);
+                ParameterSyntax parameterSyntax = lambdaSyntax.DescendantNodes().OfType<ParameterSyntax>().First();
+                IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameterSyntax);
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
@@ -454,9 +454,9 @@ public class C {
     public void RaiseEvent() => _e1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilation(source: libText);
+            CSharpCompilation libComp = CreateCompilation(source: libText);
             libComp.VerifyDiagnostics();
-            var libAssemblyRef = libComp.EmitToImageReference();
+            MetadataReference libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
 class D
@@ -471,22 +471,22 @@ class D
             Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
-                var compilation = module.DeclaringCompilation;
-                var tree = compilation.SyntaxTrees.First();
-                var model = compilation.GetSemanticModel(tree);
+                CSharpCompilation compilation = module.DeclaringCompilation;
+                SyntaxTree tree = compilation.SyntaxTrees.First();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+                SimpleLambdaExpressionSyntax lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
                 Assert.Equal("f => f.Print()", lambdaSyntax.ToFullString());
 
-                var lambdaTypeInfo = model.GetTypeInfo(lambdaSyntax);
+                TypeInfo lambdaTypeInfo = model.GetTypeInfo(lambdaSyntax);
                 Assert.Equal("System.Action<dynamic>", lambdaTypeInfo.ConvertedType.ToTestDisplayString());
 
-                var parameterSyntax = lambdaSyntax.DescendantNodes().OfType<ParameterSyntax>().First();
-                var parameterSymbol = model.GetDeclaredSymbol(parameterSyntax);
+                ParameterSyntax parameterSyntax = lambdaSyntax.DescendantNodes().OfType<ParameterSyntax>().First();
+                IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameterSyntax);
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef }, 
+            CompilationVerifier compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef }, 
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -500,7 +500,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilation(libText);
+            CSharpCompilation libComp = CreateCompilation(libText);
             var libCompRef = new CSharpCompilationReference(libComp);
             var source = @"
 class D
@@ -513,7 +513,7 @@ class D
     }
 }";
             var expectedOutput = "Print method ran.";
-            var compilationVerifier = CompileAndVerify(source: source,
+            CompilationVerifier compilationVerifier = CompileAndVerify(source: source,
                 references: new[] { libCompRef },
                 targetFramework: TargetFramework.StandardAndCSharp,
                 expectedOutput: expectedOutput);
@@ -529,8 +529,8 @@ public class C
     public virtual event System.Action<dynamic> E2 { add { System.Console.WriteLine(""Not called""); } remove {} }
     public virtual event System.Action<object> E3 { add { System.Console.WriteLine(""Not called""); } remove {} }
 }";
-            var libComp = CreateCompilation(source: libText);
-            var libAssemblyRef = libComp.EmitToImageReference();
+            CSharpCompilation libComp = CreateCompilation(source: libText);
+            MetadataReference libAssemblyRef = libComp.EmitToImageReference();
             var source = @"
 class B : C
 {
@@ -572,7 +572,7 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(
+            CompilationVerifier compilationVerifier = CompileAndVerify(
                 source: source, 
                 targetFramework: TargetFramework.StandardAndCSharp, 
                 references: new[] { libAssemblyRef },
@@ -588,8 +588,8 @@ public class CL1
     public virtual event System.Action<dynamic> E1 { add {} remove {} }
     public virtual event System.Action<dynamic> E2 { add {} remove {} }
 }";
-            var libComp = CreateCompilation(source: libText);
-            var libAssemblyRef = libComp.EmitToImageReference();
+            CSharpCompilation libComp = CreateCompilation(source: libText);
+            MetadataReference libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
 public class CL2 : CL1
@@ -600,9 +600,9 @@ public class CL2 : CL1
             Action<ModuleSymbol> validator = module =>
             {
                 var peModule = (PEModuleSymbol)module;
-                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
-                var e1 = type.GetMember<EventSymbol>("E1");
-                var e2 = type.GetMember<EventSymbol>("E2");
+                NamedTypeSymbol type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
+                EventSymbol e1 = type.GetMember<EventSymbol>("E1");
+                EventSymbol e2 = type.GetMember<EventSymbol>("E2");
 
                 Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
@@ -620,8 +620,8 @@ public class CL1
     public virtual event System.Action<dynamic> E1;
     public virtual event System.Action<dynamic> E2;
 }";
-            var libComp = CreateCompilation(source: libText);
-            var libAssemblyRef = libComp.EmitToImageReference();
+            CSharpCompilation libComp = CreateCompilation(source: libText);
+            MetadataReference libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
 public class CL2 : CL1
@@ -632,9 +632,9 @@ public class CL2 : CL1
             Action<ModuleSymbol> validator = module =>
             {
                 var peModule = (PEModuleSymbol)module;
-                var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
-                var e1 = type.GetMember<EventSymbol>("E1");
-                var e2 = type.GetMember<EventSymbol>("E2");
+                NamedTypeSymbol type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
+                EventSymbol e1 = type.GetMember<EventSymbol>("E1");
+                EventSymbol e2 = type.GetMember<EventSymbol>("E2");
 
                 Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
@@ -804,10 +804,10 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) }, 
+            CompilationVerifier compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) }, 
                                                 expectedOutput: "Event raised");
 
-            var comp = compVerifier.Compilation;
+            Compilation comp = compVerifier.Compilation;
             var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
             Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
@@ -1799,7 +1799,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
@@ -1812,10 +1812,10 @@ class C
                 //         b.Event3 += null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.Event3 += null").WithArguments("Base.Event3.add"));
 
-            var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var event1 = @class.GetMember<EventSymbol>("Event1");
-            var event2 = @class.GetMember<EventSymbol>("Event2");
-            var event3 = @class.GetMember<EventSymbol>("Event3");
+            NamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            EventSymbol event1 = @class.GetMember<EventSymbol>("Event1");
+            EventSymbol event2 = @class.GetMember<EventSymbol>("Event2");
+            EventSymbol event3 = @class.GetMember<EventSymbol>("Event3");
 
             Assert.NotNull(event1.AddMethod);
             Assert.Equal(Accessibility.Private, event1.AddMethod.DeclaredAccessibility);
@@ -2057,7 +2057,7 @@ class A
     .removeon instance void B::remove_E2();
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"class C
 {
@@ -2067,7 +2067,7 @@ class A
         b.E2(); // B.E2 invalid, should not hide A.E2
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5, 11): error CS0079: The event 'B.E1' can only appear on the left hand side of += or -=
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E1").WithArguments("B.E1").WithLocation(5, 11));
@@ -2202,28 +2202,28 @@ class Derived2 : Base
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { CompileIL(il) });
+            CSharpCompilation comp = CreateCompilation(source, new[] { CompileIL(il) });
             comp.VerifyDiagnostics(
                 // (6,41): warning CS0067: The event 'Derived1.E' is never used
                 //     public override event Action<int[]> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Derived1.E"));
 
-            var global = comp.GlobalNamespace;
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var @base = global.GetMember<NamedTypeSymbol>("Base");
-            var baseEvent = @base.GetMember<EventSymbol>("E");
-            var baseEventType = baseEvent.Type;
+            NamedTypeSymbol @base = global.GetMember<NamedTypeSymbol>("Base");
+            EventSymbol baseEvent = @base.GetMember<EventSymbol>("E");
+            TypeSymbol baseEventType = baseEvent.Type;
             Assert.Equal("System.Action<System.Int32 modopt(System.Int64) []>", baseEventType.ToTestDisplayString()); // Note modopt
 
-            var derived1 = global.GetMember<NamedTypeSymbol>("Derived1");
-            var event1 = derived1.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derived1 = global.GetMember<NamedTypeSymbol>("Derived1");
+            EventSymbol event1 = derived1.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event1.Type);
             Assert.Equal(baseEventType, event1.AssociatedField.Type);
             Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single());
             Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single());
 
-            var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
-            var event2 = derived2.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
+            EventSymbol event2 = derived2.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event2.Type);
             Assert.Null(event2.AssociatedField);
             Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single());
@@ -2284,19 +2284,19 @@ class Derived2 : Base
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { CompileIL(il) });
+            CSharpCompilation comp = CreateCompilation(source, new[] { CompileIL(il) });
             comp.VerifyDiagnostics(
                 // (6,34): warning CS0067: The event 'Derived1.E' is never used
                 //     public override event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Derived1.E"));
 
-            var derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
-            var event1 = derived1.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
+            EventSymbol event1 = derived1.GetMember<EventSymbol>("E");
             Assert.Equal("myAdd", event1.AddMethod.Name);
             Assert.Equal("myRemove", event1.RemoveMethod.Name);
 
-            var derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
-            var event2 = derived2.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
+            EventSymbol event2 = derived2.GetMember<EventSymbol>("E");
             Assert.Equal("myAdd", event2.AddMethod.Name);
             Assert.Equal("myRemove", event2.RemoveMethod.Name);
         }
@@ -2327,7 +2327,7 @@ class Derived2 : Base
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0065: 'Base.E': event property must have both add and remove accessors
                 //     public virtual event Action E { } // Missing accessors.
@@ -2336,13 +2336,13 @@ class Derived2 : Base
                 //     public override event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Derived1.E"));
 
-            var derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
-            var event1 = derived1.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
+            EventSymbol event1 = derived1.GetMember<EventSymbol>("E");
             Assert.Equal("add_E", event1.AddMethod.Name);
             Assert.Equal("remove_E", event1.RemoveMethod.Name);
 
-            var derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
-            var event2 = derived2.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
+            EventSymbol event2 = derived2.GetMember<EventSymbol>("E");
             Assert.Equal("add_E", event2.AddMethod.Name);
             Assert.Equal("remove_E", event2.RemoveMethod.Name);
         }
@@ -2361,11 +2361,11 @@ public abstract class A
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
-            var typeA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var eventE = typeA.GetMember<EventSymbol>("E");
-            var eventF = typeA.GetMember<EventSymbol>("F");
+            NamedTypeSymbol typeA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            EventSymbol eventE = typeA.GetMember<EventSymbol>("E");
+            EventSymbol eventF = typeA.GetMember<EventSymbol>("F");
 
             Assert.Null(eventE.AssociatedField);
             Assert.NotNull(eventF.AssociatedField); // Since it has an initializer.

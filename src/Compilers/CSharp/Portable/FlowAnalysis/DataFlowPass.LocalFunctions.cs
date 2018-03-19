@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _usedLocalFunctions.Add(localFunc);
 
-            var usages = GetOrCreateLocalFuncUsages(localFunc);
+            LocalFuncUsages usages = GetOrCreateLocalFuncUsages(localFunc);
 
             // First process the reads
             ReplayReads(ref usages.ReadVars, syntax);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (reads[slot])
                 {
-                    var symbol = variableBySlot[slot].Symbol;
+                    Symbol symbol = variableBySlot[slot].Symbol;
                     CheckIfAssignedDuringLocalFunctionReplay(symbol, syntax, slot);
                 }
             }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (true)
             {
-                var varInfo = variableBySlot[slot];
+                VariableIdentifier varInfo = variableBySlot[slot];
                 if (varInfo.ContainingSlot == 0)
                 {
                     return slot;
@@ -118,17 +118,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
-            var localFuncSymbol = localFunc.Symbol;
+            MethodSymbol oldMethodOrLambda = this.currentMethodOrLambda;
+            LocalFunctionSymbol localFuncSymbol = localFunc.Symbol;
             this.currentMethodOrLambda = localFuncSymbol;
 
-            var oldPending = SavePending(); // we do not support branches into a lambda
+            SavedPending oldPending = SavePending(); // we do not support branches into a lambda
 
             // SPEC: The entry point to a local function is always reachable.
             // Captured variables are definitely assigned if they are definitely assigned on
             // all branches into the local function.
 
-            var savedState = this.State;
+            LocalState savedState = this.State;
             this.State = this.ReachableState();
 
             if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // definitely assign captured variables if the variables are definitely assigned at
             // all branches out of the local function.
 
-            var usages = GetOrCreateLocalFuncUsages(localFuncSymbol);
-            var oldReads = usages.ReadVars.Clone();
+            LocalFuncUsages usages = GetOrCreateLocalFuncUsages(localFuncSymbol);
+            BitVector oldReads = usages.ReadVars.Clone();
             usages.ReadVars.Clear();
 
-            var oldPending2 = SavePending();
+            SavedPending oldPending2 = SavePending();
 
             // If this is an iterator, there's an implicit branch before the first statement
             // of the function where the enumerable is returned.
@@ -212,23 +212,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordReadInLocalFunction(int slot)
         {
-            var localFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            LocalFunctionSymbol localFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
 
             Debug.Assert(localFunc != null);
 
-            var usages = GetOrCreateLocalFuncUsages(localFunc);
+            LocalFuncUsages usages = GetOrCreateLocalFuncUsages(localFunc);
 
             // If this slot is a struct with individually assignable
             // fields we need to record each field assignment separately,
             // since some fields may be assigned when this read is replayed
             VariableIdentifier id = variableBySlot[slot];
-            var type = VariableType(id.Symbol);
+            TypeSymbol type = VariableType(id.Symbol);
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             
             if (EmptyStructTypeCache.IsTrackableStructType(type))
             {
-                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))
+                foreach (FieldSymbol field in _emptyStructTypeCache.GetStructInstanceFields(type))
                 {
                     int fieldSlot = GetOrCreateSlot(field, slot);
                     if (fieldSlot > 0 && !State.IsAssigned(fieldSlot))
@@ -259,8 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            ref BitVector newState)
         {
             // Build a list of variables that are both captured and assigned
-            var capturedMask = GetCapturedBitmask(ref newState);
-            var capturedAndSet = newState;
+            BitVector capturedMask = GetCapturedBitmask(ref newState);
+            BitVector capturedAndSet = newState;
             capturedAndSet.IntersectWith(capturedMask);
 
             // Union and check to see if there are any changes
@@ -287,14 +287,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Find the root slot, since that would be the only
             // slot, if any, that is captured in a local function
-            var rootVarInfo = variableBySlot[RootSlot(slot)];
+            VariableIdentifier rootVarInfo = variableBySlot[RootSlot(slot)];
 
-            var rootSymbol = rootVarInfo.Symbol;
+            Symbol rootSymbol = rootVarInfo.Symbol;
 
             // A variable is captured in a local function iff its
             // container is higher in the tree than the nearest
             // local function
-            var nearestLocalFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            LocalFunctionSymbol nearestLocalFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
 
             return !(nearestLocalFunc is null) && IsCaptured(rootSymbol, nearestLocalFunc);
         }

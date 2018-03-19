@@ -70,7 +70,7 @@ namespace Acme
         [Fact]
         public void TestNestedClass()
         {
-            var classSymbol = _widgetClass.GetTypeMembers("NestedClass").Single();
+            NamedTypeSymbol classSymbol = _widgetClass.GetTypeMembers("NestedClass").Single();
             Assert.Equal("T:Acme.Widget.NestedClass", classSymbol.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""T:Acme.Widget.NestedClass"">
@@ -132,7 +132,7 @@ class A
 {
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
     }

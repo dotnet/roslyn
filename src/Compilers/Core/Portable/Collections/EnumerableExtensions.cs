@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             List<IEnumerator<T>> enumerators = new List<IEnumerator<T>>();
 
             var width = 0;
-            foreach (var e in data)
+            foreach (IEnumerable<T> e in data)
             {
                 enumerators.Add(e.GetEnumerator());
                 width += 1;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                     T[] line = null;
                     for (int i = 0; i < width; i++)
                     {
-                        var e = enumerators[i];
+                        IEnumerator<T> e = enumerators[i];
                         if (!e.MoveNext())
                         {
                             yield break;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                foreach (var enumerator in enumerators)
+                foreach (IEnumerator<T> enumerator in enumerators)
                 {
                     enumerator.Dispose();
                 }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static void AddAllValues<K, T>(this IDictionary<K, ImmutableArray<T>> data, ArrayBuilder<T> builder)
         {
-            foreach (var values in data.Values)
+            foreach (ImmutableArray<T> values in data.Values)
             {
                 builder.AddRange(values);
             }
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {
             var dictionary = new Dictionary<K, ImmutableArray<T>>(comparer);
-            var groups = data.GroupBy(keySelector, comparer);
-            foreach (var grouping in groups)
+            IEnumerable<IGrouping<K, T>> groups = data.GroupBy(keySelector, comparer);
+            foreach (IGrouping<K, T> grouping in groups)
             {
-                var items = grouping.AsImmutable();
+                ImmutableArray<T> items = grouping.AsImmutable();
                 dictionary.Add(grouping.Key, items);
             }
 

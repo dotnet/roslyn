@@ -80,7 +80,7 @@ namespace System.Threading.Tasks {
             }
 
 
-            var taskCompilation = CreateEmptyCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
+            CSharpCompilation taskCompilation = CreateEmptyCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
             taskCompilation.VerifyDiagnostics();
             return taskCompilation.ToMetadataReference();
         }
@@ -90,7 +90,7 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing()
         {
 
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
@@ -107,14 +107,14 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing_NoNamespace()
         {
 
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
                 references: new MetadataReference[] { TaskFacadeAssembly(false), MscorlibRef_v20 });
 
             script.VerifyEmitDiagnostics();
-            var compiled = CompileAndVerify(script);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compiled = CompileAndVerify(script);
             compiled.VerifyIL("<Main>", @"
 {
   // Code size       22 (0x16)
@@ -132,7 +132,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
         {
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @"interface I {}",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
@@ -152,7 +152,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing()
         {
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
@@ -160,7 +160,7 @@ namespace System.Threading.Tasks {
 
             script.VerifyEmitDiagnostics();
 
-            var compiled = CompileAndVerify(script);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compiled = CompileAndVerify(script);
             compiled.VerifyIL("<Main>", @"
 {
   // Code size       22 (0x16)
@@ -178,7 +178,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing()
         {
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @"
 using Hidden;
 new System.Threading.Tasks.Task<int>().GetAwaiter();
@@ -197,7 +197,7 @@ System.Console.Write(""complete"");",
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing()
         {
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @"
 using Hidden;
 new System.Threading.Tasks.Task<int>().GetAwaiter();
@@ -206,7 +206,7 @@ System.Console.Write(""complete"");",
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
                 references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
 
-            var compiled = CompileAndVerify(script);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compiled = CompileAndVerify(script);
             compiled.VerifyIL("<Main>", @"
 {
   // Code size       22 (0x16)
@@ -228,19 +228,19 @@ System.Console.Write(""complete"");",
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Script);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Script);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             compilation.VerifyDiagnostics(
                 // (2,1): error CS0027: Keyword 'this' is not available in the current context
                 // this[1]
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"));
 
-            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionSyntax>().First();
+            ExpressionSyntax syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionSyntax>().First();
             Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
 
-            var summary = model.GetSemanticInfoSummary(syntax);
+            CompilationUtils.SemanticInfoSummary summary = model.GetSemanticInfoSummary(syntax);
             Assert.Null(summary.Symbol);
             Assert.Equal(0, summary.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, summary.CandidateReason);
@@ -256,9 +256,9 @@ this[1]
         {
             var text = @"static void Main() { }";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -268,7 +268,7 @@ this[1]
         [Fact]
         public void Submission_TypeDisambiguationBasedUponAssemblyName()
         {
-            var compilation = CreateCompilation("namespace System { public struct Int32 { } }");
+            CSharpCompilation compilation = CreateCompilation("namespace System { public struct Int32 { } }");
 
             compilation.VerifyDiagnostics();
         }
@@ -279,9 +279,9 @@ this[1]
         {
             var text = @"static void Main() { }";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -315,7 +315,7 @@ this[1]
         [Fact]
         public void Namespaces()
         {
-            var c = CreateSubmission(@"
+            CSharpCompilation c = CreateSubmission(@"
 namespace N1
 {
    class A { public int Goo() { return 2; }}
@@ -358,25 +358,25 @@ namespace Goo
     public class B : Script.A { }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
                 options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Script"),
                 syntaxTrees: new[] { tree });
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
             var goo = global.GetMembers().Single() as NamespaceSymbol;
             Assert.Equal("Goo", goo.Name);
 
-            var script = goo.GetTypeMembers("Script").Single();
+            NamedTypeSymbol script = goo.GetTypeMembers("Script").Single();
             Assert.Equal("Goo.Script", script.ToTestDisplayString());
 
-            var a = script.GetTypeMembers("A").Single();
+            NamedTypeSymbol a = script.GetTypeMembers("A").Single();
             Assert.Equal("Goo.Script.A", a.ToTestDisplayString());
 
-            var b = goo.GetTypeMembers("B").Single();
+            NamedTypeSymbol b = goo.GetTypeMembers("B").Single();
             Assert.Equal("Goo.B", b.ToTestDisplayString());
             Assert.Same(a, b.BaseType());
         }
@@ -389,15 +389,15 @@ namespace Goo { void F() { } }
 void G() { }
 G();
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
                 options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Script"),
                 syntaxTrees: new[] { tree });
 
-            var global = compilation.GlobalNamespace;
-            var members = global.GetMembers();
+            NamespaceSymbol global = compilation.GlobalNamespace;
+            ImmutableArray<Symbol> members = global.GetMembers();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
@@ -406,10 +406,10 @@ G();
             members = ns.GetMembers();
 
             Assert.Equal(2, members.Length);
-            foreach (var member in members)
+            foreach (Symbol member in members)
             {
                 var cls = (ImplicitNamedTypeSymbol)member;
-                var methods = cls.GetMembers();
+                ImmutableArray<Symbol> methods = cls.GetMembers();
                 if (cls.IsScriptClass)
                 {
                     Assert.False(cls.IsImplicitClass);
@@ -436,19 +436,19 @@ struct E { }
 enum F { }
 delegate void G();
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
             ImmutableArray<NamedTypeSymbol> members;
 
             members = global.GetTypeMembers("Script");
             Assert.Equal(1, members.Length);
             Assert.Equal(TypeKind.Class, members[0].TypeKind);
-            var script = members[0];
+            NamedTypeSymbol script = members[0];
 
             members = script.GetTypeMembers("C");
             Assert.Equal(1, members.Length);
@@ -478,20 +478,20 @@ delegate void G();
 using static System.Console;
 WriteLine(""hello"");
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
-            var expr = (((tree.
+            ExpressionSyntax expr = (((tree.
                 GetCompilationUnitRoot() as CompilationUnitSyntax).
                 Members[0] as GlobalStatementSyntax).
                 Statement as ExpressionStatementSyntax).
                 Expression;
 
-            var model = compilation.GetSemanticModel(tree);
-            var info = model.GetSymbolInfo(expr);
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info.Symbol);
             Assert.Equal("void System.Console.WriteLine(System.String value)", info.Symbol.ToTestDisplayString());
         }
@@ -501,8 +501,8 @@ WriteLine(""hello"");
         public void LabelLookup()
         {
             var source = "using System; 1";
-            var submission = CreateSubmission(source);
-            var model = submission.GetSemanticModel(submission.SyntaxTrees.Single());
+            CSharpCompilation submission = CreateSubmission(source);
+            SemanticModel model = submission.GetSemanticModel(submission.SyntaxTrees.Single());
             Assert.Empty(model.LookupLabels(source.Length - 1)); // Used to assert.
         }
 
@@ -512,13 +512,13 @@ WriteLine(""hello"");
             string source =
 @"L0: ;
 goto L0;";
-            var tree = Parse(source, options: TestOptions.Script);
-            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
-            var root = tree.GetCompilationUnitRoot();
-            var statements = root.ChildNodes().Select(n => ((GlobalStatementSyntax)n).Statement).ToArray();
-            var symbol0 = model.GetDeclaredSymbol((LabeledStatementSyntax)statements[0]);
+            SyntaxTree tree = Parse(source, options: TestOptions.Script);
+            SemanticModel model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            StatementSyntax[] statements = root.ChildNodes().Select(n => ((GlobalStatementSyntax)n).Statement).ToArray();
+            ILabelSymbol symbol0 = model.GetDeclaredSymbol((LabeledStatementSyntax)statements[0]);
             Assert.NotNull(symbol0);
-            var symbol1 = model.GetSymbolInfo(((GotoStatementSyntax)statements[1]).Expression).Symbol;
+            ISymbol symbol1 = model.GetSymbolInfo(((GotoStatementSyntax)statements[1]).Expression).Symbol;
             Assert.Same(symbol0, symbol1);
         }
 
@@ -528,13 +528,13 @@ goto L0;";
             string source =
 @"int x = 1;
 object y = x;";
-            var tree = Parse(source, options: TestOptions.Script);
-            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
-            var root = tree.GetCompilationUnitRoot();
-            var declarations = root.ChildNodes().Select(n => ((FieldDeclarationSyntax)n).Declaration.Variables[0]).ToArray();
-            var symbol0 = model.GetDeclaredSymbol(declarations[0]);
+            SyntaxTree tree = Parse(source, options: TestOptions.Script);
+            SemanticModel model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            VariableDeclaratorSyntax[] declarations = root.ChildNodes().Select(n => ((FieldDeclarationSyntax)n).Declaration.Variables[0]).ToArray();
+            ISymbol symbol0 = model.GetDeclaredSymbol(declarations[0]);
             Assert.NotNull(symbol0);
-            var symbol1 = model.GetSymbolInfo(declarations[1].Initializer.Value).Symbol;
+            ISymbol symbol1 = model.GetSymbolInfo(declarations[1].Initializer.Value).Symbol;
             Assert.Same(symbol0, symbol1);
         }
 
@@ -545,19 +545,19 @@ object y = x;";
             string test = @"
 this[1]
 ";
-            var compilation = CreateSubmission(test);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateSubmission(test);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             compilation.VerifyDiagnostics(
                 // (2,1): error CS0027: Keyword 'this' is not available in the current context
                 // this[1]
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"));
 
-            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionSyntax>().First();
+            ExpressionSyntax syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionSyntax>().First();
             Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
 
-            var summary = model.GetSemanticInfoSummary(syntax);
+            CompilationUtils.SemanticInfoSummary summary = model.GetSemanticInfoSummary(syntax);
             Assert.Null(summary.Symbol);
             Assert.Equal(0, summary.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, summary.CandidateReason);
@@ -576,19 +576,19 @@ this[1]
         public void LookupSymbols()
         {
             var text = "1 + ";
-            var compilation = CreateSubmission(text);
+            CSharpCompilation compilation = CreateSubmission(text);
 
             compilation.VerifyDiagnostics(
                 // (1,5): error CS1733: Expected expression
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, ""));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var symbols = model.LookupSymbols(text.Length);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ImmutableArray<ISymbol> symbols = model.LookupSymbols(text.Length);
 
             // Should return some symbols, but not the submission class.
             Assert.True(symbols.Length > 0);
-            foreach (var symbol in symbols)
+            foreach (ISymbol symbol in symbols)
             {
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
@@ -605,7 +605,7 @@ this[1]
         [Fact]
         public void HostObjectBinding_Diagnostics()
         {
-            var submission = CreateSubmission("x",
+            CSharpCompilation submission = CreateSubmission("x",
                 new[] { MetadataReference.CreateFromAssemblyInternal(typeof(B2).GetTypeInfo().Assembly) },
                 hostObjectType: typeof(B2));
 
@@ -620,7 +620,7 @@ this[1]
 decimal d = checked(2M + 1M);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -633,7 +633,7 @@ using System.IO;
 FileAccess fa = checked(FileAccess.Read + 1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -645,7 +645,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
 System.Action a = null;
 a += null;
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -654,7 +654,7 @@ a += null;
         public void Bug870885()
         {
             var source = @"var o = o.F;";
-            var compilation = CreateSubmission(source);
+            CSharpCompilation compilation = CreateSubmission(source);
 
             compilation.VerifyDiagnostics(
                 // (1,5): error CS7019: Type of 'o' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -670,7 +670,7 @@ a += null;
 [assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]
 [module: System.Security.UnverifiableCode]";
 
-            var compilation = CreateSubmission(source);
+            CSharpCompilation compilation = CreateSubmission(source);
 
             compilation.VerifyDiagnostics(
                 // (2,2): error CS7026: Assembly and module attributes are not allowed in this context
@@ -688,7 +688,7 @@ class M
     protected virtual void F() { }
 }
 ";
-            var c0 = CreateSubmission(source0);
+            CSharpCompilation c0 = CreateSubmission(source0);
 
             var source1 = @"
 class Y : M
@@ -696,7 +696,7 @@ class Y : M
     sealed protected override void F() {  }
 }
 ";
-            var c1 = CreateSubmission(source1, previous: c0);
+            CSharpCompilation c1 = CreateSubmission(source1, previous: c0);
 
             CompileAndVerify(c0);
             CompileAndVerify(c1);
@@ -705,8 +705,8 @@ class Y : M
         [Fact]
         public void PrivateNested()
         {
-            var c0 = CreateSubmission(@"public class C { private static int goo() { return 1; } }");
-            var c1 = CreateSubmission(@"C.goo()", previous: c0);
+            CSharpCompilation c0 = CreateSubmission(@"public class C { private static int goo() { return 1; } }");
+            CSharpCompilation c1 = CreateSubmission(@"C.goo()", previous: c0);
 
             c1.VerifyDiagnostics(
                 // error CS0122: '{0}' is inaccessible due to its protection level
@@ -716,7 +716,7 @@ class Y : M
         [Fact]
         public void InconsistentAccessibilityChecks()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 private class A { }
 protected class B { }
 internal class C { }
@@ -724,7 +724,7 @@ internal protected class D { }
 public class E { }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 private A a0;
 
 private B b0;
@@ -788,13 +788,13 @@ public E e4;
         [Fact]
         public void CompilationChain_Fields()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 static int s = 1;
 int i = 2;
 ");
 
-            var c1 = CreateSubmission("s + i", previous: c0, returnType: typeof(int));
-            var c2 = CreateSubmission("static int t = i;", previous: c1);
+            CSharpCompilation c1 = CreateSubmission("s + i", previous: c0, returnType: typeof(int));
+            CSharpCompilation c2 = CreateSubmission("static int t = i;", previous: c1);
 
             c2.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_ObjectRequired, "i").WithArguments("i"));
         }
@@ -802,13 +802,13 @@ int i = 2;
         [Fact]
         public void CompilationChain_InStaticContext()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 int x = 1;
 int y = 2;
 int z() { return 3; }
 int w = 4;
 ");
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 static int Goo() { return x; }
 static int Bar { get { return y; } set { return z(); } }
 static int Baz = w;
@@ -825,7 +825,7 @@ static int Baz = w;
         [Fact]
         public void AccessToGlobalMemberFromNestedClass1()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 int goo() { return 1; }
 
 class D 
@@ -842,10 +842,10 @@ class D
         [Fact]
         public void AccessToGlobalMemberFromNestedClass2()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 int goo() { return 1; }
 ");
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 class D 
 {
     int bar() { return goo(); }
@@ -863,7 +863,7 @@ class D
         [Fact]
         public void Submissions_ExecutionOrder3()
         {
-            var s0 = CreateSubmission("int a = \"x\";");
+            CSharpCompilation s0 = CreateSubmission("int a = \"x\";");
             s0.VerifyDiagnostics(
                 // (1,9): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "int"));
@@ -875,7 +875,7 @@ class D
         [Fact]
         public void ErrorInUsing()
         {
-            var submission = CreateSubmission("using Unknown;");
+            CSharpCompilation submission = CreateSubmission("using Unknown;");
 
             submission.VerifyDiagnostics(
                 // (1,7): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
@@ -890,7 +890,7 @@ class D
         [Fact]
         public void HostObjectBinding_MissingHostObjectContext()
         {
-            var c = CreateSubmission("Z()", new[] { HostRef });
+            CSharpCompilation c = CreateSubmission("Z()", new[] { HostRef });
 
             c.VerifyDiagnostics(
                 // (1,1): error CS0103: The name 'z' does not exist in the current context
@@ -906,7 +906,7 @@ static int Bar { get { return Y; } set { return Z(); } }
 static int Baz = w;
 ";
 
-            var c = CreateSubmission(source, new[] { HostRef }, hostObjectType: typeof(C));
+            CSharpCompilation c = CreateSubmission(source, new[] { HostRef }, hostObjectType: typeof(C));
 
             var typeName = typeof(ScriptTestFixtures).FullName;
 
@@ -925,7 +925,7 @@ static int Baz = w;
         [Fact]
         public void WRN_LowercaseEllSuffix()
         {
-            var c = CreateSubmission("int i = 42l;");
+            CSharpCompilation c = CreateSubmission("int i = 42l;");
 
             c.VerifyDiagnostics(
                 // (1,11): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
@@ -937,7 +937,7 @@ static int Baz = w;
         [Fact]
         public void ERR_RecursivelyTypedVariable()
         {
-            var c = CreateSubmission("var x = x;");
+            CSharpCompilation c = CreateSubmission("var x = x;");
 
             c.VerifyDiagnostics(
                 // (1,5): error CS7019: Type of 'x' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -947,7 +947,7 @@ static int Baz = w;
         [Fact]
         public void ERR_VariableUsedBeforeDeclaration_01()
         {
-            var c = CreateSubmission("var x = 1; { var x = x;}");
+            CSharpCompilation c = CreateSubmission("var x = 1; { var x = x;}");
             c.VerifyDiagnostics(
                 // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
                 // var x = 1; { var x = x;}
@@ -959,7 +959,7 @@ static int Baz = w;
         [Fact]
         public void ERR_VariableUsedBeforeDeclaration_02()
         {
-            var c = CreateSubmission(
+            CSharpCompilation c = CreateSubmission(
 @"object b = a;
 object a;
 void F()
@@ -984,7 +984,7 @@ void F()
         [Fact]
         public void ERR_UseDefViolation()
         {
-            var c = CreateSubmission(
+            CSharpCompilation c = CreateSubmission(
 @"int a;
 int b = a;
 void F()
@@ -1008,7 +1008,7 @@ void F()
         [Fact]
         public void ERR_FieldCantBeRefAny()
         {
-            var c = CreateSubmission(@"
+            CSharpCompilation c = CreateSubmission(@"
 System.RuntimeArgumentHandle a;
 System.ArgIterator b;
 System.TypedReference c;
@@ -1026,8 +1026,8 @@ System.TypedReference c;
         [Fact]
         public void IsVariable_PreviousSubmission()
         {
-            var c0 = CreateSubmission("var x = 1;");
-            var c1 = CreateSubmission("&x", previous: c0);
+            CSharpCompilation c0 = CreateSubmission("var x = 1;");
+            CSharpCompilation c1 = CreateSubmission("&x", previous: c0);
 
             c1.VerifyDiagnostics(
                 // (1,1): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
@@ -1038,7 +1038,7 @@ System.TypedReference c;
         [Fact]
         public void IsVariable_HostObject()
         {
-            var c0 = CreateSubmission("&x", new[] { HostRef }, hostObjectType: typeof(B2));
+            CSharpCompilation c0 = CreateSubmission("&x", new[] { HostRef }, hostObjectType: typeof(B2));
 
             c0.VerifyDiagnostics(
                 // (1,1): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
@@ -1052,7 +1052,7 @@ System.TypedReference c;
         {
             var source = "(System.Linq.Expressions.Expression<System.Func<object>>)(() => null ?? new object())";
 
-            var c0 = CreateSubmission(source, new[] { SystemCoreRef });
+            CSharpCompilation c0 = CreateSubmission(source, new[] { SystemCoreRef });
 
             c0.VerifyDiagnostics(
                 // (1,65): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
@@ -1063,9 +1063,9 @@ System.TypedReference c;
         [Fact]
         public void ArithmeticOperators_MultiplicationExpression()
         {
-            var s0 = CreateSubmission("int i = 5;");
-            var s1 = CreateSubmission("i* i", previous: s0);
-            var s2 = CreateSubmission("i* i;", previous: s1);
+            CSharpCompilation s0 = CreateSubmission("int i = 5;");
+            CSharpCompilation s1 = CreateSubmission("i* i", previous: s0);
+            CSharpCompilation s2 = CreateSubmission("i* i;", previous: s1);
 
             s1.VerifyEmitDiagnostics();
 
@@ -1080,7 +1080,7 @@ System.TypedReference c;
         [Fact(Skip = "4737")]
         public void TopLevelLabel()
         {
-            var s0 = CreateSubmission(@"
+            CSharpCompilation s0 = CreateSubmission(@"
 Label: ; 
 goto Label;");
 
@@ -1091,7 +1091,7 @@ goto Label;");
         [Fact]
         public void TopLevelGoto()
         {
-            var s0 = CreateSubmission("goto Object;");
+            CSharpCompilation s0 = CreateSubmission("goto Object;");
 
             s0.VerifyDiagnostics(
                 // (1,1): error CS0159: No such label 'Object' within the scope of the goto statement
@@ -1102,19 +1102,19 @@ goto Label;");
         [Fact]
         public void DefineExtensionMethods()
         {
-            var references = new[] { TestReferences.NetFx.v4_0_30319.System_Core };
+            PortableExecutableReference[] references = new[] { TestReferences.NetFx.v4_0_30319.System_Core };
 
             // No error for extension method defined in interactive session.
-            var s0 = CreateSubmission("static void E(this object o) { }", references);
+            CSharpCompilation s0 = CreateSubmission("static void E(this object o) { }", references);
 
-            var s1 = CreateSubmission("void F(this object o) { }", references, previous: s0);
+            CSharpCompilation s1 = CreateSubmission("void F(this object o) { }", references, previous: s0);
 
             s1.VerifyDiagnostics(
                 // (1,6): error CS1105: Extension method must be static
                 // void F(this object o) { }
                 Diagnostic(ErrorCode.ERR_BadExtensionMeth, "F"));
 
-            var s2 = CreateSubmission("static void G(this dynamic o) { }", references, previous: s0);
+            CSharpCompilation s2 = CreateSubmission("static void G(this dynamic o) { }", references, previous: s0);
 
             s2.VerifyDiagnostics(
                 // error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
@@ -1128,8 +1128,8 @@ goto Label;");
             string source =
 @"fixed int x[3];
 ";
-            var tree = Parse(source, options: TestOptions.Script);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = Parse(source, options: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
 
             compilation.VerifyDiagnostics(
                 // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
@@ -1148,8 +1148,8 @@ goto Label;");
             string source =
 @"fixed var x[3] = 1;
 ";
-            var tree = Parse(source, options: TestOptions.Script);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = Parse(source, options: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree });
 
             compilation.VerifyDiagnostics(
                 // (1,16): error CS1003: Syntax error, ',' expected
@@ -1172,10 +1172,10 @@ goto Label;");
         public void Errors_01()
         {
             var code = "System.Console.WriteLine(1);";
-            var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            var syntaxTree = compilationUnit.SyntaxTree;
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
-            var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            CompilationUnitSyntax compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            SyntaxTree syntaxTree = compilationUnit.SyntaxTree;
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             MemberAccessExpressionSyntax node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
             Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
@@ -1259,17 +1259,17 @@ goto Label;");
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
         public void Errors_02()
         {
-            var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            var syntaxTree1 = compilationUnit.SyntaxTree;
-            var syntaxTree2 = SyntaxFactory.ParseSyntaxTree("System.Console.WriteLine(2);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            CompilationUnitSyntax compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            SyntaxTree syntaxTree1 = compilationUnit.SyntaxTree;
+            SyntaxTree syntaxTree2 = SyntaxFactory.ParseSyntaxTree("System.Console.WriteLine(2);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
             MemberAccessExpressionSyntax node1 = ErrorTestsGetNode(syntaxTree1);
             MemberAccessExpressionSyntax node2 = ErrorTestsGetNode(syntaxTree2);
             Assert.Equal("WriteLine", node1.Name.ToString());
             Assert.Equal("WriteLine", node2.Name.ToString());
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree1, syntaxTree2 });
-            var semanticModel1 = compilation.GetSemanticModel(syntaxTree1, true);
-            var semanticModel2 = compilation.GetSemanticModel(syntaxTree2, true);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree1, syntaxTree2 });
+            SemanticModel semanticModel1 = compilation.GetSemanticModel(syntaxTree1, true);
+            SemanticModel semanticModel2 = compilation.GetSemanticModel(syntaxTree2, true);
             Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol);
             Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString());
 
@@ -1297,14 +1297,14 @@ goto Label;");
         public void Errors_03()
         {
             var code = "System.Console.WriteLine(out var x, x);";
-            var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
-            var syntaxTree = compilationUnit.SyntaxTree;
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
-            var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+            CompilationUnitSyntax compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
+            SyntaxTree syntaxTree = compilationUnit.SyntaxTree;
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree, true);
             MemberAccessExpressionSyntax node5 = ErrorTestsGetNode(syntaxTree);
             Assert.Equal("WriteLine", node5.Name.ToString());
             Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol);
-            var x = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            IdentifierNameSyntax x = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
             Assert.Null(semanticModel.GetSymbolInfo(x).Symbol);
 
             compilation.VerifyDiagnostics(
@@ -1362,7 +1362,7 @@ goto Label;");
         [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
         public void TestScriptWithConstVar()
         {
-            var script = CreateEmptyCompilation(
+            CSharpCompilation script = CreateEmptyCompilation(
                 source: @"string F() => null; const var x = F();",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,

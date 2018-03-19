@@ -133,7 +133,7 @@ class Test
         i3.Property = x;
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method<U>(1, a)
 Base.Method(2)
@@ -246,7 +246,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method( , 1, [1])
 Derived.Method( , 2, [2])
@@ -349,19 +349,19 @@ class Test
 
             #endregion
 
-            var asmRef = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asmRef = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 text1,
                 references: new[] { asmRef },
                 assemblyName: "OHI_ExpImpImplVBNested001");
 
-            var comp2 = CreateCompilation(
+            CSharpCompilation comp2 = CreateCompilation(
                 text2,
                 references: new[] { asmRef, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ExpImpImplVBNested002");
 
-            var comp3 = CreateCompilation(
+            CSharpCompilation comp3 = CreateCompilation(
                 text3,
                 references: new MetadataReference[] { asmRef, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -427,7 +427,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -510,7 +510,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -587,7 +587,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -670,7 +670,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -749,7 +749,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -847,7 +847,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -938,7 +938,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1021,7 +1021,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1098,7 +1098,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1181,7 +1181,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1258,7 +1258,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1341,7 +1341,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1419,7 +1419,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1504,7 +1504,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1583,7 +1583,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1668,7 +1668,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1746,7 +1746,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -1828,7 +1828,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -1921,7 +1921,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -2026,7 +2026,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -2093,7 +2093,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: "",
                 expectedSignatures: new[]
                 {
@@ -2235,7 +2235,7 @@ class Test
         k.Method<string>("""", null); k.Property = y; y = k.Property;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Implicit.Method
 Implicit.set_Property
 Implicit.get_Property
@@ -2354,7 +2354,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Explicit - Method - int
 Explicit - Method<T> - int
 Explicit - Method<T> - int
@@ -2418,7 +2418,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Method(ref int x)
 Method(int x)
 Method(int x, int[] y)
@@ -2474,7 +2474,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Method(ref int x)
 Method(int x)
 Method(out Func<int, int> v)
@@ -2554,7 +2554,7 @@ U.set_Property").VerifyDiagnostics(); // No errors
     int Prop { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("IFace", "Method", ".method public hidebysig newslot abstract virtual instance System.Void Method() cil managed"),
                 Signature("IFace", "get_Prop", ".method public hidebysig newslot specialname abstract virtual instance System.Int32 get_Prop() cil managed"),
@@ -2632,9 +2632,9 @@ public class D : B, I
 }
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 // NOTE: dev11 has the return type as void, which doesn't peverify.
                 Signature("D", "I.M", ".method private hidebysig newslot virtual final instance System.Int32& I.M() cil managed")
@@ -2727,21 +2727,21 @@ public class D : B<char>, I<char>
 }
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
-            var global = comp.GlobalNamespace;
-            var derivedType = global.GetMember<NamedTypeSymbol>("D");
-            var interfaceType = derivedType.Interfaces().Single();
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol derivedType = global.GetMember<NamedTypeSymbol>("D");
+            NamedTypeSymbol interfaceType = derivedType.Interfaces().Single();
             Assert.Equal(global.GetMember<NamedTypeSymbol>("I"), interfaceType.OriginalDefinition);
-            var baseType = derivedType.BaseType();
+            NamedTypeSymbol baseType = derivedType.BaseType();
             Assert.Equal(global.GetMember<NamedTypeSymbol>("B"), baseType.OriginalDefinition);
 
-            var baseMethods = Enumerable.Range(1, 4).Select(i => baseType.GetMember<MethodSymbol>("M" + i)).ToArray();
-            var interfaceMethods = Enumerable.Range(1, 4).Select(i => interfaceType.GetMember<MethodSymbol>("M" + i)).ToArray();
+            MethodSymbol[] baseMethods = Enumerable.Range(1, 4).Select(i => baseType.GetMember<MethodSymbol>("M" + i)).ToArray();
+            MethodSymbol[] interfaceMethods = Enumerable.Range(1, 4).Select(i => interfaceType.GetMember<MethodSymbol>("M" + i)).ToArray();
 
             AssertEx.Equal(baseMethods, interfaceMethods.Select(interfaceMethod => derivedType.FindImplementationForInterfaceMember(interfaceMethod)));
 
-            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 // NOTE: dev11 has the return type as void, which doesn't peverify.
                 Signature("D", "I<System.Char>.M1", ".method private hidebysig newslot virtual final instance System.Char& I<System.Char>.M1() cil managed"),

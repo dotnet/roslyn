@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.IModifiedTypeReference modifiedType = typeReference as Cci.IModifiedTypeReference;
             if (modifiedType != null)
             {
-                foreach (var custModifier in modifiedType.CustomModifiers)
+                foreach (Cci.ICustomModifier custModifier in modifiedType.CustomModifiers)
                 {
                     VisitTypeReference(custModifier.GetModifier(context), context);
                 }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.IGenericTypeInstanceReference genericInstance = typeReference.AsGenericTypeInstanceReference;
             if (genericInstance != null)
             {
-                foreach (var arg in genericInstance.GetGenericArguments(context))
+                foreach (Cci.ITypeReference arg in genericInstance.GetGenericArguments(context))
                 {
                     VisitTypeReference(arg, context);
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.IGenericMethodInstanceReference genericInstance = methodReference.AsGenericMethodInstanceReference;
             if (genericInstance != null)
             {
-                foreach (var arg in genericInstance.GetGenericArguments(context))
+                foreach (Cci.ITypeReference arg in genericInstance.GetGenericArguments(context))
                 {
                     VisitTypeReference(arg, context);
                 }
@@ -130,12 +130,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Visit return value type
             VisitTypeReference(methodReference.GetType(context), context);
 
-            foreach (var typeModifier in methodReference.RefCustomModifiers)
+            foreach (Cci.ICustomModifier typeModifier in methodReference.RefCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);
             }
 
-            foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
+            foreach (Cci.ICustomModifier typeModifier in methodReference.ReturnValueCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);
             }
@@ -143,16 +143,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private static void VisitParameters(ImmutableArray<Cci.IParameterTypeInformation> parameters, EmitContext context)
         {
-            foreach (var param in parameters)
+            foreach (Cci.IParameterTypeInformation param in parameters)
             {
                 VisitTypeReference(param.GetType(context), context);
 
-                foreach (var typeModifier in param.RefCustomModifiers)
+                foreach (Cci.ICustomModifier typeModifier in param.RefCustomModifiers)
                 {
                     VisitTypeReference(typeModifier.GetModifier(context), context);
                 }
 
-                foreach (var typeModifier in param.CustomModifiers)
+                foreach (Cci.ICustomModifier typeModifier in param.CustomModifiers)
                 {
                     VisitTypeReference(typeModifier.GetModifier(context), context);
                 }

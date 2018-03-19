@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                             break;
                         }
 
-                        var child = _node.GetSlot(_childIndex);
+                        GreenNode child = _node.GetSlot(_childIndex);
                         if (child == null)
                         {
                             continue;

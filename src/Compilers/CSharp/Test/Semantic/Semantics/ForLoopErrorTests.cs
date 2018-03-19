@@ -190,7 +190,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement });
         }

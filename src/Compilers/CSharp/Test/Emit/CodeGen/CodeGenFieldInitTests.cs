@@ -427,7 +427,7 @@ class C
     public string str3 = (string)(null);
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size       18 (0x12)
@@ -454,7 +454,7 @@ class C
     public char f4 = '\0';
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -475,7 +475,7 @@ class C<T>
     public T f1 = default(T);
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C<T>..ctor", @"
 {
   // Code size        7 (0x7)
@@ -503,7 +503,7 @@ class C
 }
 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..cctor", @"
 {
   // Code size       47 (0x2f)
@@ -557,7 +557,7 @@ class C
     }
 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C<T>..cctor", @"
 {
   // Code size        1 (0x1)
@@ -578,7 +578,7 @@ class C
 }
 
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -644,7 +644,7 @@ a.a = 1
                 expectedOutput.AppendLine(i.ToString());
             }
 
-            var compilation = CreateCompilationWithMscorlib45(trees, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(trees, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expectedOutput.ToString());
         }
@@ -676,7 +676,7 @@ class B
     public const int F1 = F2;
     public static int F2 = 0;
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: "1110a705-cc34-430b-9450-ca37031aa828");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "1110a705-cc34-430b-9450-ca37031aa828");
             compilation1.VerifyDiagnostics(
                 // (3,27): error CS0133: The expression being assigned to 'B.F1' must be constant
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "F2").WithArguments("B.F1").WithLocation(3, 27));

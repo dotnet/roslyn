@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 return false;
             }
 
-            var type1 = GetSymbolType(normalSymbol);
-            var type2 = GetSymbolType(typeOnlySymbol);
+            ITypeSymbol type1 = GetSymbolType(normalSymbol);
+            ITypeSymbol type2 = GetSymbolType(typeOnlySymbol);
 
             return
                 type1 != null &&

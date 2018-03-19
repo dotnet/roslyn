@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (Options.Kind == SourceCodeKind.Script)
                 {
-                    var compilationUnitRoot = GetCompilationUnitRoot();
+                    CompilationUnitSyntax compilationUnitRoot = GetCompilationUnitRoot();
                     return compilationUnitRoot.GetReferenceDirectives().Count > 0 || compilationUnitRoot.GetLoadDirectives().Count > 0;
                 }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_hasDirectives)
             {
-                var stack = this.GetRoot().CsGreen.ApplyDirectives(default(InternalSyntax.DirectiveStack));
+                InternalSyntax.DirectiveStack stack = this.GetRoot().CsGreen.ApplyDirectives(default(InternalSyntax.DirectiveStack));
                 SetDirectiveStack(stack);
             }
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(root));
             }
 
-            var directives = root.Kind() == SyntaxKind.CompilationUnit ?
+            InternalSyntax.DirectiveStack directives = root.Kind() == SyntaxKind.CompilationUnit ?
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceText oldText;
             if (this.TryGetText(out oldText))
             {
-                var changes = newText.GetChangeRanges(oldText);
+                IReadOnlyList<TextChangeRange> changes = newText.GetChangeRanges(oldText);
 
                 if (changes.Count == 0 && newText == oldText)
                 {
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(changes));
             }
 
-            var oldTree = this;
+            CSharpSyntaxTree oldTree = this;
 
             // if changes is entire text do a full reparse
             if (changes.Count == 1 && changes[0].Span == new TextSpan(0, this.Length) && changes[0].NewLength == newText.Length)

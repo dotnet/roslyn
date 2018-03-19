@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IntersectWith(ref LocalState self, ref LocalState other)
         {
-            var old = self;
+            LocalState old = self;
             self.Alive |= other.Alive;
             self.Reported &= other.Reported;
             Debug.Assert(!self.Alive || !self.Reported);
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
             this.Diagnostics.Clear();  // clear reported diagnostics
-            var result = base.Scan(ref badRegion);
-            foreach (var label in _labelsDefined)
+            ImmutableArray<PendingBranch> result = base.Scan(ref badRegion);
+            foreach (LabelSymbol label in _labelsDefined)
             {
                 if (!_labelsUsed.Contains(label))
                 {
@@ -182,14 +182,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<PendingBranch> RemoveReturns()
         {
-            var result = base.RemoveReturns();
-            foreach (var pending in result)
+            ImmutableArray<PendingBranch> result = base.RemoveReturns();
+            foreach (PendingBranch pending in result)
             {
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
                         {
-                            var leave = pending.Branch;
+                            BoundNode leave = pending.Branch;
                             var loc = new SourceLocation(leave.Syntax.GetFirstToken());
                             Diagnostics.Add(ErrorCode.ERR_LabelNotFound, loc, ((BoundGotoStatement)pending.Branch).Label.Name);
                             break;
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.BreakStatement:
                     case BoundKind.ContinueStatement:
                         {
-                            var leave = pending.Branch;
+                            BoundNode leave = pending.Branch;
                             var loc = new SourceLocation(leave.Syntax.GetFirstToken());
                             Diagnostics.Add(ErrorCode.ERR_BadDelegateLeave, loc);
                             break;
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !statement.WasCompilerGenerated &&
                 statement.Syntax.Span.Length != 0)
             {
-                var firstToken = statement.Syntax.GetFirstToken();
+                SyntaxToken firstToken = statement.Syntax.GetFirstToken();
                 Diagnostics.Add(ErrorCode.WRN_UnreachableCode, new SourceLocation(firstToken));
                 this.State.Reported = true;
             }
@@ -253,25 +253,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var oldPending = SavePending(); // we do not support branches into a try block
+            SavedPending oldPending = SavePending(); // we do not support branches into a try block
             base.VisitTryBlock(tryBlock, node, ref tryState);
             RestorePending(oldPending);
         }
 
         protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
-            var oldPending = SavePending(); // we do not support branches into a catch block
+            SavedPending oldPending = SavePending(); // we do not support branches into a catch block
             base.VisitCatchBlock(catchBlock, ref finallyState);
             RestorePending(oldPending);
         }
 
         protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState endState)
         {
-            var oldPending1 = SavePending(); // we do not support branches into a finally block
-            var oldPending2 = SavePending(); // track only the branches out of the finally block
+            SavedPending oldPending1 = SavePending(); // we do not support branches into a finally block
+            SavedPending oldPending2 = SavePending(); // track only the branches out of the finally block
             base.VisitFinallyBlock(finallyBlock, ref endState);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
-            foreach (var branch in PendingBranches)
+            foreach (PendingBranch branch in PendingBranches)
             {
                 if (branch.Branch == null) continue; // a tracked exception
                 var location = new SourceLocation(branch.Branch.Syntax.GetFirstToken());
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.SwitchLabels.Any());
 
-                var boundLabel = node.SwitchLabels.Last();
+                BoundSwitchLabel boundLabel = node.SwitchLabels.Last();
                 Diagnostics.Add(lastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
             }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
+                SyntaxNode syntax = node.SwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
             }

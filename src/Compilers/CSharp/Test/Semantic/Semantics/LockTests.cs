@@ -32,24 +32,24 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            LocalDeclarationStatementSyntax localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             Assert.Equal("o", localSymbol.Name);
             Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
 
-            var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
-            var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
+            LockStatementSyntax lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
+            SymbolInfo lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
             Assert.NotNull(lockExprInfo);
             Assert.Equal(localSymbol, lockExprInfo.Symbol);
 
-            var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
-            var memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
+            MemberAccessExpressionSyntax memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            SymbolInfo memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
             Assert.NotNull(memberAccessInfo);
             Assert.Equal(localSymbol, memberAccessInfo.Symbol);
         }
@@ -469,7 +469,7 @@ class D
         [Fact]
         public void LockNull()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -481,8 +481,8 @@ public class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
 
@@ -493,7 +493,7 @@ public class Test
         [Fact]
         public void LockThis()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -505,14 +505,14 @@ public class Test
     }
 }
 ");
-            var symbol = compilation.GetTypeByMetadataName("Test");
+            NamedTypeSymbol symbol = compilation.GetTypeByMetadataName("Test");
             VerifySemanticInfoForLockStatements(compilation, symbol);
         }
 
         [Fact]
         public void LockExpression()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -524,14 +524,14 @@ public class Test
     }
 }
 ");
-            var symbol = compilation.GetTypeByMetadataName("Test");
+            NamedTypeSymbol symbol = compilation.GetTypeByMetadataName("Test");
             VerifySemanticInfoForLockStatements(compilation, symbol);
         }
 
         [Fact]
         public void LockTypeParameterExpression()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -543,17 +543,17 @@ public class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
-            var parameterSymbol = model.GetDeclaredSymbol(localDecl);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeParameterSyntax localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
+            ITypeParameterSymbol parameterSymbol = model.GetDeclaredSymbol(localDecl);
             VerifySemanticInfoForLockStatements(compilation, parameterSymbol);
         }
 
         [Fact]
         public void LockQuery()
         {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(
 @"
 using System.Linq;
 class Test
@@ -567,8 +567,8 @@ class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
 
@@ -579,7 +579,7 @@ class Test
         [Fact]
         public void LockDelegate()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 delegate void D(int p1);
 partial class Test
@@ -597,9 +597,9 @@ partial class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            LocalDeclarationStatementSyntax localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             VerifySemanticInfoForLockStatements(compilation, symbol.Type, isSymbolNull: true);
         }
@@ -607,7 +607,7 @@ partial class Test
         [Fact()]
         public void LockAnonymousTypes()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 class Test
 {
@@ -621,9 +621,9 @@ class Test
 }
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            LocalDeclarationStatementSyntax localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             VerifySemanticInfoForLockStatements(compilation, symbol.Type);
         }
@@ -631,7 +631,7 @@ class Test
         [Fact()]
         public void LockTypeOf()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 class Test
 {
@@ -643,14 +643,14 @@ class Test
     }
 }
 ");
-            var symbol = compilation.GetTypeByMetadataName("System.Type");
+            NamedTypeSymbol symbol = compilation.GetTypeByMetadataName("System.Type");
             VerifySemanticInfoForLockStatements(compilation, symbol, isSymbolNull: true);
         }
 
         [Fact()]
         public void LockString()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 class Test
 {
@@ -662,14 +662,14 @@ class Test
     }
 }
 ");
-            var symbol = compilation.GetSpecialType(SpecialType.System_String);
+            NamedTypeSymbol symbol = compilation.GetSpecialType(SpecialType.System_String);
             VerifySemanticInfoForLockStatements(compilation, symbol, isSymbolNull: true);
         }
 
         [Fact()]
         public void AssignmentInLock()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 class Test
 {
@@ -683,7 +683,7 @@ class Test
     }
 }
 ");
-            var symbol = compilation.GetSpecialType(SpecialType.System_String);
+            NamedTypeSymbol symbol = compilation.GetSpecialType(SpecialType.System_String);
             VerifySemanticInfoForLockStatements(compilation, symbol);
         }
 
@@ -691,11 +691,11 @@ class Test
 
         private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, ISymbol symbol, int index = 1, bool isSymbolNull = false)
         {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
-            var symbolInfo = model.GetSymbolInfo(lockStatements[index - 1].Expression);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(lockStatements[index - 1].Expression);
 
             if (isSymbolNull == true)
             {
@@ -705,7 +705,7 @@ class Test
             {
                 Assert.NotNull(symbolInfo.Symbol);
             }
-            var typeInfo = model.GetTypeInfo(lockStatements[index - 1].Expression);
+            TypeInfo typeInfo = model.GetTypeInfo(lockStatements[index - 1].Expression);
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
 
@@ -769,8 +769,8 @@ class Gen3<T> where T : class
     }
 }
 ";
-            var regularCompilation = CreateCompilation(source);
-            var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            CSharpCompilation regularCompilation = CreateCompilation(source);
+            CSharpCompilation strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
             regularCompilation.VerifyDiagnostics(
                 // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement

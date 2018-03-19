@@ -303,10 +303,10 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
 
-            foreach (var assemblyAndAliases in CommonCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            foreach ((IAssemblySymbol, ImmutableArray<string>) assemblyAndAliases in CommonCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                var assembly = assemblyAndAliases.Item1;
-                var aliases = assemblyAndAliases.Item2;
+                IAssemblySymbol assembly = assemblyAndAliases.Item1;
+                ImmutableArray<string> aliases = assemblyAndAliases.Item2;
 
                 for (int i = 0; i < aliases.Length; i++)
                 {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (OutputKind != OutputKind.NetModule)
             {
                 // Explicitly add references from added modules
-                foreach (var aRef in GetAssemblyReferencesFromAddedModules(context.Diagnostics))
+                foreach (Cci.IAssemblyReference aRef in GetAssemblyReferencesFromAddedModules(context.Diagnostics))
                 {
                     yield return aRef;
                 }
@@ -503,21 +503,21 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(noPiaIndexer, _rootModuleType);
             yield return _rootModuleType;
 
-            foreach (var type in this.GetAnonymousTypes(context))
+            foreach (Cci.INamespaceTypeDefinition type in this.GetAnonymousTypes(context))
             {
                 AddTopLevelType(names, type);
                 VisitTopLevelType(noPiaIndexer, type);
                 yield return type;
             }
 
-            foreach (var type in this.GetTopLevelTypesCore(context))
+            foreach (Cci.INamespaceTypeDefinition type in this.GetTopLevelTypesCore(context))
             {
                 AddTopLevelType(names, type);
                 VisitTopLevelType(noPiaIndexer, type);
                 yield return type;
             }
 
-            var privateImpl = this.PrivateImplClass;
+            PrivateImplementationDetails privateImpl = this.PrivateImplClass;
             if (privateImpl != null)
             {
                 AddTopLevelType(names, privateImpl);
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (EmbeddedTypesManagerOpt != null)
             {
-                foreach (var embedded in EmbeddedTypesManagerOpt.GetTypes(context.Diagnostics, names))
+                foreach (Cci.INamespaceTypeDefinition embedded in EmbeddedTypesManagerOpt.GetTypes(context.Diagnostics, names))
                 {
                     AddTopLevelType(names, embedded);
                     yield return embedded;
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (Fields != null)
                 {
-                    foreach (var field in Fields)
+                    foreach (Cci.IFieldDefinition field in Fields)
                     {
                         builder.Add(field);
                     }
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (Methods != null)
                 {
-                    foreach (var method in Methods)
+                    foreach (Cci.IMethodDefinition method in Methods)
                     {
                         builder.Add(method);
                     }
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (Properties != null)
                 {
-                    foreach (var property in Properties)
+                    foreach (Cci.IPropertyDefinition property in Properties)
                     {
                         builder.Add(property);
                     }
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (NestedTypes != null)
                 {
-                    foreach (var type in NestedTypes)
+                    foreach (Cci.INestedTypeDefinition type in NestedTypes)
                     {
                         builder.Add(type);
                     }
@@ -786,9 +786,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal override ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers()
         {
-            var builder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
+            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Builder builder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
 
-            foreach (var entry in _synthesizedDefs)
+            foreach (KeyValuePair<TNamedTypeSymbol, SynthesizedDefinitions> entry in _synthesizedDefs)
             {
                 builder.Add(entry.Key, entry.Value.GetAllMembers());
             }
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(this.SupportsPrivateImplClass);
 
-            var privateImpl = this.GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+            PrivateImplementationDetails privateImpl = this.GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
             return privateImpl.CreateDataField(data);
@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var result = _privateImplementationDetails;
+            PrivateImplementationDetails result = _privateImplementationDetails;
 
             if ((result == null) && this.SupportsPrivateImplClass)
             {

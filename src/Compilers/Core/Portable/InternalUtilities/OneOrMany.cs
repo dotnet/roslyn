@@ -87,7 +87,7 @@ namespace Roslyn.Utilities
                 return item.Equals(_one);
             }
 
-            var iter = GetEnumerator();
+            Enumerator iter = GetEnumerator();
             while (iter.MoveNext())
             {
                 if (item.Equals(iter.Current))
@@ -107,7 +107,7 @@ namespace Roslyn.Utilities
             }
 
             var builder = ArrayBuilder<T>.GetInstance();
-            var iter = GetEnumerator();
+            Enumerator iter = GetEnumerator();
             while (iter.MoveNext())
             {
                 if (!item.Equals(iter.Current))

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var assemblyDef = reader.GetAssemblyDefinition();
+            AssemblyDefinition assemblyDef = reader.GetAssemblyDefinition();
 
             return reader.CreateAssemblyIdentityOrThrow(
                 assemblyDef.Version,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
             try
             {
-                foreach (var assemblyRef in reader.AssemblyReferences)
+                foreach (AssemblyReferenceHandle assemblyRef in reader.AssemblyReferences)
                 {
                     AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
                     result.Add(reader.CreateAssemblyIdentityOrThrow(
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var typeDef = reader.GetTypeDefinition(handle);
+                    TypeDefinition typeDef = reader.GetTypeDefinition(handle);
                     if (predicate(reader, typeDef))
                     {
                         return true;

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestBreakStatement()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -33,8 +33,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -52,7 +52,7 @@ class C {
         [Fact]
         public void TestContinueStatement()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -67,8 +67,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -85,7 +85,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantBooleanFalse()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -97,8 +97,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -115,7 +115,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantBooleanTrue()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -127,8 +127,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -145,7 +145,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantBooleanXor()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -157,8 +157,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -175,7 +175,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantBooleanNew()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -186,8 +186,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -205,7 +205,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantBooleanChecked()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -216,8 +216,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -234,7 +234,7 @@ class C {
         [Fact]
         public void TestLoopWithAssignmentInCondition()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -245,8 +245,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -263,7 +263,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantEnumEquality()
         {
-            var analysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysisResults = CompileAndAnalyzeControlFlowStatements(@"
 using System;
 class C {
     static void Goo()
@@ -280,7 +280,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantNaNComparison()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -291,8 +291,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -309,7 +309,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantNaNComparison2()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -320,8 +320,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -338,7 +338,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantStringEquality()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -349,8 +349,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -367,7 +367,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantStringEqualityWithUnicodeEscapes()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -378,8 +378,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -396,7 +396,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantVerbatimStringEquality()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -407,8 +407,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -425,7 +425,7 @@ class C {
         [Fact]
         public void TestLoopWithEmptyBlockAfterIt()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Goo()
     {
@@ -436,8 +436,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -454,7 +454,7 @@ class C {
         [Fact]
         public void TestLoopWithUnreachableBreakStatement()
         {
-            var controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     static void Main()
     {
@@ -473,7 +473,7 @@ class C {
         [Fact]
         public void TestLoopWithReachableBreakStatement()
         {
-            var controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     static void Main()
     {
@@ -492,7 +492,7 @@ class C {
         [Fact]
         public void TestLoopWithContinueStatement()
         {
-            var controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     static void Main()
     {
@@ -511,7 +511,7 @@ class C {
         [Fact]
         public void TestLoopWithContinueAndUnreachableBreakStatement()
         {
-            var controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     static void Main()
     {
@@ -530,7 +530,7 @@ class C {
         [Fact]
         public void TestLoopWithConstantTernaryOperator()
         {
-            var controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     static void Main()
     {
@@ -549,7 +549,7 @@ class C {
         [Fact]
         public void TestLoopWithShortCircuitingOr()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -560,8 +560,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -580,7 +580,7 @@ class C {
         [Fact]
         public void ControlledStatement01()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C
 {
     static void Main()
@@ -588,7 +588,7 @@ class C
         while (true) /*<bind>*/Main();/*</bind>*/
     }
 }");
-            var controlFlowAnalysisResults = analysisResults.Item1;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
             //var dataFlowAnalysisResults = analysisResults.Item2;
             Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
         }
@@ -597,7 +597,7 @@ class C
         [Fact]
         public void ControlledStatement02()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C
 {
     static void Main()
@@ -605,7 +605,7 @@ class C
         /*<bind>*/while (true) Main();/*</bind>*/
     }
 }");
-            var controlFlowAnalysisResults = analysisResults.Item1;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
             //var dataFlowAnalysisResults = analysisResults.Item2;
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
         }
@@ -617,7 +617,7 @@ class C
         [Fact]
         public void TestVariablesDeclaredInForLoop()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -637,7 +637,7 @@ class C {
         [Fact]
         public void TestForIncrement()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     static void M()
@@ -660,7 +660,7 @@ class C
         [Fact]
         public void TestNestedForLoops()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C
 {
     static void M()
@@ -679,8 +679,8 @@ class C
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -698,7 +698,7 @@ class C
         [Fact]
         public void ContinueInForStatement()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 
 class Program
@@ -713,7 +713,7 @@ class Program
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
             //var dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
@@ -725,7 +725,7 @@ class Program
         [Fact]
         public void TestVariablesDeclaredInForeachLoop01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -745,7 +745,7 @@ class C {
         [Fact]
         public void TestVariablesDeclaredInForeachLoop02()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -766,7 +766,7 @@ class C {
         [Fact]
         public void TestLocalsInForeachLoop()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 using System.Collections.Generic;
 
@@ -798,7 +798,7 @@ class Test
         [Fact]
         public void TestLocalsInForeachLoop02()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 using System.Collections.Generic;
 
@@ -830,7 +830,7 @@ class Test
         [Fact]
         public void TestLocalsInForeachLoop03()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 using System.Collections.Generic;
 
@@ -863,7 +863,7 @@ class Test
         [Fact]
         public void ForEachVariableShouldNotInVariableDeclaredTest()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -875,8 +875,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -893,7 +893,7 @@ class C {
         [Fact]
         public void ForEachVariablesDeclared()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 public class Program
 {
     public static void Main()
@@ -905,10 +905,10 @@ public class Program
         }
     }
 }");
-            var comp = CreateCompilation(new[] { tree });
-            var semanticModel = comp.GetSemanticModel(tree);
-            var foreachNode = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-            var flow = semanticModel.AnalyzeDataFlow(foreachNode);
+            CSharpCompilation comp = CreateCompilation(new[] { tree });
+            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+            ForEachStatementSyntax foreachNode = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            DataFlowAnalysis flow = semanticModel.AnalyzeDataFlow(foreachNode);
             Assert.Equal(2, flow.VariablesDeclared.Count());
             Assert.Equal(true, flow.VariablesDeclared.Any((s) => s.Name == "b"));
             Assert.Equal(true, flow.VariablesDeclared.Any((s) => s.Name == "s"));
@@ -921,7 +921,7 @@ public class Program
         [Fact]
         public void TestReturnStatements01()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -937,7 +937,7 @@ class C {
         [Fact]
         public void TestReturnStatements02()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -954,7 +954,7 @@ class C {
         [Fact]
         public void TestReturnStatement()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -966,8 +966,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -983,7 +983,7 @@ class C {
         [Fact]
         public void TestReturnStatementWithExpression()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static int Goo()
     {
@@ -994,8 +994,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -1011,7 +1011,7 @@ class C {
         [Fact]
         public void TestReturnStatementWithAssignmentExpressions()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static int? Goo()
     {
@@ -1022,8 +1022,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -1039,7 +1039,7 @@ class C {
         [Fact]
         public void TestReturnStatementWithAssignmentExpressions2()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static int Goo()
     {
@@ -1050,8 +1050,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -1068,7 +1068,7 @@ class C {
         [Fact]
         public void InaccessibleVariables()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            System.Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -1093,8 +1093,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Empty(controlFlowAnalysisResults.EntryPoints);
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -1116,7 +1116,7 @@ class C {
         [Fact]
         public void TestYieldStatements01()
         {
-            var analysis = CompileAndAnalyzeControlAndDataFlowMultipleStatements(@"
+            System.Tuple<IEnumerable<ControlFlowAnalysis>, IEnumerable<DataFlowAnalysis>> analysis = CompileAndAnalyzeControlAndDataFlowMultipleStatements(@"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1148,13 +1148,13 @@ class Test
     }
 }
 ");
-            var ctrlFlowAnalysis = analysis.Item1;
+            IEnumerable<ControlFlowAnalysis> ctrlFlowAnalysis = analysis.Item1;
 
             var reachable = new bool[] { false, true, true, false };
             var bkcount = new int[] { 1, 0, 0, 1 };
             int idx = 0;
 
-            foreach (var ctrlFlow in ctrlFlowAnalysis)
+            foreach (ControlFlowAnalysis ctrlFlow in ctrlFlowAnalysis)
             {
                 if (reachable[idx])
                     Assert.True(ctrlFlow.EndPointIsReachable);
@@ -1221,10 +1221,10 @@ class Test
 }
 ";
 
-            var analysis = CompileAndAnalyzeControlAndDataFlowMultipleStatements(source);
+            System.Tuple<IEnumerable<ControlFlowAnalysis>, IEnumerable<DataFlowAnalysis>> analysis = CompileAndAnalyzeControlAndDataFlowMultipleStatements(source);
             var ctrlFlowAnalysis = analysis.Item1.ToList();
 
-            var ctrlFlow = ctrlFlowAnalysis[0];
+            ControlFlowAnalysis ctrlFlow = ctrlFlowAnalysis[0];
             Assert.True(ctrlFlow.EndPointIsReachable);
             Assert.Equal(2, ctrlFlow.ExitPoints.Count());
 
@@ -1311,10 +1311,10 @@ class Test
 ";
             #endregion
 
-            var analysis = CompileAndAnalyzeControlAndDataFlowMultipleStatements(source);
+            System.Tuple<IEnumerable<ControlFlowAnalysis>, IEnumerable<DataFlowAnalysis>> analysis = CompileAndAnalyzeControlAndDataFlowMultipleStatements(source);
             var ctrlFlowAnalysis = analysis.Item1.ToList();
 
-            var ctrlFlow = ctrlFlowAnalysis[0];
+            ControlFlowAnalysis ctrlFlow = ctrlFlowAnalysis[0];
             Assert.False(ctrlFlow.EndPointIsReachable);
             Assert.Equal(2, ctrlFlow.ExitPoints.Count());
 
@@ -1343,7 +1343,7 @@ public class Test
     public IEnumerator<int?> M1() { /*<bind>*/yield return 0;/*</bind>*/ }
 }
 ";
-            var ctrlFlowAnalysis = CompileAndAnalyzeControlFlowStatements(source);
+            ControlFlowAnalysis ctrlFlowAnalysis = CompileAndAnalyzeControlFlowStatements(source);
             Assert.Empty(ctrlFlowAnalysis.ExitPoints);
         }
 

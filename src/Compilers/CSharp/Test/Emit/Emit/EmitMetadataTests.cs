@@ -148,8 +148,8 @@ public class D
         [Fact]
         public void AssemblyRefs1()
         {
-            var metadataTestLib1 = TestReferences.SymbolsTests.MDTestLib1;
-            var metadataTestLib2 = TestReferences.SymbolsTests.MDTestLib2;
+            PortableExecutableReference metadataTestLib1 = TestReferences.SymbolsTests.MDTestLib1;
+            PortableExecutableReference metadataTestLib2 = TestReferences.SymbolsTests.MDTestLib2;
 
             string source = @"
 public class Test : C107
@@ -159,7 +159,7 @@ public class Test : C107
 
             CompileAndVerifyWithMscorlib40(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
             {
-                var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
+                AssemblyIdentity[] refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
                 Assert.Equal(refs[0].Name, "MDTestLib1", StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(refs[1].Name, "mscorlib", StringComparer.OrdinalIgnoreCase);
@@ -176,12 +176,12 @@ public class Test : Class2
 ";
             CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
             {
-                var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
+                IEnumerable<string> refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
                 Assert.Contains("MultiModule", refs2, StringComparer.OrdinalIgnoreCase);
                 Assert.Contains("mscorlib", refs2, StringComparer.OrdinalIgnoreCase);
 
-                var peFileReader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader peFileReader = assembly.GetMetadataReader();
 
                 Assert.Equal(0, peFileReader.GetTableRowCount(TableIndex.File));
                 Assert.Equal(0, peFileReader.GetTableRowCount(TableIndex.ModuleRef));
@@ -201,8 +201,8 @@ public class Test : Class2
         [Fact, WorkItem(529006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529006")]
         public void AddModule()
         {
-            var netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
-            var netModule2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule2).GetReference(filePath: Path.GetFullPath("netModule2.netmodule"));
+            PortableExecutableReference netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
+            PortableExecutableReference netModule2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule2).GetReference(filePath: Path.GetFullPath("netModule2.netmodule"));
 
             string source = @"
 public class Test : Class1
@@ -214,12 +214,12 @@ public class Test : Class1
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
-                var reader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader reader = assembly.GetMetadataReader();
 
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.File));
 
-                var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
-                var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                System.Reflection.Metadata.AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                System.Reflection.Metadata.AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                 Assert.Equal("netModule1.netmodule", reader.GetString(file1.Name));
                 Assert.Equal("netModule2.netmodule", reader.GetString(file2.Name));
 
@@ -227,10 +227,10 @@ public class Test : Class1
                 Assert.False(file2.HashValue.IsNil);
 
                 Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef));
-                var moduleRefName = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(1)).Name;
+                System.Reflection.Metadata.StringHandle moduleRefName = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(1)).Name;
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName));
 
-                var actual = from h in reader.ExportedTypes
+                IEnumerable<string> actual = from h in reader.ExportedTypes
                              let et = reader.GetExportedType(h)
                              select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
 
@@ -275,11 +275,11 @@ abstract public class B : I2, I3
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var classA = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                var classB = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-                var i1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
-                var i2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
-                var i3 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
+                NamedTypeSymbol classA = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                NamedTypeSymbol classB = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+                NamedTypeSymbol i1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
+                NamedTypeSymbol i2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
+                NamedTypeSymbol i3 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
 
                 Assert.Equal(TypeKind.Interface, i1.TypeKind);
                 Assert.Equal(TypeKind.Interface, i2.TypeKind);
@@ -289,7 +289,7 @@ abstract public class B : I2, I3
 
                 Assert.Same(i1, classA.Interfaces().Single());
 
-                var interfaces = classB.Interfaces();
+                ImmutableArray<NamedTypeSymbol> interfaces = classB.Interfaces();
                 Assert.Same(i2, interfaces[0]);
                 Assert.Same(i3, interfaces[1]);
 
@@ -315,14 +315,14 @@ class C : I1 { }
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var i1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
-                var i2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
-                var i3 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
-                var i4 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I4");
-                var i5 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I5");
-                var i6 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I6");
-                var i7 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I7");
-                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol i1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
+                NamedTypeSymbol i2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
+                NamedTypeSymbol i3 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
+                NamedTypeSymbol i4 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I4");
+                NamedTypeSymbol i5 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I5");
+                NamedTypeSymbol i6 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I6");
+                NamedTypeSymbol i7 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I7");
+                NamedTypeSymbol c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // Order is important - should be pre-order depth-first with declaration order at each level
                 Assert.True(i1.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
@@ -387,13 +387,13 @@ abstract public class A
 
             CompileAndVerify(source, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
-                var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
+                NamedTypeSymbol classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
-                var m1 = classA.GetMembers("M1").OfType<MethodSymbol>().Single();
-                var m2 = classA.GetMembers("M2").OfType<MethodSymbol>().Single();
-                var m3 = classA.GetMembers("M3").OfType<MethodSymbol>().Single();
-                var m4 = classA.GetMembers("M4").OfType<MethodSymbol>().Single();
-                var m5 = classA.GetMembers("M5").OfType<MethodSymbol>().Single();
+                MethodSymbol m1 = classA.GetMembers("M1").OfType<MethodSymbol>().Single();
+                MethodSymbol m2 = classA.GetMembers("M2").OfType<MethodSymbol>().Single();
+                MethodSymbol m3 = classA.GetMembers("M3").OfType<MethodSymbol>().Single();
+                MethodSymbol m4 = classA.GetMembers("M4").OfType<MethodSymbol>().Single();
+                MethodSymbol m5 = classA.GetMembers("M5").OfType<MethodSymbol>().Single();
 
                 var method1Ret = (ArrayTypeSymbol)m1.ReturnType;
                 var method2Ret = (ArrayTypeSymbol)m2.ReturnType;
@@ -409,15 +409,15 @@ abstract public class A
                 Assert.True(classA.IsAbstract);
                 Assert.Equal(Accessibility.Public, classA.DeclaredAccessibility);
 
-                var parameter1 = m1.Parameters.Single();
-                var parameter1Type = parameter1.Type;
+                ParameterSymbol parameter1 = m1.Parameters.Single();
+                TypeSymbol parameter1Type = parameter1.Type;
 
                 Assert.Equal(RefKind.Ref, parameter1.RefKind);
                 Assert.Same(module.GetCorLibType(SpecialType.System_Array), parameter1Type);
                 Assert.Same(module.GetCorLibType(SpecialType.System_Boolean), m2.Parameters.Single().Type);
                 Assert.Same(module.GetCorLibType(SpecialType.System_Char), m3.Parameters.Single().Type);
 
-                var method4ParamTypes = m4.Parameters.Select(p => p.Type).ToArray();
+                TypeSymbol[] method4ParamTypes = m4.Parameters.Select(p => p.Type).ToArray();
 
                 Assert.Same(module.GetCorLibType(SpecialType.System_Void), m4.ReturnType);
                 Assert.Same(module.GetCorLibType(SpecialType.System_SByte), method4ParamTypes[0]);
@@ -461,18 +461,18 @@ static class C
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var classB = module.GlobalNamespace.GetTypeMembers("B").Single();
+                NamedTypeSymbol classB = module.GlobalNamespace.GetTypeMembers("B").Single();
                 Assert.True(classB.IsSealed);
                 Assert.Equal(Accessibility.Internal, classB.DeclaredAccessibility);
 
-                var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
+                NamedTypeSymbol classC = module.GlobalNamespace.GetTypeMembers("C").Single();
                 Assert.True(classC.IsStatic);
                 Assert.Equal(Accessibility.Internal, classC.DeclaredAccessibility);
 
-                var classD = classC.GetTypeMembers("D").Single();
-                var classE = classC.GetTypeMembers("E").Single();
-                var classF = classC.GetTypeMembers("F").Single();
-                var classH = classC.GetTypeMembers("H").Single();
+                NamedTypeSymbol classD = classC.GetTypeMembers("D").Single();
+                NamedTypeSymbol classE = classC.GetTypeMembers("E").Single();
+                NamedTypeSymbol classF = classC.GetTypeMembers("F").Single();
+                NamedTypeSymbol classH = classC.GetTypeMembers("H").Single();
 
                 Assert.Equal(Accessibility.Public, classD.DeclaredAccessibility);
                 Assert.Equal(Accessibility.Internal, classE.DeclaredAccessibility);
@@ -481,8 +481,8 @@ static class C
 
                 if (isFromSource)
                 {
-                    var classG = classC.GetTypeMembers("G").Single();
-                    var classK = classC.GetTypeMembers("K").Single();
+                    NamedTypeSymbol classG = classC.GetTypeMembers("G").Single();
+                    NamedTypeSymbol classK = classC.GetTypeMembers("K").Single();
                     Assert.Equal(Accessibility.Private, classG.DeclaredAccessibility);
                     Assert.Equal(Accessibility.Private, classK.DeclaredAccessibility);
                 }
@@ -511,12 +511,12 @@ public class A
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
+                NamedTypeSymbol classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
-                var f1 = classA.GetMembers("F1").OfType<FieldSymbol>().Single();
-                var f2 = classA.GetMembers("F2").OfType<FieldSymbol>().Single();
-                var f3 = classA.GetMembers("F3").OfType<FieldSymbol>().Single();
-                var f4 = classA.GetMembers("F4").OfType<FieldSymbol>().Single();
+                FieldSymbol f1 = classA.GetMembers("F1").OfType<FieldSymbol>().Single();
+                FieldSymbol f2 = classA.GetMembers("F2").OfType<FieldSymbol>().Single();
+                FieldSymbol f3 = classA.GetMembers("F3").OfType<FieldSymbol>().Single();
+                FieldSymbol f4 = classA.GetMembers("F4").OfType<FieldSymbol>().Single();
 
                 Assert.False(f1.IsVolatile);
                 Assert.Equal(0, f1.CustomModifiers.Length);
@@ -533,8 +533,8 @@ public class A
 
                 if (isFromSource)
                 {
-                    var f5 = classA.GetMembers("F5").OfType<FieldSymbol>().Single();
-                    var f6 = classA.GetMembers("F6").OfType<FieldSymbol>().Single();
+                    FieldSymbol f5 = classA.GetMembers("F5").OfType<FieldSymbol>().Single();
+                    FieldSymbol f6 = classA.GetMembers("F6").OfType<FieldSymbol>().Single();
                     Assert.Equal(Accessibility.Private, f5.DeclaredAccessibility);
                     Assert.Equal(Accessibility.Private, f6.DeclaredAccessibility);
                 }
@@ -560,7 +560,7 @@ public class A
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetNamespaceMembers().Single().GetTypeMembers("C").Single();
+                NamedTypeSymbol type = module.GlobalNamespace.GetNamespaceMembers().Single().GetTypeMembers("C").Single();
                 var ctor = (MethodSymbol)type.GetMembers(".ctor").SingleOrDefault();
                 var cctor = (MethodSymbol)type.GetMembers(".cctor").SingleOrDefault();
 
@@ -627,7 +627,7 @@ public class A
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetTypeMembers("C").Single();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("C").Single();
                 if (isFromSource)
                 {
                     CheckConstantField(type, "I", Accessibility.Private, SpecialType.System_Int32, -1);
@@ -695,7 +695,7 @@ class Properties
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var nmspace = module.GlobalNamespace.GetNamespaceMembers().Single();
+                NamespaceSymbol nmspace = module.GlobalNamespace.GetNamespaceMembers().Single();
                 Assert.NotNull(nmspace.GetTypeMembers("Public").SingleOrDefault());
                 Assert.NotNull(nmspace.GetTypeMembers("Internal").SingleOrDefault());
 
@@ -742,10 +742,10 @@ class Derived<T, U> : Base<T, U>
 }";
             Action<ModuleSymbol> validator = module =>
             {
-                var derivedType = module.GlobalNamespace.GetTypeMembers("Derived").Single();
+                NamedTypeSymbol derivedType = module.GlobalNamespace.GetTypeMembers("Derived").Single();
                 Assert.Equal(derivedType.Arity, 2);
 
-                var baseType = derivedType.BaseType();
+                NamedTypeSymbol baseType = derivedType.BaseType();
                 Assert.Equal(baseType.Name, "Base");
                 Assert.Equal(baseType.Arity, 2);
 
@@ -773,7 +773,7 @@ class C : I
             Action<ModuleSymbol> validator = module =>
             {
                 // Interface
-                var type = module.GlobalNamespace.GetTypeMembers("I").Single();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("I").Single();
                 var method = (MethodSymbol)type.GetMembers("Method").Single();
                 Assert.NotNull(method);
                 var property = (PropertySymbol)type.GetMembers("Property").Single();
@@ -811,14 +811,14 @@ class C : I
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetTypeMembers("C").Single();
-                var members = type.GetMembers();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("C").Single();
+                ImmutableArray<Symbol> members = type.GetMembers();
 
                 // Ensure member names are unique.
                 var memberNames = members.Select(member => member.Name).Distinct().ToList();
                 Assert.Equal(memberNames.Count, members.Length);
 
-                var c = members.First(member => member.Name == ".ctor");
+                Symbol c = members.First(member => member.Name == ".ctor");
                 Assert.NotNull(c);
 
                 var p1 = (PropertySymbol)members.First(member => member.Name == "P1");
@@ -831,7 +831,7 @@ class C : I
                 var p10 = (PropertySymbol)members.First(member => member.Name == "P10");
                 var p11 = (PropertySymbol)members.First(member => member.Name == "P11");
 
-                var privateOrNotApplicable = isFromSource ? Accessibility.Private : Accessibility.NotApplicable;
+                Accessibility privateOrNotApplicable = isFromSource ? Accessibility.Private : Accessibility.NotApplicable;
 
                 CheckPropertyAccessibility(p1, Accessibility.Public, Accessibility.Public, Accessibility.Public);
                 CheckPropertyAccessibility(p2, Accessibility.Internal, Accessibility.Internal, Accessibility.NotApplicable);
@@ -858,7 +858,7 @@ class C : I
         [Fact]
         public void SetGetOnlyAutopropsInConstructors()
         {
-            var comp = CreateCompilationWithMscorlib45(@"using System;
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"using System;
 class C
 {
     public int P1 { get; }
@@ -888,7 +888,7 @@ class C
         [Fact]
         public void AutoPropInitializersClass()
         {
-            var comp = CreateCompilation(@"using System;
+            CSharpCompilation comp = CreateCompilation(@"using System;
 class C
 {
     public int P { get; set; } = 1;
@@ -908,28 +908,28 @@ class C
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-                var p = type.GetMember<SourcePropertySymbol>("P");
-                var pBack = p.BackingField;
+                SourcePropertySymbol p = type.GetMember<SourcePropertySymbol>("P");
+                SynthesizedBackingFieldSymbol pBack = p.BackingField;
                 Assert.False(pBack.IsReadOnly);
                 Assert.False(pBack.IsStatic);
                 Assert.Equal(pBack.Type.SpecialType, SpecialType.System_Int32);
 
-                var q = type.GetMember<SourcePropertySymbol>("Q");
-                var qBack = q.BackingField;
+                SourcePropertySymbol q = type.GetMember<SourcePropertySymbol>("Q");
+                SynthesizedBackingFieldSymbol qBack = q.BackingField;
                 Assert.False(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
                 Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
 
-                var r = type.GetMember<SourcePropertySymbol>("R");
-                var rBack = r.BackingField;
+                SourcePropertySymbol r = type.GetMember<SourcePropertySymbol>("R");
+                SynthesizedBackingFieldSymbol rBack = r.BackingField;
                 Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
                 Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
 
-                var s = type.GetMember<SourcePropertySymbol>("S");
-                var sBack = s.BackingField;
+                SourcePropertySymbol s = type.GetMember<SourcePropertySymbol>("S");
+                SynthesizedBackingFieldSymbol sBack = s.BackingField;
                 Assert.True(sBack.IsReadOnly);
                 Assert.True(sBack.IsStatic);
                 Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
@@ -944,7 +944,7 @@ class C
         [Fact]
         public void AutoPropInitializersStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 struct S
 {
@@ -979,28 +979,28 @@ struct S
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
 
-                var p = type.GetMember<SourceMemberFieldSymbol>("P");
+                SourceMemberFieldSymbol p = type.GetMember<SourceMemberFieldSymbol>("P");
                 Assert.False(p.HasInitializer);
                 Assert.True(p.IsReadOnly);
                 Assert.False(p.IsStatic);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_Int32);
 
-                var q = type.GetMember<SourcePropertySymbol>("Q");
-                var qBack = q.BackingField;
+                SourcePropertySymbol q = type.GetMember<SourcePropertySymbol>("Q");
+                SynthesizedBackingFieldSymbol qBack = q.BackingField;
                 Assert.True(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
                 Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
 
-                var r = type.GetMember<SourcePropertySymbol>("R");
-                var rBack = r.BackingField;
+                SourcePropertySymbol r = type.GetMember<SourcePropertySymbol>("R");
+                SynthesizedBackingFieldSymbol rBack = r.BackingField;
                 Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
                 Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
 
-                var s = type.GetMember<SourcePropertySymbol>("T");
-                var sBack = s.BackingField;
+                SourcePropertySymbol s = type.GetMember<SourcePropertySymbol>("T");
+                SynthesizedBackingFieldSymbol sBack = s.BackingField;
                 Assert.True(sBack.IsReadOnly);
                 Assert.True(sBack.IsStatic);
                 Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
@@ -1046,7 +1046,7 @@ class Program
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetTypeMembers("C").Single();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("C").Single();
                 bool checkValidProperties = (type is PENamedTypeSymbol);
 
                 var propertyP = (PropertySymbol)type.GetMembers("P").Single();
@@ -1097,10 +1097,10 @@ class Program
                 }
                 // Overridden property should be E but overridden
                 // accessor should be D.set_Q.
-                var overriddenProperty = module.GlobalNamespace.GetTypeMembers("E").Single().GetMembers("Q").Single();
+                Symbol overriddenProperty = module.GlobalNamespace.GetTypeMembers("E").Single().GetMembers("Q").Single();
                 Assert.NotNull(overriddenProperty);
                 Assert.Same(overriddenProperty, propertyQ.OverriddenProperty);
-                var overriddenAccessor = module.GlobalNamespace.GetTypeMembers("D").Single().GetMembers("set_Q").Single();
+                Symbol overriddenAccessor = module.GlobalNamespace.GetTypeMembers("D").Single().GetMembers("set_Q").Single();
                 Assert.NotNull(overriddenProperty);
                 Assert.Same(overriddenAccessor, propertyQ.SetMethod.OverriddenMethod);
             };
@@ -1121,8 +1121,8 @@ public class C : I
 }";
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetTypeMembers("C").Single();
-                var members = type.GetMembers();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("C").Single();
+                ImmutableArray<Symbol> members = type.GetMembers();
                 var ip = (PropertySymbol)members.First(member => member.Name == "I.P");
                 CheckPropertyAccessibility(ip, Accessibility.Private, Accessibility.Private, Accessibility.Private);
             };
@@ -1131,7 +1131,7 @@ public class C : I
 
         private static void CheckPropertyAccessibility(PropertySymbol property, Accessibility propertyAccessibility, Accessibility getterAccessibility, Accessibility setterAccessibility)
         {
-            var type = property.Type;
+            TypeSymbol type = property.Type;
             Assert.NotEqual(type.PrimitiveTypeCode, Microsoft.Cci.PrimitiveTypeCode.Void);
             Assert.Equal(propertyAccessibility, property.DeclaredAccessibility);
             CheckPropertyAccessorAccessibility(property, propertyAccessibility, property.GetMethod, getterAccessibility);
@@ -1146,11 +1146,11 @@ public class C : I
             }
             else
             {
-                var containingType = property.ContainingType;
+                NamedTypeSymbol containingType = property.ContainingType;
                 Assert.Equal(property, accessor.AssociatedSymbol);
                 Assert.Equal(containingType, accessor.ContainingType);
                 Assert.Equal(containingType, accessor.ContainingSymbol);
-                var method = containingType.GetMembers(accessor.Name).Single();
+                Symbol method = containingType.GetMembers(accessor.Name).Single();
                 Assert.Equal(method, accessor);
                 Assert.Equal(accessorAccessibility, accessor.DeclaredAccessibility);
             }
@@ -1197,14 +1197,14 @@ class C : B
         {
             Action<ModuleSymbol> validator = module =>
             {
-                var typeA = module.GlobalNamespace.GetTypeMembers("A").Single();
+                NamedTypeSymbol typeA = module.GlobalNamespace.GetTypeMembers("A").Single();
                 Assert.NotNull(typeA);
                 var getMethodA = (MethodSymbol)typeA.GetMembers("get_P").Single();
                 Assert.NotNull(getMethodA);
                 Assert.True(getMethodA.IsVirtual);
                 Assert.False(getMethodA.IsOverride);
 
-                var typeC = module.GlobalNamespace.GetTypeMembers("C").Single();
+                NamedTypeSymbol typeC = module.GlobalNamespace.GetTypeMembers("C").Single();
                 Assert.NotNull(typeC);
                 var getMethodC = (MethodSymbol)typeC.GetMembers("get_P").Single();
                 Assert.NotNull(getMethodC);
@@ -1235,13 +1235,13 @@ class C : B<string>
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var classA = module.GlobalNamespace.GetTypeMember("A");
-                var p = classA.GetProperty("P");
+                NamedTypeSymbol classA = module.GlobalNamespace.GetTypeMember("A");
+                PropertySymbol p = classA.GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
-                var q = classA.GetProperty("Q");
+                PropertySymbol q = classA.GetProperty("Q");
                 VerifyAutoProperty(q, isFromSource);
 
-                var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
+                NamedTypeSymbol classC = module.GlobalNamespace.GetTypeMembers("C").Single();
                 p = classC.BaseType().GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
@@ -1266,8 +1266,8 @@ class C : B<string>
             }
             else
             {
-                var backingField = property.ContainingType.GetField(GeneratedNames.MakeBackingFieldName(property.Name));
-                var attribute = backingField.GetAttributes().Single();
+                FieldSymbol backingField = property.ContainingType.GetField(GeneratedNames.MakeBackingFieldName(property.Name));
+                CSharpAttributeData attribute = backingField.GetAttributes().Single();
 
                 Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attribute.AttributeClass.ToTestDisplayString());
                 Assert.Empty(attribute.AttributeConstructor.Parameters);
@@ -1281,7 +1281,7 @@ class C : B<string>
         {
             if (accessor != null)
             {
-                var method = property.ContainingType.GetMembers(accessor.Name).Single();
+                Symbol method = property.ContainingType.GetMembers(accessor.Name).Single();
                 Assert.Equal(method, accessor);
                 Assert.Equal(accessor.AssociatedSymbol, property);
                 Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
@@ -1294,7 +1294,7 @@ class C : B<string>
             string source = "enum E {}";
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetTypeMembers("E").Single();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("E").Single();
                 CheckEnumType(type, Accessibility.Internal, SpecialType.System_Int32);
                 Assert.Equal(1, type.GetMembers().Length);
             };
@@ -1318,7 +1318,7 @@ class C : B<string>
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetTypeMembers("E").Single();
+                NamedTypeSymbol type = module.GlobalNamespace.GetTypeMembers("E").Single();
                 CheckEnumType(type, Accessibility.Internal, SpecialType.System_Int16);
 
                 Assert.Equal(8, type.GetMembers().Length);
@@ -1383,7 +1383,7 @@ class C : B<string>
                 var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
                 var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
-                var fieldDefinition = typeDefinition.GetFields(context).First();
+                Cci.IFieldDefinition fieldDefinition = typeDefinition.GetFields(context).First();
                 Assert.Same(fieldDefinition, field); // Dev10: value__ field is the first field.
                 Assert.True(fieldDefinition.IsSpecialName);
                 Assert.True(fieldDefinition.IsRuntimeSpecial);
@@ -1507,7 +1507,7 @@ class TC3<T8>
 
 ";
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"TC1
 TC2`1[System.Byte]
 TC3`1+TC4[System.Byte]
@@ -1985,7 +1985,7 @@ public abstract class C
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var global = module.GlobalNamespace;
+                NamespaceSymbol global = module.GlobalNamespace;
 
                 var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
                 var m = c.GetMembers("M").Single() as MethodSymbol;
@@ -2030,11 +2030,11 @@ class C
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var global = module.GlobalNamespace;
+                NamespaceSymbol global = module.GlobalNamespace;
 
                 var myDel = global.GetTypeMembers("MyDel", 0).Single() as NamedTypeSymbol;
 
-                var invoke = myDel.DelegateInvokeMethod;
+                MethodSymbol invoke = myDel.DelegateInvokeMethod;
 
                 var beginInvoke = myDel.GetMembers("BeginInvoke").Single() as MethodSymbol;
                 Assert.Equal(invoke.Parameters.Length + 2, beginInvoke.Parameters.Length);
@@ -2048,9 +2048,9 @@ class C
                 Assert.Equal("System.AsyncCallback", beginInvoke.Parameters[invoke.Parameters.Length].Type.ToTestDisplayString());
                 Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.ToTestDisplayString());
 
-                var invokeReturn = invoke.ReturnType;
+                TypeSymbol invokeReturn = invoke.ReturnType;
                 var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
-                var endInvokeReturn = endInvoke.ReturnType;
+                TypeSymbol endInvokeReturn = endInvoke.ReturnType;
                 Assert.Equal(invokeReturn, endInvokeReturn);
                 int k = 0;
                 for (int i = 0; i < invoke.Parameters.Length; i++)
@@ -2089,8 +2089,8 @@ public static class C
             CompileAndVerify(source,
                 symbolValidator: module =>
             {
-                var global = module.GlobalNamespace;
-                var classC = global.GetMember<NamedTypeSymbol>("C");
+                NamespaceSymbol global = module.GlobalNamespace;
+                NamedTypeSymbol classC = global.GetMember<NamedTypeSymbol>("C");
                 Assert.True(classC.IsStatic, "Expected C to be static");
                 Assert.False(classC.IsAbstract, "Expected C to be non-abstract"); //even though it is abstract in metadata
                 Assert.False(classC.IsSealed, "Expected C to be non-sealed"); //even though it is sealed in metadata
@@ -2162,7 +2162,7 @@ class Program
         private void CheckInternalMembers(NamedTypeSymbol type, bool isFromSource)
         {
             Assert.NotNull(type.GetMembers("Public").SingleOrDefault());
-            var member = type.GetMembers("Internal").SingleOrDefault();
+            Symbol member = type.GetMembers("Internal").SingleOrDefault();
             if (isFromSource)
                 Assert.NotNull(member);
             else
@@ -2173,7 +2173,7 @@ class Program
         [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
-            var comp = CreateCompilation("class Test { static void Main() { } }");
+            CSharpCompilation comp = CreateCompilation("class Test { static void Main() { } }");
 
             VerifyEmitWithNoResources(comp, Platform.AnyCpu);
             VerifyEmitWithNoResources(comp, Platform.AnyCpu32BitPreferred);
@@ -2185,17 +2185,17 @@ class Program
 
         private void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
         {
-            var options = TestOptions.ReleaseExe.WithPlatform(platform);
+            CSharpCompilationOptions options = TestOptions.ReleaseExe.WithPlatform(platform);
             CompileAndVerify(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_" + platform.ToString()).WithOptions(options));
         }
 
         [Fact]
         public unsafe void PEHeaders1()
         {
-            var options = EmitOptions.Default.WithFileAlignment(0x2000);
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
+            EmitOptions options = EmitOptions.Default.WithFileAlignment(0x2000);
+            SyntaxTree syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
-            var peStream = CreateCompilationWithMscorlib40(
+            MemoryStream peStream = CreateCompilationWithMscorlib40(
                 syntax,
                 options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
@@ -2203,10 +2203,10 @@ class Program
             peStream.Position = 0;
             var peReader = new PEReader(peStream);
 
-            var peHeaders = peReader.PEHeaders;
-            var peHeader = peHeaders.PEHeader;
-            var coffHeader = peHeaders.CoffHeader;
-            var corHeader = peHeaders.CorHeader;
+            PEHeaders peHeaders = peReader.PEHeaders;
+            PEHeader peHeader = peHeaders.PEHeader;
+            CoffHeader coffHeader = peHeaders.CoffHeader;
+            CorHeader corHeader = peHeaders.CorHeader;
 
             Assert.Equal(PEMagic.PE32, peHeader.Magic);
             Assert.Equal(0x0000237E, peHeader.AddressOfEntryPoint);
@@ -2342,7 +2342,7 @@ class Program
             Assert.Equal(0, corHeader.VtableFixupsDirectory.RelativeVirtualAddress);
             Assert.Equal(0, corHeader.VtableFixupsDirectory.Size);
 
-            var sections = peHeaders.SectionHeaders;
+            ImmutableArray<SectionHeader> sections = peHeaders.SectionHeaders;
             Assert.Equal(2, sections.Length);
 
             Assert.Equal(".text", sections[0].Name);
@@ -2367,7 +2367,7 @@ class Program
             Assert.Equal(0x4000, sections[1].VirtualAddress);
             Assert.Equal(12, sections[1].VirtualSize);
 
-            var relocBlock = peReader.GetSectionData(sections[1].VirtualAddress);
+            PEMemoryBlock relocBlock = peReader.GetSectionData(sections[1].VirtualAddress);
             var relocBytes = new byte[sections[1].VirtualSize];
             Marshal.Copy((IntPtr)relocBlock.Pointer, relocBytes, 0, relocBytes.Length);
             AssertEx.Equal(new byte[] { 0, 0x20, 0, 0, 0x0c, 0, 0, 0, 0x80, 0x33, 0, 0 }, relocBytes);
@@ -2376,15 +2376,15 @@ class Program
         [Fact]
         public void PEHeaders2()
         {
-            var options = EmitOptions.Default.
+            EmitOptions options = EmitOptions.Default.
                 WithFileAlignment(512).
                 WithBaseAddress(0x123456789ABCDEF).
                 WithHighEntropyVirtualAddressSpace(true).
                 WithSubsystemVersion(SubsystemVersion.WindowsXP);
 
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
+            SyntaxTree syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
-            var peStream = CreateCompilationWithMscorlib40(
+            MemoryStream peStream = CreateCompilationWithMscorlib40(
                 syntax,
                 options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
@@ -2392,9 +2392,9 @@ class Program
             peStream.Position = 0;
             var peHeaders = new PEHeaders(peStream);
 
-            var peHeader = peHeaders.PEHeader;
-            var coffHeader = peHeaders.CoffHeader;
-            var corHeader = peHeaders.CorHeader;
+            PEHeader peHeader = peHeaders.PEHeader;
+            CoffHeader coffHeader = peHeaders.CoffHeader;
+            CorHeader corHeader = peHeaders.CorHeader;
 
             Assert.Equal(PEMagic.PE32Plus, peHeader.Magic);
             Assert.Equal(0x00000000, peHeader.AddressOfEntryPoint);
@@ -2480,7 +2480,7 @@ class Program
             Assert.Equal(0, corHeader.VtableFixupsDirectory.RelativeVirtualAddress);
             Assert.Equal(0, corHeader.VtableFixupsDirectory.Size);
 
-            var sections = peHeaders.SectionHeaders;
+            ImmutableArray<SectionHeader> sections = peHeaders.SectionHeaders;
             Assert.Equal(1, sections.Length);
 
             Assert.Equal(".text", sections[0].Name);
@@ -2507,7 +2507,7 @@ class T
 
             Action<ModuleSymbol> verifier = module =>
             {
-                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
                 Assert.Equal(4, parameters.Length);
 
                 Assert.True(parameters[0].IsMetadataIn);
@@ -2531,7 +2531,7 @@ class T
 
             Action<ModuleSymbol> verifier = module =>
             {
-                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("get_Item").GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("get_Item").GetParameters();
                 Assert.Equal(4, parameters.Length);
 
                 Assert.True(parameters[0].IsMetadataIn);
@@ -2563,7 +2563,7 @@ public class C
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 sourceSymbolValidator: module =>
                 {
-                    var parameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
+                    ImmutableArray<ParameterSymbol> parameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
                     Assert.Equal(4, parameters.Length);
 
                     Assert.True(parameters[0].IsMetadataIn);
@@ -2573,7 +2573,7 @@ public class C
                 },
                 symbolValidator: module =>
                 {
-                    var delegateParameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
+                    ImmutableArray<ParameterSymbol> delegateParameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
                     Assert.Equal(4, delegateParameters.Length);
 
                     Assert.True(delegateParameters[0].IsMetadataIn);
@@ -2581,7 +2581,7 @@ public class C
                     Assert.True(delegateParameters[2].IsMetadataIn);
                     Assert.False(delegateParameters[3].IsMetadataIn);
 
-                    var lambdaParameters = module.GlobalNamespace.GetTypeMember("C").GetTypeMember("<>c").GetMethod("<M>b__0_0").Parameters;
+                    ImmutableArray<ParameterSymbol> lambdaParameters = module.GlobalNamespace.GetTypeMember("C").GetTypeMember("<>c").GetMethod("<M>b__0_0").Parameters;
                     Assert.Equal(4, lambdaParameters.Length);
 
                     Assert.True(lambdaParameters[0].IsMetadataIn);
@@ -2607,7 +2607,7 @@ public class C
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                var parameters = module.GlobalNamespace.GetTypeMember("C").GetMember("<M>g__local|0_0").GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = module.GlobalNamespace.GetTypeMember("C").GetMember("<M>g__local|0_0").GetParameters();
                 Assert.Equal(2, parameters.Length);
 
                 Assert.True(parameters[0].IsMetadataIn);
@@ -2628,7 +2628,7 @@ class T
 
             Action<ModuleSymbol> verifier = module =>
             {
-                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
                 Assert.Equal(4, parameters.Length);
 
                 Assert.True(parameters[0].IsMetadataIn);
@@ -2643,7 +2643,7 @@ class T
         [Fact]
         public void InParametersShouldHaveMetadataIn_NoPIA()
         {
-            var comAssembly = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -2657,7 +2657,7 @@ public interface T
 
             CompileAndVerify(comAssembly, symbolValidator: module =>
             {
-                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
                 Assert.Equal(4, parameters.Length);
 
                 Assert.True(parameters[0].IsMetadataIn);
@@ -2682,7 +2682,7 @@ class User
                 references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
                 symbolValidator: module =>
                 {
-                    var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                    ImmutableArray<ParameterSymbol> parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
                     Assert.Equal(4, parameters.Length);
 
                     Assert.True(parameters[0].IsMetadataIn);
@@ -2695,7 +2695,7 @@ class User
         [Fact]
         public void ExtendingInParametersFromParentWithoutInAttributeWorksWithoutErrors()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute extends [mscorlib]System.Attribute
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
@@ -2754,7 +2754,7 @@ class User
     }
 }");
 
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2776,7 +2776,7 @@ public static class Program
     }
 }", new[] { reference }, TestOptions.ReleaseExe);
 
-            var parentParameters = comp.GetTypeByMetadataName("Parent").GetMethod("M").GetParameters();
+            ImmutableArray<ParameterSymbol> parentParameters = comp.GetTypeByMetadataName("Parent").GetMethod("M").GetParameters();
             Assert.Equal(4, parentParameters.Length);
 
             Assert.False(parentParameters[0].IsMetadataIn);
@@ -2791,7 +2791,7 @@ Child called";
 
             CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: module =>
             {
-                var childParameters = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").GetParameters();
+                ImmutableArray<ParameterSymbol> childParameters = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").GetParameters();
                 Assert.Equal(4, childParameters.Length);
 
                 Assert.True(childParameters[0].IsMetadataIn);
@@ -2804,7 +2804,7 @@ Child called";
         [Fact]
         public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_OutAttribute()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class Parent
@@ -2814,7 +2814,7 @@ public class Parent
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
-                var sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
+                ImmutableArray<ParameterSymbol> sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
                 Assert.Equal(2, sourceParentParameters.Length);
 
                 Assert.True(sourceParentParameters[0].IsMetadataOut);
@@ -2839,13 +2839,13 @@ public class Child : Parent, IParent
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    var interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
+                    ImmutableArray<ParameterSymbol> interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
                     Assert.Equal(2, interfaceParameters.Length);
 
                     Assert.True(interfaceParameters[0].IsMetadataOut);
                     Assert.True(interfaceParameters[1].IsMetadataOut);
 
-                    var proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
+                    ImmutableArray<ParameterSymbol> proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
                     Assert.Equal(2, proxyChildParameters.Length);
 
                     Assert.True(proxyChildParameters[0].IsMetadataOut);
@@ -2856,7 +2856,7 @@ public class Child : Parent, IParent
         [Fact]
         public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_InAttribute()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class Parent
@@ -2866,7 +2866,7 @@ public class Parent
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
-                var sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
+                ImmutableArray<ParameterSymbol> sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
                 Assert.Equal(2, sourceParentParameters.Length);
 
                 Assert.True(sourceParentParameters[0].IsMetadataIn);
@@ -2891,13 +2891,13 @@ public class Child : Parent, IParent
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    var interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
+                    ImmutableArray<ParameterSymbol> interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
                     Assert.Equal(2, interfaceParameters.Length);
 
                     Assert.True(interfaceParameters[0].IsMetadataIn);
                     Assert.True(interfaceParameters[1].IsMetadataIn);
 
-                    var proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
+                    ImmutableArray<ParameterSymbol> proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
                     Assert.Equal(2, proxyChildParameters.Length);
 
                     Assert.True(proxyChildParameters[0].IsMetadataIn);

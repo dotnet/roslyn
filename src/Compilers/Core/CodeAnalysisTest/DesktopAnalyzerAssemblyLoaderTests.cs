@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void BasicLoad()
         {
-            var directory = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            CodeAnalysis.Test.Utilities.TempFile alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
             var loader = new DesktopAnalyzerAssemblyLoader();
 
@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void AssemblyLoading()
         {
             StringBuilder sb = new StringBuilder();
-            var directory = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory directory = Temp.CreateDirectory();
 
-            var alphaDll = Temp.CreateDirectory().CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var betaDll = Temp.CreateDirectory().CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
-            var gammaDll = Temp.CreateDirectory().CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = Temp.CreateDirectory().CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
+            CodeAnalysis.Test.Utilities.TempFile alphaDll = Temp.CreateDirectory().CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            CodeAnalysis.Test.Utilities.TempFile betaDll = Temp.CreateDirectory().CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
+            CodeAnalysis.Test.Utilities.TempFile gammaDll = Temp.CreateDirectory().CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            CodeAnalysis.Test.Utilities.TempFile deltaDll = Temp.CreateDirectory().CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
 
             var loader = new DesktopAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(alphaDll.Path);

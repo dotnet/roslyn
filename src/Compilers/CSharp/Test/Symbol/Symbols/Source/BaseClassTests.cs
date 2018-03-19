@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class X : Y {}
 class Y : X {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("X", 0).Single();
-            var y = global.GetTypeMembers("Y", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
+            NamedTypeSymbol y = global.GetTypeMembers("Y", 0).Single();
             Assert.NotEqual(y, x.BaseType());
             Assert.NotEqual(x, y.BaseType());
             Assert.Equal(SymbolKind.ErrorType, x.BaseType().Kind);
@@ -47,10 +47,10 @@ class Y : X {}
 class X : Y.n {}
 class Y : X.n {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("X", 0).Single();
-            var y = global.GetTypeMembers("Y", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
+            NamedTypeSymbol y = global.GetTypeMembers("Y", 0).Single();
             Assert.NotEqual(y, x.BaseType());
             Assert.NotEqual(x, y.BaseType());
             Assert.Equal(SymbolKind.ErrorType, x.BaseType().Kind);
@@ -62,20 +62,20 @@ class Y : X.n {}
         [Fact]
         public void CyclicBases3()
         {
-            var C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1;
-            var C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2;
+            PortableExecutableReference C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1;
+            PortableExecutableReference C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2;
 
             var text =
 @"
 class C4 : C1 {}
 ";
 
-            var comp = CreateCompilation(text, new[] { C1, C2 });
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("C4", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text, new[] { C1, C2 });
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("C4", 0).Single();
 
             var x_base_base = x.BaseType().BaseType() as ErrorTypeSymbol;
-            var er = x_base_base.ErrorInfo;
+            DiagnosticInfo er = x_base_base.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -94,15 +94,15 @@ class A<T>
 }
 
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 1).Single();
-            var b = a.GetTypeMembers("B", 0).Single();
-            var e = a.GetTypeMembers("E", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 1).Single();
+            NamedTypeSymbol b = a.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol e = a.GetTypeMembers("E", 0).Single();
             Assert.NotEqual(e, e.BaseType());
 
             var x_base = e.BaseType() as ErrorTypeSymbol;
-            var er = x_base.ErrorInfo;
+            DiagnosticInfo er = x_base.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -123,15 +123,15 @@ class B {
 }
 
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 1).Single();
-            var b = global.GetTypeMembers("B", 0).Single();
-            var d = b.GetTypeMembers("D", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 1).Single();
+            NamedTypeSymbol b = global.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol d = b.GetTypeMembers("D", 0).Single();
             Assert.NotEqual(d, d.BaseType());
 
             var x_base = d.BaseType() as ErrorTypeSymbol;
-            var er = x_base.ErrorInfo;
+            DiagnosticInfo er = x_base.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'A<int>.C' and 'B.D'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -149,13 +149,13 @@ class A : object, A.IC
 }
 
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var ic = a.GetTypeMembers("IC", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol ic = a.GetTypeMembers("IC", 0).Single();
             Assert.Equal(a.Interfaces()[0], ic);
 
-            var diagnostics = comp.GetDeclarationDiagnostics();
+            ImmutableArray<Diagnostic> diagnostics = comp.GetDeclarationDiagnostics();
             Assert.Equal(0, diagnostics.Count());
         }
 
@@ -172,17 +172,17 @@ class A : object, A.B.B.IC
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var b = a.GetTypeMembers("B", 0).Single();
-            var ic = b.GetTypeMembers("IC", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol b = a.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol ic = b.GetTypeMembers("IC", 0).Single();
             Assert.NotEqual(b, b.BaseType());
             Assert.NotEqual(a, b.BaseType());
             Assert.Equal(SymbolKind.ErrorType, a.Interfaces()[0].Kind);
             Assert.NotEqual(ic, a.Interfaces()[0]);
 
-            var diagnostics = comp.GetDeclarationDiagnostics();
+            ImmutableArray<Diagnostic> diagnostics = comp.GetDeclarationDiagnostics();
             Assert.Equal(2, diagnostics.Count());
         }
 
@@ -196,7 +196,7 @@ class B<T> : A<B<T>> {
     A<T> F() { return null; }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.GetDeclarationDiagnostics().Verify(
     // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
     // class A<T> : B<A<T>> { }
@@ -225,13 +225,13 @@ class Z : A.Y { }
 class W : B.X { }
 
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var z = global.GetTypeMembers("Z", 0).Single();
-            var w = global.GetTypeMembers("W", 0).Single();
-            var zBase = z.BaseType();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol z = global.GetTypeMembers("Z", 0).Single();
+            NamedTypeSymbol w = global.GetTypeMembers("W", 0).Single();
+            NamedTypeSymbol zBase = z.BaseType();
             Assert.Equal("Y", zBase.Name);
-            var wBase = w.BaseType();
+            NamedTypeSymbol wBase = w.BaseType();
             Assert.Equal("X", wBase.Name);
         }
 
@@ -254,26 +254,26 @@ class C : A {
 }
 
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
 
             //var aBase = a.BaseType();
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
-            var someMemberInA = classA.Members[0];
+            MemberDeclarationSyntax someMemberInA = classA.Members[0];
             int positionInA = someMemberInA.SpanStart;
 
-            var members = model.LookupSymbols(positionInA, a, "Z");
+            ImmutableArray<ISymbol> members = model.LookupSymbols(positionInA, a, "Z");
             Assert.Equal(1, members.Length);
             Assert.False(((TypeSymbol)members[0]).IsErrorType());
             Assert.Equal("C.Z", members[0].ToTestDisplayString());
 
-            var members2 = model.LookupSymbols(positionInA, a, "Q");
+            ImmutableArray<ISymbol> members2 = model.LookupSymbols(positionInA, a, "Q");
             Assert.Equal(0, members2.Length);
         }
 
@@ -291,21 +291,21 @@ class B<T> : A {
   public class Y {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
 
             //var aBase = a.BaseType();
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
-            var someMemberInA = classA.Members[0];
+            MemberDeclarationSyntax someMemberInA = classA.Members[0];
             int positionInA = someMemberInA.SpanStart;
 
-            var members = model.LookupSymbols(positionInA, a, "Q");
+            ImmutableArray<ISymbol> members = model.LookupSymbols(positionInA, a, "Q");
             Assert.Equal(0, members.Length);
         }
 
@@ -330,7 +330,7 @@ internal class F : A
         public class E : C.X { }
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (16,22): error CS0060: Inconsistent accessibility: base class 'A.B.C.X' is less accessible than class 'F.D.E'
                 //         public class E : C.X { }
@@ -358,7 +358,7 @@ public partial class C1
 {
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
                 // partial class C1 : NV
@@ -385,7 +385,7 @@ public partial class C1
 {
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
                 // partial class C1 : NV
@@ -427,7 +427,7 @@ partial interface IBar : IBaz, IBaz
 {
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (25,32): error CS0528: 'IBaz' is already listed in interface list
                 // partial interface IBar : IBaz, IBaz
@@ -455,10 +455,10 @@ class A {
 }
 class C : A, I<C.B> {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMembers("C", 0).Single();
-            var cBase = c.BaseType();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMembers("C", 0).Single();
+            NamedTypeSymbol cBase = c.BaseType();
             Assert.False(cBase.IsErrorType());
             Assert.Equal("A", cBase.Name);
             Assert.True(c.Interfaces().Single().TypeArguments().Single().IsErrorType()); //can't see base of C while evaluating C.B
@@ -473,9 +473,9 @@ class C : A, I<C.B> {}
 interface I<T> {}
 class E : I<E> {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var e = global.GetTypeMembers("E", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol e = global.GetTypeMembers("E", 0).Single();
             Assert.Equal(1, e.Interfaces().Length);
             Assert.Equal("I<E>", e.Interfaces()[0].ToTestDisplayString());
         }
@@ -491,9 +491,9 @@ class G : I<G.H> {
     public class H {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var g = global.GetTypeMembers("G", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol g = global.GetTypeMembers("G", 0).Single();
             Assert.Equal(1, g.Interfaces().Length);
             Assert.Equal("I<G.H>", g.Interfaces()[0].ToTestDisplayString());
         }
@@ -511,9 +511,9 @@ class J : I<J.K.L> {
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var j = global.GetTypeMembers("J", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol j = global.GetTypeMembers("J", 0).Single();
             Assert.Equal(1, j.Interfaces().Length);
             Assert.Equal("I<J.K.L>", j.Interfaces()[0].ToTestDisplayString());
         }
@@ -525,9 +525,9 @@ class J : I<J.K.L> {
             var text =
 @"class M : M {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var m = global.GetTypeMembers("M", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol m = global.GetTypeMembers("M", 0).Single();
             Assert.True(m.BaseType().IsErrorType());
         }
 
@@ -540,9 +540,9 @@ class J : I<J.K.L> {
 class N<T> {}
 class O : N<O> {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var o = global.GetTypeMembers("O", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol o = global.GetTypeMembers("O", 0).Single();
             Assert.False(o.BaseType().IsErrorType());
             Assert.Equal("N<O>", o.BaseType().ToTestDisplayString());
         }
@@ -558,9 +558,9 @@ class P : N<P.Q> {
     public class Q {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var p = global.GetTypeMembers("P", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol p = global.GetTypeMembers("P", 0).Single();
             Assert.False(p.BaseType().IsErrorType());
             Assert.Equal("N<P.Q>", p.BaseType().ToTestDisplayString());
         }
@@ -578,10 +578,10 @@ class R : N<R.S.T>{
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var r = global.GetTypeMembers("R", 0).Single();
-            var rBase = r.BaseType();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol r = global.GetTypeMembers("R", 0).Single();
+            NamedTypeSymbol rBase = r.BaseType();
             Assert.False(rBase.IsErrorType());
             Assert.Equal("N<R.S.T>", rBase.ToTestDisplayString());
         }
@@ -597,10 +597,10 @@ class U : U.I
    public interface I {};
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var u = global.GetTypeMembers("U", 0).Single();
-            var ifaces = u.Interfaces();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol u = global.GetTypeMembers("U", 0).Single();
+            ImmutableArray<NamedTypeSymbol> ifaces = u.Interfaces();
             Assert.Equal(1, ifaces.Length);
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("U.I", ifaces[0].ToTestDisplayString());
@@ -618,15 +618,15 @@ class C : IX {
     public interface IY {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMembers("C", 0).Single();
-            var ifaces = c.Interfaces();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMembers("C", 0).Single();
+            ImmutableArray<NamedTypeSymbol> ifaces = c.Interfaces();
             Assert.Equal(1, ifaces.Length);
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("IX", ifaces[0].ToTestDisplayString());
-            var ix = ifaces[0];
-            var ixFaces = ix.Interfaces();
+            NamedTypeSymbol ix = ifaces[0];
+            ImmutableArray<NamedTypeSymbol> ixFaces = ix.Interfaces();
             Assert.Equal(1, ixFaces.Length);
             Assert.False(ixFaces[0].IsErrorType());
             Assert.Equal("C.IY", ixFaces[0].ToTestDisplayString());
@@ -643,10 +643,10 @@ class Y : X {
     public interface I {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("X", 0).Single();
-            var ifaces = x.Interfaces();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
+            ImmutableArray<NamedTypeSymbol> ifaces = x.Interfaces();
             Assert.Equal(1, ifaces.Length);
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("Y.I", ifaces[0].ToTestDisplayString());
@@ -662,9 +662,9 @@ class B : G {
    public class G {} 
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var b = global.GetTypeMembers("B", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol b = global.GetTypeMembers("B", 0).Single();
             Assert.True(b.BaseType().IsErrorType());
         }
 
@@ -679,9 +679,9 @@ class B : G {
    class Z<T> : E<B> {}
    class E<U> : Z<D> {}
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var z = global.GetTypeMembers("Z", 1).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol z = global.GetTypeMembers("Z", 1).Single();
             Assert.True(z.BaseType().IsErrorType());
         }
 
@@ -981,19 +981,19 @@ class B : A<B.Y.Z>
         [Fact]
         public void CyclicInterfaces3()
         {
-            var C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1;
-            var C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2;
+            PortableExecutableReference C1 = TestReferences.SymbolsTests.CyclicInheritance.Class1;
+            PortableExecutableReference C2 = TestReferences.SymbolsTests.CyclicInheritance.Class2;
 
             var text =
 @"
 interface I4 : I1 {}
 ";
-            var comp = CreateCompilation(text, new[] { C1, C2 });
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("I4", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text, new[] { C1, C2 });
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("I4", 0).Single();
 
             var x_base_base = x.Interfaces().First().Interfaces().First() as ErrorTypeSymbol;
-            var er = x_base_base.ErrorInfo;
+            DiagnosticInfo er = x_base_base.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -1003,35 +1003,35 @@ interface I4 : I1 {}
         [Fact]
         public void CyclicRetargeted4()
         {
-            var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
+            PortableExecutableReference ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
 
             var text =
 @"
 public class ClassB : ClassA {}
 ";
-            var comp = CreateCompilation(text, new[] { ClassAv1 }, assemblyName: "ClassB");
+            CSharpCompilation comp = CreateCompilation(text, new[] { ClassAv1 }, assemblyName: "ClassB");
 
-            var global1 = comp.GlobalNamespace;
-            var B1 = global1.GetTypeMembers("ClassB", 0).Single();
-            var A1 = global1.GetTypeMembers("ClassA", 0).Single();
+            NamespaceSymbol global1 = comp.GlobalNamespace;
+            NamedTypeSymbol B1 = global1.GetTypeMembers("ClassB", 0).Single();
+            NamedTypeSymbol A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType();
-            var A_base = A1.BaseType();
+            NamedTypeSymbol B_base = B1.BaseType();
+            NamedTypeSymbol A_base = A1.BaseType();
             Assert.True(B1.IsFromCompilation(comp));
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B_base);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(A_base);
 
-            var ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
+            PortableExecutableReference ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
             text =
 @"
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilation(text, new MetadataReference[] { ClassAv2, new CSharpCompilationReference(comp) });
+            CSharpCompilation comp2 = CreateCompilation(text, new MetadataReference[] { ClassAv2, new CSharpCompilationReference(comp) });
 
-            var global = comp2.GlobalNamespace;
-            var B2 = global.GetTypeMembers("ClassB", 0).Single();
-            var C = global.GetTypeMembers("ClassC", 0).Single();
+            NamespaceSymbol global = comp2.GlobalNamespace;
+            NamedTypeSymbol B2 = global.GetTypeMembers("ClassB", 0).Single();
+            NamedTypeSymbol C = global.GetTypeMembers("ClassC", 0).Single();
 
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
@@ -1039,12 +1039,12 @@ public class ClassC : ClassB {}
             Assert.False(((INamedTypeSymbol)B2).IsSerializable);
 
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
-            var er = errorBase.ErrorInfo;
+            DiagnosticInfo er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
-            var A2 = global.GetTypeMembers("ClassA", 0).Single();
+            NamedTypeSymbol A2 = global.GetTypeMembers("ClassA", 0).Single();
 
             var errorBase1 = A2.BaseType() as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
@@ -1057,42 +1057,42 @@ public class ClassC : ClassB {}
         [Fact]
         public void CyclicRetargeted5()
         {
-            var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
-            var ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
+            PortableExecutableReference ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
+            PortableExecutableReference ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
 
             var text = @"// hi";
-            var comp = CreateCompilation(text, new[]
+            CSharpCompilation comp = CreateCompilation(text, new[]
                 {
                     ClassAv1,
                     ClassBv1
                 },
                 assemblyName: "ClassB");
 
-            var global1 = comp.GlobalNamespace;
-            var B1 = global1.GetTypeMembers("ClassB", 0).Distinct().Single();
-            var A1 = global1.GetTypeMembers("ClassA", 0).Single();
+            NamespaceSymbol global1 = comp.GlobalNamespace;
+            NamedTypeSymbol B1 = global1.GetTypeMembers("ClassB", 0).Distinct().Single();
+            NamedTypeSymbol A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType();
-            var A_base = A1.BaseType();
+            NamedTypeSymbol B_base = B1.BaseType();
+            NamedTypeSymbol A_base = A1.BaseType();
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B1);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B_base);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(A_base);
 
-            var ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
+            PortableExecutableReference ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
             text =
 @"
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilation(text, new MetadataReference[]
+            CSharpCompilation comp2 = CreateCompilation(text, new MetadataReference[]
             {
                 ClassAv2,
                 new CSharpCompilationReference(comp)
             });
 
-            var global = comp2.GlobalNamespace;
-            var B2 = global.GetTypeMembers("ClassB", 0).Single();
-            var C = global.GetTypeMembers("ClassC", 0).Single();
+            NamespaceSymbol global = comp2.GlobalNamespace;
+            NamedTypeSymbol B2 = global.GetTypeMembers("ClassB", 0).Single();
+            NamedTypeSymbol C = global.GetTypeMembers("ClassC", 0).Single();
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2);
             Assert.NotEqual(B1, B2);
@@ -1101,12 +1101,12 @@ public class ClassC : ClassB {}
             Assert.Same(C.BaseType(), B2);
 
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
-            var er = errorBase.ErrorInfo;
+            DiagnosticInfo er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
-            var A2 = global.GetTypeMembers("ClassA", 0).Single();
+            NamedTypeSymbol A2 = global.GetTypeMembers("ClassA", 0).Single();
 
             var errorBase1 = A2.BaseType() as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
@@ -1119,25 +1119,25 @@ public class ClassC : ClassB {}
         [Fact]
         public void CyclicRetargeted6()
         {
-            var ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
+            PortableExecutableReference ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
 
             var text =
 @"
 public class ClassB : ClassA {}
 ";
-            var comp = CreateCompilation(text, new[] { ClassAv2 }, assemblyName: "ClassB");
+            CSharpCompilation comp = CreateCompilation(text, new[] { ClassAv2 }, assemblyName: "ClassB");
 
-            var global1 = comp.GlobalNamespace;
-            var B1 = global1.GetTypeMembers("ClassB", 0).Single();
-            var A1 = global1.GetTypeMembers("ClassA", 0).Single();
+            NamespaceSymbol global1 = comp.GlobalNamespace;
+            NamedTypeSymbol B1 = global1.GetTypeMembers("ClassB", 0).Single();
+            NamedTypeSymbol A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType();
-            var A_base = A1.BaseType();
+            NamedTypeSymbol B_base = B1.BaseType();
+            NamedTypeSymbol A_base = A1.BaseType();
 
             Assert.True(B1.IsFromCompilation(comp));
 
             var errorBase = B_base as ErrorTypeSymbol;
-            var er = errorBase.ErrorInfo;
+            DiagnosticInfo er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'ClassA' and 'ClassB'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -1148,22 +1148,22 @@ public class ClassB : ClassA {}
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
-            var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
+            PortableExecutableReference ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
             text =
 @"
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilation(text, new MetadataReference[]
+            CSharpCompilation comp2 = CreateCompilation(text, new MetadataReference[]
             {
                 ClassAv1,
                 new CSharpCompilationReference(comp),
             });
 
-            var global = comp2.GlobalNamespace;
-            var A2 = global.GetTypeMembers("ClassA", 0).Single();
-            var B2 = global.GetTypeMembers("ClassB", 0).Single();
-            var C = global.GetTypeMembers("ClassC", 0).Single();
+            NamespaceSymbol global = comp2.GlobalNamespace;
+            NamedTypeSymbol A2 = global.GetTypeMembers("ClassA", 0).Single();
+            NamedTypeSymbol B2 = global.GetTypeMembers("ClassB", 0).Single();
+            NamedTypeSymbol C = global.GetTypeMembers("ClassC", 0).Single();
 
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
@@ -1175,27 +1175,27 @@ public class ClassC : ClassB {}
         [Fact]
         public void CyclicRetargeted7()
         {
-            var ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
-            var ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
+            PortableExecutableReference ClassAv2 = TestReferences.SymbolsTests.RetargetingCycle.V2.ClassA.dll;
+            PortableExecutableReference ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
 
             var text = @"// hi";
-            var comp = CreateCompilation(text, new MetadataReference[]
+            CSharpCompilation comp = CreateCompilation(text, new MetadataReference[]
                 {
                     ClassAv2,
                     ClassBv1,
                 },
                 assemblyName: "ClassB");
 
-            var global1 = comp.GlobalNamespace;
-            var B1 = global1.GetTypeMembers("ClassB", 0).Distinct().Single();
-            var A1 = global1.GetTypeMembers("ClassA", 0).Single();
+            NamespaceSymbol global1 = comp.GlobalNamespace;
+            NamedTypeSymbol B1 = global1.GetTypeMembers("ClassB", 0).Distinct().Single();
+            NamedTypeSymbol A1 = global1.GetTypeMembers("ClassA", 0).Single();
 
-            var B_base = B1.BaseType();
-            var A_base = A1.BaseType();
+            NamedTypeSymbol B_base = B1.BaseType();
+            NamedTypeSymbol A_base = A1.BaseType();
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B1);
 
             var errorBase = B_base as ErrorTypeSymbol;
-            var er = errorBase.ErrorInfo;
+            DiagnosticInfo er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -1206,21 +1206,21 @@ public class ClassC : ClassB {}
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
-            var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
+            PortableExecutableReference ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
             text =
 @"
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilation(text, new MetadataReference[]
+            CSharpCompilation comp2 = CreateCompilation(text, new MetadataReference[]
             {
                 ClassAv1,
                 new CSharpCompilationReference(comp)
             });
 
-            var global = comp2.GlobalNamespace;
-            var B2 = global.GetTypeMembers("ClassB", 0).Single();
-            var C = global.GetTypeMembers("ClassC", 0).Single();
+            NamespaceSymbol global = comp2.GlobalNamespace;
+            NamedTypeSymbol B2 = global.GetTypeMembers("ClassB", 0).Single();
+            NamedTypeSymbol C = global.GetTypeMembers("ClassC", 0).Single();
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2);
             Assert.NotEqual(B1, B2);
@@ -1228,7 +1228,7 @@ public class ClassC : ClassB {}
             Assert.Equal(((PENamedTypeSymbol)B1).Handle, ((PENamedTypeSymbol)B2).Handle);
             Assert.Same(C.BaseType(), B2);
 
-            var A2 = global.GetTypeMembers("ClassA", 0).Single();
+            NamedTypeSymbol A2 = global.GetTypeMembers("ClassA", 0).Single();
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(A2.BaseType());
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType());
@@ -1251,13 +1251,13 @@ namespace N
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var n = global.GetMembers("N").OfType<NamespaceSymbol>().Single();
-            var c = n.GetTypeMembers("C", 0).Single();
-            var a = c.GetTypeMembers("A", 1).Single();
-            var b = a.GetTypeMembers("B", 1).Single();
-            var d = a.GetTypeMembers("D", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamespaceSymbol n = global.GetMembers("N").OfType<NamespaceSymbol>().Single();
+            NamedTypeSymbol c = n.GetTypeMembers("C", 0).Single();
+            NamedTypeSymbol a = c.GetTypeMembers("A", 1).Single();
+            NamedTypeSymbol b = a.GetTypeMembers("B", 1).Single();
+            NamedTypeSymbol d = a.GetTypeMembers("D", 0).Single();
             Assert.Equal(Accessibility.Private, d.DeclaredAccessibility);
             Assert.Equal(d.OriginalDefinition, b.BaseType().OriginalDefinition);
             Assert.NotEqual(d, b.BaseType());
@@ -1276,12 +1276,12 @@ namespace N2 {
   class B : A {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
-            var a = n1.GetTypeMembers("A", 0).Single();
-            var b = n2.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol a = n1.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol b = n2.GetTypeMembers("B", 0).Single();
             Assert.Equal(a, b.BaseType());
         }
 
@@ -1298,13 +1298,13 @@ namespace N2 {
   class B : X {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
-            var a = n1.GetTypeMembers("A", 1).Single();
-            var b = n2.GetTypeMembers("B", 0).Single();
-            var bt = b.BaseType();
+            NamedTypeSymbol a = n1.GetTypeMembers("A", 1).Single();
+            NamedTypeSymbol b = n2.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol bt = b.BaseType();
             Assert.Equal(a, b.BaseType().OriginalDefinition);
             Assert.Equal(b, (b.BaseType() as NamedTypeSymbol).TypeArguments()[0]);
         }
@@ -1317,8 +1317,8 @@ namespace N2 {
 using @global = N;
 namespace N { class C {} }
 class D : global::N.C {}";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
             Assert.NotEqual(SymbolKind.ErrorType, d.BaseType().Kind);
         }
@@ -1333,12 +1333,12 @@ class C : G<C[,][]>
 {
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var g = global.GetTypeMembers("G", 1).Single();
-            var c = global.GetTypeMembers("C", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol g = global.GetTypeMembers("G", 1).Single();
+            NamedTypeSymbol c = global.GetTypeMembers("C", 0).Single();
             Assert.Equal(g, c.BaseType().OriginalDefinition);
-            var garg = c.BaseType().TypeArguments()[0];
+            TypeSymbol garg = c.BaseType().TypeArguments()[0];
             Assert.Equal(SymbolKind.ArrayType, garg.Kind);
             var carr1 = garg as ArrayTypeSymbol;
             var carr2 = carr1.ElementType as ArrayTypeSymbol;
@@ -1377,22 +1377,22 @@ partial class Broken {
   class B2 : B {} // error: B not found
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { text1, text2 });
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { text1, text2 });
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
-            var a = n1.GetTypeMembers("A", 0).Single();
-            var b = n2.GetTypeMembers("B", 0).Single();
-            var x = global.GetTypeMembers("X", 0).Single();
-            var a1 = x.GetTypeMembers("A1", 0).Single();
+            NamedTypeSymbol a = n1.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol b = n2.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
+            NamedTypeSymbol a1 = x.GetTypeMembers("A1", 0).Single();
             Assert.Equal(a, a1.BaseType());
-            var b1 = x.GetTypeMembers("B1", 0).Single();
+            NamedTypeSymbol b1 = x.GetTypeMembers("B1", 0).Single();
             Assert.Equal(b, b1.BaseType());
-            var broken = global.GetTypeMembers("Broken", 0).Single();
-            var a2 = broken.GetTypeMembers("A2", 0).Single();
+            NamedTypeSymbol broken = global.GetTypeMembers("Broken", 0).Single();
+            NamedTypeSymbol a2 = broken.GetTypeMembers("A2", 0).Single();
             Assert.NotEqual(a, a2.BaseType());
             Assert.Equal(SymbolKind.ErrorType, a2.BaseType().Kind);
-            var b2 = broken.GetTypeMembers("B2", 0).Single();
+            NamedTypeSymbol b2 = broken.GetTypeMembers("B2", 0).Single();
             Assert.NotEqual(b, b2.BaseType());
             Assert.Equal(SymbolKind.ErrorType, b2.BaseType().Kind);
         }
@@ -1407,15 +1407,15 @@ using N = A.Y;
 public class A : M { }
 public class B : N { }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var b = global.GetTypeMembers("B", 0).Single();
-            var abase = a.BaseType();
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol b = global.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol abase = a.BaseType();
             Assert.Equal(SymbolKind.ErrorType, abase.Kind);
-            var bbase = b.BaseType();
+            NamedTypeSymbol bbase = b.BaseType();
             Assert.Equal(SymbolKind.ErrorType, bbase.Kind);
         }
 
@@ -1423,8 +1423,8 @@ public class B : N { }
         public void BaseError()
         {
             var text = "class C : Bar { }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -1439,7 +1439,7 @@ namespace @if
     public class @int<@string> { }
     public class @float : @int<@break> : @if.@break { }
 }";
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
             NamespaceSymbol nif = (NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembers("if").Single();
             Assert.Equal("if", nif.Name);
             Assert.Equal("@if", nif.ToString());
@@ -1470,8 +1470,8 @@ class Y : X
     private class C : X.A { }
     private class B { }
 }";
-            var comp = CreateCompilation(Parse(text));
-            var diags = comp.GetDeclarationDiagnostics();
+            CSharpCompilation comp = CreateCompilation(Parse(text));
+            ImmutableArray<Diagnostic> diags = comp.GetDeclarationDiagnostics();
             Assert.Empty(diags);
         }
 
@@ -1496,32 +1496,32 @@ class B : A<B.Y.Error>
 ";
             //B.BaseType(), B.Y.BaseType
             {
-                var comp = CreateCompilation(text);
+                CSharpCompilation comp = CreateCompilation(text);
 
                 var classB = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("B")[0];
                 var classY = (NamedTypeSymbol)classB.GetMembers("Y")[0];
 
-                var baseB = classB.BaseType();
+                NamedTypeSymbol baseB = classB.BaseType();
                 Assert.Equal("A<B.Y.Error>", baseB.ToTestDisplayString());
                 Assert.False(baseB.IsErrorType());
 
-                var baseY = classY.BaseType();
+                NamedTypeSymbol baseY = classY.BaseType();
                 Assert.Equal("X", baseY.ToTestDisplayString());
                 Assert.True(baseY.IsErrorType());
             }
 
             //B.Y.BaseType(), B.BaseType
             {
-                var comp = CreateCompilation(text);
+                CSharpCompilation comp = CreateCompilation(text);
 
                 var classB = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("B")[0];
                 var classY = (NamedTypeSymbol)classB.GetMembers("Y")[0];
 
-                var baseY = classY.BaseType();
+                NamedTypeSymbol baseY = classY.BaseType();
                 Assert.Equal("X", baseY.ToTestDisplayString());
                 Assert.True(baseY.IsErrorType());
 
-                var baseB = classB.BaseType();
+                NamedTypeSymbol baseB = classB.BaseType();
                 Assert.Equal("A<B.Y.Error>", baseB.ToTestDisplayString());
                 Assert.False(baseB.IsErrorType());
             }
@@ -1535,12 +1535,12 @@ interface I1 { }
 interface I2 : I1 { }
 class C : I2 { }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var baseInterface = global.GetMember<NamedTypeSymbol>("I1");
-            var derivedInterface = global.GetMember<NamedTypeSymbol>("I2");
-            var @class = global.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol baseInterface = global.GetMember<NamedTypeSymbol>("I1");
+            NamedTypeSymbol derivedInterface = global.GetMember<NamedTypeSymbol>("I2");
+            NamedTypeSymbol @class = global.GetMember<NamedTypeSymbol>("C");
 
             var bothInterfaces = ImmutableArray.Create(baseInterface, derivedInterface);
 
@@ -1552,7 +1552,7 @@ class C : I2 { }
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var cciInterfaces = typeDef.Interfaces(context)
+            ImmutableArray<NamedTypeSymbol> cciInterfaces = typeDef.Interfaces(context)
                 .Select(impl => impl.TypeRef).Cast<NamedTypeSymbol>().AsImmutable();
             Assert.True(cciInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
             context.Diagnostics.Verify();
@@ -1595,7 +1595,7 @@ class Z
             Assert.Equal(0, c1.GetDiagnostics().Count());
             Assert.Equal(0, c2.GetDiagnostics().Count());
 
-            var metadata1 = c1.EmitToArray(options: new EmitOptions(metadataOnly: true));
+            ImmutableArray<byte> metadata1 = c1.EmitToArray(options: new EmitOptions(metadataOnly: true));
             c2 = CreateCompilation(textB, new[] { MetadataReference.CreateFromImage(metadata1) });
 
             Assert.Equal(0, c2.GetDiagnostics().Count());
@@ -1623,10 +1623,10 @@ class C : PublicClass.ProtectedInternalClass
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, assemblyName: "One");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "One");
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "Two");
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "Two");
             compilation2.VerifyDiagnostics(
                 // (2,23): error CS0122: 'PublicClass.ProtectedInternalClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedInternalClass
@@ -1813,10 +1813,10 @@ class C : PublicClass.ProtectedClass
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, assemblyName: "One");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "One");
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "Two");
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "Two");
             compilation2.VerifyDiagnostics(
                 // (2,23): error CS0122: 'PublicClass.ProtectedClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedClass
@@ -1845,7 +1845,7 @@ class B : I<object>
         Goo(new B());
     }
 }";
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
             comp.VerifyDiagnostics(
                 // (9,43): error CS7003: Unexpected use of an unbound generic name
                 //     public static void Goo<T>() where T : I<>
@@ -1867,10 +1867,10 @@ public class Derived<T> : Base<Derived<T>>
 }
 ";
 
-            var metadataRef = CreateCompilation(source).EmitToImageReference(embedInteropTypes: true);
+            MetadataReference metadataRef = CreateCompilation(source).EmitToImageReference(embedInteropTypes: true);
 
-            var comp = CreateCompilation("", new[] { metadataRef });
-            var derived = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            CSharpCompilation comp = CreateCompilation("", new[] { metadataRef });
+            NamedTypeSymbol derived = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             Assert.Equal(TypeKind.Class, derived.TypeKind);
         }
 
@@ -1888,7 +1888,7 @@ public class Derived<T> : Base<Derived<T>>
 struct S : C.I
 {
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,14): error CS0122: 'C.I' is inaccessible due to its protection level
                 // struct S : C.I
@@ -1903,7 +1903,7 @@ struct S : C.I
 @"struct S : S.I
 {
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             // Ideally report "CS0426: The type name 'I' does not exist in the type 'S'"
             // instead. Bug #896959.
             compilation.VerifyDiagnostics(
@@ -1920,7 +1920,7 @@ struct S : C.I
 @"class C : C.I
 {
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (1,13): error CS0426: The type name 'I' does not exist in the type 'C'
                 // class C : C.I
@@ -1943,7 +1943,7 @@ class D
 {
     public class C { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                     // (4,14): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
                     // class A<T> : C
@@ -1979,7 +1979,7 @@ class D
 {
     public class C { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                     // (1,1): hidden CS8019: Unnecessary using directive.
                     // using static A<int>.B;
@@ -2001,11 +2001,11 @@ class D : B {
   extern D(int x) : base(y) {}
   static int y;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var baseY = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "y").OfType<ExpressionSyntax>().First();
-            var typeInfo = model.GetTypeInfo(baseY);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax baseY = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "y").OfType<ExpressionSyntax>().First();
+            TypeInfo typeInfo = model.GetTypeInfo(baseY);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int64, typeInfo.ConvertedType.SpecialType);
         }
@@ -2032,7 +2032,7 @@ namespace CrashTest
         } 
     } 
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             CompileAndVerify(comp);
         }
 
@@ -2066,7 +2066,7 @@ namespace CrashTest
         }
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (6,11): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
     //     class Class2 : AbstractClass 
@@ -2101,7 +2101,7 @@ namespace CrashTest
         } 
     } 
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,30): warning CS0612: 'Class2' is obsolete
                 // using static CrashTest.Crash<CrashTest.Class2>; 
@@ -2134,7 +2134,7 @@ namespace CrashTest
         } 
     } 
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (11,18): warning CS0612: 'Crash<T>.AbstractClass' is obsolete
     //         where T: Crash<T>.AbstractClass 
@@ -2167,7 +2167,7 @@ namespace CrashTest
         } 
     } 
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (2,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'Crash<Class2>' is a type not a namespace. Consider a 'using static' directive instead
     // using CrashTest.Crash<CrashTest.Class2>; 
@@ -2200,7 +2200,7 @@ class Derived : Base
     class E : A<C>.B { }
     class F : A<D>.B { }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D>.B { }
@@ -2226,7 +2226,7 @@ class Derived : Base
     class E : A<C[]>.B { }
     class F : A<D[]>.B { }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D>.B { }
@@ -2252,7 +2252,7 @@ class Derived : Base
     class E : A<C*>.B { }
     class F : A<D*>.B { }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }

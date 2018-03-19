@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             {
                 while (MoveNext())
                 {
-                    var nodeValue = ItemInternalAsNode(_node, _childIndex);
+                    SyntaxNode nodeValue = ItemInternalAsNode(_node, _childIndex);
                     if (nodeValue != null)
                     {
                         return nodeValue;

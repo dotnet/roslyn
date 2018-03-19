@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // create an id for each node
-            foreach (var node in nodes)
+            foreach (SyntaxNode node in nodes)
             {
                 if (!IsDescendant(root, node))
                 {
@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(nodes));
             }
 
-            var trueRoot = GetRoot(root);
+            SyntaxNode trueRoot = GetRoot(root);
 
-            foreach (var node in nodes)
+            foreach (TNode node in nodes)
             {
-                foreach (var newNode in GetCurrentNodeFromTrueRoots(trueRoot, node).OfType<TNode>())
+                foreach (TNode newNode in GetCurrentNodeFromTrueRoots(trueRoot, node).OfType<TNode>())
                 {
                     yield return newNode;
                 }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
         private static IReadOnlyList<SyntaxNode> GetCurrentNodeFromTrueRoots(SyntaxNode trueRoot, SyntaxNode node)
         {
-            var id = GetId(node);
+            SyntaxAnnotation id = GetId(node);
             if (id != null)
             {
                 CurrentNodes tracked = s_rootToCurrentNodesMap.GetValue(trueRoot, r => new CurrentNodes(r));
@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis
                 // same node injected multiple times.
                 var map = new Dictionary<SyntaxAnnotation, List<SyntaxNode>>();
 
-                foreach (var node in root.GetAnnotatedNodesAndTokens(IdAnnotationKind).Select(n => n.AsNode()))
+                foreach (SyntaxNode node in root.GetAnnotatedNodesAndTokens(IdAnnotationKind).Select(n => n.AsNode()))
                 {
-                    foreach (var id in node.GetAnnotations(IdAnnotationKind))
+                    foreach (SyntaxAnnotation id in node.GetAnnotations(IdAnnotationKind))
                     {
                         List<SyntaxNode> list;
                         if (!map.TryGetValue(id, out list))

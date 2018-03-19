@@ -24,7 +24,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         int x = default;
@@ -45,7 +45,7 @@ class C
     async Task M(CancellationToken t = default) { await Task.Delay(0); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular7);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (7,40): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
@@ -66,15 +66,15 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -96,7 +96,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (5,19): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public C() => this = default;
@@ -118,14 +118,14 @@ public struct S
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Equal("S", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
@@ -148,7 +148,7 @@ public class CustomAttribute : System.Attribute
     public CustomAttribute(int x, string y, byte z = 0) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -165,15 +165,15 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "() ()");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Null(model.GetTypeInfo(def).Type); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
             Assert.Null(model.GetTypeInfo(def).ConvertedType);
@@ -181,7 +181,7 @@ class C
             Assert.False(model.GetConstantValue(def).HasValue);
             Assert.False(model.GetConversion(def).IsNullLiteral);
 
-            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            LiteralExpressionSyntax nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("null", nullSyntax.ToString());
             Assert.Null(model.GetTypeInfo(nullSyntax).Type);
             Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
@@ -205,15 +205,15 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ok");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Null(model.GetTypeInfo(def).Type);
             Assert.Null(model.GetTypeInfo(def).ConvertedType); // Should get a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
@@ -221,7 +221,7 @@ class C
             Assert.False(model.GetConstantValue(def).HasValue);
             Assert.False(model.GetConversion(def).IsNullLiteral);
 
-            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
+            LiteralExpressionSyntax nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
             Assert.Equal("null", nullSyntax.ToString());
             Assert.Null(model.GetTypeInfo(nullSyntax).Type);
             Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
@@ -240,7 +240,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,9): error CS4001: Cannot await 'default'
                 //         await default;
@@ -263,14 +263,14 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("default", def.ToString());
             Assert.Equal("T", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
@@ -294,7 +294,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'C.F<T>(Task<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(async () => await default);
@@ -315,7 +315,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return default;
@@ -338,7 +338,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0815: Cannot assign default to an implicitly-typed variable
                 //         var x4 = default;
@@ -361,7 +361,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = +default;
@@ -396,7 +396,7 @@ class C<T> where T : class
 }
 interface ITest { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -413,14 +413,14 @@ struct S
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("S", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -441,14 +441,14 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("T", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -470,7 +470,7 @@ class C
     static void M(string x) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(int)' and 'C.M(string)'
                 //         M(default);
@@ -491,7 +491,7 @@ class C
     static void M(string x) { System.Console.Write(x == null ? ""null"" : ""bad""); }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "null");
         }
@@ -509,7 +509,7 @@ class C
     static void M(int? x) { System.Console.Write(x.HasValue ? ""bad"" : ""null""); }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "null");
         }
@@ -527,7 +527,7 @@ class C
     static void M<T>(T x) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'C.M<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(default);
@@ -548,7 +548,7 @@ class C
     static void M<T>(T x, T y) where T : class { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'C.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(default, null);
@@ -571,7 +571,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
                 //         default.ToString();
@@ -601,7 +601,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -621,7 +621,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'T' cannot be declared const
                 //         const T x = default(T);
@@ -651,7 +651,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,15): error CS0283: The type 'S' cannot be declared const
                 //         const S x = default(S);
@@ -678,15 +678,15 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
@@ -707,7 +707,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 0");
         }
@@ -736,7 +736,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (14,17): error CS1031: Type expected
                 //         default();
@@ -772,7 +772,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -790,18 +790,18 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,25): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         int j = checked(default + 4);
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 4").WithArguments("+", "default").WithLocation(6, 25)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var addition = nodes.OfType<BinaryExpressionSyntax>().Single();
+            BinaryExpressionSyntax addition = nodes.OfType<BinaryExpressionSyntax>().Single();
             Assert.Null(model.GetSymbolInfo(addition).Symbol);
         }
 
@@ -835,7 +835,7 @@ class C
     }
 }
 ";
-            var expected = new[]
+            DiagnosticDescription[] expected = new[]
             {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + default;
@@ -896,10 +896,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default").WithArguments("??", "default").WithLocation(24, 17)
             };
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(expected);
 
-            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            CSharpCompilation comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp2.VerifyDiagnostics(expected);
         }
 
@@ -934,7 +934,7 @@ class C
     }
 }
 ";
-            var expected = new[]
+            DiagnosticDescription[] expected = new[]
             {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + 1;
@@ -998,10 +998,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
             };
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(expected);
 
-            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            CSharpCompilation comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp2.VerifyDiagnostics(expected);
         }
 
@@ -1036,7 +1036,7 @@ class C
     }
 }
 ";
-            var expected = new[]
+            DiagnosticDescription[] expected = new[]
             {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = 1 + default;
@@ -1097,10 +1097,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
             };
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(expected);
 
-            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            CSharpCompilation comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp2.VerifyDiagnostics(expected);
         }
 
@@ -1119,7 +1119,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True True True");
         }
@@ -1140,24 +1140,24 @@ struct S
     public static S operator +(S left, S right) => new S(left.field + right.field);
 }
 ";
-            var expected = new[]
+            DiagnosticDescription[] expected = new[]
             {
                 // (8,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //         s += default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "s += default").WithArguments("+=", "default").WithLocation(8, 9)
             };
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(expected);
 
-            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            CSharpCompilation comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
             comp2.VerifyDiagnostics(expected);
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var defaultLiteral = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            LiteralExpressionSyntax defaultLiteral = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("s += default", defaultLiteral.Parent.ToString());
             Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
         }
@@ -1248,7 +1248,7 @@ MODIFIER MyType
             void validateLangVer(string modifier, string type, string value, string equal, string semanticType, CSharpParseOptions parseOptions, params DiagnosticDescription[] diagnostics)
             {
                 var source = template.Replace("MODIFIER", modifier).Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
-                var comp = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugExe);
+                CSharpCompilation comp = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugExe);
                 if (diagnostics.Length == 0)
                 {
                     comp.VerifyDiagnostics();
@@ -1259,13 +1259,13 @@ MODIFIER MyType
                     comp.VerifyDiagnostics(diagnostics);
                 }
 
-                var tree = comp.SyntaxTrees.First();
-                var model = comp.GetSemanticModel(tree);
-                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+                SyntaxTree tree = comp.SyntaxTrees.First();
+                SemanticModel model = comp.GetSemanticModel(tree);
+                System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-                var defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
+                System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
                 Assert.True(defaults.Count() == 4);
-                foreach (var @default in defaults)
+                foreach (LiteralExpressionSyntax @default in defaults)
                 {
                     Assert.Equal("default", @default.ToString());
                     if (semanticType is null)
@@ -1314,7 +1314,7 @@ MODIFIER MyType
             void validate(string modifier, string type, string value, string equal, string semanticType, params DiagnosticDescription[] diagnostics)
             {
                 var source = template.Replace("MODIFIER", modifier).Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
-                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+                CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
                 if (diagnostics.Length == 0)
                 {
                     comp.VerifyDiagnostics();
@@ -1325,13 +1325,13 @@ MODIFIER MyType
                     comp.VerifyDiagnostics(diagnostics);
                 }
 
-                var tree = comp.SyntaxTrees.First();
-                var model = comp.GetSemanticModel(tree);
-                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+                SyntaxTree tree = comp.SyntaxTrees.First();
+                SemanticModel model = comp.GetSemanticModel(tree);
+                System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-                var defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
+                System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
                 Assert.True(defaults.Count() == 4);
-                foreach (var @default in defaults)
+                foreach (LiteralExpressionSyntax @default in defaults)
                 {
                     Assert.Equal("default", @default.ToString());
                     Assert.Equal(semanticType, model.GetTypeInfo(@default).Type.ToTestDisplayString());
@@ -1385,7 +1385,7 @@ struct MyType
             void validate(string type, string value, string equal, string semanticType, params DiagnosticDescription[] diagnostics)
             {
                 var source = template.Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
-                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe);
+                CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe);
                 if (diagnostics.Length == 0)
                 {
                     comp.VerifyDiagnostics();
@@ -1396,13 +1396,13 @@ struct MyType
                     comp.VerifyDiagnostics(diagnostics);
                 }
 
-                var tree = comp.SyntaxTrees.First();
-                var model = comp.GetSemanticModel(tree);
-                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+                SyntaxTree tree = comp.SyntaxTrees.First();
+                SemanticModel model = comp.GetSemanticModel(tree);
+                System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-                var defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
+                System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
                 Assert.True(defaults.Count() == 4);
-                foreach (var @default in defaults)
+                foreach (LiteralExpressionSyntax @default in defaults)
                 {
                     Assert.Equal("default", @default.ToString());
                     Assert.Equal(semanticType, model.GetTypeInfo(@default).Type.ToTestDisplayString());
@@ -1430,15 +1430,15 @@ struct S
     public override int GetHashCode() => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "operator reached. branch reached.");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            LiteralExpressionSyntax first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", first.ToString());
             Assert.Equal("S", model.GetTypeInfo(first).Type.ToTestDisplayString());
             Assert.Equal("S", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
@@ -1466,7 +1466,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123: True");
         }
@@ -1495,7 +1495,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (9,13): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //             i += default;
@@ -1534,7 +1534,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (false)
@@ -1580,7 +1580,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (26,40): warning CS8360: Filter expression is a constant, consider removing the filter
                 //         catch (System.Exception) when (default)
@@ -1606,17 +1606,17 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8310: Operator '!' cannot be applied to operand 'default'
                 //         if (!default)
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!default").WithArguments("!", "default").WithLocation(6, 13)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(0);
+            LiteralExpressionSyntax def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Null(model.GetTypeInfo(def).Type);
             Assert.Null(model.GetTypeInfo(def).ConvertedType);
@@ -1635,7 +1635,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
                 //         if (!Main || !null)
@@ -1671,7 +1671,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("if");
@@ -1704,7 +1704,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (12,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("NEVER");
@@ -1730,7 +1730,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
                 // (6,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (byte* p = default)
@@ -1754,7 +1754,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0193: The * or -> operator must be applied to a pointer
                 //         var p = *default;
@@ -1777,7 +1777,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0826: No best type found for implicitly-typed array
                 //         var t = new[] { default, default };
@@ -1797,7 +1797,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -1814,7 +1814,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe,
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe,
                         references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
 
             comp.VerifyEmitDiagnostics();
@@ -1834,7 +1834,7 @@ class C
     static void M<T>(T x, T y) { System.Console.Write(x); }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -1853,21 +1853,21 @@ class C
     static void M(params object[] x) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Equal("System.Object[]", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Object[]", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
 
-            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            LiteralExpressionSyntax nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("null", nullSyntax.ToString());
             Assert.Equal("System.Object[]", model.GetTypeInfo(nullSyntax).ConvertedType.ToTestDisplayString());
         }
@@ -1886,7 +1886,7 @@ class C
     static void M(params int[] x) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params int[])'
                 //         M(default);
@@ -1908,7 +1908,7 @@ class C
     static void M(int x) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(int)'
                 //         M(default);
@@ -1934,26 +1934,26 @@ struct S
     static void M<T>(T x, params T[] y) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
+            LiteralExpressionSyntax first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
             Assert.Equal("(o, default)", first.Parent.Parent.ToString());
             Assert.Equal("System.Object[]", model.GetTypeInfo(first).Type.ToTestDisplayString());
 
-            var second = nodes.OfType<LiteralExpressionSyntax>().ElementAt(3);
+            LiteralExpressionSyntax second = nodes.OfType<LiteralExpressionSyntax>().ElementAt(3);
             Assert.Equal("(default, o)", second.Parent.Parent.ToString());
             Assert.Equal("System.Object", model.GetTypeInfo(second).Type.ToTestDisplayString());
 
-            var third = nodes.OfType<LiteralExpressionSyntax>().ElementAt(4);
+            LiteralExpressionSyntax third = nodes.OfType<LiteralExpressionSyntax>().ElementAt(4);
             Assert.Equal("(s, default)", third.Parent.Parent.ToString());
             Assert.Equal("S[]", model.GetTypeInfo(third).Type.ToTestDisplayString());
 
-            var fourth = nodes.OfType<LiteralExpressionSyntax>().ElementAt(5);
+            LiteralExpressionSyntax fourth = nodes.OfType<LiteralExpressionSyntax>().ElementAt(5);
             Assert.Equal("(default, s)", fourth.Parent.Parent.ToString());
             Assert.Equal("S", model.GetTypeInfo(fourth).Type.ToTestDisplayString());
         }
@@ -1972,15 +1972,15 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 2");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -1999,17 +1999,17 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var digit = tree.GetCompilationUnitRoot().FindToken(source.IndexOf('2'));
-            var expressionSyntax = SyntaxFactory.ParseExpression("default");
-            var typeInfo = model.GetSpeculativeTypeInfo(digit.SpanStart, expressionSyntax, SpeculativeBindingOption.BindAsExpression);
+            SyntaxToken digit = tree.GetCompilationUnitRoot().FindToken(source.IndexOf('2'));
+            ExpressionSyntax expressionSyntax = SyntaxFactory.ParseExpression("default");
+            TypeInfo typeInfo = model.GetSpeculativeTypeInfo(digit.SpanStart, expressionSyntax, SpeculativeBindingOption.BindAsExpression);
             Assert.Null(typeInfo.Type);
-            var symbol = model.GetSpeculativeSymbolInfo(digit.SpanStart, expressionSyntax, SpeculativeBindingOption.BindAsExpression);
+            SymbolInfo symbol = model.GetSpeculativeSymbolInfo(digit.SpanStart, expressionSyntax, SpeculativeBindingOption.BindAsExpression);
             Assert.True(symbol.IsEmpty);
         }
 
@@ -2025,7 +2025,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -2046,7 +2046,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (5,16): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //     OneEntry = default + 1
@@ -2071,7 +2071,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (5,16): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //     OneEntry = default + 1
@@ -2097,7 +2097,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -2113,7 +2113,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -2131,7 +2131,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0-0");
         }
@@ -2150,7 +2150,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,14): error CS8310: Cannot use a default literal as an argument to a dynamically dispatched operation.
                 //         d.M2(default);
@@ -2175,7 +2175,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -2193,7 +2193,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
@@ -2218,7 +2218,7 @@ class C
 ";
 
             // default == default is still disallowed in 7.3
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
@@ -2265,7 +2265,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8311: Use of default literal is not valid in this context
                 //         foreach (int x in default) { }
@@ -2290,7 +2290,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (6,35): error CS8311: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
@@ -2314,7 +2314,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "5");
         }
@@ -2332,7 +2332,7 @@ static class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (5,30): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         System.Console.Write((int?)1 == default);
@@ -2355,7 +2355,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw default;
@@ -2377,7 +2377,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0077: The as operator must be used with a reference type or nullable type ('long' is a non-nullable value type)
                 //         System.Console.Write(default as long);
@@ -2402,7 +2402,7 @@ class C
         System.Console.Write($""{default as C == null} {default as string == null}"");
     }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,33): warning CS0458: The result of the expression is always 'null' of type 'C'
                 //         System.Console.Write($"{default as C == null} {default as string == null}");
@@ -2426,7 +2426,7 @@ static class C
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is C);
@@ -2449,7 +2449,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
                 //         System.Console.Write(default is long);
@@ -2488,7 +2488,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,42): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
                 //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
@@ -2538,7 +2538,7 @@ class B<T1, T2, T3, T4, T5, T6, T7>
     static T6 F6() { return default; }
     static T7 F7() { return default; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -2554,7 +2554,7 @@ class Program
     Expression<Func<object>> testExpr = () => default ?? ""hello"";
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
@@ -2575,13 +2575,13 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            LiteralExpressionSyntax def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
@@ -2603,7 +2603,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
@@ -2625,7 +2625,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -2654,7 +2654,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
@@ -2686,7 +2686,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case default:
@@ -2718,7 +2718,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case (default):
@@ -2750,7 +2750,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
                 //             case (default):
@@ -2779,7 +2779,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "01");
         }
@@ -2801,7 +2801,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -2823,7 +2823,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ran");
         }
@@ -2842,7 +2842,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
@@ -2862,7 +2862,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0 System.Int32");
         }
@@ -2882,7 +2882,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "null");
         }
@@ -2901,15 +2901,15 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int16", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
@@ -2918,8 +2918,8 @@ class C
             Assert.Equal((short)0, model.GetConstantValue(def).Value);
             Assert.True(model.GetConversion(def).IsIdentity);
 
-            var conversionSyntax = nodes.OfType<CastExpressionSyntax>().Single();
-            var conversionTypeInfo = model.GetTypeInfo(conversionSyntax);
+            CastExpressionSyntax conversionSyntax = nodes.OfType<CastExpressionSyntax>().Single();
+            TypeInfo conversionTypeInfo = model.GetTypeInfo(conversionSyntax);
             Assert.Equal("System.Int16", conversionTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int32", conversionTypeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal((short)0, model.GetConstantValue(conversionSyntax).Value);
@@ -2941,7 +2941,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0118: 'System' is a namespace but is used like a type
                 //         default(System).ToString();
@@ -2962,35 +2962,35 @@ class C
     static void D(int? x = default(byte?)) => System.Console.Write($""{x.HasValue} "");
     static void E(int? x = default(byte)) => System.Console.Write($""{x.HasValue}:{x.Value}"");
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False False False True:0");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var default1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax default1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("System.Int32?", model.GetTypeInfo(default1).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(default1).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(default1).Symbol);
             Assert.False(model.GetConstantValue(default1).HasValue);
             Assert.True(model.GetConversion(default1).IsNullLiteral);
 
-            var default2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(0);
+            DefaultExpressionSyntax default2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(0);
             Assert.Equal("System.Int32?", model.GetTypeInfo(default2).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(default2).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(default2).Symbol);
             Assert.False(model.GetConstantValue(default2).HasValue);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(default2).Kind);
 
-            var default3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(1);
+            DefaultExpressionSyntax default3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(1);
             Assert.Equal("System.Byte?", model.GetTypeInfo(default3).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(default3).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(default3).Symbol);
             Assert.False(model.GetConstantValue(default3).HasValue);
             Assert.Equal(ConversionKind.ImplicitNullable, model.GetConversion(default3).Kind);
 
-            var default4 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(2);
+            DefaultExpressionSyntax default4 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(2);
             Assert.Equal("System.Byte", model.GetTypeInfo(default4).Type.ToTestDisplayString());
             Assert.Equal("System.Int32?", model.GetTypeInfo(default4).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(default4).Symbol);
@@ -3016,7 +3016,7 @@ class C<T> where T : struct
     const T? z2 = default(T?);
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (5,5): error CS0283: The type 'int?' cannot be declared const
                 //     const int? x1 = default;
@@ -3062,13 +3062,13 @@ class C<T> where T : struct
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "default").WithArguments("C<T>.x1").WithLocation(5, 21)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var defaultLiterals = nodes.OfType<LiteralExpressionSyntax>().ToArray();
+            LiteralExpressionSyntax[] defaultLiterals = nodes.OfType<LiteralExpressionSyntax>().ToArray();
             Assert.Equal(4, defaultLiterals.Length);
-            foreach (var value in defaultLiterals)
+            foreach (LiteralExpressionSyntax value in defaultLiterals)
             {
                 Assert.False(model.GetConstantValue(value).HasValue);
             }
@@ -3098,19 +3098,19 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False False False False False False False");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var parameters = nodes.OfType<ParameterSyntax>().ToArray();
+            ParameterSyntax[] parameters = nodes.OfType<ParameterSyntax>().ToArray();
             Assert.Equal(7, parameters.Length);
-            foreach (var parameter in parameters)
+            foreach (ParameterSyntax parameter in parameters)
             {
-                var defaultValue = parameter.Default.Value;
+                ExpressionSyntax defaultValue = parameter.Default.Value;
                 Assert.False(model.GetConstantValue(defaultValue).HasValue);
             }
         }
@@ -3136,7 +3136,7 @@ class C
 {
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (14,2): error CS0181: Attribute constructor parameter 'x1' has type 'int?', which is not a valid attribute parameter type
                 // [A]

@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, we still want to give errors on every bad type in the list, even if one
                 // is missing.
 
-                foreach (var p in parameterSyntaxList.Value)
+                foreach (ParameterSyntax p in parameterSyntaxList.Value)
                 {
-                    foreach (var attributeList in p.AttributeLists)
+                    foreach (AttributeListSyntax attributeList in p.AttributeLists)
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
                     }
@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var typeSyntax = p.Type;
+                    TypeSyntax typeSyntax = p.Type;
                     TypeSymbol type = null;
-                    var refKind = RefKind.None;
+                    RefKind refKind = RefKind.None;
 
                     if (typeSyntax == null)
                     {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         type = BindType(typeSyntax, diagnostics);
-                        foreach (var modifier in p.Modifiers)
+                        foreach (SyntaxToken modifier in p.Modifiers)
                         {
                             switch (modifier.Kind())
                             {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
                 {
-                    var parameter = parameterSyntaxList[i];
+                    ParameterSyntax parameter = parameterSyntaxList[i];
 
                     // Ignore parameters with missing names.  We'll have already reported an error
                     // about them in the parser.
@@ -216,16 +216,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var results = AnalyzeAnonymousFunction(syntax, diagnostics);
+            Tuple<ImmutableArray<RefKind>, ImmutableArray<TypeSymbol>, ImmutableArray<string>, bool> results = AnalyzeAnonymousFunction(syntax, diagnostics);
 
-            var refKinds = results.Item1;
-            var types = results.Item2;
-            var names = results.Item3;
+            ImmutableArray<RefKind> refKinds = results.Item1;
+            ImmutableArray<TypeSymbol> types = results.Item2;
+            ImmutableArray<string> names = results.Item3;
             var isAsync = results.Item4;
 
             if (!types.IsDefault)
             {
-                foreach (var type in types)
+                foreach (TypeSymbol type in types)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
                     if ((object)type != null && type.IsStatic)

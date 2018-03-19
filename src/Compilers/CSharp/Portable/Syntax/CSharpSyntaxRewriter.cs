@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
-                var result = ((CSharpSyntaxNode)node).Accept(this);
+                SyntaxNode result = ((CSharpSyntaxNode)node).Accept(this);
 
                 _recursionDepth--;
                 return result;
@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 3. Repeated null checks
 
             // PERF: Avoid testing node for null more than once
-            var node = token.Node;
+            GreenNode node = token.Node;
             if (node == null)
             {
                 return token;
             }
 
             // PERF: Make one virtual method call each to get the leading and trailing trivia
-            var leadingTrivia = node.GetLeadingTriviaCore();
-            var trailingTrivia = node.GetTrailingTriviaCore();
+            GreenNode leadingTrivia = node.GetLeadingTriviaCore();
+            GreenNode trailingTrivia = node.GetTrailingTriviaCore();
 
             // Trivia is either null or a non-empty list (there's no such thing as an empty green list)
             Debug.Assert(leadingTrivia == null || !leadingTrivia.IsList || leadingTrivia.SlotCount > 0);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leadingTrivia != null)
             {
                 // PERF: Expand token.LeadingTrivia when node is not null.
-                var leading = this.VisitList(new SyntaxTriviaList(token, leadingTrivia));
+                SyntaxTriviaList leading = this.VisitList(new SyntaxTriviaList(token, leadingTrivia));
 
                 if (trailingTrivia != null)
                 {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PERF: Expand token.TrailingTrivia when node is not null and leadingTrivia is not null.
                     // Also avoid node.Width because it makes a virtual call to GetText. Instead use node.FullWidth - trailingTrivia.FullWidth.
                     var index = leadingTrivia.IsList ? leadingTrivia.SlotCount : 1;
-                    var trailing = this.VisitList(new SyntaxTriviaList(token, trailingTrivia, token.Position + node.FullWidth - trailingTrivia.FullWidth, index));
+                    SyntaxTriviaList trailing = this.VisitList(new SyntaxTriviaList(token, trailingTrivia, token.Position + node.FullWidth - trailingTrivia.FullWidth, index));
 
                     if (leading.Node != leadingTrivia)
                     {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Trailing trivia only
                 // PERF: Expand token.TrailingTrivia when node is not null and leading is null.
                 // Also avoid node.Width because it makes a virtual call to GetText. Instead use node.FullWidth - trailingTrivia.FullWidth.
-                var trailing = this.VisitList(new SyntaxTriviaList(token, trailingTrivia, token.Position + node.FullWidth - trailingTrivia.FullWidth, index: 0));
+                SyntaxTriviaList trailing = this.VisitList(new SyntaxTriviaList(token, trailingTrivia, token.Position + node.FullWidth - trailingTrivia.FullWidth, index: 0));
                 return trailing.Node != trailingTrivia ? token.WithTrailingTrivia(trailing) : token;
             }
             else
@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxListBuilder alternate = null;
             for (int i = 0, n = list.Count; i < n; i++)
             {
-                var item = list[i];
-                var visited = this.VisitListElement(item);
+                TNode item = list[i];
+                TNode visited = this.VisitListElement(item);
                 if (item != visited && alternate == null)
                 {
                     alternate = new SyntaxListBuilder(n);
@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int i = 0;
             for (; i < sepCount; i++)
             {
-                var node = list[i];
-                var visitedNode = this.VisitListElement(node);
+                TNode node = list[i];
+                TNode visitedNode = this.VisitListElement(node);
 
-                var separator = list.GetSeparator(i);
-                var visitedSeparator = this.VisitListSeparator(separator);
+                SyntaxToken separator = list.GetSeparator(i);
+                SyntaxToken visitedSeparator = this.VisitListSeparator(separator);
 
                 if (alternate.IsNull)
                 {
@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (i < count)
             {
-                var node = list[i];
-                var visitedNode = this.VisitListElement(node);
+                TNode node = list[i];
+                TNode visitedNode = this.VisitListElement(node);
 
                 if (alternate.IsNull)
                 {
@@ -249,10 +249,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var count = list.Count;
             var index = -1;
 
-            foreach (var item in list)
+            foreach (SyntaxToken item in list)
             {
                 index++;
-                var visited = this.VisitToken(item);
+                SyntaxToken visited = this.VisitToken(item);
                 if (item != visited && alternate == null)
                 {
                     alternate = new SyntaxTokenListBuilder(count);
@@ -281,10 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxTriviaListBuilder alternate = null;
                 var index = -1;
 
-                foreach (var item in list)
+                foreach (SyntaxTrivia item in list)
                 {
                     index++;
-                    var visited = this.VisitListElement(item);
+                    SyntaxTrivia visited = this.VisitListElement(item);
 
                     //skip the null check since SyntaxTrivia is a value type
                     if (visited != item && alternate == null)

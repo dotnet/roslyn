@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             var executablebinder = new ExecutableCodeBinder(body, methodSymbol, binder ?? this.RootBinder);
-            var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
+            Binder blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, body, blockBinder, position);
             return true;
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
 
-            var binder = this.GetEnclosingBinder(position);
+            Binder binder = this.GetEnclosingBinder(position);
             if (binder == null)
             {
                 speculativeModel = null;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
 
-            var binder = this.GetEnclosingBinder(position);
+            Binder binder = this.GetEnclosingBinder(position);
             if (binder == null)
             {
                 speculativeModel = null;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((MemberSymbol as MethodSymbol)?.MethodKind == MethodKind.Constructor)
             {
-                var binder = this.GetEnclosingBinder(position);
+                Binder binder = this.GetEnclosingBinder(position);
                 if (binder != null)
                 {
                     var methodSymbol = (MethodSymbol)this.MemberSymbol;

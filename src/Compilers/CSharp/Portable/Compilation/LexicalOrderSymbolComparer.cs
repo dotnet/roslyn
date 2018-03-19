@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return 0;
             }
 
-            var xSortKey = x.GetLexicalSortKey();
-            var ySortKey = y.GetLexicalSortKey();
+            LexicalSortKey xSortKey = x.GetLexicalSortKey();
+            LexicalSortKey ySortKey = y.GetLexicalSortKey();
 
             comparison = LexicalSortKey.Compare(xSortKey, ySortKey);
             if (comparison != 0)

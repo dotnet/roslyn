@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case has already been handled by a previous case.
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: handled previously
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8120: The switch case has already been handled by a previous case.
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
@@ -187,7 +187,7 @@ public class X
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
@@ -219,7 +219,7 @@ public class X
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
@@ -249,7 +249,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
@@ -280,7 +280,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed
@@ -310,7 +310,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed by previous cases
@@ -340,7 +340,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -361,7 +361,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //             case int i: // error: type mismatch.
@@ -415,13 +415,13 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
 False
 null";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10601, "https://github.com/dotnet/roslyn/issues/10601")]
@@ -442,7 +442,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0037: Cannot convert null to 'bool' because it is a non-nullable value type
                 //             case null: // error: impossible given the type
@@ -471,7 +471,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //             case 3: // error: impossible given the type
@@ -500,7 +500,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
@@ -528,7 +528,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 11: // error: subsumed
@@ -559,7 +559,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case bool b: // error: subsumed
@@ -588,7 +588,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -611,7 +611,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -634,7 +634,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -657,7 +657,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -680,7 +680,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -700,7 +700,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -722,7 +722,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case null:
@@ -754,7 +754,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -841,7 +841,7 @@ class Program
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
                 );
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
@@ -887,14 +887,14 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (17,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1;
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(17, 17)
                 );
             var expectedOutput = @"done";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -934,12 +934,12 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"1
 sasquatch";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1025,7 +1025,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 $@"0.0d !
@@ -1045,7 +1045,7 @@ float.NaN !
 decimal {2.1m}
 1.0m !
 null";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1155,7 +1155,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01: // duplicate
@@ -1223,14 +1223,14 @@ class Program
         return BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(double.NaN) ^ x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"zero
 zero
 NaN
 NaN";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(12573, "https://github.com/dotnet/roslyn/issues/12573")]
@@ -1280,7 +1280,7 @@ public enum EnumA
     ValueC
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"0
@@ -1288,7 +1288,7 @@ public enum EnumA
 (byte)0
 EnumA.ValueA
 Default";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10446, "https://github.com/dotnet/roslyn/issues/10446")]
@@ -1314,16 +1314,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
             Assert.Equal("System.String", model.GetTypeInfo(sRef).Type.ToTestDisplayString());
-            var iRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i").Single();
+            IdentifierNameSyntax iRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i").Single();
             Assert.Equal("System.Object", model.GetTypeInfo(iRef).Type.ToTestDisplayString());
-            var s2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s2").Single();
+            IdentifierNameSyntax s2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s2").Single();
             Assert.Equal("System.String", model.GetTypeInfo(s2Ref).Type.ToTestDisplayString());
-            var i2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i2").Single();
+            IdentifierNameSyntax i2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i2").Single();
             Assert.Equal("System.Object", model.GetTypeInfo(i2Ref).Type.ToTestDisplayString());
         }
 
@@ -1360,11 +1360,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(13520, "https://github.com/dotnet/roslyn/issues/13520")]
@@ -1390,7 +1390,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case bool b: ; // error: bool already handled by previous cases.
@@ -1439,7 +1439,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "13");
         }
@@ -1504,7 +1504,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (21,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
@@ -1823,7 +1823,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "12");
         }
@@ -1846,7 +1846,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
@@ -1857,10 +1857,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
@@ -1881,7 +1881,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (7,18): error CS1525: Invalid expression term 'is'
@@ -1895,10 +1895,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
@@ -1930,14 +1930,14 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
 False
 True
 False";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1970,7 +1970,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"2
@@ -1978,7 +1978,7 @@ class Program
 4
 Correct
 4";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(14707, "https://github.com/dotnet/roslyn/issues/14707")]
@@ -2013,7 +2013,7 @@ class Rectangle
     public Rectangle(int x, int y) { Height = x; Length = y; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"other
 S 1
@@ -2044,7 +2044,7 @@ static class Program {
         Test(null);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"not null
@@ -2073,10 +2073,10 @@ class Program
 
 class A{}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = "A";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2120,9 +2120,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 case 2: 2
 case 1: 3
@@ -2182,9 +2182,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 case 2: 2
 case 1: 3
@@ -2238,9 +2238,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2296,9 +2296,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2345,9 +2345,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
 3");
         }
@@ -2408,9 +2408,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 case 2: 2
 case 1: 3
@@ -2472,9 +2472,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2531,9 +2531,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2586,9 +2586,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
 3");
         }
@@ -2622,13 +2622,13 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (12,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async Task<string> SendMessageAsync<T>(object response)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "SendMessageAsync").WithLocation(12, 38)
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"T
 default");
         }
@@ -2665,9 +2665,9 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"T
 default");
         }
@@ -2707,9 +2707,9 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"T
 default");
         }
@@ -2737,7 +2737,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case List<(int z, int w)> list2: // subsumed
@@ -2771,10 +2771,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
         [Fact]
@@ -2799,10 +2799,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
         [Fact]
@@ -2827,10 +2827,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"1");
         }
 
         [Fact]
@@ -2856,7 +2856,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x:
@@ -2890,7 +2890,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case List<dynamic> list2: // subsumed
@@ -2924,10 +2924,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
         [Fact]
@@ -2955,7 +2955,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8330: It is not legal to use the type 'dynamic' in a pattern.
                 //             case dynamic x: // error 1
@@ -3021,7 +3021,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var z: // error: subsumed
@@ -3068,7 +3068,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (12,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 2: // error: subsumed
@@ -3115,7 +3115,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case System.ValueTuple<int, int> x: // error: subsumed
@@ -3155,10 +3155,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(
                 source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: "Main");
         }
 
         [Fact, WorkItem(18948, "https://github.com/dotnet/roslyn/issues/18948")]
@@ -3184,10 +3184,10 @@ static class Ex
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation);
+            CompilationVerifier comp = CompileAndVerify(compilation);
         }
 
         [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
@@ -3208,7 +3208,7 @@ static class Ex
         var y = q/*BIND*/;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case
@@ -3228,13 +3228,13 @@ static class Ex
                 //         var q = 3;
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "var q").WithArguments("var q").WithLocation(10, 9)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes()
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
                 .Single();
-            var type = model.GetTypeInfo(node);
+            TypeInfo type = model.GetTypeInfo(node);
         }
 
         [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
@@ -3254,19 +3254,19 @@ static class Ex
         }
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case var q:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case var q:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes()
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
                 .Single();
-            var type = model.GetTypeInfo(node);
+            TypeInfo type = model.GetTypeInfo(node);
             Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
@@ -3329,7 +3329,7 @@ static class Ex
         }
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (1 of 12)

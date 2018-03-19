@@ -2338,7 +2338,7 @@ class C
     void M2() { Console.WriteLine(1); }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.M1");
             AssertInstrumented(verifier, "C.M2");
@@ -2359,7 +2359,7 @@ class C
     public C() { Console.WriteLine(3); }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C..ctor");
         }
@@ -2379,7 +2379,7 @@ class C
     static C() { Console.WriteLine(3); }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             AssertNotInstrumented(verifier, "C..cctor");
         }
 
@@ -2398,7 +2398,7 @@ class C
     static void M2() { L2(); void L2() { new Action(() => { Console.WriteLine(2); }).Invoke(); } }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.M1");
             AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0");
@@ -2430,7 +2430,7 @@ class C
     static C() {}
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C..ctor");
             AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__8_0");
@@ -2464,7 +2464,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
@@ -2511,7 +2511,7 @@ class D
     event Action E { add { } remove { } }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C..ctor");
             AssertNotInstrumented(verifier, "C..cctor");
@@ -2580,7 +2580,7 @@ class A
     void M8() { Console.WriteLine(8); }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "A.B1.C.M1");
             AssertInstrumented(verifier, "A.B1.M2");
@@ -2610,7 +2610,7 @@ class C
     event Action E2 { add { } remove { } }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
@@ -2650,10 +2650,10 @@ class D
     void M() {}
 }
 ";
-            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            CompilationVerifier verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             c.VerifyEmitDiagnostics();
 
             AssertNotInstrumented(verifier, "C.M");
@@ -2687,10 +2687,10 @@ class D
     void M() {}
 }
 ";
-            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            CompilationVerifier verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             c.VerifyEmitDiagnostics();
 
             AssertInstrumented(verifier, "C.M");
@@ -2790,7 +2790,7 @@ Method1: x > 0
 Method1: x = 0
 " + checker.ExpectedOutput;
 
-            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
             checker.CompleteCheck(verifier.Compilation, source);
             verifier.VerifyDiagnostics();
 
@@ -2864,7 +2864,7 @@ public class Program
 Method2: x = 1
 " + checker.ExpectedOutput;
 
-            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
             checker.CompleteCheck(verifier.Compilation, source);
             verifier.VerifyDiagnostics();
 
@@ -2931,7 +2931,7 @@ public partial class Class1<T>
     }
 }";
 
-            var sources = new[] {
+            (string Name, string Content)[] sources = new[] {
                 (Name: "b.cs", Content: source1),
                 (Name: "c.cs", Content: source2),
                 (Name: "a.cs", Content: source3)
@@ -2990,7 +2990,7 @@ True
 True
 ";
 
-            var verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
 
             verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.DebugExe);
@@ -3055,7 +3055,7 @@ public partial class Class1<T>
     }
 }";
 
-            var sources = new[] {
+            (string Name, string Content)[] sources = new[] {
                 (Name: "b.cs", Content: source1),
                 (Name: "c.cs", Content: source2),
                 (Name: "a.cs", Content: source3)
@@ -3116,7 +3116,7 @@ True
 True
 ";
 
-            var verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
 
             verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.DebugExe);
@@ -3190,7 +3190,7 @@ True
 True
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
 
             verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
@@ -3219,13 +3219,13 @@ True
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)
         {
             var trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            foreach (var source in sources)
+            foreach ((string Path, string Content) source in sources)
             {
                 // The trees must be assigned unique file names in order for instrumentation to work correctly.
                 trees.Add(Parse(source.Content, filename: source.Path));
             }
 
-            var compilation = CreateCompilation(trees.ToArray(), options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            CSharpCompilation compilation = CreateCompilation(trees.ToArray(), options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
             trees.Free();
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }

@@ -349,14 +349,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 
                 var name = unboundLambda.ParameterName(p);
-                var location = unboundLambda.ParameterLocation(p);
+                Location location = unboundLambda.ParameterLocation(p);
                 var locations = ImmutableArray.Create<Location>(location);
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
 
                 builder.Add(parameter);
             }
 
-            var result = builder.ToImmutableAndFree();
+            ImmutableArray<ParameterSymbol> result = builder.ToImmutableAndFree();
 
             return result;
         }

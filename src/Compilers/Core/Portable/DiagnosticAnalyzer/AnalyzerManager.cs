@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
-            foreach (var analyzer in analyzers)
+            ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext>.Builder builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+            foreach (DiagnosticAnalyzer analyzer in analyzers)
             {
                 builder.Add(analyzer, new AnalyzerExecutionContext());
             }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            AnalyzerExecutionContext analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            AnalyzerExecutionContext analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                var task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzer, analyzerExecutor);
+                Task<HostSessionStartAnalysisScope> task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzer, analyzerExecutor);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            HostSessionStartAnalysisScope sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
             {
-                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                HostCompilationStartAnalysisScope compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
             }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            HostSessionStartAnalysisScope sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             return sessionScope.IsConcurrentAnalyzer(analyzer);
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            HostSessionStartAnalysisScope sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            AnalyzerExecutionContext analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return analyzerExecutionContext.GetOrComputeDescriptors(analyzer, analyzerExecutor);
         }
 
@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Get all the supported diagnostics and scan them linearly to see if the reported diagnostic is supported by the analyzer.
             // The linear scan is okay, given that this runs only if a diagnostic is being reported and a given analyzer is quite unlikely to have hundreds of thousands of supported diagnostics.
-            var supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
-            foreach (var descriptor in supportedDescriptors)
+            ImmutableArray<DiagnosticDescriptor> supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            foreach (DiagnosticDescriptor descriptor in supportedDescriptors)
             {
                 if (descriptor.Id.Equals(diagnostic.Id, StringComparison.OrdinalIgnoreCase))
                 {
@@ -214,10 +214,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
-            var diagnosticOptions = options.SpecificDiagnosticOptions;
+            ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = options.SpecificDiagnosticOptions;
 
-            foreach (var diag in supportedDiagnostics)
+            foreach (DiagnosticDescriptor diag in supportedDiagnostics)
             {
                 if (HasNotConfigurableTag(diag.CustomTags))
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var isSuppressed = !diag.IsEnabledByDefault;
 
                 // If the user said something about it, that overrides the author.
-                if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
+                if (diagnosticOptions.TryGetValue(diag.Id, out ReportDiagnostic severity))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }

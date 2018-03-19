@@ -31,18 +31,18 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
+            CatchClauseSyntax catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
             var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
             Assert.Equal("e", localSymbol.Name);
             Assert.Equal("System.IO.IOException", localSymbol.Type.ToDisplayString());
 
-            var filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
+            SymbolInfo filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
             Assert.Equal("string.operator !=(string, string)", filterExprInfo.Symbol.ToDisplayString());
         }
 

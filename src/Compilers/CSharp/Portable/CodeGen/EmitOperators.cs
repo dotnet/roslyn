@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     {
         private void EmitUnaryOperatorExpression(BoundUnaryOperator expression, bool used)
         {
-            var operatorKind = expression.OperatorKind;
+            UnaryOperatorKind operatorKind = expression.OperatorKind;
 
             if (operatorKind.IsChecked())
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitBinaryOperatorExpression(BoundBinaryOperator expression, bool used)
         {
-            var operatorKind = expression.OperatorKind;
+            BinaryOperatorKind operatorKind = expression.OperatorKind;
 
             if (operatorKind.EmitsAsCheckedInstruction())
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             BoundBinaryOperator binary = (BoundBinaryOperator)child;
-            var operatorKind = binary.OperatorKind;
+            BinaryOperatorKind operatorKind = binary.OperatorKind;
 
             if (!operatorKind.EmitsAsCheckedInstruction() && IsConditional(operatorKind))
             {
@@ -349,8 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BinaryOperatorKind.Equal:
 
-                    var constant = binOp.Left.ConstantValue;
-                    var comparand = binOp.Right;
+                    ConstantValue constant = binOp.Left.ConstantValue;
+                    BoundExpression comparand = binOp.Right;
 
                     if (constant == null)
                     {
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitExpression(comparand, true);
 
-            var comparandType = comparand.Type;
+            TypeSymbol comparandType = comparand.Type;
             if (comparandType.IsReferenceType && !comparandType.IsVerifierReference())
             {
                 EmitBox(comparandType, comparand.Syntax);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitExpression(comparand, true);
 
-            var comparandType = comparand.Type;
+            TypeSymbol comparandType = comparand.Type;
             if (comparandType.IsReferenceType && !comparandType.IsVerifierReference())
             {
                 EmitBox(comparandType, comparand.Syntax);
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
 
-            var constantValue = condition.ConstantValue;
+            ConstantValue constantValue = condition.ConstantValue;
             if (constantValue != null)
             {
                 Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitUnaryCheckedOperatorExpression(BoundUnaryOperator expression, bool used)
         {
             Debug.Assert(expression.OperatorKind.Operator() == UnaryOperatorKind.UnaryMinus);
-            var type = expression.OperatorKind.OperandTypes();
+            UnaryOperatorKind type = expression.OperatorKind.OperandTypes();
 
             // Spec 7.6.2
             // Implementation of unary minus has two overloads:
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static bool IsFloat(BinaryOperatorKind opKind)
         {
-            var type = opKind.OperandTypes();
+            BinaryOperatorKind type = opKind.OperandTypes();
             switch (type)
             {
                 case BinaryOperatorKind.Float:

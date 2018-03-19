@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // No need to report duplicate names since duplicates
             // are reported when the type parameters are bound.
             var names = new Dictionary<string, int>(n, StringOrdinalComparer.Instance);
-            foreach (var typeParameter in typeParameters)
+            foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
                 var name = typeParameter.Name;
                 if (!names.ContainsKey(name))
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var results = new TypeParameterConstraintClause[n];
 
             // Bind each clause and add to the results.
-            foreach (var clause in clauses)
+            foreach (TypeParameterConstraintClauseSyntax clause in clauses)
             {
                 var name = clause.Name.Identifier.ValueText;
                 int ordinal;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    var constraintClause = this.BindTypeParameterConstraints(name, clause.Constraints, diagnostics);
+                    TypeParameterConstraintClause constraintClause = this.BindTypeParameterConstraints(name, clause.Constraints, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeParameterConstraintClause BindTypeParameterConstraints(
             string name, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax, DiagnosticBag diagnostics)
         {
-            var constraints = TypeParameterConstraintKind.None;
+            TypeParameterConstraintKind constraints = TypeParameterConstraintKind.None;
             var constraintTypes = ArrayBuilder<TypeSymbol>.GetInstance();
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
-                var syntax = constraintsSyntax[i];
+                TypeParameterConstraintSyntax syntax = constraintsSyntax[i];
                 switch (syntax.Kind())
                 {
                     case SyntaxKind.ClassConstraint:
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.TypeConstraint:
                         {
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
-                            var typeSyntax = typeConstraintSyntax.Type;
-                            var typeSyntaxKind = typeSyntax.Kind();
+                            TypeSyntax typeSyntax = typeConstraintSyntax.Type;
+                            SyntaxKind typeSyntaxKind = typeSyntax.Kind();
                             if (typeSyntaxKind != SyntaxKind.PredefinedType && typeSyntaxKind != SyntaxKind.PointerType && !SyntaxFacts.IsName(typeSyntax.Kind()))
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
                             }
 
-                            var type = BindTypeOrUnmanagedKeyword(typeSyntax, diagnostics, out var isUnmanaged);
+                            TypeSymbol type = BindTypeOrUnmanagedKeyword(typeSyntax, diagnostics, out var isUnmanaged);
 
                             if (isUnmanaged)
                             {

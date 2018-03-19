@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal Syntax.InternalSyntax.DirectiveStack GetConditionalDirectivesStack()
         {
             IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: IsActiveConditionalDirective);
-            var directiveStack = Syntax.InternalSyntax.DirectiveStack.Empty;
+            InternalSyntax.DirectiveStack directiveStack = Syntax.InternalSyntax.DirectiveStack.Empty;
             foreach (DirectiveTriviaSyntax directive in directives)
             {
                 var internalDirective = (Syntax.InternalSyntax.DirectiveTriviaSyntax)directive.Green;

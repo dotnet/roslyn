@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             Func<string[], Action<ModuleSymbol>> getValidator = expectedMembers => m =>
             {
                 {
-                    var actualMembers =
+                    Symbol[] actualMembers =
                         m.GlobalNamespace.GetMember<NamespaceSymbol>("Test").
                         GetMember<NamedTypeSymbol>("voidDelegate").GetMembers().ToArray();
 
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             VerifyType verify = (winmd, expected) =>
             {
-                var validator = getValidator(expected);
+                Action<ModuleSymbol> validator = getValidator(expected);
 
                 // We should see the same members from both source and metadata
-                var verifier = CompileAndVerify(
+                CompilationVerifier verifier = CompileAndVerify(
                     libSrc,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
@@ -130,12 +130,12 @@ namespace WinRTDelegateLibrary
     public unsafe delegate E1* pointerDelegate3(E1* ep);
 }";
             // We need the 4.5 refs here
-            var coreRefs45 = new[] {
+            MetadataReference[] coreRefs45 = new[] {
                 MscorlibRef_v4_0_30316_17626,
                 SystemCoreRef_v4_0_30319_17929
             };
 
-            var winRtDelegateLibrary = CreateEmptyCompilation(
+            MetadataReference winRtDelegateLibrary = CreateEmptyCompilation(
                 winRtDelegateLibrarySrc,
                 references: coreRefs45,
                 options: TestOptions.ReleaseWinMD.WithAllowUnsafe(true),
@@ -143,7 +143,7 @@ namespace WinRTDelegateLibrary
 
             var nonWinRtLibrarySrc = winRtDelegateLibrarySrc.Replace("WinRTDelegateLibrary", "NonWinRTDelegateLibrary");
 
-            var nonWinRtDelegateLibrary = CreateEmptyCompilation(
+            MetadataReference nonWinRtDelegateLibrary = CreateEmptyCompilation(
                 nonWinRtLibrarySrc,
                 references: coreRefs45,
                 options: TestOptions.UnsafeReleaseDll,
@@ -218,7 +218,7 @@ class Test
 
             Func<FieldSymbol, bool> isWinRt = (field) =>
             {
-                var fieldType = field.Type;
+                TypeSymbol fieldType = field.Type;
 
                 if ((object)fieldType == null)
                 {
@@ -230,7 +230,7 @@ class Test
                     return false;
                 }
 
-                foreach (var member in fieldType.GetMembers())
+                foreach (Symbol member in fieldType.GetMembers())
                 {
                     switch (member.Name)
                     {
@@ -247,10 +247,10 @@ class Test
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                var fields = type.GetMembers();
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                System.Collections.Immutable.ImmutableArray<Symbol> fields = type.GetMembers();
 
-                foreach (var field in fields)
+                foreach (Symbol field in fields)
                 {
                     var fieldSymbol = field as FieldSymbol;
                     if ((object)fieldSymbol != null)
@@ -267,7 +267,7 @@ class Test
                 }
             };
 
-            var comp = CompileAndVerify(
+            CompilationVerifier comp = CompileAndVerify(
                 allDelegates,
                 references: new[] {
                     winRtDelegateLibrary,

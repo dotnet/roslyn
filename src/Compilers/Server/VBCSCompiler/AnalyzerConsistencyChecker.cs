@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var resolvedPaths = new List<string>();
 
-            foreach (var analyzerReference in analyzerReferences)
+            foreach (CommandLineAnalyzerReference analyzerReference in analyzerReferences)
             {
                 string resolvedPath = FileUtilities.ResolveRelativePath(analyzerReference.FilePath, basePath: null, baseDirectory: baseDirectory, searchPaths: SpecializedCollections.EmptyEnumerable<string>(), fileExists: File.Exists);
                 if (resolvedPath != null)
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // First, check that the set of references is complete, modulo items in the safe list.
             foreach (var resolvedPath in resolvedPaths)
             {
-                var missingDependencies = AssemblyUtilities.IdentifyMissingDependencies(resolvedPath, resolvedPaths);
+                ImmutableArray<AssemblyIdentity> missingDependencies = AssemblyUtilities.IdentifyMissingDependencies(resolvedPath, resolvedPaths);
 
-                foreach (var missingDependency in missingDependencies)
+                foreach (AssemblyIdentity missingDependency in missingDependencies)
                 {
                     if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
                     {
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             for (int i = 0; i < resolvedPaths.Count; i++)
             {
                 var resolvedPath = resolvedPaths[i];
-                var loadedAssembly = loadedAssemblies[i];
-                var resolvedPathMvid = AssemblyUtilities.ReadMvid(resolvedPath);
-                var loadedAssemblyMvid = loadedAssembly.ManifestModule.ModuleVersionId;
+                Assembly loadedAssembly = loadedAssemblies[i];
+                Guid resolvedPathMvid = AssemblyUtilities.ReadMvid(resolvedPath);
+                Guid loadedAssemblyMvid = loadedAssembly.ManifestModule.ModuleVersionId;
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {

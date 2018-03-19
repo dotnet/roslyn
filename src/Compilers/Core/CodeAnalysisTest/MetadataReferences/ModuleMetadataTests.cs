@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ImageOwnership()
         {
             var m = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
-            var copy1 = m.Copy();
-            var copy2 = copy1.Copy();
+            ModuleMetadata copy1 = m.Copy();
+            ModuleMetadata copy2 = copy1.Copy();
 
             Assert.True(m.IsImageOwner, "Metadata should own the image");
             Assert.False(copy1.IsImageOwner, "Copy should not own the image");

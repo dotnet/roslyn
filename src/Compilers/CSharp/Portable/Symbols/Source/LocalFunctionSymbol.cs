@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
-            foreach (var param in syntax.ParameterList.Parameters)
+            foreach (ParameterSyntax param in syntax.ParameterList.Parameters)
             {
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
             }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
             // Force complete type parameters
-            foreach (var typeParam in _typeParameters)
+            foreach (SourceMethodTypeParameterSymbol typeParam in _typeParameters)
             {
                 typeParam.ForceComplete(null, default(CancellationToken));
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // force lazy init
             ComputeParameters();
 
-            foreach (var p in _lazyParameters)
+            foreach (ParameterSymbol p in _lazyParameters)
             {
                 // Force complete parameters to retrieve all diagnostics
                 p.ForceComplete(null, default(CancellationToken));
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var parameters = ParameterHelpers.MakeParameters(
+            ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                 _binder,
                 this,
                 _syntax.ParameterList,
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // It is an error to be an extension method, but we need to compute it to report it
-                var firstParam = _syntax.ParameterList.Parameters.FirstOrDefault();
+                ParameterSyntax firstParam = _syntax.ParameterList.Parameters.FirstOrDefault();
                 return firstParam != null &&
                     !firstParam.IsArgList &&
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            foreach (var attrList in attributes)
+            foreach (AttributeListSyntax attrList in attributes)
             {
                 diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
             }
@@ -379,10 +379,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<SourceMethodTypeParameterSymbol>.GetInstance();
-            var typeParameters = _syntax.TypeParameterList.Parameters;
+            SeparatedSyntaxList<TypeParameterSyntax> typeParameters = _syntax.TypeParameterList.Parameters;
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
-                var parameter = typeParameters[ordinal];
+                TypeParameterSyntax parameter = typeParameters[ordinal];
                 if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
@@ -391,11 +391,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Attributes are currently disallowed on local function type parameters
                 ReportAttributesDisallowed(parameter.AttributeLists, diagnostics);
 
-                var identifier = parameter.Identifier;
-                var location = identifier.GetLocation();
+                SyntaxToken identifier = parameter.Identifier;
+                Location location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                foreach (var @param in result)
+                foreach (SourceMethodTypeParameterSymbol @param in result)
                 {
                     if (name == @param.Name)
                     {
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
+                TypeParameterSymbol tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object)tpEnclosing != null)
                 {
                     // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyTypeParameterConstraints.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var constraints = this.MakeTypeParameterConstraints(
+                    ImmutableArray<TypeParameterConstraintClause> constraints = this.MakeTypeParameterConstraints(
                         _binder,
                         TypeParameters,
                         _syntax.ConstraintClauses,

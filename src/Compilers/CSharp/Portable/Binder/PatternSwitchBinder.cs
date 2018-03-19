@@ -45,15 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(SwitchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type.
-            var boundSwitchExpression = SwitchGoverningExpression;
+            BoundExpression boundSwitchExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
                 BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out var someCaseMatches, diagnostics);
-            var locals = GetDeclaredLocalsForScope(node);
-            var functions = GetDeclaredLocalFunctionsForScope(node);
+            ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
+            ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
                 node, boundSwitchExpression, someCaseMatches,
                 locals, functions, switchSections, defaultLabel, this.BreakLabel, this, isComplete);
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
             SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningType);
-            foreach (var sectionSyntax in SwitchSyntax.Sections)
+            foreach (SwitchSectionSyntax sectionSyntax in SwitchSyntax.Sections)
             {
-                var section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, ref someCaseMatches, subsumption, diagnostics);
+                BoundPatternSwitchSection section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, ref someCaseMatches, subsumption, diagnostics);
                 boundPatternSwitchSectionsBuilder.Add(section);
             }
 
@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Bind match section labels
             var boundLabelsBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
-            var sectionBinder = originalBinder.GetBinder(node); // this binder can bind pattern variables from the section.
+            Binder sectionBinder = originalBinder.GetBinder(node); // this binder can bind pattern variables from the section.
             Debug.Assert(sectionBinder != null);
-            var labelsByNode = LabelsByNode;
+            Dictionary<SyntaxNode, LabelSymbol> labelsByNode = LabelsByNode;
 
             bool? inputMatchesType(TypeSymbol patternType)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ExpressionOfTypeMatchesPatternType(Conversions, SwitchGoverningType, patternType, ref useSiteDiagnostics, out _, SwitchGoverningExpression.ConstantValue, true);
             }
 
-            foreach (var labelSyntax in node.Labels)
+            foreach (SwitchLabelSyntax labelSyntax in node.Labels)
             {
                 LabelSymbol label = labelsByNode[labelSyntax];
                 BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, labelSyntax, label, ref defaultLabel, diagnostics);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind switch section statements
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-            foreach (var statement in node.Statements)
+            foreach (StatementSyntax statement in node.Statements)
             {
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        var pattern = sectionBinder.BindConstantAsPattern(
+                        BoundConstantPattern pattern = sectionBinder.BindConstantAsPattern(
                             node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out bool wasExpression);
                         bool hasErrors = pattern.HasErrors;
                         SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         pattern.WasCompilerGenerated = true;
-                        var constantValue = pattern.ConstantValue;
+                        ConstantValue constantValue = pattern.ConstantValue;
                         if (!hasErrors &&
                             (object)constantValue != null &&
                             pattern.Value.Type == SwitchGoverningType &&
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CasePatternSwitchLabel:
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
-                        var pattern = sectionBinder.BindPattern(
+                        BoundPattern pattern = sectionBinder.BindPattern(
                             matchLabelSyntax.Pattern, SwitchGoverningType, node.HasErrors, diagnostics);
                         return new BoundPatternSwitchLabel(node, label, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,

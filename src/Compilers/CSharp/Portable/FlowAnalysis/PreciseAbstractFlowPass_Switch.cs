@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // However, if switch expression is a constant, we must have determined the single target label
             // at bind time, i.e. node.ConstantTargetOpt, and we must simulate a jump only to this label.
 
-            var constantTargetOpt = node.ConstantTargetOpt;
+            LabelSymbol constantTargetOpt = node.ConstantTargetOpt;
             if ((object)constantTargetOpt == null)
             {
                 bool hasDefaultLabel = false;
-                foreach (var section in node.SwitchSections)
+                foreach (BoundSwitchSection section in node.SwitchSections)
                 {
-                    foreach (var boundSwitchLabel in section.SwitchLabels)
+                    foreach (BoundSwitchLabel boundSwitchLabel in section.SwitchLabels)
                     {
-                        var label = boundSwitchLabel.Label;
+                        LabelSymbol label = boundSwitchLabel.Label;
                         hasDefaultLabel = hasDefaultLabel || boundSwitchLabel.ConstantValueOpt == null;
                         SetState(breakState.Clone());
                         var simulatedGoto = new BoundGotoStatement(node.Syntax, label);
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitSwitchBlock(BoundSwitchStatement node)
         {
-            var afterSwitchState = UnreachableState();
-            var switchSections = node.SwitchSections;
+            LocalState afterSwitchState = UnreachableState();
+            ImmutableArray<BoundSwitchSection> switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
             // visit switch sections
             for (var iSection = 0; iSection <= iLastSection; iSection++)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
             // visit switch section labels
-            foreach (var boundSwitchLabel in node.SwitchLabels)
+            foreach (BoundSwitchLabel boundSwitchLabel in node.SwitchLabels)
             {
                 VisitRvalue(boundSwitchLabel.ExpressionOpt);
                 VisitSwitchSectionLabel(boundSwitchLabel.Label, node);
@@ -143,16 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPatternSwitchBlock(BoundPatternSwitchStatement node)
         {
-            var initialState = this.State;
-            var afterSwitchState = UnreachableState();
-            var switchSections = node.SwitchSections;
+            LocalState initialState = this.State;
+            LocalState afterSwitchState = UnreachableState();
+            ImmutableArray<BoundPatternSwitchSection> switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
 
             // simulate the dispatch (setting pattern variables and jumping to labels) to
             // all reachable switch labels
-            foreach (var section in switchSections)
+            foreach (BoundPatternSwitchSection section in switchSections)
             {
-                foreach (var label in section.SwitchLabels)
+                foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                 {
                     if (label.IsReachable && label != node.DefaultLabel)
                     {
@@ -233,9 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            foreach (var section in node.SwitchSections)
+            foreach (BoundPatternSwitchSection section in node.SwitchSections)
             {
-                foreach (var label in section.SwitchLabels)
+                foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                 {
                     if (label.Guard != null && label.Guard.ConstantValue != ConstantValue.True)
                     {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
             SetState(UnreachableState());
-            foreach (var label in node.SwitchLabels)
+            foreach (BoundPatternSwitchLabel label in node.SwitchLabels)
             {
                 VisitLabel(label.Label, node);
             }

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.Equal(ht[i - 9], i - 9);
             }
 
-            foreach (var p in ht)
+            foreach (KeyValuePair<int, int> p in ht)
             {
                 Assert.Equal(p.Key, p.Value);
             }

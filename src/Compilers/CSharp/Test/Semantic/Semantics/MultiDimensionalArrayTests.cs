@@ -90,7 +90,7 @@ A24B25C26t
 A27B28C29t
 A30B31C32t";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact]
@@ -134,7 +134,7 @@ class P
 1234588899989101112
 888888888999999999999888999101112";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
 
@@ -155,7 +155,7 @@ public class C
 }";
             string expected = @"102030405060";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [WorkItem(544081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544081")]
@@ -176,7 +176,7 @@ class Program {
 }";
             string expected = @"";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [WorkItem(544364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544364")]
@@ -291,8 +291,8 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
         System.Console.WriteLine(t.Test1()[0]);
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 -100");
 
@@ -326,8 +326,8 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
         System.Console.WriteLine(t.Test2(a));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
 123");
@@ -374,8 +374,8 @@ Test2
         val = 123;
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
 123");
@@ -414,7 +414,7 @@ Test2
         return null;
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (3,30): error CS0508: 'C.Test1()': return type must be 'double[*]' to match overridden member 'Test.Test1()'
     //     public override double[] Test1()
@@ -434,7 +434,7 @@ Test2
         return x[0];
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (3,28): error CS0115: 'C.Test2(double[])': no suitable method found to override
     //     public override double Test2(double[] x)
@@ -465,7 +465,7 @@ Test2
         mdarray = new [] { 3.0d };
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
     // (6,23): error CS0029: Cannot implicitly convert type 'double[*]' to 'double[]'
     //         double[] a1 = t.Test1();
@@ -525,9 +525,9 @@ Test2
     static void M2<T>(T a, T b){}
     static void M3<T>(System.Collections.Generic.IList<T> a){}
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
 
-            var m2 = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("M2");
+            MethodSymbol m2 = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("M2");
             var szArray = (IArrayTypeSymbol)m2.Parameters.First().Type;
             Assert.Equal("T[]", szArray.ToTestDisplayString());
             Assert.True(szArray.IsSZArray);
@@ -594,7 +594,7 @@ Test2
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1
 System.Double[*]
@@ -619,8 +619,8 @@ System.Double
         }
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 -100");
 
@@ -673,8 +673,8 @@ System.Double
         System.Console.WriteLine(t.Test1().Length);
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 1");
 
@@ -705,8 +705,8 @@ System.Double
         System.Console.WriteLine(t.Test1().LongLength);
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 1");
 
@@ -739,7 +739,7 @@ System.Double
         t.Test3(new double [] {d});
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (7,17): error CS1503: Argument 1: cannot convert from 'double' to 'params double[*]'
     //         t.Test3(d);
@@ -1083,9 +1083,9 @@ System.Double
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test");
+            NamedTypeSymbol test = compilation.GetTypeByMetadataName("Test");
             var array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
@@ -1205,7 +1205,7 @@ System.Double
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
 Test3
@@ -1531,8 +1531,8 @@ Overriden 16
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
 Test3
@@ -1671,9 +1671,9 @@ class C
         return (System.Type)typeof(Program).GetMember(target)[0].GetCustomAttributesData().ElementAt(0).ConstructorArguments[0].Value;
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
 
-            var p = compilation.GetTypeByMetadataName("Program");
+            NamedTypeSymbol p = compilation.GetTypeByMetadataName("Program");
             var a1 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;
             Assert.Equal("System.Int32[]", a1.ToTestDisplayString());
             Assert.Equal(1, a1.Rank);

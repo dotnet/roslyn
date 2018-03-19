@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usage = NodeUsage.Normal;
                 }
 
-                var key = CreateBinderCacheKey(methodDecl, usage);
+                BinderCacheKey key = CreateBinderCacheKey(methodDecl, usage);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool inBodyOrInitializer = LookupPosition.IsInConstructorParameterScope(_position, parent);
-                var extraInfo = inBodyOrInitializer ? NodeUsage.ConstructorBodyOrInitializer : NodeUsage.Normal;  // extra info for the cache.
-                var key = CreateBinderCacheKey(parent, extraInfo);
+                NodeUsage extraInfo = inBodyOrInitializer ? NodeUsage.ConstructorBodyOrInitializer : NodeUsage.Normal;  // extra info for the cache.
+                BinderCacheKey key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: Don't get the method symbol unless we're sure we need it.
                     if (inBodyOrInitializer)
                     {
-                        var method = GetMethodSymbol(parent, resultBinder);
+                        SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
                         if ((object)method != null)
                         {
                             // Ctors cannot be generic
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                var key = CreateBinderCacheKey(parent, usage: NodeUsage.Normal);
+                BinderCacheKey key = CreateBinderCacheKey(parent, usage: NodeUsage.Normal);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
@@ -229,8 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool inBody = LookupPosition.IsInBody(_position, parent);
-                var extraInfo = inBody ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
-                var key = CreateBinderCacheKey(parent, extraInfo);
+                NodeUsage extraInfo = inBody ? NodeUsage.AccessorBody : NodeUsage.Normal;  // extra info for the cache.
+                BinderCacheKey key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (inBody)
                     {
-                        var propertyOrEventDecl = parent.Parent.Parent;
+                        CSharpSyntaxNode propertyOrEventDecl = parent.Parent.Parent;
                         MethodSymbol accessor = null;
 
                         switch (propertyOrEventDecl.Kind())
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SyntaxKind.PropertyDeclaration:
                             case SyntaxKind.IndexerDeclaration:
                                 {
-                                    var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
+                                    SourcePropertySymbol propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)propertySymbol != null)
                                     {
                                         accessor = (parent.Kind() == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // NOTE: it's an error for field-like events to have accessors, 
                                     // but we want to bind them anyway for error tolerance reasons.
 
-                                    var eventSymbol = GetEventSymbol((EventDeclarationSyntax)propertyOrEventDecl, resultBinder);
+                                    SourceEventSymbol eventSymbol = GetEventSymbol((EventDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)eventSymbol != null)
                                     {
                                         accessor = (parent.Kind() == SyntaxKind.AddAccessorDeclaration) ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool inBody = LookupPosition.IsInBody(_position, parent);
-                var extraInfo = inBody ? NodeUsage.OperatorBody : NodeUsage.Normal;  // extra info for the cache.
-                var key = CreateBinderCacheKey(parent, extraInfo);
+                NodeUsage extraInfo = inBody ? NodeUsage.OperatorBody : NodeUsage.Normal;  // extra info for the cache.
+                BinderCacheKey key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
@@ -361,15 +361,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Binder VisitPropertyOrIndexerExpressionBody(BasePropertyDeclarationSyntax parent)
             {
-                var key = CreateBinderCacheKey(parent, NodeUsage.AccessorBody);
+                BinderCacheKey key = CreateBinderCacheKey(parent, NodeUsage.AccessorBody);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
                     resultBinder = VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
 
-                    var propertySymbol = GetPropertySymbol(parent, resultBinder);
-                    var accessor = propertySymbol.GetMethod;
+                    SourcePropertySymbol propertySymbol = GetPropertySymbol(parent, resultBinder);
+                    MethodSymbol accessor = propertySymbol.GetMethod;
                     if ((object)accessor != null)
                     {
                         resultBinder = new InMethodBinder(accessor, resultBinder);
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If this is a partial method, the method represents the defining part,
                         // not the implementation (method.Locations includes both parts). If the
                         // span is in fact in the implementation, return that method instead.
-                        var implementation = ((MethodSymbol)sym).PartialImplementationPart;
+                        MethodSymbol implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
                             if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static bool InSpan(ImmutableArray<Location> locations, SyntaxTree syntaxTree, TextSpan span)
             {
                 Debug.Assert(syntaxTree != null);
-                foreach (var loc in locations)
+                foreach (Location loc in locations)
                 {
                     if (InSpan(loc, syntaxTree, span))
                     {
@@ -576,13 +576,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                var key = CreateBinderCacheKey(parent, usage: NodeUsage.Normal);
+                BinderCacheKey key = CreateBinderCacheKey(parent, usage: NodeUsage.Normal);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
                     Binder outer = VisitCore(parent.Parent); // a binder for the body of the enclosing type or namespace
-                    var container = ((NamespaceOrTypeSymbol)outer.ContainingMemberOrLambda).GetSourceTypeMember(parent);
+                    SourceNamedTypeSymbol container = ((NamespaceOrTypeSymbol)outer.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
                     // NOTE: Members of the delegate type are in scope in the entire delegate declaration syntax.
                     // NOTE: Hence we can assume that we are in body of the delegate type and explicitly insert the InContainerBinder in the binder chain.
@@ -611,13 +611,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                var key = CreateBinderCacheKey(parent, usage: NodeUsage.Normal);
+                BinderCacheKey key = CreateBinderCacheKey(parent, usage: NodeUsage.Normal);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
                     Binder outer = VisitCore(parent.Parent); // a binder for the body of the type enclosing this type
-                    var container = ((NamespaceOrTypeSymbol)outer.ContainingMemberOrLambda).GetSourceTypeMember(parent.Identifier.ValueText, 0, SyntaxKind.EnumDeclaration, parent);
+                    SourceNamedTypeSymbol container = ((NamespaceOrTypeSymbol)outer.ContainingMemberOrLambda).GetSourceTypeMember(parent.Identifier.ValueText, 0, SyntaxKind.EnumDeclaration, parent);
 
                     resultBinder = new InContainerBinder(container, outer);
 
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
             {
-                var key = CreateBinderCacheKey(parent, extraInfo);
+                BinderCacheKey key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (extraInfo != NodeUsage.Normal)
                     {
-                        var typeSymbol = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(parent);
+                        SourceNamedTypeSymbol typeSymbol = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
                         if (extraInfo == NodeUsage.NamedTypeBaseList)
                         {
@@ -739,14 +739,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!inUsing || inBody, "inUsing => inBody");
 
-                var extraInfo = inUsing ? NodeUsage.NamespaceUsings : (inBody ? NodeUsage.NamespaceBody : NodeUsage.Normal);  // extra info for the cache.
-                var key = CreateBinderCacheKey(parent, extraInfo);
+                NodeUsage extraInfo = inUsing ? NodeUsage.NamespaceUsings : (inBody ? NodeUsage.NamespaceBody : NodeUsage.Normal);  // extra info for the cache.
+                BinderCacheKey key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
                 {
                     InContainerBinder outer;
-                    var container = parent.Parent;
+                    CSharpSyntaxNode container = parent.Parent;
 
                     if (InScript && container.Kind() == SyntaxKind.CompilationUnit)
                     {
@@ -807,10 +807,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new ArgumentOutOfRangeException(nameof(compilationUnit), "node not part of tree");
                 }
 
-                var extraInfo = inUsing
+                NodeUsage extraInfo = inUsing
                     ? (inScript ? NodeUsage.CompilationUnitScriptUsings : NodeUsage.CompilationUnitUsings)
                     : (inScript ? NodeUsage.CompilationUnitScript : NodeUsage.Normal);  // extra info for the cache.
-                var key = CreateBinderCacheKey(compilationUnit, extraInfo);
+                BinderCacheKey key = CreateBinderCacheKey(compilationUnit, extraInfo);
 
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     token = containingNode.FindToken(_position);
                 }
 
-                var node = token.Parent;
+                SyntaxNode node = token.Parent;
                 while (node != null && node != containingNode)
                 {
                     // ACASEY: the restriction that we're only interested in children
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                var extraInfo = NodeUsage.Normal;  // extra info for the cache.
+                NodeUsage extraInfo = NodeUsage.Normal;  // extra info for the cache.
                 return VisitXmlCrefAttributeInternal(parent, extraInfo);
             }
 
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(extraInfo == NodeUsage.Normal || extraInfo == NodeUsage.CrefParameterOrReturnType,
                     "Unexpected extraInfo " + extraInfo);
 
-                var key = CreateBinderCacheKey(parent, extraInfo);
+                BinderCacheKey key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Cleverness: rather than using this node as the key, we're going to use the
                 // enclosing doc comment, because all name attributes with the same element
                 // kind, in the same doc comment can share the same binder.
-                var key = CreateBinderCacheKey(GetEnclosingDocumentationComment(parent), extraInfo);
+                BinderCacheKey key = CreateBinderCacheKey(GetEnclosingDocumentationComment(parent), extraInfo);
 
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))

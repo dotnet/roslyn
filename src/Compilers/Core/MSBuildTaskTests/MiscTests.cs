@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [WorkItem(1183, "https://github.com/Microsoft/msbuild/issues/1183")]
         public void EnsureDependencies()
         {
-            var assembly = typeof(ManagedCompiler).Assembly;
-            foreach (var name in assembly.GetReferencedAssemblies())
+            System.Reflection.Assembly assembly = typeof(ManagedCompiler).Assembly;
+            foreach (System.Reflection.AssemblyName name in assembly.GetReferencedAssemblies())
             {
                 var isBadRef =
                     name.Name == typeof(Compilation).Assembly.GetName().Name ||

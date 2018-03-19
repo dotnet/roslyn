@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool haveErrors = false;
 
-            foreach (var info in useSiteDiagnostics)
+            foreach (DiagnosticInfo info in useSiteDiagnostics)
             {
                 if (info.Severity == DiagnosticSeverity.Error)
                 {

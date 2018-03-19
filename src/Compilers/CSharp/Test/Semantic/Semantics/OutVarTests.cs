@@ -40,18 +40,18 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
                 // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test2(Test1(out int x1), x1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 29)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -73,7 +73,7 @@ public class Cls
         var x = new Cls(out int x2);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
                 // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test(out int x1);
@@ -92,13 +92,13 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclaration(tree, "x2");
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclaration(tree, "x2");
             //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
 
@@ -147,7 +147,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -194,7 +194,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -211,15 +211,15 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(var x1, var x2)").WithLocation(6, 19)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetDeclaration(tree, "x2");
-            var x2Ref = GetReference(tree, "x2");
+            DeclarationExpressionSyntax x2Decl = GetDeclaration(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
@@ -244,7 +244,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -267,15 +267,15 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "long x2").WithArguments("x2").WithLocation(6, 28)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetDeclaration(tree, "x2");
-            var x2Ref = GetReference(tree, "x2");
+            DeclarationExpressionSyntax x2Decl = GetDeclaration(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
@@ -301,7 +301,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -333,19 +333,19 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "byte x3").WithArguments("x3").WithLocation(6, 38)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetDeclaration(tree, "x2");
-            var x2Ref = GetReference(tree, "x2");
+            DeclarationExpressionSyntax x2Decl = GetDeclaration(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x2Decl, x2Ref);
 
-            var x3Decl = GetDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x3Decl, x3Ref);
         }
 
@@ -379,7 +379,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -417,7 +417,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -455,7 +455,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -493,7 +493,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -531,7 +531,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -569,7 +569,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -600,7 +600,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -654,7 +654,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -691,7 +691,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -730,7 +730,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics();
 
@@ -771,7 +771,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -810,7 +810,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -827,7 +827,7 @@ public class Cls
 
         private static IdentifierNameSyntax[] GetReferences(SyntaxTree tree, string name, int count)
         {
-            var nameRef = GetReferences(tree, name).ToArray();
+            IdentifierNameSyntax[] nameRef = GetReferences(tree, name).ToArray();
             Assert.Equal(count, nameRef.Length);
             return nameRef;
         }
@@ -904,18 +904,18 @@ public class Cls
         y = 0;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Ref = GetReference(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             Assert.Null(model.GetDeclaredSymbol(x2Ref));
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
@@ -960,15 +960,15 @@ public class Cls
             LocalDeclarationKind expectedLocalKind = LocalDeclarationKind.OutVariable,
             params IdentifierNameSyntax[] references)
         {
-            var variableDeclaratorSyntax = GetVariableDesignation(decl);
-            var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            SingleVariableDesignationSyntax variableDeclaratorSyntax = GetVariableDesignation(decl);
+            ISymbol symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
             Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(expectedLocalKind, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
-            var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
+            ISymbol other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
             if (isShadowed)
             {
                 Assert.NotEqual(symbol, other);
@@ -984,7 +984,7 @@ public class Cls
 
             AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
 
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Single());
@@ -1005,13 +1005,13 @@ public class Cls
             TypeSymbol expectedType = null
             )
         {
-            var symbolInfo = model.GetSymbolInfo(decl);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(decl);
             Assert.Equal(expectedSymbol, symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
 
-            var typeInfo = model.GetTypeInfo(decl);
+            TypeInfo typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
 
             // skip cases where operation is not supported
@@ -1031,7 +1031,7 @@ public class Cls
             // triggering failure of the assertion. See also https://github.com/dotnet/roslyn/issues/17463
             Assert.True(model.GetConversion(decl).IsIdentity);
 
-            var typeSyntax = decl.Type;
+            TypeSyntax typeSyntax = decl.Type;
 
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
@@ -1053,7 +1053,7 @@ public class Cls
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(typeSyntax));
             Assert.True(model.GetConversion(typeSyntax).IsIdentity);
 
-            var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
+            Conversion conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
             Assert.False(conversion.Exists);
             Assert.Equal(conversion, model.ClassifyConversion(decl, model.Compilation.ObjectType, true));
             Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, false));
@@ -1073,7 +1073,7 @@ public class Cls
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
             // error recovery mode
-            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
+            ForEachVariableStatementSyntax foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
             if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
                 foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
             {
@@ -1081,7 +1081,7 @@ public class Cls
                 return;
             }
 
-            var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
+            TypeOfExpressionSyntax typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
             if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
             {
                 // invalid syntax case where operation is not supported
@@ -1107,7 +1107,7 @@ public class Cls
                 return;
             }
 
-            var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
+            DataFlowAnalysis dataFlow = model.AnalyzeDataFlow(dataFlowParent);
 
             if (isExecutableCode)
             {
@@ -1138,8 +1138,8 @@ public class Cls
 
         private static void VerifyModelForOutVarDuplicateInSameScope(SemanticModel model, DeclarationExpressionSyntax decl)
         {
-            var variableDesignationSyntax = GetVariableDesignation(decl);
-            var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
+            SingleVariableDesignationSyntax variableDesignationSyntax = GetVariableDesignation(decl);
+            ISymbol symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.OutVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -1161,7 +1161,7 @@ public class Cls
 
         private static void VerifyNotAnOutField(SemanticModel model, IdentifierNameSyntax reference)
         {
-            var symbol = model.GetSymbolInfo(reference).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(reference).Symbol;
 
             Assert.NotEqual(SymbolKind.Field, symbol.Kind);
 
@@ -1171,18 +1171,18 @@ public class Cls
 
         private static void VerifyNotAnOutLocal(SemanticModel model, IdentifierNameSyntax reference)
         {
-            var symbol = model.GetSymbolInfo(reference).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(reference).Symbol;
 
             if (symbol.Kind == SymbolKind.Local)
             {
                 var local = (SourceLocalSymbol)symbol;
-                var parent = local.IdentifierToken.Parent;
+                SyntaxNode parent = local.IdentifierToken.Parent;
 
                 Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => e.IsOutVarDeclaration()));
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
-                    var parent1 = ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)parent).Parent).Parent;
+                    CSharpSyntaxNode parent1 = ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)parent).Parent).Parent;
                     switch (parent1.Kind())
                     {
                         case SyntaxKind.FixedStatement:
@@ -1207,7 +1207,7 @@ public class Cls
 
         private static bool FlowsIn(ExpressionSyntax dataFlowParent, DeclarationExpressionSyntax decl, IdentifierNameSyntax[] references)
         {
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 if (dataFlowParent.Span.Contains(reference.Span) && reference.SpanStart > decl.SpanStart)
                 {
@@ -1258,7 +1258,7 @@ public class Cls
 
         private static bool ReadOutside(ExpressionSyntax dataFlowParent, IdentifierNameSyntax[] references)
         {
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 if (!dataFlowParent.Span.Contains(reference.Span))
                 {
@@ -1283,8 +1283,8 @@ public class Cls
                 return false;
             }
 
-            var containingStatement = decl.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
-            var containingReturnOrThrow = containingStatement as ReturnStatementSyntax ?? (StatementSyntax)(containingStatement as ThrowStatementSyntax);
+            StatementSyntax containingStatement = decl.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
+            StatementSyntax containingReturnOrThrow = containingStatement as ReturnStatementSyntax ?? (StatementSyntax)(containingStatement as ThrowStatementSyntax);
 
             MethodDeclarationSyntax methodDeclParent;
 
@@ -1295,7 +1295,7 @@ public class Cls
                 return false;
             }
 
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 if (!dataFlowParent.Span.Contains(reference.Span) &&
                     (containingReturnOrThrow == null || containingReturnOrThrow.Span.Contains(reference.SpanStart)) &&
@@ -1316,7 +1316,7 @@ public class Cls
 
         private static bool WrittenOutside(ExpressionSyntax dataFlowParent, IdentifierNameSyntax[] references)
         {
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 if (!dataFlowParent.Span.Contains(reference.Span))
                 {
@@ -1399,18 +1399,18 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Ref = GetReference(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             Assert.Null(model.GetDeclaredSymbol(x2Ref));
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
@@ -1457,15 +1457,15 @@ namespace System
     }
 }
 " + TestResources.NetFX.ValueTuple.tupleattributes_cs;
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"{123, 124}").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1491,15 +1491,15 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"System.Collections.Generic.List`1[System.Int32]").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1526,15 +1526,15 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"124").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1", 2);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1", 2);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1560,15 +1560,15 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1", 2);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1", 2);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1594,15 +1594,15 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1", 2);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1", 2);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1634,18 +1634,18 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Ref = GetReference(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             Assert.Null(model.GetDeclaredSymbol(x2Ref));
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
@@ -1672,15 +1672,15 @@ public class Cls
         y = 0;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1706,18 +1706,18 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             references: new MetadataReference[] { CSharpRef, SystemCoreRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1743,17 +1743,17 @@ public class Cls
         System.Console.WriteLine(y[0]);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1782,7 +1782,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,23): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -1819,7 +1819,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,15): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1851,7 +1851,7 @@ public class Cls
         y = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1878,15 +1878,15 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -1915,7 +1915,7 @@ public class Cls
         y = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
@@ -1967,7 +1967,7 @@ class Test : System.Attribute
     public bool p2 {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = TakeOutParam(out int x3) && x3 > 0)]
@@ -2003,32 +2003,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(17, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -2077,7 +2077,7 @@ class Test : System.Attribute
     public Test(bool p1, bool p2) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out int x3) && x3 > 0)]
@@ -2113,32 +2113,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(17, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -2189,7 +2189,7 @@ class Test : System.Attribute
     public bool p2 {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = TakeOutParam(out var x3) && x3 > 0)]
@@ -2225,32 +2225,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(17, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -2299,7 +2299,7 @@ class Test : System.Attribute
     public Test(bool p1, bool p2) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out var x3) && x3 > 0)]
@@ -2335,32 +2335,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(17, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -2388,7 +2388,7 @@ class Test : System.Attribute
     public Test(out int p) { p = 100; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (4,11): error CS1041: Identifier expected; 'out' is a keyword
                 //     [Test(out var x3)]
@@ -2470,7 +2470,7 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out int x6)").WithArguments("Test", "3").WithLocation(7, 6)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
 
             Assert.False(GetOutVarDeclarations(tree, "x3").Any());
             Assert.False(GetOutVarDeclarations(tree, "x4").Any());
@@ -2609,7 +2609,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (25,42): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         catch when (TakeOutParam(out var x4) && x4 > 0)
@@ -2637,58 +2637,58 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(110, 48)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclaration(tree, "x6");
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclaration(tree, "x6");
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclaration(tree, "x8");
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclaration(tree, "x8");
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
-            var x15Decl = GetOutVarDeclaration(tree, "x15");
-            var x15Ref = GetReferences(tree, "x15").ToArray();
+            DeclarationExpressionSyntax x15Decl = GetOutVarDeclaration(tree, "x15");
+            IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(2, x15Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x15Decl);
             VerifyNotAnOutLocal(model, x15Ref[0]);
@@ -2826,7 +2826,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (25,42): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         catch when (TakeOutParam(out int x4) && x4 > 0)
@@ -2854,58 +2854,58 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(110, 48)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclaration(tree, "x6");
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclaration(tree, "x6");
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclaration(tree, "x8");
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclaration(tree, "x8");
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
-            var x15Decl = GetOutVarDeclaration(tree, "x15");
-            var x15Ref = GetReferences(tree, "x15").ToArray();
+            DeclarationExpressionSyntax x15Decl = GetOutVarDeclaration(tree, "x15");
+            IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(2, x15Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x15Decl);
             VerifyNotAnOutLocal(model, x15Ref[0]);
@@ -2944,16 +2944,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -2990,7 +2990,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
@@ -3034,7 +3034,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3081,7 +3081,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3128,7 +3128,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3182,7 +3182,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         : this(x4 && TakeOutParam(4, out int x4))
@@ -3201,32 +3201,32 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(32, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -3284,7 +3284,7 @@ public class Y
     public Y(params object[] x) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         : base(x4 && TakeOutParam(4, out int x4))
@@ -3303,32 +3303,32 @@ public class Y
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(32, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -3365,7 +3365,7 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"False
 1
@@ -3375,11 +3375,11 @@ True
 12
 ").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -3417,7 +3417,7 @@ class C
     public C(bool b) { Console.WriteLine(b); }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"False
 1
@@ -3427,11 +3427,11 @@ True
 12
 ").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -3456,21 +3456,21 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             ArgumentListSyntax arguments = SyntaxFactory.ParseArgumentList(@"(TakeOutParam(o, out int x1) && x1 >= 5)");
-            var initializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, arguments);
+            ConstructorInitializerSyntax initializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, arguments);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             bool success = model.TryGetSpeculativeSemanticModel(GetReferences(tree, "SpeculateHere").Single().SpanStart, initializer, out model);
             Assert.True(success);
             Assert.NotNull(model);
             tree = initializer.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -3497,21 +3497,21 @@ class C
     public C(bool b) { Console.WriteLine(b); }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             ArgumentListSyntax arguments = SyntaxFactory.ParseArgumentList(@"(TakeOutParam(o, out int x1) && x1 >= 5)");
-            var initializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, arguments);
+            ConstructorInitializerSyntax initializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, arguments);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             bool success = model.TryGetSpeculativeSemanticModel(GetReferences(tree, "SpeculateHere").Single().SpanStart, initializer, out model);
             Assert.True(success);
             Assert.NotNull(model);
             tree = initializer.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -3577,7 +3577,7 @@ public class Y
     public Y(out int x, int y) { x = y; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (9,40): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         : base(TakeOutParam(3, out var x3))
@@ -3605,37 +3605,37 @@ public class Y
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x9").WithArguments("x9").WithLocation(36, 41)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl);
             VerifyNotAnOutLocal(model, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0]);
             VerifyModelForOutVar(model, x5Decl[1], x5Ref);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").Single();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax x7Ref = GetReferences(tree, "x7").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").Single();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax x8Ref = GetReferences(tree, "x8").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x8Decl, x8Ref);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").Single();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReferences(tree, "x9").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl, x9Ref);
         }
 
@@ -3768,7 +3768,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (97,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -3826,59 +3826,59 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x14").WithArguments("x14").WithLocation(112, 19)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[1]);
             VerifyNotAnOutLocal(model, x7Ref[0]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[1], x9Ref[2]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[0], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[1]);
             VerifyNotAnOutLocal(model, y10Ref[0]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -3916,18 +3916,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (18,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl);
             VerifyNotInScope(model, x1Ref);
         }
@@ -3957,10 +3957,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (DoStatementSyntax)SyntaxFactory.ParseStatement(@"
 do {} while (Dummy(TakeOutParam(true, out var x1), x1));
@@ -3971,8 +3971,8 @@ do {} while (Dummy(TakeOutParam(true, out var x1), x1));
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -4009,16 +4009,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 2
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -4055,14 +4055,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -4104,16 +4104,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -4160,7 +4160,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
@@ -4169,11 +4169,11 @@ public class X
 2
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -4216,7 +4216,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (10,29): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     bool Test4(object o) => x4 && TakeOutParam(o, out int x4);
@@ -4235,39 +4235,39 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x11").WithArguments("x11").WithLocation(22, 56)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").Single();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax x11Ref = GetReferences(tree, "x11").Single();
             VerifyModelForOutVar(model, x11Decl, x11Ref);
         }
 
@@ -4298,7 +4298,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -4330,7 +4330,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -4420,7 +4420,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
@@ -4442,54 +4442,54 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x12").WithArguments("x12").WithLocation(58, 54)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             // Data flow for the following disabled due to https://github.com/dotnet/roslyn/issues/14214
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
 
             VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarWithoutDataFlow(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyNotInScope(model, x7Ref[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyNotAnOutLocal(model, x11Ref[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x11Decl, x11Ref[1]);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
             VerifyModelForOutVarWithoutDataFlow(model, x12Decl, x12Ref[0]);
             VerifyNotAnOutLocal(model, x12Ref[1]);
 
-            var x13Decl = GetOutVarDeclarations(tree, "x13").Single();
-            var x13Ref = GetReferences(tree, "x13").Single();
+            DeclarationExpressionSyntax x13Decl = GetOutVarDeclarations(tree, "x13").Single();
+            IdentifierNameSyntax x13Ref = GetReferences(tree, "x13").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x13Decl, x13Ref);
         }
 
@@ -4524,7 +4524,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -4560,7 +4560,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -4602,7 +4602,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (10,19): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     bool Test4 => x4 && TakeOutParam(4, out int x4);
@@ -4621,39 +4621,39 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x11").WithArguments("x11").WithLocation(22, 54)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").Single();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax x11Ref = GetReferences(tree, "x11").Single();
             VerifyModelForOutVar(model, x11Decl, x11Ref);
         }
 
@@ -4687,7 +4687,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"2
 True
 1
@@ -4724,7 +4724,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"2
 True
 1
@@ -4830,7 +4830,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (14,46): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -4862,39 +4862,39 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(79, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl[2]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             for (int i = 0; i < x8Decl.Length; i++)
@@ -4903,21 +4903,21 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").Single();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReferences(tree, "x9").Single();
             VerifyModelForOutVar(model, x9Decl, x9Ref);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyModelForOutVar(model, x11Decl, x11Ref);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
             VerifyModelForOutVar(model, x12Decl, x12Ref);
         }
@@ -4960,15 +4960,15 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -5003,7 +5003,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'x1' does not exist in the current context
@@ -5011,11 +5011,11 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0]);
@@ -5047,10 +5047,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"
 Dummy(TakeOutParam(true, out var x1), x1);
@@ -5061,8 +5061,8 @@ Dummy(TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -5104,7 +5104,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     bool Test4 = x4 && TakeOutParam(4, out int x4);
@@ -5126,44 +5126,44 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x9").WithArguments("x9").WithLocation(23, 19)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReference(tree, "x8");
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax x8Ref = GetReference(tree, "x8");
             VerifyModelForOutVar(model, x8Decl);
             VerifyNotInScope(model, x8Ref);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReference(tree, "x9");
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReference(tree, "x9");
             VerifyNotInScope(model, x9Ref);
             VerifyModelForOutVar(model, x9Decl);
         }
@@ -5199,7 +5199,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     Test4 = x4 && TakeOutParam(4, out int x4) ? 1 : 0,
@@ -5229,37 +5229,37 @@ class Test
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "TakeOutParam(3, out int x3) ? x3 : 0").WithArguments("X.Test3").WithLocation(4, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
+            EqualsValueClauseSyntax node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
@@ -5323,7 +5323,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,24): error CS0133: The expression being assigned to 'X.Test3' must be constant
                 //     const bool Test3 = TakeOutParam(3, out int x3) && x3 > 0;
@@ -5356,32 +5356,32 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -5433,7 +5433,7 @@ class Y
     public Y(object y) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,43): error CS0165: Use of unassigned local variable 'x3'
                 //     bool Test3 = TakeOutParam(out int x3, x3);
@@ -5461,19 +5461,19 @@ class Y
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(27, 34)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(4, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl);
             VerifyNotInScope(model, x5Ref[0]);
@@ -5481,8 +5481,8 @@ class Y
             VerifyNotInScope(model, x5Ref[2]);
             VerifyNotInScope(model, x5Ref[3]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVar(model, x6Decl);
             VerifyNotInScope(model, x6Ref);
         }
@@ -5515,7 +5515,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -5525,14 +5525,14 @@ True");
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 45)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            EqualsValueClauseSyntax node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
@@ -5593,7 +5593,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -5626,7 +5626,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -5650,18 +5650,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,54): error CS0165: Use of unassigned local variable 'x1'
                 //     bool Test1 = a && TakeOutParam(3, out int x1) || x1 > 0;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(8, 54)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -5693,15 +5693,15 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"2
 3");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
@@ -5824,7 +5824,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -5858,59 +5858,59 @@ public unsafe class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 55)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -5974,7 +5974,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (14,59): error CS0128: A local variable named 'x1' is already defined in this scope
                 //                          Dummy(TakeOutParam(true, out var x1) && x1))
@@ -5999,30 +5999,30 @@ public unsafe class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(41, 59)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x3Decl);
             VerifyNotAnOutLocal(model, x3Ref[0]);
             VerifyNotAnOutLocal(model, x3Ref[1]);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Decl.Length);
             Assert.Equal(3, x4Ref.Length);
             VerifyModelForOutVar(model, x4Decl[0], x4Ref);
@@ -6057,7 +6057,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
@@ -6091,7 +6091,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
@@ -6239,7 +6239,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -6276,59 +6276,59 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 44)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -6477,7 +6477,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -6511,59 +6511,59 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 44)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -6712,7 +6712,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -6767,49 +6767,49 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x14").WithArguments("x14").WithLocation(128, 19)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref[0]);
             VerifyNotInScope(model, x1Ref[1]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref[0]);
             VerifyNotInScope(model, x2Ref[1]);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1]);
             VerifyNotAnOutLocal(model, x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref[0]);
             VerifyNotInScope(model, x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0]);
             VerifyNotInScope(model, x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0]);
@@ -6817,16 +6817,16 @@ public class X
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2]);
             VerifyNotInScope(model, x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref[0]);
@@ -6976,7 +6976,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -7013,59 +7013,59 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 44)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -7214,7 +7214,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -7251,59 +7251,59 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 44)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -7458,7 +7458,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,47): error CS0128: A local variable or function named 'x1' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x1) && x1)
@@ -7576,42 +7576,42 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x15").WithArguments("x15").WithLocation(133, 20)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
             VerifyNotAnOutLocal(model, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
             VerifyNotAnOutLocal(model, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").Single();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax x7Ref = GetReferences(tree, "x7").Single();
             VerifyModelForOutVarDuplicateInSameScope(model, x7Decl);
             VerifyNotAnOutLocal(model, x7Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(4, x8Decl.Length);
             Assert.Equal(4, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl[0], x8Ref[0], x8Ref[1]);
@@ -7619,16 +7619,16 @@ public class X
             VerifyModelForOutVar(model, x8Decl[2], x8Ref[2]);
             VerifyModelForOutVar(model, x8Decl[3], x8Ref[3]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(3, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[1], x9Ref[2]);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[2], x9Ref[3]);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
-            var x10Ref = GetReferences(tree, "x10").ToArray();
+            DeclarationExpressionSyntax[] x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
+            IdentifierNameSyntax[] x10Ref = GetReferences(tree, "x10").ToArray();
             Assert.Equal(3, x10Decl.Length);
             Assert.Equal(4, x10Ref.Length);
             VerifyNotInScope(model, x10Ref[0]);
@@ -7636,8 +7636,8 @@ public class X
             VerifyModelForOutVarDuplicateInSameScope(model, x10Decl[1]);
             VerifyModelForOutVar(model, x10Decl[2], x10Ref[3]);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").ToArray();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax[] x11Decl = GetOutVarDeclarations(tree, "x11").ToArray();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(3, x11Decl.Length);
             Assert.Equal(4, x11Ref.Length);
             VerifyNotInScope(model, x11Ref[0]);
@@ -7645,16 +7645,16 @@ public class X
             VerifyModelForOutVarDuplicateInSameScope(model, x11Decl[1]);
             VerifyModelForOutVar(model, x11Decl[2], x11Ref[3]);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").ToArray();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax[] x12Decl = GetOutVarDeclarations(tree, "x12").ToArray();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Decl.Length);
             Assert.Equal(4, x12Ref.Length);
             VerifyNotInScope(model, x12Ref[0]);
             VerifyModelForOutVar(model, x12Decl[0], x12Ref[1], x12Ref[2]);
             VerifyModelForOutVar(model, x12Decl[1], x12Ref[3]);
 
-            var x13Decl = GetOutVarDeclarations(tree, "x13").ToArray();
-            var x13Ref = GetReferences(tree, "x13").ToArray();
+            DeclarationExpressionSyntax[] x13Decl = GetOutVarDeclarations(tree, "x13").ToArray();
+            IdentifierNameSyntax[] x13Ref = GetReferences(tree, "x13").ToArray();
             Assert.Equal(2, x13Decl.Length);
             Assert.Equal(4, x13Ref.Length);
             VerifyNotInScope(model, x13Ref[0]);
@@ -7662,8 +7662,8 @@ public class X
             VerifyModelForOutVar(model, x13Decl[0], x13Ref[2], x13Ref[3]);
             VerifyModelForOutVarDuplicateInSameScope(model, x13Decl[1]);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
             VerifyNotInScope(model, x14Ref[0]);
@@ -7671,8 +7671,8 @@ public class X
             VerifyModelForOutVar(model, x14Decl[0], x14Ref[2], x14Ref[3]);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
-            var x15Decl = GetOutVarDeclarations(tree, "x15").Single();
-            var x15Ref = GetReferences(tree, "x15").ToArray();
+            DeclarationExpressionSyntax x15Decl = GetOutVarDeclarations(tree, "x15").Single();
+            IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(4, x15Ref.Length);
             VerifyNotInScope(model, x15Ref[0]);
             VerifyNotInScope(model, x15Ref[1]);
@@ -7715,7 +7715,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,20): error CS0841: Cannot use local variable 'x1' before it is declared
                 //              Dummy(x1),
@@ -7725,16 +7725,16 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(22, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
@@ -7775,7 +7775,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -7785,21 +7785,21 @@ public class X
 200
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetOutVarDeclarations(tree, "x0").Single();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            DeclarationExpressionSyntax x0Decl = GetOutVarDeclarations(tree, "x0").Single();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
             VerifyModelForOutVar(model, x0Decl, x0Ref);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
         }
@@ -7837,7 +7837,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -7847,21 +7847,21 @@ public class X
 200
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetOutVarDeclarations(tree, "x0").Single();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            DeclarationExpressionSyntax x0Decl = GetOutVarDeclarations(tree, "x0").Single();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
             VerifyModelForOutVar(model, x0Decl, x0Ref);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
         }
@@ -7903,7 +7903,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -7913,17 +7913,17 @@ public class X
 3 20
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            DeclarationExpressionSyntax[] x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
             VerifyModelForOutVar(model, x0Decl[0], x0Ref);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -7966,7 +7966,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -7977,17 +7977,17 @@ public class X
 3 30
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            DeclarationExpressionSyntax[] x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
             VerifyModelForOutVar(model, x0Decl[0], x0Ref);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -8031,7 +8031,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -8044,17 +8044,17 @@ public class X
 3 30
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            DeclarationExpressionSyntax[] x0Decl = GetOutVarDeclarations(tree, "x0").ToArray();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(5, x0Ref.Length);
             VerifyModelForOutVar(model, x0Decl[0], x0Ref);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -8191,7 +8191,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -8228,66 +8228,66 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x15").WithArguments("x15").WithLocation(108, 22)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
-            var x15Decl = GetOutVarDeclarations(tree, "x15").Single();
-            var x15Ref = GetReferences(tree, "x15").ToArray();
+            DeclarationExpressionSyntax x15Decl = GetOutVarDeclarations(tree, "x15").Single();
+            IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(2, x15Ref.Length);
             VerifyModelForOutVar(model, x15Decl, x15Ref[0]);
             VerifyNotAnOutLocal(model, x15Ref[1]);
@@ -8323,16 +8323,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -8463,7 +8463,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (101,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -8500,65 +8500,65 @@ public class X
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(101, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl, x3Ref[0]);
             VerifyNotAnOutLocal(model, x3Ref[1]);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(2, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
         }
 
@@ -8595,18 +8595,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (20,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl);
             VerifyNotInScope(model, x1Ref);
         }
@@ -8636,10 +8636,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (IfStatementSyntax)SyntaxFactory.ParseStatement(@"
 if (Dummy(TakeOutParam(true, out var x1), x1));
@@ -8650,8 +8650,8 @@ if (Dummy(TakeOutParam(true, out var x1), x1));
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -8699,7 +8699,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 true
@@ -8710,11 +8710,11 @@ false
 2
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -8755,16 +8755,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -8874,7 +8874,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (12,27): error CS1002: ; expected
                 //         return (o) => let x1 = o;
@@ -8944,32 +8944,32 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x12").WithArguments("x12").WithLocation(82, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(5, x7Ref.Length);
             VerifyNotInScope(model, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -8977,34 +8977,34 @@ public class X
             VerifyNotInScope(model, x7Ref[3]);
             VerifyNotInScope(model, x7Ref[4]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(2, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[0]);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
-            var x10Ref = GetReferences(tree, "x10").ToArray();
+            DeclarationExpressionSyntax[] x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
+            IdentifierNameSyntax[] x10Ref = GetReferences(tree, "x10").ToArray();
             Assert.Equal(2, x10Decl.Length);
             Assert.Equal(2, x10Ref.Length);
             VerifyModelForOutVar(model, x10Decl[0], x10Ref[0]);
             VerifyModelForOutVar(model, x10Decl[1], x10Ref[1]);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(3, x11Ref.Length);
             VerifyNotAnOutLocal(model, x11Ref[0]);
             VerifyModelForOutVar(model, x11Decl, x11Ref[1]);
             VerifyNotAnOutLocal(model, x11Ref[2]);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(3, x12Ref.Length);
             VerifyModelForOutVar(model, x12Decl, x12Ref[0]);
             VerifyNotAnOutLocal(model, x12Ref[1]);
@@ -9042,15 +9042,15 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -9104,7 +9104,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,50): error CS0128: A local variable named 'x4' is already defined in this scope
                 //         var d = Dummy(TakeOutParam(true, out var x4), x4);
@@ -9117,31 +9117,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").Single();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
@@ -9197,7 +9197,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,53): error CS0128: A local variable named 'x4' is already defined in this scope
                 //         object d = Dummy(TakeOutParam(true, out var x4), x4);
@@ -9210,31 +9210,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 50)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").Single();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
@@ -9274,7 +9274,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,51): error CS0128: A local variable named 'x1' is already defined in this scope
                 //                  Dummy(TakeOutParam(true, out var x1), x1);
@@ -9293,18 +9293,18 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 59)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyNotAnOutLocal(model, x2Ref[0]);
             VerifyNotAnOutLocal(model, x2Ref[1]);
@@ -9356,7 +9356,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,16): error CS0128: A local variable named 'x1' is already defined in this scope
                 //                x1 = Dummy(x1);
@@ -9369,28 +9369,28 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(31, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyModelForOutVar(model, x4Decl, x4Ref);
         }
@@ -9420,10 +9420,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
 var y1 = Dummy(TakeOutParam(true, out var x1), x1);
@@ -9434,8 +9434,8 @@ var y1 = Dummy(TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -9469,7 +9469,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var d =TakeOutParam(true, out var x1) && x1 != null;
@@ -9479,16 +9479,16 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref[0]);
             VerifyNotInScope(model, x1Ref[1]);
 
-            var d = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
+            VariableDeclaratorSyntax d = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
             Assert.Equal("System.Boolean d", model.GetDeclaredSymbol(d).ToTestDisplayString());
         }
 
@@ -9536,7 +9536,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -9544,11 +9544,11 @@ a
 c
 b");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -9597,15 +9597,15 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -9662,7 +9662,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,51): error CS0128: A local variable named 'x4' is already defined in this scope
@@ -9676,31 +9676,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").Single();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
@@ -9757,7 +9757,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,61): error CS0128: A local variable named 'x4' is already defined in this scope
@@ -9771,31 +9771,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").Single();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
@@ -9836,7 +9836,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,51): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -9856,18 +9856,18 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 59)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyNotAnOutLocal(model, x2Ref[0]);
             VerifyNotAnOutLocal(model, x2Ref[1]);
@@ -9920,7 +9920,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (12,67): error CS0128: A local variable named 'x1' is already defined in this scope
@@ -9937,31 +9937,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(31, 41)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
             VerifyNotAnOutLocal(model, x1Ref[2]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyModelForOutVar(model, x4Decl, x4Ref);
         }
@@ -9990,11 +9990,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"
 var (y1, dd) = (TakeOutParam(true, out var x1), x1);
@@ -10005,8 +10005,8 @@ var (y1, dd) = (TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -10041,7 +10041,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,9): error CS0103: The name 'x1' does not exist in the current context
@@ -10049,16 +10049,16 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref[0]);
             VerifyNotInScope(model, x1Ref[1]);
 
-            var d = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
+            SingleVariableDesignationSyntax d = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
             Assert.Equal("System.Boolean d", model.GetDeclaredSymbol(d).ToTestDisplayString());
         }
 
@@ -10107,7 +10107,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
@@ -10116,11 +10116,11 @@ a
 c
 b");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -10170,16 +10170,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -10234,7 +10234,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
@@ -10247,23 +10247,23 @@ b
 d
 f");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").ToArray();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax[] x3Decl = GetOutVarDeclarations(tree, "x3").ToArray();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl[0], x3Ref);
@@ -10318,7 +10318,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
@@ -10331,23 +10331,23 @@ b
 d
 f");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").ToArray();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax[] x3Decl = GetOutVarDeclarations(tree, "x3").ToArray();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl[0], x3Ref);
@@ -10475,7 +10475,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -10509,60 +10509,60 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 45)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyNotAnOutLocal(model, x4Ref[2]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -10599,18 +10599,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (17,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl);
             VerifyNotInScope(model, x1Ref);
         }
@@ -10640,10 +10640,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (LockStatementSyntax)SyntaxFactory.ParseStatement(@"
 lock (Dummy(TakeOutParam(true, out var x1), x1)) ;
@@ -10654,8 +10654,8 @@ lock (Dummy(TakeOutParam(true, out var x1), x1)) ;
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -10691,17 +10691,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"lock
 lock
 lock");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -10742,16 +10742,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -10802,7 +10802,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //     void Test3(bool p = TakeOutParam(3, out int x3) && x3 > 0)
@@ -10835,38 +10835,38 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(29, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
+            EqualsValueClauseSyntax node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
@@ -10939,7 +10939,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //     void Test3(bool p = TakeOutParam(3, out var x3) && x3 > 0)
@@ -10972,32 +10972,32 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(29, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -11038,7 +11038,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (10,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     bool Test4 {get;} = x4 && TakeOutParam(4, out int x4);
@@ -11054,32 +11054,32 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVar(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
             VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -11114,7 +11114,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -11123,8 +11123,8 @@ True");
                 //     static bool Test1 {get;} = TakeOutParam(1, out int x1) && Dummy(x1); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 52)
                 );
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            EqualsValueClauseSyntax node = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
@@ -11185,7 +11185,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -11209,18 +11209,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (8,63): error CS0165: Use of unassigned local variable 'x1'
                 //     bool Test1 { get; } = a && TakeOutParam(3, out int x1) || x1 > 0;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(8, 63)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -11252,15 +11252,15 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"2
 3");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -11407,7 +11407,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (25,26): error CS0103: The name 'z2' does not exist in the current context
                 //                          z2;
@@ -11507,161 +11507,161 @@ public class X
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(128, 23)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var y1Decl = GetOutVarDeclarations(tree, "y1").Single();
-            var y1Ref = GetReferences(tree, "y1").ToArray();
+            DeclarationExpressionSyntax y1Decl = GetOutVarDeclarations(tree, "y1").Single();
+            IdentifierNameSyntax[] y1Ref = GetReferences(tree, "y1").ToArray();
             Assert.Equal(4, y1Ref.Length);
             VerifyModelForOutVar(model, y1Decl, y1Ref);
 
-            var y2Decl = GetOutVarDeclarations(tree, "y2").Single();
-            var y2Ref = GetReferences(tree, "y2").ToArray();
+            DeclarationExpressionSyntax y2Decl = GetOutVarDeclarations(tree, "y2").Single();
+            IdentifierNameSyntax[] y2Ref = GetReferences(tree, "y2").ToArray();
             Assert.Equal(3, y2Ref.Length);
             VerifyModelForOutVar(model, y2Decl, y2Ref);
 
-            var z2Decl = GetOutVarDeclarations(tree, "z2").Single();
-            var z2Ref = GetReferences(tree, "z2").ToArray();
+            DeclarationExpressionSyntax z2Decl = GetOutVarDeclarations(tree, "z2").Single();
+            IdentifierNameSyntax[] z2Ref = GetReferences(tree, "z2").ToArray();
             Assert.Equal(4, z2Ref.Length);
             VerifyModelForOutVar(model, z2Decl, z2Ref[0], z2Ref[1]);
             VerifyNotInScope(model, z2Ref[2]);
             VerifyNotInScope(model, z2Ref[3]);
 
-            var y3Decl = GetOutVarDeclarations(tree, "y3").Single();
-            var y3Ref = GetReferences(tree, "y3").ToArray();
+            DeclarationExpressionSyntax y3Decl = GetOutVarDeclarations(tree, "y3").Single();
+            IdentifierNameSyntax[] y3Ref = GetReferences(tree, "y3").ToArray();
             Assert.Equal(3, y3Ref.Length);
             VerifyModelForOutVar(model, y3Decl, y3Ref);
 
-            var z3Decl = GetOutVarDeclarations(tree, "z3").Single();
-            var z3Ref = GetReferences(tree, "z3").ToArray();
+            DeclarationExpressionSyntax z3Decl = GetOutVarDeclarations(tree, "z3").Single();
+            IdentifierNameSyntax[] z3Ref = GetReferences(tree, "z3").ToArray();
             Assert.Equal(3, z3Ref.Length);
             VerifyModelForOutVar(model, z3Decl, z3Ref[0]);
             VerifyNotInScope(model, z3Ref[1]);
             VerifyNotInScope(model, z3Ref[2]);
 
-            var y4Decl = GetOutVarDeclarations(tree, "y4").Single();
-            var y4Ref = GetReferences(tree, "y4").ToArray();
+            DeclarationExpressionSyntax y4Decl = GetOutVarDeclarations(tree, "y4").Single();
+            IdentifierNameSyntax[] y4Ref = GetReferences(tree, "y4").ToArray();
             Assert.Equal(5, y4Ref.Length);
             VerifyModelForOutVar(model, y4Decl, y4Ref);
 
-            var z4Decl = GetOutVarDeclarations(tree, "z4").Single();
-            var z4Ref = GetReferences(tree, "z4").ToArray();
+            DeclarationExpressionSyntax z4Decl = GetOutVarDeclarations(tree, "z4").Single();
+            IdentifierNameSyntax[] z4Ref = GetReferences(tree, "z4").ToArray();
             Assert.Equal(6, z4Ref.Length);
             VerifyModelForOutVar(model, z4Decl, z4Ref);
 
-            var u4Decl = GetOutVarDeclarations(tree, "u4").Single();
-            var u4Ref = GetReferences(tree, "u4").ToArray();
+            DeclarationExpressionSyntax u4Decl = GetOutVarDeclarations(tree, "u4").Single();
+            IdentifierNameSyntax[] u4Ref = GetReferences(tree, "u4").ToArray();
             Assert.Equal(4, u4Ref.Length);
             VerifyModelForOutVar(model, u4Decl, u4Ref[0]);
             VerifyNotInScope(model, u4Ref[1]);
             VerifyNotInScope(model, u4Ref[2]);
             VerifyNotInScope(model, u4Ref[3]);
 
-            var v4Decl = GetOutVarDeclarations(tree, "v4").Single();
-            var v4Ref = GetReferences(tree, "v4").ToArray();
+            DeclarationExpressionSyntax v4Decl = GetOutVarDeclarations(tree, "v4").Single();
+            IdentifierNameSyntax[] v4Ref = GetReferences(tree, "v4").ToArray();
             Assert.Equal(4, v4Ref.Length);
             VerifyNotInScope(model, v4Ref[0]);
             VerifyModelForOutVar(model, v4Decl, v4Ref[1]);
             VerifyNotInScope(model, v4Ref[2]);
             VerifyNotInScope(model, v4Ref[3]);
 
-            var y5Decl = GetOutVarDeclarations(tree, "y5").Single();
-            var y5Ref = GetReferences(tree, "y5").ToArray();
+            DeclarationExpressionSyntax y5Decl = GetOutVarDeclarations(tree, "y5").Single();
+            IdentifierNameSyntax[] y5Ref = GetReferences(tree, "y5").ToArray();
             Assert.Equal(5, y5Ref.Length);
             VerifyModelForOutVar(model, y5Decl, y5Ref);
 
-            var z5Decl = GetOutVarDeclarations(tree, "z5").Single();
-            var z5Ref = GetReferences(tree, "z5").ToArray();
+            DeclarationExpressionSyntax z5Decl = GetOutVarDeclarations(tree, "z5").Single();
+            IdentifierNameSyntax[] z5Ref = GetReferences(tree, "z5").ToArray();
             Assert.Equal(6, z5Ref.Length);
             VerifyModelForOutVar(model, z5Decl, z5Ref);
 
-            var u5Decl = GetOutVarDeclarations(tree, "u5").Single();
-            var u5Ref = GetReferences(tree, "u5").ToArray();
+            DeclarationExpressionSyntax u5Decl = GetOutVarDeclarations(tree, "u5").Single();
+            IdentifierNameSyntax[] u5Ref = GetReferences(tree, "u5").ToArray();
             Assert.Equal(4, u5Ref.Length);
             VerifyModelForOutVar(model, u5Decl, u5Ref[0]);
             VerifyNotInScope(model, u5Ref[1]);
             VerifyNotInScope(model, u5Ref[2]);
             VerifyNotInScope(model, u5Ref[3]);
 
-            var v5Decl = GetOutVarDeclarations(tree, "v5").Single();
-            var v5Ref = GetReferences(tree, "v5").ToArray();
+            DeclarationExpressionSyntax v5Decl = GetOutVarDeclarations(tree, "v5").Single();
+            IdentifierNameSyntax[] v5Ref = GetReferences(tree, "v5").ToArray();
             Assert.Equal(4, v5Ref.Length);
             VerifyNotInScope(model, v5Ref[0]);
             VerifyModelForOutVar(model, v5Decl, v5Ref[1]);
             VerifyNotInScope(model, v5Ref[2]);
             VerifyNotInScope(model, v5Ref[3]);
 
-            var y6Decl = GetOutVarDeclarations(tree, "y6").Single();
-            var y6Ref = GetReferences(tree, "y6").ToArray();
+            DeclarationExpressionSyntax y6Decl = GetOutVarDeclarations(tree, "y6").Single();
+            IdentifierNameSyntax[] y6Ref = GetReferences(tree, "y6").ToArray();
             Assert.Equal(3, y6Ref.Length);
             VerifyModelForOutVar(model, y6Decl, y6Ref);
 
-            var z6Decl = GetOutVarDeclarations(tree, "z6").Single();
-            var z6Ref = GetReferences(tree, "z6").ToArray();
+            DeclarationExpressionSyntax z6Decl = GetOutVarDeclarations(tree, "z6").Single();
+            IdentifierNameSyntax[] z6Ref = GetReferences(tree, "z6").ToArray();
             Assert.Equal(3, z6Ref.Length);
             VerifyModelForOutVar(model, z6Decl, z6Ref[0]);
             VerifyNotInScope(model, z6Ref[1]);
             VerifyNotInScope(model, z6Ref[2]);
 
-            var y7Decl = GetOutVarDeclarations(tree, "y7").Single();
-            var y7Ref = GetReferences(tree, "y7").ToArray();
+            DeclarationExpressionSyntax y7Decl = GetOutVarDeclarations(tree, "y7").Single();
+            IdentifierNameSyntax[] y7Ref = GetReferences(tree, "y7").ToArray();
             Assert.Equal(4, y7Ref.Length);
             VerifyModelForOutVar(model, y7Decl, y7Ref);
 
-            var z7Decl = GetOutVarDeclarations(tree, "z7").Single();
-            var z7Ref = GetReferences(tree, "z7").ToArray();
+            DeclarationExpressionSyntax z7Decl = GetOutVarDeclarations(tree, "z7").Single();
+            IdentifierNameSyntax[] z7Ref = GetReferences(tree, "z7").ToArray();
             Assert.Equal(4, z7Ref.Length);
             VerifyModelForOutVar(model, z7Decl, z7Ref[0]);
             VerifyNotInScope(model, z7Ref[1]);
             VerifyNotInScope(model, z7Ref[2]);
             VerifyNotInScope(model, z7Ref[3]);
 
-            var u7Decl = GetOutVarDeclarations(tree, "u7").Single();
-            var u7Ref = GetReferences(tree, "u7").ToArray();
+            DeclarationExpressionSyntax u7Decl = GetOutVarDeclarations(tree, "u7").Single();
+            IdentifierNameSyntax[] u7Ref = GetReferences(tree, "u7").ToArray();
             Assert.Equal(4, u7Ref.Length);
             VerifyNotInScope(model, u7Ref[0]);
             VerifyModelForOutVar(model, u7Decl, u7Ref[1]);
             VerifyNotInScope(model, u7Ref[2]);
             VerifyNotInScope(model, u7Ref[3]);
 
-            var y8Decl = GetOutVarDeclarations(tree, "y8").Single();
-            var y8Ref = GetReferences(tree, "y8").ToArray();
+            DeclarationExpressionSyntax y8Decl = GetOutVarDeclarations(tree, "y8").Single();
+            IdentifierNameSyntax[] y8Ref = GetReferences(tree, "y8").ToArray();
             Assert.Equal(2, y8Ref.Length);
             VerifyModelForOutVar(model, y8Decl, y8Ref);
 
-            var z8Decl = GetOutVarDeclarations(tree, "z8").Single();
-            var z8Ref = GetReferences(tree, "z8").ToArray();
+            DeclarationExpressionSyntax z8Decl = GetOutVarDeclarations(tree, "z8").Single();
+            IdentifierNameSyntax[] z8Ref = GetReferences(tree, "z8").ToArray();
             Assert.Equal(2, z8Ref.Length);
             VerifyModelForOutVar(model, z8Decl, z8Ref[0]);
             VerifyNotInScope(model, z8Ref[1]);
 
-            var y9Decl = GetOutVarDeclarations(tree, "y9").Single();
-            var y9Ref = GetReferences(tree, "y9").ToArray();
+            DeclarationExpressionSyntax y9Decl = GetOutVarDeclarations(tree, "y9").Single();
+            IdentifierNameSyntax[] y9Ref = GetReferences(tree, "y9").ToArray();
             Assert.Equal(3, y9Ref.Length);
             VerifyModelForOutVar(model, y9Decl, y9Ref);
 
-            var z9Decl = GetOutVarDeclarations(tree, "z9").Single();
-            var z9Ref = GetReferences(tree, "z9").ToArray();
+            DeclarationExpressionSyntax z9Decl = GetOutVarDeclarations(tree, "z9").Single();
+            IdentifierNameSyntax[] z9Ref = GetReferences(tree, "z9").ToArray();
             Assert.Equal(3, z9Ref.Length);
             VerifyModelForOutVar(model, z9Decl, z9Ref[0]);
             VerifyNotInScope(model, z9Ref[1]);
             VerifyNotInScope(model, z9Ref[2]);
 
-            var u9Decl = GetOutVarDeclarations(tree, "u9").Single();
-            var u9Ref = GetReferences(tree, "u9").ToArray();
+            DeclarationExpressionSyntax u9Decl = GetOutVarDeclarations(tree, "u9").Single();
+            IdentifierNameSyntax[] u9Ref = GetReferences(tree, "u9").ToArray();
             Assert.Equal(3, u9Ref.Length);
             VerifyNotInScope(model, u9Ref[0]);
             VerifyModelForOutVar(model, u9Decl, u9Ref[1]);
             VerifyNotInScope(model, u9Ref[2]);
 
-            var y10Decl = GetOutVarDeclarations(tree, "y10").Single();
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            DeclarationExpressionSyntax y10Decl = GetOutVarDeclarations(tree, "y10").Single();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyModelForOutVar(model, y10Decl, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y11Decl = GetOutVarDeclarations(tree, "y11").Single();
-            var y11Ref = GetReferences(tree, "y11").ToArray();
+            DeclarationExpressionSyntax y11Decl = GetOutVarDeclarations(tree, "y11").Single();
+            IdentifierNameSyntax[] y11Ref = GetReferences(tree, "y11").ToArray();
             Assert.Equal(2, y11Ref.Length);
             VerifyModelForOutVar(model, y11Decl, y11Ref[0]);
             VerifyNotAnOutLocal(model, y11Ref[1]);
@@ -11724,7 +11724,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (18,35): error CS0103: The name 'v4' does not exist in the current context
                 //                                   v4 
@@ -11764,55 +11764,55 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(44, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var y4Decl = GetOutVarDeclarations(tree, "y4").Single();
-            var y4Ref = GetReferences(tree, "y4").ToArray();
+            DeclarationExpressionSyntax y4Decl = GetOutVarDeclarations(tree, "y4").Single();
+            IdentifierNameSyntax[] y4Ref = GetReferences(tree, "y4").ToArray();
             Assert.Equal(5, y4Ref.Length);
             VerifyModelForOutVar(model, y4Decl, y4Ref);
 
-            var z4Decl = GetOutVarDeclarations(tree, "z4").Single();
-            var z4Ref = GetReferences(tree, "z4").ToArray();
+            DeclarationExpressionSyntax z4Decl = GetOutVarDeclarations(tree, "z4").Single();
+            IdentifierNameSyntax[] z4Ref = GetReferences(tree, "z4").ToArray();
             Assert.Equal(6, z4Ref.Length);
             VerifyModelForOutVar(model, z4Decl, z4Ref);
 
-            var u4Decl = GetOutVarDeclarations(tree, "u4").Single();
-            var u4Ref = GetReferences(tree, "u4").ToArray();
+            DeclarationExpressionSyntax u4Decl = GetOutVarDeclarations(tree, "u4").Single();
+            IdentifierNameSyntax[] u4Ref = GetReferences(tree, "u4").ToArray();
             Assert.Equal(4, u4Ref.Length);
             VerifyModelForOutVar(model, u4Decl, u4Ref[0]);
             VerifyNotInScope(model, u4Ref[1]);
             VerifyNotInScope(model, u4Ref[2]);
             VerifyNotInScope(model, u4Ref[3]);
 
-            var v4Decl = GetOutVarDeclarations(tree, "v4").Single();
-            var v4Ref = GetReferences(tree, "v4").ToArray();
+            DeclarationExpressionSyntax v4Decl = GetOutVarDeclarations(tree, "v4").Single();
+            IdentifierNameSyntax[] v4Ref = GetReferences(tree, "v4").ToArray();
             Assert.Equal(4, v4Ref.Length);
             VerifyNotInScope(model, v4Ref[0]);
             VerifyModelForOutVar(model, v4Decl, v4Ref[1]);
             VerifyNotInScope(model, v4Ref[2]);
             VerifyNotInScope(model, v4Ref[3]);
 
-            var y5Decl = GetOutVarDeclarations(tree, "y5").Single();
-            var y5Ref = GetReferences(tree, "y5").ToArray();
+            DeclarationExpressionSyntax y5Decl = GetOutVarDeclarations(tree, "y5").Single();
+            IdentifierNameSyntax[] y5Ref = GetReferences(tree, "y5").ToArray();
             Assert.Equal(5, y5Ref.Length);
             VerifyModelForOutVar(model, y5Decl, y5Ref);
 
-            var z5Decl = GetOutVarDeclarations(tree, "z5").Single();
-            var z5Ref = GetReferences(tree, "z5").ToArray();
+            DeclarationExpressionSyntax z5Decl = GetOutVarDeclarations(tree, "z5").Single();
+            IdentifierNameSyntax[] z5Ref = GetReferences(tree, "z5").ToArray();
             Assert.Equal(6, z5Ref.Length);
             VerifyModelForOutVar(model, z5Decl, z5Ref);
 
-            var u5Decl = GetOutVarDeclarations(tree, "u5").Single();
-            var u5Ref = GetReferences(tree, "u5").ToArray();
+            DeclarationExpressionSyntax u5Decl = GetOutVarDeclarations(tree, "u5").Single();
+            IdentifierNameSyntax[] u5Ref = GetReferences(tree, "u5").ToArray();
             Assert.Equal(4, u5Ref.Length);
             VerifyModelForOutVar(model, u5Decl, u5Ref[0]);
             VerifyNotInScope(model, u5Ref[1]);
             VerifyNotInScope(model, u5Ref[2]);
             VerifyNotInScope(model, u5Ref[3]);
 
-            var v5Decl = GetOutVarDeclarations(tree, "v5").Single();
-            var v5Ref = GetReferences(tree, "v5").ToArray();
+            DeclarationExpressionSyntax v5Decl = GetOutVarDeclarations(tree, "v5").Single();
+            IdentifierNameSyntax[] v5Ref = GetReferences(tree, "v5").ToArray();
             Assert.Equal(4, v5Ref.Length);
             VerifyNotInScope(model, v5Ref[0]);
             VerifyModelForOutVar(model, v5Decl, v5Ref[1]);
@@ -11866,7 +11866,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (16,62): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { TakeOutParam(1, out var y1) ? y1 : 0}
@@ -11906,14 +11906,14 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 51)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 13; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetOutVarDeclarations(tree, id).Single();
-                var yRef = GetReferences(tree, id).ToArray();
+                DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, id).Single();
+                IdentifierNameSyntax[] yRef = GetReferences(tree, id).ToArray();
                 Assert.Equal(3, yRef.Length);
 
                 switch (i)
@@ -11941,8 +11941,8 @@ public class X
                 }
             }
 
-            var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
-            var y13Ref = GetReference(tree, "y13");
+            DeclarationExpressionSyntax y13Decl = GetOutVarDeclarations(tree, "y13").Single();
+            IdentifierNameSyntax y13Ref = GetReference(tree, "y13");
             VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
@@ -12006,7 +12006,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (26,62): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //                   from x1 in new[] { TakeOutParam(1, out var y1) ? y1 : 0}
@@ -12046,14 +12046,14 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 51)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 13; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetOutVarDeclarations(tree, id).ToArray();
-                var yRef = GetReferences(tree, id).ToArray();
+                DeclarationExpressionSyntax[] yDecl = GetOutVarDeclarations(tree, id).ToArray();
+                IdentifierNameSyntax[] yRef = GetReferences(tree, id).ToArray();
                 Assert.Equal(2, yDecl.Length);
                 Assert.Equal(2, yRef.Length);
 
@@ -12116,19 +12116,19 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (18,62): error CS0128: A local variable named 'y3' is already defined in this scope
                 //                   join x3 in new[] { TakeOutParam(3, out var y3) ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 62)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             const string id = "y3";
-            var yDecl = GetOutVarDeclarations(tree, id).ToArray();
-            var yRef = GetReferences(tree, id).ToArray();
+            DeclarationExpressionSyntax[] yDecl = GetOutVarDeclarations(tree, id).ToArray();
+            IdentifierNameSyntax[] yRef = GetReferences(tree, id).ToArray();
             Assert.Equal(2, yDecl.Length);
             Assert.Equal(2, yRef.Length);
             // Since the name is declared twice in the same scope,
@@ -12176,7 +12176,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,24): error CS1931: The range variable 'y1' conflicts with a previous declaration of 'y1'
                 //                   from y1 in new[] { 1 }
@@ -12192,14 +12192,14 @@ public class X
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y4").WithArguments("y4").WithLocation(25, 24)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 5; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetOutVarDeclarations(tree, id).Single();
-                var yRef = GetReferences(tree, id).Single();
+                DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, id).Single();
+                IdentifierNameSyntax yRef = GetReferences(tree, id).Single();
                 VerifyModelForOutVar(model, yDecl);
                 VerifyNotAnOutLocal(model, yRef);
             }
@@ -12249,7 +12249,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (14,24): error CS1931: The range variable 'y1' conflicts with a previous declaration of 'y1'
                 //         var res = from y1 in new[] { 0 }
@@ -12268,14 +12268,14 @@ public class X
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y5").WithArguments("y5").WithLocation(23, 24)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 6; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetOutVarDeclarations(tree, id).Single();
-                var yRef = GetReferences(tree, id).Single();
+                DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, id).Single();
+                IdentifierNameSyntax yRef = GetReferences(tree, id).Single();
 
                 switch (i)
                 {
@@ -12394,7 +12394,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
             compilation.VerifyDiagnostics(
@@ -12430,14 +12430,14 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(84, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 11; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetOutVarDeclarations(tree, id).Single();
-                var yRef = GetReferences(tree, id).ToArray();
+                DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, id).Single();
+                IdentifierNameSyntax[] yRef = GetReferences(tree, id).ToArray();
                 Assert.Equal(i == 10 ? 1 : 2, yRef.Length);
 
                 switch (i)
@@ -12521,7 +12521,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (17,62): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                               where TakeOutParam(x1, out var y1)
@@ -12540,26 +12540,26 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var y1Decl = GetOutVarDeclarations(tree, "y1").ToArray();
-            var y1Ref = GetReferences(tree, "y1").Single();
+            DeclarationExpressionSyntax[] y1Decl = GetOutVarDeclarations(tree, "y1").ToArray();
+            IdentifierNameSyntax y1Ref = GetReferences(tree, "y1").Single();
             Assert.Equal(2, y1Decl.Length);
             VerifyModelForOutVar(model, y1Decl[0], y1Ref);
             VerifyModelForOutVar(model, y1Decl[1]);
 
-            var y2Decl = GetOutVarDeclarations(tree, "y2").ToArray();
+            DeclarationExpressionSyntax[] y2Decl = GetOutVarDeclarations(tree, "y2").ToArray();
             Assert.Equal(2, y2Decl.Length);
             VerifyModelForOutVar(model, y2Decl[0]);
             VerifyModelForOutVarDuplicateInSameScope(model, y2Decl[1]);
 
-            var y3Decl = GetOutVarDeclarations(tree, "y3").Single();
-            var y3Ref = GetReferences(tree, "y3").Single();
+            DeclarationExpressionSyntax y3Decl = GetOutVarDeclarations(tree, "y3").Single();
+            IdentifierNameSyntax y3Ref = GetReferences(tree, "y3").Single();
             VerifyModelForOutVarWithoutDataFlow(model, y3Decl, y3Ref);
 
-            var y4Decl = GetOutVarDeclarations(tree, "y4").Single();
-            var y4Ref = GetReferences(tree, "y4").Single();
+            DeclarationExpressionSyntax y4Decl = GetOutVarDeclarations(tree, "y4").Single();
+            IdentifierNameSyntax y4Ref = GetReferences(tree, "y4").Single();
             VerifyModelForOutVarWithoutDataFlow(model, y4Decl, y4Ref);
         }
 
@@ -12609,7 +12609,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput:
@@ -12627,14 +12627,14 @@ public class X
 12
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 13; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetOutVarDeclarations(tree, id).Single();
-                var yRef = GetReferences(tree, id).Single();
+                DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, id).Single();
+                IdentifierNameSyntax yRef = GetReferences(tree, id).Single();
                 VerifyModelForOutVar(model, yDecl, yRef);
 
                 Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(yDecl))).Type.ToTestDisplayString());
@@ -12676,17 +12676,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yDecl = GetOutVarDeclarations(tree, "y1").Single();
-            var yRef = GetReferences(tree, "y1").Single();
+            DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, "y1").Single();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y1").Single();
             VerifyModelForOutVar(model, yDecl, yRef);
         }
 
@@ -12716,7 +12716,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (13,62): error CS0165: Use of unassigned local variable 'x1'
@@ -12724,11 +12724,11 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 62)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             compilation.VerifyOperationTree(x1Decl, expectedOperationTree:
@@ -12774,16 +12774,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"2
 3");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -12814,7 +12814,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (13,46): error CS8198: An expression tree may not contain an out argument variable declaration.
@@ -12922,7 +12922,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (14,53): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -12963,59 +12963,59 @@ public class X
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(86, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl[2]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl[0], x8Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").Single();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReferences(tree, "x9").Single();
             VerifyModelForOutVar(model, x9Decl, x9Ref);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyModelForOutVar(model, x11Decl, x11Ref);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
             VerifyModelForOutVar(model, x12Decl, x12Ref);
         }
@@ -13049,7 +13049,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'x1' does not exist in the current context
@@ -13057,11 +13057,11 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0]);
@@ -13093,10 +13093,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (ReturnStatementSyntax)SyntaxFactory.ParseStatement(@"
 return Dummy(TakeOutParam(true, out var x1), x1);
@@ -13107,8 +13107,8 @@ return Dummy(TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -13144,14 +13144,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"return");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -13196,16 +13196,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"return 1
 return 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[0]);
@@ -13339,7 +13339,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (27,41): error CS0128: A local variable named 'x4' is already defined in this scope
                 //         switch (TakeOutParam(4, out var x4) ? x4 : 0)
@@ -13367,52 +13367,52 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(108, 43)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyNotAnOutLocal(model, x4Ref[2]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(3, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -13451,18 +13451,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,15): error CS0103: The name 'x1' does not exist in the current context
                 //         Dummy(x1, 1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl);
             VerifyNotInScope(model, x1Ref);
         }
@@ -13492,10 +13492,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (SwitchStatementSyntax)SyntaxFactory.ParseStatement(@"
 switch (Dummy(TakeOutParam(true, out var x1), x1)) {}
@@ -13506,8 +13506,8 @@ switch (Dummy(TakeOutParam(true, out var x1), x1)) {}
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -13551,18 +13551,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1 case 0
 Test1 {0}
 Test1 1
 Test1 {0}");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -13603,16 +13603,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -13833,7 +13833,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (30,31): error CS0841: Cannot use local variable 'x2' before it is declared
@@ -13889,11 +13889,11 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x15").WithArguments("x15").WithLocation(198, 64)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(6, x1Ref.Length);
             for (int i = 0; i < x1Decl.Length; i++)
@@ -13901,31 +13901,31 @@ public class X
                 VerifyModelForOutVar(model, x1Decl[i], x1Ref[i * 2], x1Ref[i * 2 + 1]);
             }
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(4, x4Ref.Length);
             VerifyModelForOutVar(model, x4Decl, x4Ref[0], x4Ref[1]);
             VerifyNotAnOutLocal(model, x4Ref[2]);
             VerifyNotAnOutLocal(model, x4Ref[3]);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(3, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref[0], x5Ref[1]);
             VerifyNotAnOutLocal(model, x5Ref[2]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(3, x8Ref.Length);
             for (int i = 0; i < x8Ref.Length; i++)
@@ -13934,8 +13934,8 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(6, x9Ref.Length);
             VerifyNotAnOutLocal(model, x9Ref[0]);
             VerifyNotAnOutLocal(model, x9Ref[1]);
@@ -13943,38 +13943,38 @@ public class X
             VerifyNotAnOutLocal(model, x9Ref[3]);
             VerifyModelForOutVar(model, x9Decl, x9Ref[4], x9Ref[5]);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(5, x11Ref.Length);
             VerifyNotInScope(model, x11Ref[0]);
             VerifyNotInScope(model, x11Ref[1]);
             VerifyNotInScope(model, x11Ref[2]);
             VerifyModelForOutVar(model, x11Decl, x11Ref[3], x11Ref[4]);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(5, x12Ref.Length);
             VerifyNotInScope(model, x12Ref[0]);
             VerifyModelForOutVar(model, x12Decl, x12Ref[1], x12Ref[2]);
             VerifyNotInScope(model, x12Ref[3]);
             VerifyNotInScope(model, x12Ref[4]);
 
-            var x13Decl = GetOutVarDeclarations(tree, "x13").ToArray();
-            var x13Ref = GetReferences(tree, "x13").ToArray();
+            DeclarationExpressionSyntax[] x13Decl = GetOutVarDeclarations(tree, "x13").ToArray();
+            IdentifierNameSyntax[] x13Ref = GetReferences(tree, "x13").ToArray();
             Assert.Equal(2, x13Decl.Length);
             Assert.Equal(5, x13Ref.Length);
             VerifyModelForOutVar(model, x13Decl[0], x13Ref[0], x13Ref[1], x13Ref[2]);
             VerifyModelForOutVar(model, x13Decl[1], x13Ref[3], x13Ref[4]);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
             VerifyModelForOutVar(model, x14Decl[1], isDelegateCreation: false, isExecutableCode: true, isShadowed: true);
 
-            var x15Decl = GetOutVarDeclarations(tree, "x15").ToArray();
-            var x15Ref = GetReferences(tree, "x15").ToArray();
+            DeclarationExpressionSyntax[] x15Decl = GetOutVarDeclarations(tree, "x15").ToArray();
+            IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(2, x15Decl.Length);
             Assert.Equal(3, x15Ref.Length);
             for (int i = 0; i < x15Ref.Length; i++)
@@ -14014,14 +14014,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14061,14 +14061,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14110,14 +14110,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14152,14 +14152,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14194,14 +14194,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14239,14 +14239,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14281,14 +14281,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14324,20 +14324,20 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"123
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
 
             model = compilation.GetSemanticModel(tree);
-            var zRef = GetReference(tree, "z1");
+            IdentifierNameSyntax zRef = GetReference(tree, "z1");
             Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
@@ -14371,7 +14371,7 @@ a:              TakeOutParam(x1, out var y1);
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics(
                 // (14,1): warning CS0164: This label has not been referenced
@@ -14379,10 +14379,10 @@ a:              TakeOutParam(x1, out var y1);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(14, 1)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14425,7 +14425,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics(
                 // (15,17): warning CS0162: Unreachable code detected
@@ -14433,10 +14433,10 @@ public class X
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(15, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReferences(tree, "y1").Last();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y1").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14484,7 +14484,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics(
                 // (17,21): warning CS0162: Unreachable code detected
@@ -14492,10 +14492,10 @@ public class X
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 21)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReferences(tree, "y1").Last();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y1").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -14532,21 +14532,21 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"123
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
 
             model = compilation.GetSemanticModel(tree);
-            var zRef = GetReference(tree, "z1");
+            IdentifierNameSyntax zRef = GetReference(tree, "z1");
             Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
@@ -14582,21 +14582,21 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"123
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
 
             model = compilation.GetSemanticModel(tree);
-            var zRef = GetReference(tree, "z1");
+            IdentifierNameSyntax zRef = GetReference(tree, "z1");
             Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
@@ -14678,7 +14678,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (15,64): error CS0128: A local variable named 'x8' is already defined in this scope
@@ -14704,11 +14704,11 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x17").WithArguments("x17").WithLocation(62, 37)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             for (int i = 0; i < x8Ref.Length; i++)
             {
@@ -14716,15 +14716,15 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl);
 
-            var x13Decl = GetOutVarDeclarations(tree, "x13").Single();
-            var x13Ref = GetReferences(tree, "x13").ToArray();
+            DeclarationExpressionSyntax x13Decl = GetOutVarDeclarations(tree, "x13").Single();
+            IdentifierNameSyntax[] x13Ref = GetReferences(tree, "x13").ToArray();
             Assert.Equal(5, x13Ref.Length);
             VerifyModelForOutVar(model, x13Decl, x13Ref[0], x13Ref[1], x13Ref[2]);
             VerifyNotAnOutLocal(model, x13Ref[3]);
             VerifyNotAnOutLocal(model, x13Ref[4]);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").Single();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax x14Decl = GetOutVarDeclarations(tree, "x14").Single();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(4, x14Ref.Length);
             VerifyNotAnOutLocal(model, x14Ref[0]);
             VerifyNotAnOutLocal(model, x14Ref[1]);
@@ -14732,8 +14732,8 @@ public class X
             VerifyNotAnOutLocal(model, x14Ref[3]);
             VerifyModelForOutVar(model, x14Decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: true);
 
-            var x16Decl = GetOutVarDeclarations(tree, "x16").Single();
-            var x16Ref = GetReferences(tree, "x16").ToArray();
+            DeclarationExpressionSyntax x16Decl = GetOutVarDeclarations(tree, "x16").Single();
+            IdentifierNameSyntax[] x16Ref = GetReferences(tree, "x16").ToArray();
             Assert.Equal(3, x16Ref.Length);
             for (int i = 0; i < x16Ref.Length; i++)
             {
@@ -14741,8 +14741,8 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x16Decl);
 
-            var x17Decl = GetOutVarDeclarations(tree, "x17").Single();
-            var x17Ref = GetReferences(tree, "x17").ToArray();
+            DeclarationExpressionSyntax x17Decl = GetOutVarDeclarations(tree, "x17").Single();
+            IdentifierNameSyntax[] x17Ref = GetReferences(tree, "x17").ToArray();
             Assert.Equal(3, x17Ref.Length);
             VerifyModelForOutVar(model, x17Decl, x17Ref);
         }
@@ -14846,7 +14846,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (14,52): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -14884,59 +14884,59 @@ public class X
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(86, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl[2]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl[0], x8Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").Single();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReferences(tree, "x9").Single();
             VerifyModelForOutVar(model, x9Decl, x9Ref);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyModelForOutVar(model, x11Decl, x11Ref);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
             VerifyModelForOutVar(model, x12Decl, x12Ref);
         }
@@ -14969,7 +14969,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'x1' does not exist in the current context
@@ -14978,11 +14978,11 @@ public class X
                 );
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0]);
@@ -15014,10 +15014,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (ThrowStatementSyntax)SyntaxFactory.ParseStatement(@"
 throw Dummy(TakeOutParam(true, out var x1), x1);
@@ -15028,8 +15028,8 @@ throw Dummy(TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -15071,14 +15071,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"throw");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(1, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
@@ -15127,16 +15127,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"throw 1
 throw 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[0]);
@@ -15259,7 +15259,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -15293,63 +15293,63 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 46)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -15472,7 +15472,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -15506,63 +15506,63 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 54)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -15685,7 +15685,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -15719,63 +15719,63 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 69)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -15818,7 +15818,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (12,58): error CS0128: A local variable named 'x1' is already defined in this scope
                 //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
@@ -15837,18 +15837,18 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 78)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl);
             VerifyNotAnOutLocal(model, x2Ref[0]);
@@ -15911,7 +15911,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (13,35): error CS0128: A local variable named 'x1' is already defined in this scope
                 //                                   x1 = Dummy(x1))
@@ -15924,28 +15924,28 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(39, 46)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(3, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(3, x3Ref.Length);
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyModelForOutVar(model, x4Decl, x4Ref);
         }
@@ -16003,7 +16003,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b
@@ -16131,7 +16131,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
@@ -16165,59 +16165,59 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 46)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -16254,18 +16254,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (18,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl);
             VerifyNotInScope(model, x1Ref);
         }
@@ -16295,10 +16295,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (WhileStatementSyntax)SyntaxFactory.ParseStatement(@"
 while (Dummy(TakeOutParam(true, out var x1), x1));
@@ -16309,8 +16309,8 @@ while (Dummy(TakeOutParam(true, out var x1), x1));
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -16347,18 +16347,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
 2
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -16401,18 +16401,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 3
 4");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -16458,7 +16458,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -16468,11 +16468,11 @@ public class X
 2
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -16517,7 +16517,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -16528,11 +16528,11 @@ public class X
 3
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -16578,7 +16578,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -16591,11 +16591,11 @@ public class X
 3
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -16693,7 +16693,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (16,59): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -16725,39 +16725,39 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(72, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl[2]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             for (int i = 0; i < x8Decl.Length; i++)
@@ -16766,17 +16766,17 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").Single();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReferences(tree, "x9").Single();
             VerifyModelForOutVar(model, x9Decl, x9Ref);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyModelForOutVar(model, x11Decl, x11Ref);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
             VerifyModelForOutVar(model, x12Decl, x12Ref);
         }
@@ -16809,7 +16809,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'x1' does not exist in the current context
@@ -16818,11 +16818,11 @@ public class X
                 );
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl);
             VerifyNotInScope(model, x1Ref);
         }
@@ -16855,10 +16855,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (YieldStatementSyntax)SyntaxFactory.ParseStatement(@"
 yield return Dummy(TakeOutParam(true, out var x1), x1);
@@ -16869,8 +16869,8 @@ yield return Dummy(TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -16909,17 +16909,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2
 yield1");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -16964,16 +16964,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
@@ -17079,7 +17079,7 @@ a:      Dummy(TakeOutParam(true, out var x12), x12);
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (65,1): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -17153,39 +17153,39 @@ a:      Dummy(TakeOutParam(true, out var x12), x12);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(85, 1)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0], x1Ref[2]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl[2]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-            var x5Ref = GetReferences(tree, "x5").ToArray();
+            DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+            IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
             VerifyModelForOutVar(model, x5Decl, x5Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Decl.Length);
             Assert.Equal(2, x8Ref.Length);
             for (int i = 0; i < x8Decl.Length; i++)
@@ -17194,21 +17194,21 @@ a:      Dummy(TakeOutParam(true, out var x12), x12);
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x8Decl[1]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").Single();
-            var x9Ref = GetReferences(tree, "x9").Single();
+            DeclarationExpressionSyntax x9Decl = GetOutVarDeclarations(tree, "x9").Single();
+            IdentifierNameSyntax x9Ref = GetReferences(tree, "x9").Single();
             VerifyModelForOutVar(model, x9Decl, x9Ref);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-            var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-            var x11Ref = GetReferences(tree, "x11").ToArray();
+            DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+            IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyModelForOutVar(model, x11Decl, x11Ref);
 
-            var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-            var x12Ref = GetReferences(tree, "x12").ToArray();
+            DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+            IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
             VerifyModelForOutVar(model, x12Decl, x12Ref);
         }
@@ -17241,7 +17241,7 @@ a:          Dummy(TakeOutParam(true, out var x1));
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (13,1): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -17255,11 +17255,11 @@ a:          Dummy(TakeOutParam(true, out var x1));
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(13, 1)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0]);
@@ -17291,10 +17291,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (LabeledStatementSyntax)SyntaxFactory.ParseStatement(@"
 a: b: Dummy(TakeOutParam(true, out var x1), x1);
@@ -17305,8 +17305,8 @@ a: b: Dummy(TakeOutParam(true, out var x1), x1);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
@@ -17342,7 +17342,7 @@ a: b: c:Test2(Test1(out int x1), x1);
         return x;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics(
                 // (11,1): warning CS0164: This label has not been referenced
@@ -17356,11 +17356,11 @@ a: b: c:Test2(Test1(out int x1), x1);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(11, 7)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -17401,7 +17401,7 @@ a:          Test2(Test1(out int x1), x1);
         return x;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -17409,11 +17409,11 @@ a:          Test2(Test1(out int x1), x1);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(15, 1)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -17436,7 +17436,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0165: Use of unassigned local variable 'x1'
@@ -17444,11 +17444,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(7, 22)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -17469,7 +17469,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0165: Use of unassigned local variable 'x1'
@@ -17477,11 +17477,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(7, 22)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -17502,7 +17502,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,13): warning CS0219: The variable 'x2' is assigned but its value is never used
@@ -17510,15 +17510,15 @@ public class Cls
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(7, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            LocalDeclarationStatementSyntax x2Decl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
 
-            var dataFlow = model.AnalyzeDataFlow(x2Decl);
+            DataFlowAnalysis dataFlow = model.AnalyzeDataFlow(x2Decl);
 
             Assert.True(dataFlow.Succeeded);
             Assert.Equal("System.Int32 x2", dataFlow.VariablesDeclared.Single().ToTestDisplayString());
@@ -17541,7 +17541,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS1503: Argument 1: cannot convert from 'out int' to 'out short'
@@ -17549,10 +17549,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_BadArgType, "int x1").WithArguments("1", "out int", "out short").WithLocation(6, 18)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -17573,7 +17573,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,14): error CS1525: Invalid expression term 'int'
@@ -17596,8 +17596,8 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(7, 22)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree).Any());
         }
@@ -17618,7 +17618,7 @@ public class Cls
         x = 1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,24): error CS1003: Syntax error, ',' expected
@@ -17626,10 +17626,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(6, 24)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -17649,7 +17649,7 @@ public class Cls
         x = null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0118: 'IEnumerable<int>' is a type but is used like a variable
@@ -17657,8 +17657,8 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System.Collections.Generic.IEnumerable<System.Int32>").WithArguments("System.Collections.Generic.IEnumerable<int>", "type", "variable").WithLocation(6, 18)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree).Any());
         }
@@ -17682,14 +17682,14 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
@@ -17715,14 +17715,14 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
             Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
@@ -17755,17 +17755,17 @@ public class Cls
         public int val;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -17785,7 +17785,7 @@ public class Cls
         public int val;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17798,10 +17798,10 @@ public class Cls
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "val").WithArguments("Cls.var.val", "0").WithLocation(11, 20)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
             Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
@@ -17829,17 +17829,17 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -17860,7 +17860,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17870,11 +17870,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Test1").WithArguments("Test1").WithLocation(6, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -17899,7 +17899,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17909,11 +17909,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 23)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -17940,7 +17940,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17950,11 +17950,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 25)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -17983,7 +17983,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -17993,11 +17993,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_BadArgRef, "var x1").WithArguments("1", "ref").WithLocation(6, 25)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -18026,7 +18026,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18036,11 +18036,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(6, 25)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -18065,7 +18065,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18075,11 +18075,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(7, 31)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -18110,17 +18110,17 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18141,7 +18141,7 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -18151,11 +18151,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "var x1").WithLocation(6, 37)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, isDelegateCreation: true, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -18193,15 +18193,15 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
@@ -18212,10 +18212,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "var x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(25, 26)
                 );
 
-            var initializer = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
-            var typeInfo = model.GetTypeInfo(initializer);
-            var symbolInfo = model.GetSymbolInfo(initializer);
-            var group = model.GetMemberGroup(initializer);
+            ConstructorInitializerSyntax initializer = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+            TypeInfo typeInfo = model.GetTypeInfo(initializer);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(initializer);
+            ImmutableArray<ISymbol> group = model.GetMemberGroup(initializer);
 
             Assert.Equal("System.Void", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("Cls.Test2..ctor(System.Object x, System.Object y)", symbolInfo.Symbol.ToTestDisplayString());
@@ -18257,15 +18257,15 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
@@ -18304,17 +18304,17 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"2").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
@@ -18349,17 +18349,17 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
@@ -18401,17 +18401,17 @@ public class Cls
         {}
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18447,15 +18447,15 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18489,15 +18489,15 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18534,7 +18534,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (23,9): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -18547,11 +18547,11 @@ public class Cls
         => System.Console.WriteLine(x1);").WithLocation(23, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
@@ -18580,8 +18580,8 @@ public class Cls
             private void Handle(SyntaxNodeAnalysisContext context)
             {
                 ActionFired = true;
-                var tree = context.Node.SyntaxTree;
-                var model = context.SemanticModel;
+                SyntaxTree tree = context.Node.SyntaxTree;
+                SemanticModel model = context.SemanticModel;
                 var constructorDeclaration = (ConstructorDeclarationSyntax)context.Node.Parent;
                 SyntaxTreeSemanticModel syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
 
@@ -18594,8 +18594,8 @@ public class Cls
                 Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.Body).IsDefaultOrEmpty);
                 Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(constructorDeclaration.ExpressionBody).IsDefaultOrEmpty);
 
-                var x1Decl = GetOutVarDeclaration(tree, "x1");
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
 
@@ -18632,7 +18632,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (20,40): error CS0165: Use of unassigned local variable 'x1'
@@ -18640,11 +18640,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18676,7 +18676,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (22,38): error CS0165: Use of unassigned local variable 'x1'
@@ -18684,11 +18684,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(22, 38)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18718,7 +18718,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (21,37): error CS0165: Use of unassigned local variable 'x1'
@@ -18726,11 +18726,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(21, 37)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -18763,7 +18763,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (19,9): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -18779,11 +18779,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(22, 38)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -18816,7 +18816,7 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (20,40): error CS0165: Use of unassigned local variable 'x1'
@@ -18824,11 +18824,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -18859,7 +18859,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (20,40): error CS0165: Use of unassigned local variable 'x1'
@@ -18867,11 +18867,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -18905,7 +18905,7 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (19,9): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -18921,11 +18921,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -18964,17 +18964,17 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"124
 125").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -19011,17 +19011,17 @@ public class Cls
         => System.Console.WriteLine(x1);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: 
 @"124
 125").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -19048,18 +19048,18 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             references: new MetadataReference[] { CSharpRef, SystemCoreRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -19090,17 +19090,17 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varDecl = GetOutVarDeclaration(tree, "var");
-            var varRef = GetReferences(tree, "var").Skip(1).Single();
+            DeclarationExpressionSyntax varDecl = GetOutVarDeclaration(tree, "var");
+            IdentifierNameSyntax varRef = GetReferences(tree, "var").Skip(1).Single();
             VerifyModelForOutVar(model, varDecl, varRef);
         }
 
@@ -19124,17 +19124,17 @@ public class Cls
         return true;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
 
@@ -19183,7 +19183,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19191,13 +19191,13 @@ public class Cls
 @"124
 125").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclaration(tree, "x2");
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclaration(tree, "x2");
             VerifyModelForOutVar(model, x2Decl);
         }
 
@@ -19226,7 +19226,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19236,10 +19236,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test1").WithArguments("Cls.Test1(out int, object)", "Cls.Test1(out short, object)").WithLocation(6, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -19264,7 +19264,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19274,11 +19274,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(9, 25)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -19303,7 +19303,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19313,11 +19313,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(9, 25)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -19344,7 +19344,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19360,11 +19360,11 @@ public class Cls
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -19392,7 +19392,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19414,11 +19414,11 @@ public class Cls
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -19438,16 +19438,16 @@ public class Cls
 
     static void Test2(object x) { }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             Assert.True(compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type.TypeKind == TypeKind.Error);
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             VerifyModelForOutVarWithoutDataFlow(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
@@ -19481,16 +19481,16 @@ public class Cls
 
     static void Test2(object x) { }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             Assert.True(compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type.TypeKind == TypeKind.Error);
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             VerifyModelForOutVarWithoutDataFlow(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
@@ -19520,14 +19520,14 @@ public class Cls
         System.Console.WriteLine(y);
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
@@ -19561,7 +19561,7 @@ public class Cls
     }
 }
 ";
-            var compilation = CreateCompilation(source,
+            CSharpCompilation compilation = CreateCompilation(source,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
@@ -19590,16 +19590,16 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"124").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y");
+            IdentifierNameSyntax yRef = GetReference(tree, "y");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -19623,16 +19623,16 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y");
+            IdentifierNameSyntax yRef = GetReference(tree, "y");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -19656,16 +19656,16 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReference(tree, "y");
+            IdentifierNameSyntax yRef = GetReference(tree, "y");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -19691,16 +19691,16 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReferences(tree, "y").Last();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -19726,16 +19726,16 @@ public class Cls
         return 124;
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"247").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yRef = GetReferences(tree, "y").Last();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -19757,7 +19757,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular7_1);
 
@@ -19770,10 +19770,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("2", "ref").WithLocation(6, 25)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yDecl = GetDeclaration(tree, "y");
+            DeclarationExpressionSyntax yDecl = GetDeclaration(tree, "y");
             VerifyModelForOutVar(model, yDecl, GetReferences(tree, "y").ToArray());
         }
 
@@ -19795,7 +19795,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19808,11 +19808,11 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yDecl = GetDeclaration(tree, "y");
-            var yRef = GetReferences(tree, "y").ToArray();
+            DeclarationExpressionSyntax yDecl = GetDeclaration(tree, "y");
+            IdentifierNameSyntax[] yRef = GetReferences(tree, "y").ToArray();
             Assert.Equal(3, yRef.Length);
             Assert.Equal("System.Console.WriteLine(y)", yRef[2].Parent.Parent.Parent.ToString());
             VerifyModelForOutVar(model, yDecl, yRef[2]);
@@ -19941,7 +19941,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
@@ -19961,7 +19961,7 @@ public class Cls
         var x = d[out _];
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out _];
@@ -19981,11 +19981,11 @@ public class Cls
         var x = d[out var x1] + x1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
             Assert.True(x1.Type.IsErrorType());
             VerifyModelForOutVar(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
@@ -20009,11 +20009,11 @@ public class Cls
         var x = d[out int x1] + x1;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
@@ -20096,7 +20096,7 @@ public class Cls
     .set instance void A::set_Item([out] int32&, int32)
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2Template =
 @"using System;
 class B
@@ -20117,30 +20117,30 @@ class B
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
-                var compilation = CreateCompilation(source2, references: new[] { reference1 });
-                var tree = compilation.SyntaxTrees[0];
-                var model = compilation.GetSemanticModel(tree);
+                CSharpCompilation compilation = CreateCompilation(source2, references: new[] { reference1 });
+                SyntaxTree tree = compilation.SyntaxTrees[0];
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(1, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(1, x2Ref.Length);
                 VerifyModelForOutVar(model, x2Decl, x2Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref[0]).Type.ToTestDisplayString());
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").ToArray();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
                 Assert.Equal(1, x3Ref.Length);
                 VerifyModelForOutVar(model, x3Decl, x3Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x3Ref[0]).Type.ToTestDisplayString());
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(1, x4Ref.Length);
                 VerifyModelForOutVar(model, x4Decl, x4Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x4Ref[0]).Type.ToTestDisplayString());
@@ -20277,7 +20277,7 @@ class B
     .set instance void A::set_Item([out] int32&, int32)
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2Template =
 @"using System;
 class B
@@ -20296,7 +20296,7 @@ class B
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
-                var compilation = CreateCompilation(source2, references: new[] { reference1 }, options: TestOptions.DebugExe);
+                CSharpCompilation compilation = CreateCompilation(source2, references: new[] { reference1 }, options: TestOptions.DebugExe);
 
                 CompileAndVerify(compilation, expectedOutput:
 @"11
@@ -20367,13 +20367,13 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type.ToTestDisplayString());
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
@@ -20415,13 +20415,13 @@ public class Cls
         x4 = 0;
     }
 }";
-            var compilation = CreateCompilation(text);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilation(text);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
             Assert.Equal(1, compilation.SyntaxTrees[0].GetRoot().DescendantNodesAndSelf().OfType<DeclarationExpressionSyntax>().Count());
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             Assert.True(compilation.GetSemanticModel(tree).GetTypeInfo(x4Ref).Type.TypeKind == TypeKind.Error);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
 
@@ -20527,22 +20527,22 @@ public class Cls
         }
     }
 }";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             Assert.True(model.GetTypeInfo(x1Ref).Type.TypeKind == TypeKind.Error);
-            var x2Decl = GetOutVarDeclaration(tree, "x2");
-            var x2Ref = GetReference(tree, "x2");
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclaration(tree, "x2");
+            IdentifierNameSyntax x2Ref = GetReference(tree, "x2");
             Assert.True(model.GetTypeInfo(x2Ref).Type.TypeKind == TypeKind.Error);
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             Assert.True(model.GetTypeInfo(x3Ref).Type.TypeKind == TypeKind.Error);
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             Assert.True(model.GetTypeInfo(x4Ref).Type.TypeKind == TypeKind.Error);
 
             VerifyModelForOutVarWithoutDataFlow(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
@@ -20580,11 +20580,11 @@ unsafe struct S
     //fixed int F2[3 is int x3 ? 3 : 3, x3];
 }
 ";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
             Assert.Empty(GetOutVarDeclarations(tree, "x1"));
 
             compilation.VerifyDiagnostics(
@@ -20653,7 +20653,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar
@@ -20674,35 +20674,35 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyNotAnOutLocal(model, x4Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").Single();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl, x6Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
             AssertContainedInDeclaratorArguments(x8Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x8Decl, x8Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").Single();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax x14Ref = GetReferences(tree, "x14").Single();
             Assert.Equal(2, x14Decl.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x14Decl[0], x14Ref);
@@ -20716,7 +20716,7 @@ public class X
 
         private static void AssertContainedInDeclaratorArguments(params DeclarationExpressionSyntax[] decls)
         {
-            foreach (var decl in decls)
+            foreach (DeclarationExpressionSyntax decl in decls)
             {
                 AssertContainedInDeclaratorArguments(decl);
             }
@@ -20763,7 +20763,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar
@@ -20790,27 +20790,27 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(28, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyNotAnOutLocal(model, x2Ref[0]);
             VerifyNotAnOutLocal(model, x2Ref[1]);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyNotAnOutLocal(model, x3Ref[0]);
@@ -20863,7 +20863,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar,
@@ -20885,31 +20885,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(31, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl[0], x2Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
@@ -20960,7 +20960,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -20989,31 +20989,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(31, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl[0], x2Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
@@ -21044,10 +21044,10 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var statement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
 var y, y1(Dummy(TakeOutParam(true, out var x1), x1));
@@ -21058,14 +21058,14 @@ var y, y1(Dummy(TakeOutParam(true, out var x1), x1));
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
 
-            var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
+            ISymbol y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
             Assert.True(((LocalSymbol)y1).Type.IsErrorType());
         }
@@ -21096,7 +21096,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar
@@ -21114,17 +21114,17 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref[0]);
             VerifyNotInScope(model, x1Ref[1]);
 
-            var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
+            VariableDeclaratorSyntax e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
             Assert.True(symbol.Type.IsErrorType());
@@ -21162,19 +21162,19 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var y1Decl = GetOutVarDeclarations(tree, "y1").Single();
+            DeclarationExpressionSyntax y1Decl = GetOutVarDeclarations(tree, "y1").Single();
             AssertContainedInDeclaratorArguments(y1Decl);
 
-            var yRef = GetReference(tree, "y1");
+            IdentifierNameSyntax yRef = GetReference(tree, "y1");
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
 
             model = compilation.GetSemanticModel(tree);
-            var zRef = GetReference(tree, "z1");
+            IdentifierNameSyntax zRef = GetReference(tree, "z1");
             Assert.True(((TypeSymbol)model.GetTypeInfo(zRef).Type).IsErrorType());
         }
 
@@ -21321,7 +21321,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -21365,66 +21365,66 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 44)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             AssertContainedInDeclaratorArguments(x8Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             AssertContainedInDeclaratorArguments(x9Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
@@ -21486,7 +21486,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -21524,23 +21524,23 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(40, 47)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
             VerifyNotAnOutLocal(model, x4Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").Single();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax x7Ref = GetReferences(tree, "x7").Single();
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelForOutVarDuplicateInSameScope(model, x7Decl);
             VerifyNotAnOutLocal(model, x7Ref);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax[] x8Decl = GetOutVarDeclarations(tree, "x8").ToArray();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(4, x8Decl.Length);
             Assert.Equal(4, x8Ref.Length);
             AssertContainedInDeclaratorArguments(x8Decl[0]);
@@ -21550,8 +21550,8 @@ public class X
             VerifyModelForOutVar(model, x8Decl[2], x8Ref[2]);
             VerifyModelForOutVar(model, x8Decl[3], x8Ref[3]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(3, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             AssertContainedInDeclaratorArguments(x9Decl[0]);
@@ -21676,7 +21676,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -21720,71 +21720,71 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 54)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             AssertContainedInDeclaratorArguments(x8Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             AssertContainedInDeclaratorArguments(x9Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-            var x10Ref = GetReferences(tree, "x10").Single();
+            DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+            IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
             AssertContainedInDeclaratorArguments(x10Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x10Decl, x10Ref);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
@@ -21828,7 +21828,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.WRN_UnreferencedVar,
@@ -21847,19 +21847,19 @@ public class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             AssertContainedInDeclaratorArguments(x2Decl);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl);
@@ -21923,7 +21923,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -21945,31 +21945,31 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(39, 46)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(3, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl[0], x2Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(3, x3Ref.Length);
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
@@ -22091,7 +22091,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -22133,66 +22133,66 @@ public unsafe class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 55)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyNotAnOutLocal(model, x4Ref[0]);
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x6Decl, x6Ref);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[0]);
             VerifyNotAnOutLocal(model, x7Ref[1]);
 
-            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-            var x8Ref = GetReferences(tree, "x8").ToArray();
+            DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
             AssertContainedInDeclaratorArguments(x8Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
-            var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-            var x9Ref = GetReferences(tree, "x9").ToArray();
+            DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+            IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
             AssertContainedInDeclaratorArguments(x9Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForOutVarWithoutDataFlow(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-            var y10Ref = GetReferences(tree, "y10").ToArray();
+            IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
             VerifyNotInScope(model, y10Ref[0]);
             VerifyNotAnOutLocal(model, y10Ref[1]);
 
-            var y12Ref = GetReferences(tree, "y12").Single();
+            IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
             VerifyNotInScope(model, y12Ref);
 
-            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-            var x14Ref = GetReferences(tree, "x14").ToArray();
+            DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
             AssertContainedInDeclaratorArguments(x14Decl);
@@ -22257,7 +22257,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
                                         (int)ErrorCode.ERR_UnexpectedToken,
@@ -22288,33 +22288,33 @@ public unsafe class X
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(41, 59)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             AssertContainedInDeclaratorArguments(x1Decl);
             VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
             VerifyNotAnOutLocal(model, x1Ref[0]);
             VerifyNotAnOutLocal(model, x1Ref[1]);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             AssertContainedInDeclaratorArguments(x2Decl);
             VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(2, x3Ref.Length);
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelForOutVarDuplicateInSameScope(model, x3Decl);
             VerifyNotAnOutLocal(model, x3Ref[0]);
             VerifyNotAnOutLocal(model, x3Ref[1]);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-            var x4Ref = GetReferences(tree, "x4").ToArray();
+            DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+            IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(2, x4Decl.Length);
             Assert.Equal(3, x4Ref.Length);
             AssertContainedInDeclaratorArguments(x4Decl);
@@ -22355,7 +22355,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration,
                                         (int)ErrorCode.WRN_UnreferencedField
@@ -22367,36 +22367,36 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelNotSupported(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelNotSupported(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             AssertContainedInDeclaratorArguments(x5Decl);
             VerifyModelNotSupported(model, x5Decl[0], x5Ref);
             VerifyModelNotSupported(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
             VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
@@ -22409,7 +22409,7 @@ public class X
             DeclarationExpressionSyntax decl,
             params IdentifierNameSyntax[] references)
         {
-            var variableDeclaratorSyntax = GetVariableDesignation(decl);
+            SingleVariableDesignationSyntax variableDeclaratorSyntax = GetVariableDesignation(decl);
             Assert.Null(model.GetDeclaredSymbol(variableDeclaratorSyntax));
             Assert.Null(model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
             var identifierText = decl.Identifier().ValueText;
@@ -22425,7 +22425,7 @@ public class X
 
         private static void VerifyModelNotSupported(SemanticModel model, params IdentifierNameSyntax[] references)
         {
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
                 Assert.False(model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Any());
@@ -22468,7 +22468,7 @@ public unsafe struct X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration,
                                         (int)ErrorCode.WRN_UnreferencedField,
@@ -22490,36 +22490,36 @@ public unsafe struct X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(21, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelNotSupported(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelNotSupported(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             AssertContainedInDeclaratorArguments(x5Decl);
             VerifyModelNotSupported(model, x5Decl[0], x5Ref);
             VerifyModelNotSupported(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
             VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
@@ -22561,7 +22561,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration
                                       };
@@ -22572,36 +22572,36 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(21, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelNotSupported(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelNotSupported(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             AssertContainedInDeclaratorArguments(x5Decl);
             VerifyModelNotSupported(model, x5Decl[0], x5Ref);
             VerifyModelNotSupported(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
             VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
@@ -22643,7 +22643,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
                                         (int)ErrorCode.ERR_ArraySizeInDeclaration,
                                         (int)ErrorCode.ERR_EventNotDelegate,
@@ -22656,36 +22656,36 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(21, 27)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-            var x3Ref = GetReferences(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelNotSupported(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
             AssertContainedInDeclaratorArguments(x4Decl);
             VerifyModelNotSupported(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReferences(tree, "x5").Single();
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
             AssertContainedInDeclaratorArguments(x5Decl);
             VerifyModelNotSupported(model, x5Decl[0], x5Ref);
             VerifyModelNotSupported(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             AssertContainedInDeclaratorArguments(x6Decl);
             VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
             VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
 
-            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             AssertContainedInDeclaratorArguments(x7Decl);
             VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
@@ -22707,7 +22707,7 @@ public unsafe struct X
     fixed bool d[2], Test3 (out var x3);
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                       };
 
@@ -22723,10 +22723,10 @@ public unsafe struct X
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x3").WithLocation(8, 33)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
             AssertContainedInDeclaratorArguments(x3Decl);
             VerifyModelNotSupported(model, x3Decl);
         }
@@ -22745,7 +22745,7 @@ public unsafe struct X
     fixed bool Test3[out var x3];
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (8,22): error CS1003: Syntax error, ',' expected
@@ -22762,8 +22762,8 @@ public unsafe struct X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 26)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree, "x3").Any());
         }
@@ -22786,7 +22786,7 @@ public class Cls
 
     static class StaticType {}
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
@@ -22893,7 +22893,7 @@ static bool TakeOutParam(object y, out int x)
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (20,13): error CS0841: Cannot use local variable 'x6' before it is declared
                 // catch when (x6 && TakeOutParam(out var x6))
@@ -22918,58 +22918,58 @@ static bool TakeOutParam(object y, out int x)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(75, 42)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclaration(tree, "x1");
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-                var x4Decl = GetOutVarDeclaration(tree, "x4");
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAnOutLocal(model, x4Ref[0]);
                 VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetOutVarDeclaration(tree, "x6");
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclaration(tree, "x6");
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-                var x7Decl = GetOutVarDeclaration(tree, "x7");
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
                 VerifyNotAnOutLocal(model, x7Ref[1]);
 
-                var x8Decl = GetOutVarDeclaration(tree, "x8");
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                DeclarationExpressionSyntax x8Decl = GetOutVarDeclaration(tree, "x8");
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAnOutLocal(model, y10Ref[1]);
 
-                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForOutVar(model, x14Decl[0], x14Ref);
                 VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
-                var x15Decl = GetOutVarDeclaration(tree, "x15");
-                var x15Ref = GetReferences(tree, "x15").ToArray();
+                DeclarationExpressionSyntax x15Decl = GetOutVarDeclaration(tree, "x15");
+                IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
                 Assert.Equal(2, x15Ref.Length);
                 VerifyModelForOutVarDuplicateInSameScope(model, x15Decl);
                 VerifyNotAnOutLocal(model, x15Ref[0]);
@@ -22977,7 +22977,7 @@ static bool TakeOutParam(object y, out int x)
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -22998,7 +22998,7 @@ static bool TakeOutParam(object y, out int x)
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -23030,16 +23030,16 @@ static bool TakeOutParam<T>(T y, out T x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -23075,7 +23075,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'x3' does not exist in the current context
@@ -23083,26 +23083,26 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(15, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(1, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyNotInScope(model, x3Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -23118,7 +23118,7 @@ class H
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(9, 31)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -23150,17 +23150,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -23266,7 +23266,7 @@ static bool TakeOutParam(object y, out bool x)
 ";
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (74,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //     var y12 = 12;
@@ -23300,59 +23300,59 @@ static bool TakeOutParam(object y, out bool x)
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(74, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(2, x2Ref.Length);
                 VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAnOutLocal(model, x4Ref[0]);
                 VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
                 VerifyNotAnOutLocal(model, x7Ref[1]);
 
-                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAnOutLocal(model, y10Ref[1]);
 
-                var y12Ref = GetReferences(tree, "y12").Single();
+                IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
                 VerifyNotInScope(model, y12Ref);
 
-                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -23360,7 +23360,7 @@ static bool TakeOutParam(object y, out bool x)
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -23391,7 +23391,7 @@ static bool TakeOutParam(object y, out bool x)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x9").WithArguments("<invalid-global-code>", "x9").WithLocation(50, 46)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -23425,7 +23425,7 @@ static bool TakeOutParam(int y, out int x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -23435,21 +23435,21 @@ static bool TakeOutParam(int y, out int x)
 200
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetOutVarDeclarations(tree, "x0").Single();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            DeclarationExpressionSyntax x0Decl = GetOutVarDeclarations(tree, "x0").Single();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
             VerifyModelForOutVar(model, x0Decl, x0Ref);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl, x2Ref);
         }
@@ -23540,7 +23540,7 @@ static bool TakeOutParam(bool y, out bool x)
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (52,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //     var y12 = 12;
@@ -23574,73 +23574,73 @@ static bool TakeOutParam(bool y, out bool x)
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(52, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(2, x2Ref.Length);
                 VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAnOutLocal(model, x4Ref[0]);
                 VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
                 VerifyNotAnOutLocal(model, x7Ref[1]);
 
-                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAnOutLocal(model, y10Ref[1]);
 
-                var y12Ref = GetReferences(tree, "y12").Single();
+                IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
                 VerifyNotInScope(model, y12Ref);
 
-                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForOutVar(model, x14Decl[0], x14Ref);
                 VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
 
-                var x15Decl = GetOutVarDeclarations(tree, "x15").Single();
-                var x15Ref = GetReferences(tree, "x15").ToArray();
+                DeclarationExpressionSyntax x15Decl = GetOutVarDeclarations(tree, "x15").Single();
+                IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
                 Assert.Equal(2, x15Ref.Length);
                 VerifyModelForOutVar(model, x15Decl, x15Ref[0]);
                 VerifyNotAnOutLocal(model, x15Ref[1]);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -23662,7 +23662,7 @@ static bool TakeOutParam(bool y, out bool x)
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -23692,16 +23692,16 @@ static bool TakeOutParam(int y, out int x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
@@ -23763,7 +23763,7 @@ static bool TakeOutParam(bool y, out bool x)
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (6,41): error CS0841: Cannot use local variable 'x4' before it is declared
                 // Dummy((System.Func<object, bool>) (o => x4 && TakeOutParam(o, out var x4)));
@@ -23785,32 +23785,32 @@ static bool TakeOutParam(bool y, out bool x)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 7)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 VerifyModelForOutVar(model, x4Decl, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 Assert.Equal(2, x5Decl.Length);
                 VerifyModelForOutVar(model, x5Decl[0], x5Ref);
                 VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Decl.Length);
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
                 VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
 
-                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(5, x7Ref.Length);
                 VerifyNotInScope(model, x7Ref[0]);
                 VerifyNotInScope(model, x7Ref[1]);
@@ -23818,34 +23818,34 @@ static bool TakeOutParam(bool y, out bool x)
                 VerifyNotInScope(model, x7Ref[3]);
                 VerifyNotInScope(model, x7Ref[4]);
 
-                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(2, x8Ref.Length);
                 VerifyModelForOutField(model, x8Decl, x8Ref);
 
-                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(2, x9Ref.Length);
                 VerifyModelForOutField(model, x9Decl[0], x9Ref[1]);
                 VerifyModelForOutVar(model, x9Decl[1], x9Ref[0]);
 
-                var x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
-                var x10Ref = GetReferences(tree, "x10").ToArray();
+                DeclarationExpressionSyntax[] x10Decl = GetOutVarDeclarations(tree, "x10").ToArray();
+                IdentifierNameSyntax[] x10Ref = GetReferences(tree, "x10").ToArray();
                 Assert.Equal(2, x10Decl.Length);
                 Assert.Equal(2, x10Ref.Length);
                 VerifyModelForOutVar(model, x10Decl[0], x10Ref[0]);
                 VerifyModelForOutField(model, x10Decl[1], x10Ref[1]);
 
-                var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
-                var x11Ref = GetReferences(tree, "x11").ToArray();
+                DeclarationExpressionSyntax x11Decl = GetOutVarDeclarations(tree, "x11").Single();
+                IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
                 Assert.Equal(3, x11Ref.Length);
                 VerifyNotAnOutLocal(model, x11Ref[0]);
                 VerifyModelForOutVar(model, x11Decl, x11Ref[1]);
                 VerifyNotAnOutLocal(model, x11Ref[2]);
 
-                var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
-                var x12Ref = GetReferences(tree, "x12").ToArray();
+                DeclarationExpressionSyntax x12Decl = GetOutVarDeclarations(tree, "x12").Single();
+                IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
                 Assert.Equal(3, x12Ref.Length);
                 VerifyModelForOutVar(model, x12Decl, x12Ref[0]);
                 VerifyNotAnOutLocal(model, x12Ref[1]);
@@ -23853,7 +23853,7 @@ static bool TakeOutParam(bool y, out bool x)
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -23875,7 +23875,7 @@ static bool TakeOutParam(bool y, out bool x)
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -23902,15 +23902,15 @@ static bool TakeOutParam(int y, out int x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -23933,15 +23933,15 @@ static bool TakeOutParam(int y, out int x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -24048,7 +24048,7 @@ static bool TakeOutParam<T>(T y, out T x)
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (14,21): error CS0103: The name 'z2' does not exist in the current context
                 //                     z2;
@@ -24142,168 +24142,168 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var y1Decl = GetOutVarDeclarations(tree, "y1").Single();
-                var y1Ref = GetReferences(tree, "y1").ToArray();
+                DeclarationExpressionSyntax y1Decl = GetOutVarDeclarations(tree, "y1").Single();
+                IdentifierNameSyntax[] y1Ref = GetReferences(tree, "y1").ToArray();
                 Assert.Equal(4, y1Ref.Length);
                 VerifyModelForOutField(model, y1Decl, y1Ref);
 
-                var y2Decl = GetOutVarDeclarations(tree, "y2").Single();
-                var y2Ref = GetReferences(tree, "y2").ToArray();
+                DeclarationExpressionSyntax y2Decl = GetOutVarDeclarations(tree, "y2").Single();
+                IdentifierNameSyntax[] y2Ref = GetReferences(tree, "y2").ToArray();
                 Assert.Equal(3, y2Ref.Length);
                 VerifyModelForOutField(model, y2Decl, y2Ref);
 
-                var z2Decl = GetOutVarDeclarations(tree, "z2").Single();
-                var z2Ref = GetReferences(tree, "z2").ToArray();
+                DeclarationExpressionSyntax z2Decl = GetOutVarDeclarations(tree, "z2").Single();
+                IdentifierNameSyntax[] z2Ref = GetReferences(tree, "z2").ToArray();
                 Assert.Equal(4, z2Ref.Length);
                 VerifyModelForOutVar(model, z2Decl, z2Ref[0], z2Ref[1]);
                 VerifyNotInScope(model, z2Ref[2]);
                 VerifyNotInScope(model, z2Ref[3]);
 
-                var y3Decl = GetOutVarDeclarations(tree, "y3").Single();
-                var y3Ref = GetReferences(tree, "y3").ToArray();
+                DeclarationExpressionSyntax y3Decl = GetOutVarDeclarations(tree, "y3").Single();
+                IdentifierNameSyntax[] y3Ref = GetReferences(tree, "y3").ToArray();
                 Assert.Equal(3, y3Ref.Length);
                 VerifyModelForOutField(model, y3Decl, y3Ref);
 
-                var z3Decl = GetOutVarDeclarations(tree, "z3").Single();
-                var z3Ref = GetReferences(tree, "z3").ToArray();
+                DeclarationExpressionSyntax z3Decl = GetOutVarDeclarations(tree, "z3").Single();
+                IdentifierNameSyntax[] z3Ref = GetReferences(tree, "z3").ToArray();
                 Assert.Equal(3, z3Ref.Length);
                 VerifyModelForOutVar(model, z3Decl, z3Ref[0]);
                 VerifyNotInScope(model, z3Ref[1]);
                 VerifyNotInScope(model, z3Ref[2]);
 
-                var y4Decl = GetOutVarDeclarations(tree, "y4").Single();
-                var y4Ref = GetReferences(tree, "y4").ToArray();
+                DeclarationExpressionSyntax y4Decl = GetOutVarDeclarations(tree, "y4").Single();
+                IdentifierNameSyntax[] y4Ref = GetReferences(tree, "y4").ToArray();
                 Assert.Equal(5, y4Ref.Length);
                 VerifyModelForOutField(model, y4Decl, y4Ref);
 
-                var z4Decl = GetOutVarDeclarations(tree, "z4").Single();
-                var z4Ref = GetReferences(tree, "z4").ToArray();
+                DeclarationExpressionSyntax z4Decl = GetOutVarDeclarations(tree, "z4").Single();
+                IdentifierNameSyntax[] z4Ref = GetReferences(tree, "z4").ToArray();
                 Assert.Equal(6, z4Ref.Length);
                 VerifyModelForOutField(model, z4Decl, z4Ref);
 
-                var u4Decl = GetOutVarDeclarations(tree, "u4").Single();
-                var u4Ref = GetReferences(tree, "u4").ToArray();
+                DeclarationExpressionSyntax u4Decl = GetOutVarDeclarations(tree, "u4").Single();
+                IdentifierNameSyntax[] u4Ref = GetReferences(tree, "u4").ToArray();
                 Assert.Equal(4, u4Ref.Length);
                 VerifyModelForOutVar(model, u4Decl, u4Ref[0]);
                 VerifyNotInScope(model, u4Ref[1]);
                 VerifyNotInScope(model, u4Ref[2]);
                 VerifyNotInScope(model, u4Ref[3]);
 
-                var v4Decl = GetOutVarDeclarations(tree, "v4").Single();
-                var v4Ref = GetReferences(tree, "v4").ToArray();
+                DeclarationExpressionSyntax v4Decl = GetOutVarDeclarations(tree, "v4").Single();
+                IdentifierNameSyntax[] v4Ref = GetReferences(tree, "v4").ToArray();
                 Assert.Equal(4, v4Ref.Length);
                 VerifyNotInScope(model, v4Ref[0]);
                 VerifyModelForOutVar(model, v4Decl, v4Ref[1]);
                 VerifyNotInScope(model, v4Ref[2]);
                 VerifyNotInScope(model, v4Ref[3]);
 
-                var y5Decl = GetOutVarDeclarations(tree, "y5").Single();
-                var y5Ref = GetReferences(tree, "y5").ToArray();
+                DeclarationExpressionSyntax y5Decl = GetOutVarDeclarations(tree, "y5").Single();
+                IdentifierNameSyntax[] y5Ref = GetReferences(tree, "y5").ToArray();
                 Assert.Equal(5, y5Ref.Length);
                 VerifyModelForOutField(model, y5Decl, y5Ref);
 
-                var z5Decl = GetOutVarDeclarations(tree, "z5").Single();
-                var z5Ref = GetReferences(tree, "z5").ToArray();
+                DeclarationExpressionSyntax z5Decl = GetOutVarDeclarations(tree, "z5").Single();
+                IdentifierNameSyntax[] z5Ref = GetReferences(tree, "z5").ToArray();
                 Assert.Equal(6, z5Ref.Length);
                 VerifyModelForOutField(model, z5Decl, z5Ref);
 
-                var u5Decl = GetOutVarDeclarations(tree, "u5").Single();
-                var u5Ref = GetReferences(tree, "u5").ToArray();
+                DeclarationExpressionSyntax u5Decl = GetOutVarDeclarations(tree, "u5").Single();
+                IdentifierNameSyntax[] u5Ref = GetReferences(tree, "u5").ToArray();
                 Assert.Equal(4, u5Ref.Length);
                 VerifyModelForOutVar(model, u5Decl, u5Ref[0]);
                 VerifyNotInScope(model, u5Ref[1]);
                 VerifyNotInScope(model, u5Ref[2]);
                 VerifyNotInScope(model, u5Ref[3]);
 
-                var v5Decl = GetOutVarDeclarations(tree, "v5").Single();
-                var v5Ref = GetReferences(tree, "v5").ToArray();
+                DeclarationExpressionSyntax v5Decl = GetOutVarDeclarations(tree, "v5").Single();
+                IdentifierNameSyntax[] v5Ref = GetReferences(tree, "v5").ToArray();
                 Assert.Equal(4, v5Ref.Length);
                 VerifyNotInScope(model, v5Ref[0]);
                 VerifyModelForOutVar(model, v5Decl, v5Ref[1]);
                 VerifyNotInScope(model, v5Ref[2]);
                 VerifyNotInScope(model, v5Ref[3]);
 
-                var y6Decl = GetOutVarDeclarations(tree, "y6").Single();
-                var y6Ref = GetReferences(tree, "y6").ToArray();
+                DeclarationExpressionSyntax y6Decl = GetOutVarDeclarations(tree, "y6").Single();
+                IdentifierNameSyntax[] y6Ref = GetReferences(tree, "y6").ToArray();
                 Assert.Equal(3, y6Ref.Length);
                 VerifyModelForOutField(model, y6Decl, y6Ref);
 
-                var z6Decl = GetOutVarDeclarations(tree, "z6").Single();
-                var z6Ref = GetReferences(tree, "z6").ToArray();
+                DeclarationExpressionSyntax z6Decl = GetOutVarDeclarations(tree, "z6").Single();
+                IdentifierNameSyntax[] z6Ref = GetReferences(tree, "z6").ToArray();
                 Assert.Equal(3, z6Ref.Length);
                 VerifyModelForOutVar(model, z6Decl, z6Ref[0]);
                 VerifyNotInScope(model, z6Ref[1]);
                 VerifyNotInScope(model, z6Ref[2]);
 
-                var y7Decl = GetOutVarDeclarations(tree, "y7").Single();
-                var y7Ref = GetReferences(tree, "y7").ToArray();
+                DeclarationExpressionSyntax y7Decl = GetOutVarDeclarations(tree, "y7").Single();
+                IdentifierNameSyntax[] y7Ref = GetReferences(tree, "y7").ToArray();
                 Assert.Equal(4, y7Ref.Length);
                 VerifyModelForOutField(model, y7Decl, y7Ref);
 
-                var z7Decl = GetOutVarDeclarations(tree, "z7").Single();
-                var z7Ref = GetReferences(tree, "z7").ToArray();
+                DeclarationExpressionSyntax z7Decl = GetOutVarDeclarations(tree, "z7").Single();
+                IdentifierNameSyntax[] z7Ref = GetReferences(tree, "z7").ToArray();
                 Assert.Equal(4, z7Ref.Length);
                 VerifyModelForOutVar(model, z7Decl, z7Ref[0]);
                 VerifyNotInScope(model, z7Ref[1]);
                 VerifyNotInScope(model, z7Ref[2]);
                 VerifyNotInScope(model, z7Ref[3]);
 
-                var u7Decl = GetOutVarDeclarations(tree, "u7").Single();
-                var u7Ref = GetReferences(tree, "u7").ToArray();
+                DeclarationExpressionSyntax u7Decl = GetOutVarDeclarations(tree, "u7").Single();
+                IdentifierNameSyntax[] u7Ref = GetReferences(tree, "u7").ToArray();
                 Assert.Equal(4, u7Ref.Length);
                 VerifyNotInScope(model, u7Ref[0]);
                 VerifyModelForOutVar(model, u7Decl, u7Ref[1]);
                 VerifyNotInScope(model, u7Ref[2]);
                 VerifyNotInScope(model, u7Ref[3]);
 
-                var y8Decl = GetOutVarDeclarations(tree, "y8").Single();
-                var y8Ref = GetReferences(tree, "y8").ToArray();
+                DeclarationExpressionSyntax y8Decl = GetOutVarDeclarations(tree, "y8").Single();
+                IdentifierNameSyntax[] y8Ref = GetReferences(tree, "y8").ToArray();
                 Assert.Equal(2, y8Ref.Length);
                 VerifyModelForOutField(model, y8Decl, y8Ref);
 
-                var z8Decl = GetOutVarDeclarations(tree, "z8").Single();
-                var z8Ref = GetReferences(tree, "z8").ToArray();
+                DeclarationExpressionSyntax z8Decl = GetOutVarDeclarations(tree, "z8").Single();
+                IdentifierNameSyntax[] z8Ref = GetReferences(tree, "z8").ToArray();
                 Assert.Equal(2, z8Ref.Length);
                 VerifyModelForOutVar(model, z8Decl, z8Ref[0]);
                 VerifyNotInScope(model, z8Ref[1]);
 
-                var y9Decl = GetOutVarDeclarations(tree, "y9").Single();
-                var y9Ref = GetReferences(tree, "y9").ToArray();
+                DeclarationExpressionSyntax y9Decl = GetOutVarDeclarations(tree, "y9").Single();
+                IdentifierNameSyntax[] y9Ref = GetReferences(tree, "y9").ToArray();
                 Assert.Equal(3, y9Ref.Length);
                 VerifyModelForOutField(model, y9Decl, y9Ref);
 
-                var z9Decl = GetOutVarDeclarations(tree, "z9").Single();
-                var z9Ref = GetReferences(tree, "z9").ToArray();
+                DeclarationExpressionSyntax z9Decl = GetOutVarDeclarations(tree, "z9").Single();
+                IdentifierNameSyntax[] z9Ref = GetReferences(tree, "z9").ToArray();
                 Assert.Equal(3, z9Ref.Length);
                 VerifyModelForOutVar(model, z9Decl, z9Ref[0]);
                 VerifyNotInScope(model, z9Ref[1]);
                 VerifyNotInScope(model, z9Ref[2]);
 
-                var u9Decl = GetOutVarDeclarations(tree, "u9").Single();
-                var u9Ref = GetReferences(tree, "u9").ToArray();
+                DeclarationExpressionSyntax u9Decl = GetOutVarDeclarations(tree, "u9").Single();
+                IdentifierNameSyntax[] u9Ref = GetReferences(tree, "u9").ToArray();
                 Assert.Equal(3, u9Ref.Length);
                 VerifyNotInScope(model, u9Ref[0]);
                 VerifyModelForOutVar(model, u9Decl, u9Ref[1]);
                 VerifyNotInScope(model, u9Ref[2]);
 
-                var y10Decl = GetOutVarDeclarations(tree, "y10").Single();
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                DeclarationExpressionSyntax y10Decl = GetOutVarDeclarations(tree, "y10").Single();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyModelForOutField(model, y10Decl, y10Ref[0]);
                 VerifyNotAnOutField(model, y10Ref[1]);
 
-                var y11Decl = GetOutVarDeclarations(tree, "y11").Single();
-                var y11Ref = GetReferences(tree, "y11").ToArray();
+                DeclarationExpressionSyntax y11Decl = GetOutVarDeclarations(tree, "y11").Single();
+                IdentifierNameSyntax[] y11Ref = GetReferences(tree, "y11").ToArray();
                 Assert.Equal(2, y11Ref.Length);
                 VerifyModelForOutField(model, y11Decl, y11Ref[0]);
                 VerifyNotAnOutField(model, y11Ref[1]);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -24343,7 +24343,7 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(90, 17)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 AssertNoGlobalStatements(tree);
             }
         }
@@ -24372,17 +24372,17 @@ static bool Print(object x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yDecl = GetOutVarDeclarations(tree, "y1").Single();
-            var yRef = GetReferences(tree, "y1").Single();
+            DeclarationExpressionSyntax yDecl = GetOutVarDeclarations(tree, "y1").Single();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y1").Single();
             VerifyModelForOutField(model, yDecl, yRef);
         }
 
@@ -24460,7 +24460,7 @@ static bool TakeOutParam<T>(T y, out T x)
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (52,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //     var y12 = 12;
@@ -24491,63 +24491,63 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(52, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(2, x2Ref.Length);
                 VerifyModelForOutVar(model, x2Decl, x2Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                DeclarationExpressionSyntax x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAnOutLocal(model, x4Ref[0]);
                 VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForOutVar(model, x6Decl, x6Ref);
 
-                var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                DeclarationExpressionSyntax x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForOutVar(model, x7Decl, x7Ref[0]);
                 VerifyNotAnOutLocal(model, x7Ref[1]);
 
-                var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                DeclarationExpressionSyntax x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                DeclarationExpressionSyntax[] x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var x10Decl = GetOutVarDeclarations(tree, "x10").Single();
-                var x10Ref = GetReferences(tree, "x10").Single();
+                DeclarationExpressionSyntax x10Decl = GetOutVarDeclarations(tree, "x10").Single();
+                IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
                 VerifyModelForOutVar(model, x10Decl, x10Ref);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAnOutLocal(model, y10Ref[1]);
 
-                var y12Ref = GetReferences(tree, "y12").Single();
+                IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
                 VerifyNotInScope(model, y12Ref);
 
-                var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                DeclarationExpressionSyntax[] x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForOutVar(model, x14Decl[0], x14Ref);
@@ -24555,7 +24555,7 @@ static bool TakeOutParam<T>(T y, out T x)
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -24575,7 +24575,7 @@ static bool TakeOutParam<T>(T y, out T x)
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -24628,7 +24628,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b
@@ -24673,7 +24673,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,27): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -24696,31 +24696,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -24753,7 +24753,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -24797,7 +24797,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,27): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -24820,31 +24820,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -24878,7 +24878,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -24908,17 +24908,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -24970,7 +24970,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,31): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -24993,30 +24993,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(30, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -25024,7 +25024,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25066,7 +25066,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(30, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -25112,7 +25112,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,31): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -25135,30 +25135,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl[0], x5Ref[0], x5Ref[2]);
@@ -25166,7 +25166,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25206,7 +25206,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(16, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -25240,18 +25240,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -25288,18 +25288,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -25339,7 +25339,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -25374,31 +25374,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25431,7 +25431,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -25470,7 +25470,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -25505,32 +25505,32 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
                 Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25564,7 +25564,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -25603,7 +25603,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -25629,31 +25629,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25686,7 +25686,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -25725,7 +25725,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -25751,31 +25751,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25809,7 +25809,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -25844,18 +25844,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -25893,7 +25893,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -25919,31 +25919,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -25976,7 +25976,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26015,7 +26015,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -26041,32 +26041,32 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
                 Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -26100,7 +26100,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26148,7 +26148,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,35): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -26171,30 +26171,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(25, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -26202,7 +26202,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -26241,7 +26241,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(25, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26289,7 +26289,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,35): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -26312,30 +26312,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(25, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -26343,7 +26343,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -26403,7 +26403,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(25, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26439,18 +26439,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -26497,7 +26497,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -26523,35 +26523,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyNotAnOutLocal(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyNotAnOutLocal(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl[0]);
@@ -26561,7 +26561,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -26600,7 +26600,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26646,7 +26646,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -26672,35 +26672,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyNotAnOutLocal(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyNotAnOutLocal(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl[0]);
@@ -26710,7 +26710,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -26750,7 +26750,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26777,15 +26777,15 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput: @"1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -26832,7 +26832,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -26858,35 +26858,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyNotAnOutLocal(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyNotAnOutLocal(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl[0], x5Ref[0]);
@@ -26896,7 +26896,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -26935,7 +26935,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -26982,7 +26982,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -27008,35 +27008,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyNotAnOutLocal(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyNotAnOutLocal(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl[0], x5Ref[0]);
@@ -27046,7 +27046,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -27086,7 +27086,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -27120,18 +27120,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 3").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
@@ -27177,7 +27177,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -27200,30 +27200,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -27231,7 +27231,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -27270,7 +27270,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -27316,7 +27316,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,33): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -27339,30 +27339,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -27370,7 +27370,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -27410,7 +27410,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -27444,18 +27444,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -27492,18 +27492,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax[] x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -27547,7 +27547,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -27583,41 +27583,41 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref[0]);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref[0]);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -27656,7 +27656,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -27695,7 +27695,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,30): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -27730,31 +27730,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -27787,7 +27787,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -27826,7 +27826,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,30): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -27861,31 +27861,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -27919,7 +27919,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -27949,7 +27949,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
@@ -27965,11 +27965,11 @@ class H
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -28011,7 +28011,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -28049,36 +28049,36 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -28108,34 +28108,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
@@ -28179,7 +28179,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -28217,36 +28217,36 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForOutField(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -28276,34 +28276,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
@@ -28335,7 +28335,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
@@ -28351,11 +28351,11 @@ class H
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -28397,7 +28397,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -28448,41 +28448,41 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -28521,7 +28521,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -28564,7 +28564,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -28615,41 +28615,41 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -28689,7 +28689,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -28721,7 +28721,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
@@ -28738,11 +28738,11 @@ class H
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -28787,7 +28787,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -28822,39 +28822,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -28887,39 +28887,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutVar(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -28965,7 +28965,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,36): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -29000,39 +29000,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -29065,39 +29065,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutVar(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -29127,17 +29127,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29180,7 +29180,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"InitA 0
@@ -29188,11 +29188,11 @@ InitB 1
 1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29221,7 +29221,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -29232,11 +29232,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29265,7 +29265,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -29276,11 +29276,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29310,22 +29310,22 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0 0
 1 0
 1 2").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutField(model, x2Decl, x2Ref);
         }
 
@@ -29366,7 +29366,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,45): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -29395,35 +29395,35 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -29453,34 +29453,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
             }
@@ -29523,7 +29523,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,45): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -29552,35 +29552,35 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -29610,34 +29610,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
             }
@@ -29667,17 +29667,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29720,7 +29720,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"InitA 0
@@ -29728,11 +29728,11 @@ InitB 1
 1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29761,7 +29761,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -29772,11 +29772,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29805,7 +29805,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -29816,11 +29816,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -29865,7 +29865,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,51): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -29900,39 +29900,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -29965,39 +29965,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutVar(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -30043,7 +30043,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,51): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -30078,39 +30078,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -30143,39 +30143,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutVar(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForOutVar(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                DeclarationExpressionSyntax x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForOutVar(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                DeclarationExpressionSyntax[] x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForOutVar(model, x4Decl[0]);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                DeclarationExpressionSyntax x5Decl = GetOutVarDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForOutVar(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                DeclarationExpressionSyntax x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForOutVar(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -30205,17 +30205,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -30258,7 +30258,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"InitA 0
@@ -30266,11 +30266,11 @@ InitB 1
 1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -30299,7 +30299,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -30310,11 +30310,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -30343,7 +30343,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -30354,11 +30354,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
         }
@@ -30388,22 +30388,22 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0 0
 1 0
 1 2").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForOutField(model, x2Decl, x2Ref);
         }
 
@@ -30432,7 +30432,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -30449,18 +30449,18 @@ class H
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(3, 19)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -30484,11 +30484,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -30520,7 +30520,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -30537,18 +30537,18 @@ class H
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -30572,11 +30572,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -30608,7 +30608,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -30622,18 +30622,18 @@ class H
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -30657,11 +30657,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -30693,7 +30693,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                                                                   parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -30711,18 +30711,18 @@ class H
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[2]").WithLocation(3, 12)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -30749,11 +30749,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -30778,7 +30778,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.GetDeclarationDiagnostics().Verify(
                 // (9,37): error CS1601: Cannot make reference to variable of type 'ArgIterator'
@@ -30792,13 +30792,13 @@ class H
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "var").WithArguments("System.ArgIterator").WithLocation(3, 20)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
             VerifyModelForOutField(model, x2Decl);
         }
 
@@ -30822,7 +30822,7 @@ class H
 
 static class StaticType{}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.GetDeclarationDiagnostics().Verify(
                 // (5,31): error CS0723: Cannot declare a variable of static type 'StaticType'
@@ -30836,13 +30836,13 @@ static class StaticType{}
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x1").WithArguments("StaticType").WithLocation(3, 24)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            DeclarationExpressionSyntax x2Decl = GetOutVarDeclarations(tree, "x2").Single();
             VerifyModelForOutField(model, x2Decl);
         }
 
@@ -30862,7 +30862,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,24): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -30870,11 +30870,11 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 24)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
@@ -30900,10 +30900,10 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
             Assert.True(b.Type.IsErrorType());
@@ -30914,7 +30914,7 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
                 );
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
@@ -30938,10 +30938,10 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
             Assert.True(b.Type.IsErrorType());
@@ -30952,7 +30952,7 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
                 );
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
@@ -30976,10 +30976,10 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
             Assert.True(a.Type.IsErrorType());
@@ -30990,7 +30990,7 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(3, 5)
                 );
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
@@ -31029,12 +31029,12 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
@@ -31052,7 +31052,7 @@ class H
 
             x1Decl = GetOutVarDeclarations(tree, "x1").Single();
 
-            var bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
+            VariableDeclaratorSyntax bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
             var b = (FieldSymbol)model.GetDeclaredSymbol(bDecl);
             Assert.True(b.Type.IsErrorType());
 
@@ -31083,7 +31083,7 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (2,24): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
@@ -31100,10 +31100,10 @@ class H
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(2, 24)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
@@ -31123,7 +31123,7 @@ class H
     public static void M(object a) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (2,10): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // H.M((var x1, int x2));
@@ -31147,12 +31147,12 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 10)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+            DeclarationExpressionSyntax x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
                     .Where(p => p.Identifier().ValueText == "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
@@ -31172,25 +31172,25 @@ class H
     static void M(object o1, object o2) {}
 }
 ";
-            var node0 = SyntaxFactory.ParseCompilationUnit(source);
-            var one = node0.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            var decl = SyntaxFactory.DeclarationExpression(
+            CompilationUnitSyntax node0 = SyntaxFactory.ParseCompilationUnit(source);
+            LiteralExpressionSyntax one = node0.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            DeclarationExpressionSyntax decl = SyntaxFactory.DeclarationExpression(
                 type: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("var")),
                 designation: SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("x1")));
-            var node1 = node0.ReplaceNode(one, decl);
-            var tree = node1.SyntaxTree;
+            CompilationUnitSyntax node1 = node0.ReplaceNode(one, decl);
+            SyntaxTree tree = node1.SyntaxTree;
             Assert.NotNull(tree);
-            var compilation = CreateCompilation(new[] { tree });
+            CSharpCompilation compilation = CreateCompilation(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (4,24): error CS8185: A declaration is not allowed in this context.
                 //     object M1() => M(M(varx1), x1);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "varx1").WithLocation(4, 24)
                 );
 
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
                     .Where(p => p.Identifier().ValueText == "x1").Single();
-            var x1Ref = GetReference(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForDeclarationVarWithoutDataFlow(model, x1Decl, x1Ref);
         }
 
@@ -31211,13 +31211,13 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
@@ -31240,13 +31240,13 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
 
@@ -31269,13 +31269,13 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
 
@@ -31296,13 +31296,13 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
@@ -31329,7 +31329,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
@@ -31340,10 +31340,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReference(tree, "x1");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
         }
 
@@ -31365,7 +31365,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (8,38): error CS0246: The type or namespace name 'UndeclaredType' could not be found (are you missing a using directive or an assembly reference?)
@@ -31379,10 +31379,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReference(tree, "x1");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
         }
 
@@ -31408,15 +31408,15 @@ class Program
             bool duplicate,
             params IdentifierNameSyntax[] references)
         {
-            var variableDesignationSyntax = GetVariableDesignation(decl);
-            var symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
+            SingleVariableDesignationSyntax variableDesignationSyntax = GetVariableDesignation(decl);
+            ISymbol symbol = model.GetDeclaredSymbol(variableDesignationSyntax);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(SymbolKind.Field, symbol.Kind);
             Assert.Equal(variableDesignationSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDesignationSyntax));
 
-            var symbols = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText);
-            var names = model.LookupNames(decl.SpanStart);
+            ImmutableArray<ISymbol> symbols = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText);
+            List<string> names = model.LookupNames(decl.SpanStart);
 
             if (duplicate)
             {
@@ -31432,7 +31432,7 @@ class Program
 
             var local = (FieldSymbol)symbol;
 
-            var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+            VariableDeclaratorSyntax declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
 
@@ -31440,9 +31440,9 @@ class Program
             // Seee https://github.com/dotnet/roslyn/issues/13569
             AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type);
 
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
-                var referenceInfo = model.GetSymbolInfo(reference);
+                SymbolInfo referenceInfo = model.GetSymbolInfo(reference);
                 symbols = model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText);
 
                 if (duplicate)
@@ -31472,7 +31472,7 @@ class Program
                 }
                 else
                 {
-                    var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
+                    DataFlowAnalysis dataFlow = model.AnalyzeDataFlow(dataFlowParent);
 
                     if (dataFlow.Succeeded)
                     {
@@ -31509,7 +31509,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.Int32
 System.Int64");
@@ -31533,7 +31533,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         TakeOutParam(out var a);
@@ -31562,7 +31562,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (7,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         TakeOutParam(out int b, a);
@@ -31595,7 +31595,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"System.Int32
 System.Int32");
@@ -31621,13 +31621,13 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
         }
@@ -31649,13 +31649,13 @@ public class C
     static void M(out int x) { x = 1; System.Console.Write(""M""); }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "MMM");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "MMM");
             comp.VerifyDiagnostics();
 
-            var tree = comp.Compilation.SyntaxTrees.Single();
-            var model = comp.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = comp.Compilation.SyntaxTrees.Single();
+            SemanticModel model = comp.Compilation.GetSemanticModel(tree);
 
-            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.Null(model.GetTypeInfo(discard1).Type);
             Assert.Null(model.GetSymbolInfo(discard1).Symbol);
@@ -31664,7 +31664,7 @@ public class C
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
-            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            DiscardDesignationSyntax discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetTypeInfo(discard2).Type);
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
@@ -31673,7 +31673,7 @@ public class C
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
-            var discard3 = GetDiscardIdentifiers(tree).First();
+            IdentifierNameSyntax discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
             var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
             Assert.Equal("System.Int32", discard3Symbol.Type.ToTestDisplayString());
@@ -31712,7 +31712,7 @@ public class C
     static void M(out int x, out string y) { x = 1; y = ""hello""; System.Console.Write(""M""); }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "MMM");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "MMM");
             comp.VerifyDiagnostics();
         }
 
@@ -31733,14 +31733,14 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CCCC");
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
@@ -31756,7 +31756,7 @@ public class C
             Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
             Assert.Null(model.GetAliasInfo(declaration1.Type));
 
-            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            DiscardDesignationSyntax discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
@@ -31772,7 +31772,7 @@ public class C
             Assert.True(model.GetConversion(declaration2.Type).IsIdentity);
             Assert.Null(model.GetAliasInfo(declaration2.Type));
 
-            var discard3 = GetDiscardIdentifiers(tree).First();
+            IdentifierNameSyntax discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
             var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
             Assert.Equal("int _", discard3Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
@@ -31793,7 +31793,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,19): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         new C(out long x1);
@@ -31806,13 +31806,13 @@ public class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "long x1").WithArguments("x1").WithLocation(7, 19)
                 );
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl);
 
-            var discard1 = GetDiscardDesignations(tree).Single();
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).Single();
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
@@ -31847,14 +31847,14 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CC");
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
@@ -31870,7 +31870,7 @@ public class C
             Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
             Assert.Equal("alias1=System.Int32", model.GetAliasInfo(declaration1.Type).ToTestDisplayString());
 
-            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            DiscardDesignationSyntax discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
@@ -31905,7 +31905,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,19): error CS1503: Argument 1: cannot convert from 'out alias1' to 'out int'
                 //         new C(out alias1 _);
@@ -31915,10 +31915,10 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "var _").WithArguments("1", "out var", "out int").WithLocation(11, 19)
                 );
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
@@ -31934,7 +31934,7 @@ public class C
             Assert.True(model.GetConversion(declaration1.Type).IsIdentity);
             Assert.Null(model.GetAliasInfo(declaration1.Type));
 
-            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            DiscardDesignationSyntax discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
@@ -31982,7 +31982,7 @@ public class Derived4 : C
     public Derived4() : this(out _) { System.Console.Write(""Derived4""); }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C Derived2 C Derived3 C Derived4");
         }
@@ -32005,7 +32005,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0103: The name '_' does not exist in the current context
                 //         _.ToString();
@@ -32049,7 +32049,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.Int32");
         }
@@ -32072,7 +32072,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.M<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(out var _);
@@ -32099,7 +32099,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "object returning M. int returning M.");
         }
@@ -32121,7 +32121,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
                 //         M(out var _);
@@ -32153,7 +32153,7 @@ public static class S
 {
     public static void M2(this A self, out B x) { x = null; }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);
@@ -32179,11 +32179,11 @@ public class C
         // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "x").Single();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IdentifierNameSyntax x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "x").Single();
             Assert.Equal("x", x.ToString());
             Assert.Equal("System.String x", model.GetSymbolInfo(x).Symbol.ToTestDisplayString());
         }
@@ -32210,7 +32210,7 @@ public class C
     static int M(out int z) => z = 1;
     static int M(int a, int b) => a+b;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
                 // (10,29): error CS0128: A local variable or function named 'x1' is already defined in this scope
                 //                 M(M(out int x1), x1);
@@ -32222,10 +32222,10 @@ public class C
                 //                 M(M(out int x1), x1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 34)
                 );
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var x6Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x6Ref = GetReferences(tree, "x1").ToArray();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x6Decl.Length);
             Assert.Equal(3, x6Ref.Length);
             VerifyModelForOutVar(model, x6Decl[0], x6Ref);
@@ -32252,7 +32252,7 @@ class C
 ";
             // the scope of an expression variable introduced in the default expression
             // of a local function parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (6,75): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
@@ -32285,14 +32285,14 @@ class C
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(4, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
                 VerifyNotInScope(model, refs[1]);
@@ -32329,7 +32329,7 @@ class C
 ";
             // the scope of an expression variable introduced in the default expression
             // of a lambda parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_DefaultValueNotAllowed).Verify(
                 // (9,55): error CS0103: The name 'z1' does not exist in the current context
                 //                                             { var t = z1; };
@@ -32345,17 +32345,17 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(15, 22)
                 );
 
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var z1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z1").First();
+            IdentifierNameSyntax z1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z1").First();
             Assert.Equal("System.Int32", model.GetTypeInfo(z1).Type.ToTestDisplayString());
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(4, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
                 VerifyNotInScope(model, refs[1]);
@@ -32414,7 +32414,7 @@ class Test : System.Attribute
     public bool p2 {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
                                                     d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
@@ -32434,32 +32434,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 23)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -32513,7 +32513,7 @@ class Test : System.Attribute
     public Test(bool p1, bool p2) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
                                                     d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
@@ -32533,32 +32533,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 19)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -32613,7 +32613,7 @@ class Test : System.Attribute
     public bool p2 {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
                                                     d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
@@ -32633,32 +32633,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 23)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -32712,7 +32712,7 @@ class Test : System.Attribute
     public Test(bool p1, bool p2) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
                                                     d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
@@ -32732,32 +32732,32 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 19)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetOutVarDeclaration(tree, "x3");
-            var x3Ref = GetReference(tree, "x3");
+            DeclarationExpressionSyntax x3Decl = GetOutVarDeclaration(tree, "x3");
+            IdentifierNameSyntax x3Ref = GetReference(tree, "x3");
             VerifyModelForOutVarInNotExecutableCode(model, x3Decl, x3Ref);
 
-            var x4Decl = GetOutVarDeclaration(tree, "x4");
-            var x4Ref = GetReference(tree, "x4");
+            DeclarationExpressionSyntax x4Decl = GetOutVarDeclaration(tree, "x4");
+            IdentifierNameSyntax x4Ref = GetReference(tree, "x4");
             VerifyModelForOutVarInNotExecutableCode(model, x4Decl, x4Ref);
 
-            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
-            var x5Ref = GetReference(tree, "x5");
+            DeclarationExpressionSyntax[] x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            IdentifierNameSyntax x5Ref = GetReference(tree, "x5");
             Assert.Equal(2, x5Decl.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
-            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
-            var x6Ref = GetReferences(tree, "x6").ToArray();
+            DeclarationExpressionSyntax[] x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x6Decl[0], x6Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x6Decl[1]);
 
-            var x7Decl = GetOutVarDeclaration(tree, "x7");
-            var x7Ref = GetReferences(tree, "x7").ToArray();
+            DeclarationExpressionSyntax x7Decl = GetOutVarDeclaration(tree, "x7");
+            IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyModelForOutVarInNotExecutableCode(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
@@ -32798,7 +32798,7 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
                                                     d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (10,44): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -32806,15 +32806,15 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(10, 44)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
@@ -32855,7 +32855,7 @@ class Test : System.Attribute
     public Test(bool p) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
                                                     d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (10,40): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -32863,15 +32863,15 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(10, 40)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
+            DeclarationExpressionSyntax x1Decl = GetOutVarDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
 
-            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            DeclarationExpressionSyntax[] x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
@@ -32892,18 +32892,18 @@ class C
     static int M2(int a, int b) => 2;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (6,24): error CS8081: Expression does not have a name.
                 //         var x = nameof(M2(M1(out var x1), x1)).ToString();
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M2(M1(out var x1), x1)").WithLocation(6, 24)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var name = "x1";
-            var decl = GetOutVarDeclaration(tree, name);
-            var refs = GetReferences(tree, name).ToArray();
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+            IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
             Assert.Equal(1, refs.Length);
             VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -32929,7 +32929,7 @@ class C
 ";
             // the scope of an expression variable introduced in the default expression
             // of a local function parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (6,83): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
@@ -32968,14 +32968,14 @@ class C
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(4, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, reference: refs[0]);
                 VerifyNotInScope(model, refs[1]);
@@ -33002,7 +33002,7 @@ class MyAttribute: System.Attribute
     public MyAttribute(bool x, int y) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (2,16): error CS8081: Expression does not have a name.
                 // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
@@ -33023,14 +33023,14 @@ class MyAttribute: System.Attribute
                 // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 39)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(2, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33056,7 +33056,7 @@ class MyAttribute: System.Attribute
     public MyAttribute(bool x, int y) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { text1, text2 });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { text1, text2 });
             compilation.VerifyDiagnostics(
                 // (2,26): error CS8081: Expression does not have a name.
                 // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
@@ -33077,14 +33077,14 @@ class MyAttribute: System.Attribute
                 // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 49)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(2, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33114,7 +33114,7 @@ class C
     public static bool M(object a, int b) => b == 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (8,27): error CS8081: Expression does not have a name.
                 //             case M(nameof(M(out int z1)), z1):
@@ -33135,14 +33135,14 @@ class C
                 //                 System.Console.WriteLine(z2);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 17)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(2, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33164,7 +33164,7 @@ class C
     public static bool M(object a, int b) => b == 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (5,29): error CS8081: Expression does not have a name.
                 //     const bool b = M(nameof(M(out var z2)), z2);
@@ -33185,14 +33185,14 @@ class C
                 //     const bool a = M(nameof(M(out int z1)), z1);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "M(nameof(M(out int z1)), z1)").WithArguments("C.a").WithLocation(4, 20)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(2, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs[0]);
                 VerifyNotInScope(model, refs[1]);
@@ -33218,7 +33218,7 @@ class C
     public static bool M(object a, int b) => b == 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (6,33): error CS8081: Expression does not have a name.
                 //         const bool a = M(nameof(M(out int z1)), z1);
@@ -33239,14 +33239,14 @@ class C
                 //         const bool b = M(nameof(M(out var z2)), z2);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(7, 49)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i <= 2; i++)
             {
                 var name = $"z{i}";
-                var decl = GetOutVarDeclaration(tree, name);
-                var refs = GetReferences(tree, name).ToArray();
+                DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+                IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
                 Assert.Equal(2, refs.Length);
                 VerifyModelForOutVarInNotExecutableCode(model, decl, refs);
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33270,7 +33270,7 @@ class C
     public static bool M(object a, int b) => b == 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (6,27): error CS8081: Expression does not have a name.
                 //         string s = nameof((System.Action)(() => M(M(out var z1), z1))).ToString();
@@ -33279,12 +33279,12 @@ class C
                 //         bool c = z1 == 0;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(7, 18)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var name = "z1";
-            var decl = GetOutVarDeclaration(tree, name);
-            var refs = GetReferences(tree, name).ToArray();
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, name);
+            IdentifierNameSyntax[] refs = GetReferences(tree, name).ToArray();
             Assert.Equal(2, refs.Length);
             VerifyModelForOutVar(model, decl, refs[0]);
             VerifyNotInScope(model, refs[1]);
@@ -33311,16 +33311,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType)); // crashes
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
@@ -33350,16 +33350,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType)); // crashes
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
@@ -33394,16 +33394,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType)); // crashes
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
@@ -33425,16 +33425,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType)); // crashes
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
@@ -33464,16 +33464,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType)); // crashes
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("var", symbol.Type.ToTestDisplayString());
@@ -33496,16 +33496,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType));
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33532,16 +33532,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType));
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33571,16 +33571,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType));
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33601,16 +33601,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType));
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33638,16 +33638,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.First();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
+            IdentifierNameSyntax varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
             Assert.Null(model.GetAliasInfo(varType));
 
-            var decl = GetOutVarDeclaration(tree, "x");
+            DeclarationExpressionSyntax decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
             VerifyModelForOutVarInNotExecutableCode(model, decl);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
@@ -33673,7 +33673,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, '(' expected
                 //         foreach 
@@ -33692,11 +33692,11 @@ class Program
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(7, 60)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var xDecl = GetOutVarDeclaration(tree, "x");
-            var xRef = GetReferences(tree, "x", 1);
+            DeclarationExpressionSyntax xDecl = GetOutVarDeclaration(tree, "x");
+            IdentifierNameSyntax[] xRef = GetReferences(tree, "x", 1);
             VerifyModelForOutVarWithoutDataFlow(model, xDecl, xRef);
             Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef[0]).Type.ToTestDisplayString());
         }
@@ -33721,7 +33721,7 @@ class C
     static void G(Func<int, bool> f, object o) { }
     static void G(C c, object o) { }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'G' takes 1 arguments
                 //         G(x => x > 0 && F(out var y) && y > 0);
@@ -33749,7 +33749,7 @@ class C
     static void G(Expression<Func<int, bool>> f, object o) { }
     static void G(C c, object o) { }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,9): error CS1501: No overload for method 'G' takes 1 arguments
                 //         G(x => x > 0 && F(out var y) && y > 0);
@@ -33776,7 +33776,7 @@ class C
         return true;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -33796,18 +33796,18 @@ class C
         o = null;
     }
 }";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var identifierBefore = GetReferences(tree, "G").Single();
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IdentifierNameSyntax identifierBefore = GetReferences(tree, "G").Single();
             Assert.Equal(tree, identifierBefore.Location.SourceTree);
-            var statementBefore = identifierBefore.Ancestors().OfType<StatementSyntax>().First();
-            var statementAfter = SyntaxFactory.ParseStatement(@"G(out _);");
+            StatementSyntax statementBefore = identifierBefore.Ancestors().OfType<StatementSyntax>().First();
+            StatementSyntax statementAfter = SyntaxFactory.ParseStatement(@"G(out _);");
             bool success = model.TryGetSpeculativeSemanticModel(statementBefore.SpanStart, statementAfter, out model);
             Assert.True(success);
-            var identifierAfter = statementAfter.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "G");
+            IdentifierNameSyntax identifierAfter = statementAfter.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "G");
             Assert.Null(identifierAfter.Location.SourceTree);
-            var info = model.GetSymbolInfo(identifierAfter);
+            SymbolInfo info = model.GetSymbolInfo(identifierAfter);
             Assert.Equal("void C.G(out System.Object o)", info.Symbol.ToTestDisplayString());
         }
 
@@ -33829,13 +33829,13 @@ public class C
         throw null;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var foreachStatement = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-            var info = model.GetForEachStatementInfo(foreachStatement);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ForEachStatementSyntax foreachStatement = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            ForEachStatementInfo info = model.GetForEachStatementInfo(foreachStatement);
             Assert.Equal("System.Object", info.ElementType.ToTestDisplayString());
             Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
@@ -33870,7 +33870,7 @@ public class C
         }
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -33897,7 +33897,7 @@ public class C
         x = 0;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (7,32): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
@@ -33905,11 +33905,11 @@ public class C
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 32)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var zDecl = GetOutVarDeclaration(tree, "z");
-            var zRef = GetReference(tree, "z");
+            DeclarationExpressionSyntax zDecl = GetOutVarDeclaration(tree, "z");
+            IdentifierNameSyntax zRef = GetReference(tree, "z");
             VerifyModelForOutVar(model, zDecl, zRef);
         }
 
@@ -33927,7 +33927,7 @@ public class C
         System.Console.WriteLine(z);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
@@ -33941,11 +33941,11 @@ public class C
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out var z)").WithLocation(7, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var zDecl = GetOutVarDeclaration(tree, "z");
-            var zRef = GetReference(tree, "z");
+            DeclarationExpressionSyntax zDecl = GetOutVarDeclaration(tree, "z");
+            IdentifierNameSyntax zRef = GetReference(tree, "z");
             VerifyModelForOutVar(model, zDecl, zRef);
         }
 
@@ -33962,7 +33962,7 @@ public class C
         System.Console.WriteLine(z);
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
@@ -33970,14 +33970,14 @@ public class C
                 Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "new T(out var z)").WithArguments("T").WithLocation(6, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var zDecl = GetOutVarDeclaration(tree, "z");
-            var zRef = GetReference(tree, "z");
+            DeclarationExpressionSyntax zDecl = GetOutVarDeclaration(tree, "z");
+            IdentifierNameSyntax zRef = GetReference(tree, "z");
             VerifyModelForOutVarWithoutDataFlow(model, zDecl, zRef);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            ObjectCreationExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
 
             Assert.Equal("new T(out var z)", node.ToString());
 
@@ -34008,7 +34008,7 @@ public class C
 
 
 ";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
@@ -34016,14 +34016,14 @@ public class C
                 Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "new T(out var z) {F1 = 1}").WithArguments("T").WithLocation(6, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var zDecl = GetOutVarDeclaration(tree, "z");
-            var zRef = GetReference(tree, "z");
+            DeclarationExpressionSyntax zDecl = GetOutVarDeclaration(tree, "z");
+            IdentifierNameSyntax zRef = GetReference(tree, "z");
             VerifyModelForOutVarWithoutDataFlow(model, zDecl, zRef);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            ObjectCreationExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
 
             Assert.Equal("new T(out var z) {F1 = 1}", node.ToString());
 
@@ -34074,7 +34074,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -34102,12 +34102,12 @@ public class C
 
 
 ";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var initializerSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+            ConstructorInitializerSyntax initializerSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
 
             Assert.Equal(": this(out var x)", initializerSyntax.ToString());
 
@@ -34126,7 +34126,7 @@ IInvocationOperation ( C..ctor(out System.Int32 x)) (OperationKind.Invocation, T
             IOperation initializerOperation = model.GetOperation(initializerSyntax);
             Assert.Equal(OperationKind.ExpressionStatement, initializerOperation.Parent.Kind);
 
-            var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            BlockSyntax blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
 
             Assert.Equal("{ M(out var y); }", blockBodySyntax.ToString());
 
@@ -34151,7 +34151,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
             Assert.Same(initializerOperation.Parent.Parent, blockBodyOperation.Parent);
             Assert.Null(blockBodyOperation.Parent.Parent);
 
-            var expressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
+            ArrowExpressionClauseSyntax expressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
 
             Assert.Equal("=> M(out var z)", expressionBodySyntax.ToString());
 
@@ -34174,7 +34174,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
 
             Assert.Same(blockBodyOperation.Parent, model.GetOperation(expressionBodySyntax).Parent);
 
-            var declarationSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            ConstructorDeclarationSyntax declarationSyntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
             Assert.Same(blockBodyOperation.Parent, model.GetOperation(declarationSyntax));
 
@@ -34242,12 +34242,12 @@ public class C
 
 
 ";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var expressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
+            ArrowExpressionClauseSyntax expressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
 
             Assert.Equal("=> M(out var y)", expressionBodySyntax.ToString());
 
@@ -34271,7 +34271,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
             Assert.Equal(OperationKind.MethodBodyOperation, expressionBodyOperation.Parent.Kind);
             Assert.Null(expressionBodyOperation.Parent.Parent);
 
-            var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            BlockSyntax blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
 
             Assert.Equal("{return M(out var x);}", blockBodySyntax.ToString());
 
@@ -34295,12 +34295,12 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
             IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
             Assert.Same(expressionBodyOperation.Parent, blockBodyOperation.Parent);
 
-            var propertyExpressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ElementAt(1);
+            ArrowExpressionClauseSyntax propertyExpressionBodySyntax = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ElementAt(1);
 
             Assert.Equal("=> M(out var z)", propertyExpressionBodySyntax.ToString());
             Assert.Null(model.GetOperation(propertyExpressionBodySyntax)); // https://github.com/dotnet/roslyn/issues/24900
 
-            var declarationSyntax = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            AccessorDeclarationSyntax declarationSyntax = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
             Assert.Same(expressionBodyOperation.Parent, model.GetOperation(declarationSyntax));
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
@@ -34350,12 +34350,12 @@ public class C
 
 
 ";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node3 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
+            ArrowExpressionClauseSyntax node3 = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().First();
 
             Assert.Equal("=> M(out var z)", node3.ToString());
 

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 diagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_RefCultureMismatch, assembly, refIdentity.CultureName), NoLocation.Singleton);
             }
 
-            var refMachine = assembly.Machine;
+            Machine refMachine = assembly.Machine;
             // If other assembly is agnostic this is always safe
             // Also, if no mscorlib was specified for back compat we add a reference to mscorlib
             // that resolves to the current framework directory. If the compiler is 64-bit
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)assembly != (object)assembly.CorLibrary &&
                 !(refMachine == Machine.I386 && !assembly.Bit32Required))
             {
-                var machine = SourceModule.Machine;
+                Machine machine = SourceModule.Machine;
 
                 if (!(machine == Machine.I386 && !SourceModule.Bit32Required) &&
                     machine != refMachine)
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         // locations such as anonymous types, etc...
                         if (location != null)
                         {
-                            foreach (var member in symbol.GetMembers())
+                            foreach (Symbol member in symbol.GetMembers())
                             {
                                 switch (member.Kind)
                                 {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             //  add this named type location
                             AddSymbolLocation(result, location, (Cci.IDefinition)symbol);
 
-                            foreach (var member in symbol.GetMembers())
+                            foreach (Symbol member in symbol.GetMembers())
                             {
                                 switch (member.Kind)
                                 {
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void AddSymbolLocation(MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> result, Symbol symbol)
         {
-            var location = GetSmallestSourceLocationOrNull(symbol);
+            Location location = GetSmallestSourceLocationOrNull(symbol);
             if (location != null)
             {
                 AddSymbolLocation(result, location, (Cci.IDefinition)symbol);
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(Compilation == compilation, "How did we get symbol from different compilation?");
 
             Location result = null;
-            foreach (var loc in symbol.Locations)
+            foreach (Location loc in symbol.Locations)
             {
                 if (loc.IsInSource && (result == null || compilation.CompareSourceLocations(result, loc) > 0))
                 {
@@ -418,12 +418,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            foreach (var type in GetAdditionalTopLevelTypes(context.Diagnostics))
+            foreach (NamedTypeSymbol type in GetAdditionalTopLevelTypes(context.Diagnostics))
             {
                 yield return type;
             }
 
-            foreach (var type in GetEmbeddedTypes(context.Diagnostics))
+            foreach (NamedTypeSymbol type in GetEmbeddedTypes(context.Diagnostics))
             {
                 yield return type;
             }
@@ -433,8 +433,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             while (namespacesToProcess.Count > 0)
             {
-                var ns = namespacesToProcess.Pop();
-                foreach (var member in ns.GetMembers())
+                NamespaceSymbol ns = namespacesToProcess.Pop();
+                foreach (Symbol member in ns.GetMembers())
                 {
                     var memberNamespace = member as NamespaceSymbol;
                     if ((object)memberNamespace != null)
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 index = -1;
             }
 
-            foreach (var member in symbol.GetMembers())
+            foreach (Symbol member in symbol.GetMembers())
             {
                 var namespaceOrType = member as NamespaceOrTypeSymbol;
                 if ((object)namespaceOrType != null)
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (!OutputKind.IsNetModule())
             {
-                var modules = sourceAssembly.Modules;
+                ImmutableArray<ModuleSymbol> modules = sourceAssembly.Modules;
                 for (int i = 1; i < modules.Length; i++) //NOTE: skipping modules[0]
                 {
                     GetExportedTypes(modules[i].GlobalNamespace, -1, builder);
@@ -537,10 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void ReportExportedTypeNameCollisions(ImmutableArray<Cci.ExportedType> exportedTypes, DiagnosticBag diagnostics)
         {
-            var sourceAssembly = SourceModule.ContainingSourceAssembly;
+            SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
             var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
-            foreach (var exportedType in exportedTypes)
+            foreach (Cci.ExportedType exportedType in exportedTypes)
             {
                 var type = (NamedTypeSymbol)exportedType.Type;
 
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
                 // Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
-                var orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+                IOrderedEnumerable<NamedTypeSymbol> orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
 
                 foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     while (stack.Count > 0)
                     {
-                        var (type, parentIndex) = stack.Pop();
+                        (NamedTypeSymbol type, int parentIndex) = stack.Pop();
 
                         // In general, we don't want private types to appear in the ExportedTypes table.
                         // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(diagnostics != null);
 
-            var typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType);
+            NamedTypeSymbol typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType);
 
             DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
             if (info != null)
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // this should never happen, in theory,
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
-            var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
             if ((object)declaredBase != null && declaredBase.SpecialType == SpecialType.System_ValueType)
             {
                 return;
@@ -963,10 +963,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return;
             }
 
-            var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
+            Location location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
             if ((object)declaredBase != null)
             {
-                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                DiagnosticInfo diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
                 if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(diagnosticInfo, location);
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // NOTE: all parameters must always agree on whether they need wrapping
             if (param.IsDefinition)
             {
-                var container = param.ContainingSymbol;
+                Symbol container = param.ContainingSymbol;
                 if (ContainerIsGeneric(container))
                 {
                     return true;
@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private ImmutableArray<Cci.IParameterTypeInformation> TranslateAll(ImmutableArray<ParameterSymbol> @params)
         {
             var builder = ArrayBuilder<Cci.IParameterTypeInformation>.GetInstance();
-            foreach (var param in @params)
+            foreach (ParameterSymbol param in @params)
             {
                 builder.Add(CreateParameterTypeInformationWrapper(param));
             }

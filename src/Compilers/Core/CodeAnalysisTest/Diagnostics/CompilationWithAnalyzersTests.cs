@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void GetEffectiveDiagnostics_Errors()
         {
             var c = CSharpCompilation.Create("c");
-            var ds = new[] { default(Diagnostic) };
+            Diagnostic[] ds = new[] { default(Diagnostic) };
 
             Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(default(ImmutableArray<Diagnostic>), c));
             Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(default(IEnumerable<Diagnostic>), c));
@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 WithSpecificDiagnosticOptions(
                     new[] { KeyValuePair.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
-            var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude);
-            var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull);
-            var ds = new[] { default(Diagnostic), d1, d2 };
+            Diagnostic d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude);
+            Diagnostic d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull);
+            Diagnostic[] ds = new[] { default(Diagnostic), d1, d2 };
 
-            var filtered = CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, c);
+            IEnumerable<Diagnostic> filtered = CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, c);
 
             // overwrite the original value to test eagerness:
             ds[1] = default(Diagnostic);
@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
             var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions, CancellationToken.None);
 
-            var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
+            AnalysisResult analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Empty(analysisResult.CompilationDiagnostics);
 
             // Even though the analyzer registers a symbol action, it should never be invoked because all of its rules are disabled.
-            var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
+            CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
         }
     }

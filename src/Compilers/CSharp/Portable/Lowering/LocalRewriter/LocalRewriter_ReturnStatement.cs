@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _factory.CurrentMethod;
+                MethodSymbol method = _factory.CurrentMethod;
                 if (method is LambdaSymbol)
                 {
                     return true;

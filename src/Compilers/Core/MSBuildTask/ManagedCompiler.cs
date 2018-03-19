@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // Note: using ToolArguments here (the property) since
                     // commandLineCommands (the parameter) may have been mucked with
                     // (to support using the dotnet cli)
-                    var responseTask = BuildServerConnection.RunServerCompilation(
+                    System.Threading.Tasks.Task<BuildResponse> responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
                         string.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                         GetArguments(ToolArguments, responseFileCommands).ToList(),
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
-                    var response = responseTask.Result;
+                    BuildResponse response = responseTask.Result;
                     if (response != null)
                     {
                         ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
@@ -655,9 +655,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
-            var commandLineArguments =
+            IEnumerable<string> commandLineArguments =
                 CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments =
+            IEnumerable<string> responseFileArguments =
                 CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
             return commandLineArguments.Concat(responseFileArguments).ToArray();
         }
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private void NormalizePaths(ITaskItem[] taskItems)
         {
-            foreach (var item in taskItems)
+            foreach (ITaskItem item in taskItems)
             {
                 item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
             }

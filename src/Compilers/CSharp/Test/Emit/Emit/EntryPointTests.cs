@@ -24,8 +24,8 @@ public class C
   public static void Main() { System.Console.WriteLine(2); }
 }
 ";
-            var compilation = CompileConsoleApp(source);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "2");
+            CSharpCompilation compilation = CompileConsoleApp(source);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "2");
 
             verifier.VerifyDiagnostics(
                 // (4,22): warning CS0028: 'C.Main(int)' has the wrong signature to be an entry point
@@ -42,9 +42,9 @@ public class C
   public static void Main() { System.Console.WriteLine(2); }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            var verifier = CompileAndVerify(compilation);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
 
             // Dev10 reports warning CS0028: 'C.Main(int)' has the wrong signature to be an entry point, 
             // but that seems like a bug since we are not compiling an exe.
@@ -65,7 +65,7 @@ public class C
   public static void Main(string[,] goo) { System.Console.WriteLine(3); }
 }
 ";
-            var compilation = CompileConsoleApp(source);
+            CSharpCompilation compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
                 // (4,22): warning CS0028: 'C.Main(int)' has the wrong signature to be an entry point
@@ -96,7 +96,7 @@ public class D
   public static string Main() { System.Console.WriteLine(3); return null; }
 }
 ";
-            var compilation = CompileConsoleApp(source);
+            CSharpCompilation compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
                 // (10,24): warning CS0028: 'D.Main()' has the wrong signature to be an entry point
@@ -119,7 +119,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     Parse(csx, options: TestOptions.Script),
@@ -150,7 +150,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileConsoleApp(source);
+            CSharpCompilation compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
                 // (7,16): warning CS0028: 'MyClass.Main(string[], int)' has the wrong signature to be an entry point
@@ -175,7 +175,7 @@ public partial class A
   static partial void Main(double d) { }
 }
 ";
-            var compilation = CompileConsoleApp(source);
+            CSharpCompilation compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
                 // (9,23): warning CS0028: 'A.Main(double)' has the wrong signature to be an entry point
@@ -210,7 +210,7 @@ public static int Main = 1;
 System.Console.WriteLine(Main);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -231,7 +231,7 @@ int Main(string[] x) { return 2; }
 System.Console.WriteLine(Main());
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -249,7 +249,7 @@ System.Console.WriteLine(Main());
             string source = @"
 namespace N { namespace M { } }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("N.M"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("N.M"));
             compilation.VerifyDiagnostics(
                 // (2,25): error CS1556: 'N.M' specified for Main method must be a valid non-generic class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "M").WithArguments("N.M"));
@@ -267,7 +267,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
             compilation.VerifyDiagnostics(
                 // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a valid non-generic class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "D").WithArguments("C<T>.D"));
@@ -285,7 +285,7 @@ struct C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
             compilation.VerifyDiagnostics();
         }
 
@@ -320,7 +320,7 @@ public static class E
     static void Main() { Console.WriteLine(5); }
 }
 ";
-            var compilation = CreateCompilation(cs, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(cs, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS0402: 'C.Main<T>()': an entry point cannot be generic or in a generic type
                 Diagnostic(ErrorCode.WRN_MainCantBeGeneric, "Main").WithArguments("C.Main<T>()"),
@@ -441,7 +441,7 @@ class C
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics();
         }
 
@@ -463,7 +463,7 @@ class C<T>
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
                 // (7,7): error CS1556: 'C<T>' specified for Main method must be a valid non-generic class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("C<T>"));
@@ -486,7 +486,7 @@ public class C
     static int Main<T>() { return 1; }      
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
                 // (5,16): warning CS0028: 'C.Main(string)' has the wrong signature to be an entry point
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("C.Main(string)"),
@@ -514,7 +514,7 @@ public class C
     static int Main<T>() { return 1; }      
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics();
         }
 
@@ -535,7 +535,7 @@ public class C
     static int Main<T>() { return 1; }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
                 // (5,16): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
@@ -550,7 +550,7 @@ public class G
    public static int Main = 1;
 }
 ";
-            var compilation = CompileConsoleApp(source);
+            CSharpCompilation compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
@@ -564,7 +564,7 @@ public class G
 System.Console.WriteLine(1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script) },
                 options: TestOptions.ReleaseExe);
 
@@ -585,7 +585,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -619,7 +619,7 @@ public class D
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -651,7 +651,7 @@ class D
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             CompileAndVerify(compilation, expectedOutput: "1");
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("D"));
@@ -668,7 +668,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe.WithMainTypeName("D"));
 
@@ -686,7 +686,7 @@ delegate void D();
 interface I { }
 ";
 
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe.WithMainTypeName("C"));
 
@@ -734,7 +734,7 @@ class E
 ";
 
             // Dev10: reports a warning for instance Main, we don't since the signature is correct:
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
                 // (2,7): error CS1558: 'C' does not have a suitable static Main method
                 Diagnostic(ErrorCode.ERR_NoMainInClass, "C").WithArguments("C"));
@@ -766,7 +766,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -1409,10 +1409,10 @@ public class C
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
 
-            var netModule = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            CSharpCompilation netModule = CreateCompilation(source, options: TestOptions.ReleaseModule);
 
             compilation = CreateCompilation("",
                                                         new MetadataReference[] { netModule.EmitToImageReference() },
@@ -1435,8 +1435,8 @@ class Program
     public static void Main(string[] args) {}
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-            var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             Assert.Empty(model.GetDiagnostics());
             compilation.VerifyDiagnostics(
                 // (4,24): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
@@ -1456,7 +1456,7 @@ class Program
     public static ref int Main() { throw new System.Exception(); }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (4,27): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     public static ref int Main() {}
@@ -1476,7 +1476,7 @@ class Program
     public static ref int Main(string[] args) { throw new System.Exception(); }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (4,27): warning CS0028: 'Program.Main(string[])' has the wrong signature to be an entry point
                 //     public static ref int Main(string[] args) { throw new System.Exception(); }

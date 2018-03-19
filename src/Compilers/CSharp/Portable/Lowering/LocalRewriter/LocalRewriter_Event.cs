@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenReceiverOpt != null && node.Event.ContainingAssembly.IsLinked && node.Event.ContainingType.IsInterfaceType())
             {
-                var @interface = node.Event.ContainingType;
+                NamedTypeSymbol @interface = node.Event.ContainingType;
 
-                foreach (var attrData in @interface.GetAttributes())
+                foreach (CSharpAttributeData attrData in @interface.GetAttributes())
                 {
                     if (attrData.IsTargetAttribute(@interface, AttributeDescription.ComEventInterfaceAttribute) &&
                         attrData.CommonConstructorArguments.Length == 2)
@@ -285,11 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
 
 
-            var ctor = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
+            MethodSymbol ctor = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
 
             if ((object)ctor != null)
             {
-                var addRemove = _factory.WellKnownMethod(node.IsAddition ? WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler :
+                MethodSymbol addRemove = _factory.WellKnownMethod(node.IsAddition ? WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler :
                                                                           WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__RemoveEventHandler);
 
                 if ((object)addRemove != null)
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The code we just generated doesn't contain any direct references to the event itself,
             // but the com event binder needs the event to exist on the local type. We'll poke the pia reference
             // cache directly so that the event is embedded.
-            var module = this.EmitModule;
+            Emit.PEModuleBuilder module = this.EmitModule;
             if (module != null)
             {
                 module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event, node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);

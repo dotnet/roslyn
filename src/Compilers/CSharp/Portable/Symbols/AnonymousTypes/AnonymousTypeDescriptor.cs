@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string ComputeKey<T>(ImmutableArray<T> fields, Func<T, string> getName)
         {
             var key = PooledStringBuilder.GetInstance();
-            foreach (var field in fields)
+            foreach (T field in fields)
             {
                 key.Builder.Append('|');
                 key.Builder.Append(getName(field));
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!this.Fields.IsDefault);
 
-            foreach (var field in this.Fields)
+            foreach (AnonymousTypeField field in this.Fields)
             {
                 field.AssertIsGood();
             }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AnonymousTypeField[] newFields = new AnonymousTypeField[this.Fields.Length];
             for (int i = 0; i < newFields.Length; i++)
             {
-                var field = this.Fields[i];
+                AnonymousTypeField field = this.Fields[i];
                 newFields[i] = new AnonymousTypeField(field.Name, field.Location, newFieldTypes[i]);
             }
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // WARNING: if this test is edited, the test with the 
             //          test with the same name in VB must be modified too
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 struct S
 {
     public int F;
@@ -64,7 +64,7 @@ struct S
         [Fact]
         public void DataFlowsOutAndStructField()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 struct S
 {
     public int F;
@@ -98,7 +98,7 @@ struct S
         [Fact]
         public void DataFlowsInAndNullable_Property()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 struct S
 {
     public int F;
@@ -137,7 +137,7 @@ struct S
         [Fact]
         public void TestDataFlowsIn03()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class Program
 {
     static void Main(string[] args)
@@ -157,7 +157,7 @@ class Program
             // WARNING: test matches the same test in VB (TestDataFlowForValueTypes)
             //          Keep the two tests in sync!
 
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class Tst
 {
     public static void Main()
@@ -228,7 +228,7 @@ enum E1
         [Fact]
         public void TestDataFlowsIn04()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class Program
 {
@@ -245,7 +245,7 @@ class Program
         [Fact]
         public void TestDataFlowsOutExpression01()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public void F(int x)
     {
@@ -265,7 +265,7 @@ class C {
         [Fact]
         public void TestIncrement()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     static void M(int i)
@@ -288,7 +288,7 @@ class C
         [Fact]
         public void FlowAnalysisOnTypeOrNamespace1()
         {
-            var results = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     static void M(int i)
@@ -304,7 +304,7 @@ class C
         [Fact]
         public void FlowAnalysisOnTypeOrNamespace3()
         {
-            var results = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowExpression(@"
 public class A
 {
     public class B
@@ -328,7 +328,7 @@ class C
         [Fact]
         public void FlowAnalysisOnTypeOrNamespace4()
         {
-            var results = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowExpression(@"
 public class A
 {
     public class B
@@ -352,7 +352,7 @@ class C
         [Fact]
         public void DataFlowsOutIncrement01()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     static void M(int i)
@@ -370,7 +370,7 @@ class C
         [Fact]
         public void DataFlowsOutPreDecrement01()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class Test
 {
     string method(string s, int i)
@@ -389,7 +389,7 @@ class Test
         [Fact]
         public void TestBranchOfTernaryOperator()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -416,7 +416,7 @@ x
         [Fact]
         public void TestAssignmentExpressionAsBranchOfTernaryOperator()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -442,7 +442,7 @@ x = 1
         [Fact]
         public void TestAlwaysAssignedWithTernaryOperator()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     public void F(int x)
@@ -459,7 +459,7 @@ class C
         [Fact]
         public void TestAlwaysAssigned04()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -477,7 +477,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned05()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -496,7 +496,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned06()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -515,7 +515,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned07()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -534,7 +534,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned08()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -553,7 +553,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned09()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -572,7 +572,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned10()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -591,7 +591,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned11()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -610,7 +610,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned12()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -629,7 +629,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned13()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -648,7 +648,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned14()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -663,7 +663,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned15()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -678,7 +678,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned16()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static bool B(out bool b) { b = true; return b; }
     public static void Main(string[] args)
@@ -693,7 +693,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned17()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static bool B(out bool b) { b = true; return b; }
     public static void Main(string[] args)
@@ -708,7 +708,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned18()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static bool B(out bool b) { b = true; return b; }
     public static void Main(string[] args)
@@ -723,7 +723,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned19()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static bool B(out bool b) { b = true; return b; }
     public static void Main(string[] args)
@@ -738,7 +738,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned22()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static bool B(out bool b) { b = true; return b; }
     public static void Main(string[] args)
@@ -753,7 +753,7 @@ class C {
         [Fact]
         public void TestAlwaysAssignedAndWrittenInside()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -771,7 +771,7 @@ class C {
         [Fact]
         public void TestWrittenInside03()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -789,7 +789,7 @@ class C {
         [Fact]
         public void TestReadWrite01()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -806,7 +806,7 @@ class C {
         [Fact]
         public void TestReadWrite02()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void Main(string[] args)
     {
@@ -823,7 +823,7 @@ class C {
         [Fact]
         public void TestReadWrite03()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void M(out int x) { x = 1; }
     public static void Main(string[] args)
@@ -841,7 +841,7 @@ class C {
         [Fact]
         public void TestReadWrite04()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static void M(ref int x) { x = 1; }
     public static void Main(string[] args)
@@ -859,7 +859,7 @@ class C {
         [Fact]
         public void TestAssignmentExpressionSelection()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -884,7 +884,7 @@ x = 1
         [Fact]
         public void TestSingleVariableSelection()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -910,7 +910,7 @@ x
         [Fact]
         public void TestParenthesizedAssignmentExpressionSelection()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -936,7 +936,7 @@ class C {
         [Fact]
         public void TestRefArgumentSelection()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -966,7 +966,7 @@ x
         [Fact]
         public void AnalysisOfBadRef()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     static void Main()
@@ -980,7 +980,7 @@ class C
         [Fact]
         public void TestAlwaysAssigned20NullCoalescing()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     public static object B(out object b) { b = null; return b; }
     public static void Main(string[] args)
@@ -996,7 +996,7 @@ class C {
         [Fact]
         public void TestNullCoalescingWithConstNullLeft()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 struct STest {
     
     public static string SM()
@@ -1017,7 +1017,7 @@ struct STest {
         [Fact]
         public void TestNullCoalescingWithConstNotNullLeft()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 class Test {
     
     public static string SM()
@@ -1038,7 +1038,7 @@ class Test {
         [Fact]
         public void TestDefaultOperator01()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 
@@ -1056,7 +1056,7 @@ class Test<T> {
         [Fact]
         public void TestTypeOfOperator01()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 
@@ -1079,7 +1079,7 @@ class Test<T>
         [Fact]
         public void TestIsOperator01()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 
@@ -1102,7 +1102,7 @@ struct Test<T>
         [Fact]
         public void TestAsOperator01()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 
@@ -1127,7 +1127,7 @@ struct Test<T>
         [Fact]
         public void TestArrayInitializer()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -1153,7 +1153,7 @@ y
         [Fact]
         public void TestStackAllocArrayInitializer()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
@@ -1180,7 +1180,7 @@ y
         [Fact]
         public void TestAnalysisInFieldInitializers()
         {
-            var results1 = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results1 = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class C {
     static void Main()
@@ -1196,7 +1196,7 @@ class C {
     }
 }
 ");
-            var results2 = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results2 = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class C {
     static Func<int, int> f = p => 
@@ -1238,7 +1238,7 @@ class C {
         [Fact]
         public void TestAnalysisInSimpleFieldInitializers()
         {
-            var results1 = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results1 = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class C {
     int x = 1;
@@ -1246,7 +1246,7 @@ class C {
     int z = /*<bind>*/1 + (x=2) + p + y/*</bind>*/;
 }
 ");
-            var results2 = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results2 = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class C {
     int x = 1;
@@ -1285,7 +1285,7 @@ class C {
         [Fact]
         public void ConstantFieldInitializerExpression()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 public class Aa
 {
@@ -1300,7 +1300,7 @@ public class Aa
         [Fact]
         public void ConstantFieldInitializerExpression2()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 public class Aa
 {
@@ -1317,7 +1317,7 @@ public class Aa
         [Fact]
         public void FieldInitializerExpression()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 public class Aa
 {
@@ -1333,7 +1333,7 @@ public class Aa
         [Fact]
         public void IdentifierNameInObjectCreationExpr()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 class myClass
 {
     static int Main()
@@ -1350,7 +1350,7 @@ class myClass
         [Fact]
         public void MethodGroupInDelegateCreation()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     void Method()
@@ -1367,7 +1367,7 @@ class C
         [Fact]
         public void BindInCaseLabel()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 class TestShapes
 {
     static void Main()
@@ -1382,7 +1382,7 @@ class TestShapes
     }
 }
 enum color { blue, green }");
-            var tmp = dataFlows.VariablesDeclared; // ensure no exception thrown
+            System.Collections.Immutable.ImmutableArray<ISymbol> tmp = dataFlows.VariablesDeclared; // ensure no exception thrown
             Assert.Empty(dataFlows.VariablesDeclared);
         }
 
@@ -1390,7 +1390,7 @@ enum color { blue, green }");
         [Fact]
         public void BindLiteralExprInEnumDecl()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 enum Number
 {
     Zero = /*<bind>*/0/*</bind>*/
@@ -1404,7 +1404,7 @@ enum Number
         [Fact]
         public void AssignToConst()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     static void Main(string[] args)
@@ -1421,7 +1421,7 @@ class Program
         [Fact]
         public void TestAddressOfUnassignedStructLocal()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class Program
 {
     static void Main()
@@ -1452,7 +1452,7 @@ class Program
         [Fact]
         public void TestAddressOfAssignedStructLocal()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class Program
 {
     static void Main()
@@ -1483,7 +1483,7 @@ class Program
         [Fact]
         public void TestAddressOfUnassignedStructField()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public struct S
 {
     public int x;
@@ -1520,7 +1520,7 @@ class Program
         [Fact]
         public void TestAddressOfAssignedStructField()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public struct S
 {
     public int x;
@@ -1557,7 +1557,7 @@ class Program
         [Fact]
         public void TestAddressOfAssignedStructField2()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public struct S
 {
     public int x;
@@ -1596,7 +1596,7 @@ class Program
         [Fact]
         public void TestAssignToStructField()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public struct S
 {
     public int x;
@@ -1631,7 +1631,7 @@ class Program
         [Fact, WorkItem(544314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544314")]
         public void TestOmittedLambdaPointerTypeParameter()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 
 unsafe public class Test
@@ -1665,7 +1665,7 @@ unsafe public class Test
         [Fact]
         public void TestObjectInitializerExpression()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public class MemberInitializerTest
 {   
     public int x;
@@ -1696,7 +1696,7 @@ public class MemberInitializerTest
         [Fact]
         public void TestObjectInitializerExpression_LocalAccessed()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public class MemberInitializerTest
 {   
     public int x;
@@ -1728,7 +1728,7 @@ public class MemberInitializerTest
         [Fact]
         public void TestObjectInitializerExpression_InvalidAccess()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public class MemberInitializerTest
 {   
     public int x;
@@ -1760,7 +1760,7 @@ public class MemberInitializerTest
         [Fact]
         public void TestObjectInitializerExpression_LocalAccessed_InitializerExpressionSyntax()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public class MemberInitializerTest
 {   
     public int x;
@@ -1792,7 +1792,7 @@ public class MemberInitializerTest
         [Fact]
         public void TestObjectInitializerExpression_NestedObjectInitializer()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public class Goo
 {
     public int z;
@@ -1828,7 +1828,7 @@ public class MemberInitializerTest
         [Fact]
         public void TestObjectInitializerExpression_VariableCaptured()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 public class Goo
 {
     public delegate int D();
@@ -1865,7 +1865,7 @@ public class MemberInitializerTest
         [Fact]
         public void TestCollectionInitializerExpression()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -1898,7 +1898,7 @@ class Test
         [Fact]
         public void TestCollectionInitializerExpression_LocalAccessed()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -1932,7 +1932,7 @@ class Test
         [Fact]
         public void TestCollectionInitializerExpression_ComplexElementInitializer()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -1954,7 +1954,7 @@ class Test
         [Fact]
         public void TestCollectionInitializerExpression_VariableCaptured()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -1989,7 +1989,7 @@ class Test
         [Fact]
         public void ObjectInitializerInField()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 
@@ -2016,7 +2016,7 @@ public class Test
         [Fact]
         public void CollectionInitializerInField()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 
@@ -2043,7 +2043,7 @@ public class Test
         [Fact(), WorkItem(529329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529329")]
         public void QueryAsFieldInitializer()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -2075,7 +2075,7 @@ class Test
         [Fact]
         public void FullQueryExpression()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(
 @"using System.Linq;
  
 class Program
@@ -2094,7 +2094,7 @@ class Program
         [Fact]
         public void ReceiverRead()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(
 @"using System;
 
 struct X
@@ -2126,7 +2126,7 @@ class Test
         [Fact]
         public void ReceiverWritten()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(
 @"using System;
 
 struct X
@@ -2158,7 +2158,7 @@ class Test
         [Fact]
         public void ReceiverReadAndWritten()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(
 @"using System;
 
 struct X
@@ -2190,7 +2190,7 @@ class Test
         public void UnaryPlus()
         {
             // reported at https://social.msdn.microsoft.com/Forums/vstudio/en-US/f5078027-def2-429d-9fef-ab7f240883d2/writteninside-for-unary-operators?forum=roslyn
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class Main
 {
     static int Main(int a)
@@ -2221,7 +2221,7 @@ class Main
         [Fact]
         public void TestDataReadWrittenIncDecOperator()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static short Main()
     {
@@ -2233,8 +2233,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -2253,7 +2253,7 @@ class C {
         [Fact]
         public void TestTernaryExpressionWithAssignments()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -2266,8 +2266,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -2286,7 +2286,7 @@ class C {
         [Fact]
         public void TestUnreachableRegion()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
 @"class C
 {
     public static void Main(string[] args)
@@ -2307,7 +2307,7 @@ class C {
         [Fact]
         public void TestUnreachableRegion2()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
 @"class C
 {
     public static void Main(string[] args)
@@ -2340,7 +2340,7 @@ l2:
         [Fact]
         public void TestUnreachableRegionInExpression()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
 @"class C
 {
     public static bool Main()
@@ -2356,7 +2356,7 @@ l2:
         [Fact]
         public void TestDeclarationWithSelfReferenceAndTernaryOperator()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -2366,8 +2366,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -2385,7 +2385,7 @@ class C {
         [Fact]
         public void TestDeclarationWithTernaryOperatorAndAssignment()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -2395,8 +2395,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -2414,7 +2414,7 @@ class C {
         [Fact]
         public void TestDictionaryInitializer()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
 
     static void Goo()
@@ -2428,8 +2428,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -2454,7 +2454,7 @@ class C {
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -2464,8 +2464,8 @@ class C
 }
 ");
 
-            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
-            var statement = compilation.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<StatementSyntax>().First();
+            SemanticModel semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            StatementSyntax statement = compilation.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<StatementSyntax>().First();
             Assert.Throws<ArgumentNullException>(() => semanticModel.AnalyzeControlFlow(statement, null));
             Assert.Throws<ArgumentNullException>(() => semanticModel.AnalyzeControlFlow(null, statement));
             Assert.Throws<ArgumentNullException>(() => semanticModel.AnalyzeControlFlow(null));
@@ -2479,7 +2479,7 @@ class C
         public void DateFlowAnalyzeForLocalWithInvalidRHS()
         {
             // Case 1
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 
 public class Test
@@ -2515,7 +2515,7 @@ public class Gen<T>
         [Fact]
         public void TestEntryPoints01()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F()
     {
@@ -2532,7 +2532,7 @@ class C {
         [Fact]
         public void TestExitPoints01()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2552,7 +2552,7 @@ class C {
         [Fact]
         public void TestRegionCompletesNormally01()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2569,7 +2569,7 @@ class C {
         [Fact]
         public void TestRegionCompletesNormally02()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2584,7 +2584,7 @@ class C {
         [Fact]
         public void TestRegionCompletesNormally03()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2600,7 +2600,7 @@ class C {
         [Fact]
         public void TestVariablesDeclared01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2619,7 +2619,7 @@ class C {
         [Fact]
         public void TestVariablesInitializedWithSelfReference()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2638,7 +2638,7 @@ class C {
         [Fact]
         public void AlwaysAssignedUnreachable()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2665,7 +2665,7 @@ class C {
         [Fact]
         public void TestVariablesDeclared02()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
 /*<bind>*/
@@ -2685,7 +2685,7 @@ class C {
         [Fact]
         public void TestVariablesDeclared03()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F()
 /*<bind>*/
@@ -2706,7 +2706,7 @@ class C {
         [Fact]
         public void UnassignedVariableFlowsOut01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     static void Main(string[] args)
     {
@@ -2730,7 +2730,7 @@ class C {
         [Fact]
         public void TestDataFlowsIn01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2747,7 +2747,7 @@ class C {
         [Fact]
         public void TestOutParameter01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     void Test<T>(out T t) where T : class, new()
@@ -2768,7 +2768,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2786,7 +2786,7 @@ class C {
         [Fact]
         public void TestDataFlowsOut02()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void Test(string[] args)
     {
@@ -2804,7 +2804,7 @@ class C {
         [Fact]
         public void TestDataFlowsOut03()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(
 @"using System.Text;
 class Program
 {
@@ -2825,7 +2825,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut04()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void F(out int x)
     {
@@ -2842,7 +2842,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut05()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void F(out int x)
     {
@@ -2860,7 +2860,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut06()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void F(bool b)
     {
@@ -2881,7 +2881,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut07()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void F(bool b)
     {
@@ -2903,7 +2903,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut08()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void F(bool b)
     {
@@ -2926,7 +2926,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut09()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"class Program
 {
     void Test(string[] args)
     {
@@ -2943,7 +2943,7 @@ class Program
         [Fact]
         public void TestDataFlowsOut10()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     static void Main(string[] args)
@@ -2964,7 +2964,7 @@ class Program
         [Fact]
         public void TestAlwaysAssigned01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2983,7 +2983,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned02()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -2999,7 +2999,7 @@ class C {
         [Fact]
         public void TestAlwaysAssigned03()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class Always {
     public void F()
     {
@@ -3017,7 +3017,7 @@ class Always {
         [Fact]
         public void TestReadInside01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     void Test<T>(out T t) where T : class, new()
@@ -3037,7 +3037,7 @@ class Program
         [Fact]
         public void TestAlwaysAssignedDuplicateVariables()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -3053,7 +3053,7 @@ class C {
         [Fact]
         public void TestAccessedInsideOutside()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -3077,7 +3077,7 @@ class C {
         [Fact]
         public void TestAlwaysAssignedThroughParenthesizedExpression()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -3095,7 +3095,7 @@ class C {
         [Fact]
         public void TestAlwaysAssignedThroughCheckedExpression()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -3112,7 +3112,7 @@ class C {
         [Fact]
         public void TestAlwaysAssignedUsingAlternateNames()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -3132,7 +3132,7 @@ class C {
         [Fact]
         public void TestAlwaysAssignedViaPassingAsOutParameter()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -3150,7 +3150,7 @@ class C {
         [Fact]
         public void TestAlwaysAssignedWithExcludedAssignment()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 partial class C
 {
     public void F(int x)
@@ -3172,7 +3172,7 @@ partial class C
         [Fact]
         public void TestDeclarationWithSelfReference()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -3182,8 +3182,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3201,7 +3201,7 @@ class C {
         [Fact]
         public void TestIfStatementWithAssignments()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -3214,8 +3214,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3233,7 +3233,7 @@ class C {
         [Fact]
         public void TestIfStatementWithConstantCondition()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -3246,8 +3246,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3265,7 +3265,7 @@ class C {
         [Fact]
         public void TestIfStatementWithNonConstantCondition()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -3278,8 +3278,8 @@ class C {
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3330,7 +3330,7 @@ class C {
         [Fact]
         public void TestInvocation()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -3343,8 +3343,8 @@ class C {
     static void Goo(int x) { }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3362,7 +3362,7 @@ class C {
         [Fact]
         public void TestInvocationWithAssignmentInArguments()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
     static void Main()
     {
@@ -3376,8 +3376,8 @@ class C {
     static void Goo(int x, int y) { }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3395,7 +3395,7 @@ class C {
         [Fact, WorkItem(538979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")]
         public void AssertFromInvalidLocalDeclaration()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 public class MyClass
 {
@@ -3414,7 +3414,7 @@ public class MyClass
         [Fact, WorkItem(538979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538979")]
         public void AssertFromInvalidKeywordAsExpr()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class B : A
 {
     public float M()
@@ -3429,7 +3429,7 @@ class B : A
 
 class A {}
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
             //var dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
@@ -3440,7 +3440,7 @@ class A {}
         [Fact]
         public void AssertFromFoldConstantEnumConversion()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 enum E { x, y, z }
 
 class Test
@@ -3456,7 +3456,7 @@ class Test
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
             //var dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
@@ -3466,7 +3466,7 @@ class Test
         [Fact]
         public void ByRefParameterNotInAppropriateCollections2()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     void Test<T>(ref T t)
@@ -3495,7 +3495,7 @@ class Program
         [Fact]
         public void UnreachableDeclaration()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     void F()
@@ -3520,7 +3520,7 @@ class Program
         [Fact]
         public void Parameters01()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     void F(int x, ref int y, out int z)
@@ -3541,7 +3541,7 @@ class Program
         [Fact]
         public void RegionForIfElseIfWithoutElse()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 public class Test
 {
@@ -3564,8 +3564,8 @@ public class Test
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Empty(controlFlowAnalysisResults.EntryPoints);
             Assert.Equal(2, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
@@ -3620,7 +3620,7 @@ public class Test
         [Fact]
         public void AttributeOnAccessorInvalid()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 
 public class C
@@ -3634,7 +3634,7 @@ public class C
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
             Assert.Empty(controlFlowAnalysisResults.EntryPoints);
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
         }
@@ -3643,7 +3643,7 @@ public class C
         [Fact]
         public void BadAssignThis()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class Program
 {
     static void Main(string[] args)
@@ -3657,8 +3657,8 @@ class Program
 struct S
 {
 }");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
@@ -3677,7 +3677,7 @@ struct S
         [Fact]
         public void TestElementAccess01()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 public class Test 
 {
     public void M(long[] p)
@@ -3708,7 +3708,7 @@ public class Test
         [Fact]
         public void BindPropertyAccessorBody()
         {
-            var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> results = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 public class A
 {
@@ -3719,8 +3719,8 @@ public class A
 }
 ");
 
-            var ctrlFlows = results.Item1;
-            var dataFlows = results.Item2;
+            ControlFlowAnalysis ctrlFlows = results.Item1;
+            DataFlowAnalysis dataFlows = results.Item2;
 
             Assert.False(ctrlFlows.EndPointIsReachable);
             Assert.Equal(null, GetSymbolNamesJoined(dataFlows.VariablesDeclared));
@@ -3732,7 +3732,7 @@ public class A
         [Fact]
         public void BindEventAccessorBody()
         {
-            var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> results = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 public class A
 {
@@ -3745,8 +3745,8 @@ public class A
 }
 ");
 
-            var ctrlFlows = results.Item1;
-            var dataFlows = results.Item2;
+            ControlFlowAnalysis ctrlFlows = results.Item1;
+            DataFlowAnalysis dataFlows = results.Item2;
 
             Assert.True(ctrlFlows.EndPointIsReachable);
             Assert.Equal(null, GetSymbolNamesJoined(dataFlows.VariablesDeclared));
@@ -3756,7 +3756,7 @@ public class A
         [Fact]
         public void BindDuplicatedAccessor()
         {
-            var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> results = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 public class A
 {
@@ -3768,8 +3768,8 @@ public class A
 }
 ");
 
-            var ctrlFlows = results.Item1;
-            var dataFlows = results.Item2;
+            ControlFlowAnalysis ctrlFlows = results.Item1;
+            DataFlowAnalysis dataFlows = results.Item2;
 
             var tmp = ctrlFlows.EndPointIsReachable; // ensure no exception thrown
             Assert.Empty(dataFlows.VariablesDeclared);
@@ -3780,7 +3780,7 @@ public class A
         public void BlockSyntaxInAttributeDecl()
         {
             {
-                var compilation = CreateCompilation(@"
+                CSharpCompilation compilation = CreateCompilation(@"
 [Attribute(delegate.Class)] 
 public class C {
   public static int Main () {
@@ -3788,14 +3788,14 @@ public class C {
   }
 }
 ");
-                var tree = compilation.SyntaxTrees.First();
+                SyntaxTree tree = compilation.SyntaxTrees.First();
                 var index = tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Class)", StringComparison.Ordinal);
-                var tok = tree.GetCompilationUnitRoot().FindToken(index);
+                SyntaxToken tok = tree.GetCompilationUnitRoot().FindToken(index);
                 var node = tok.Parent as StatementSyntax;
                 Assert.Null(node);
             }
             {
-                var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
+                Tuple<ControlFlowAnalysis, DataFlowAnalysis> results = CompileAndAnalyzeControlAndDataFlowStatements(@"
 [Attribute(x => { /*<bind>*/int y = 12;/*</bind>*/ })] 
 public class C {
   public static int Main () {
@@ -3811,7 +3811,7 @@ public class C {
         [Fact, WorkItem(529273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529273")]
         public void IncrementDecrementOnNullable()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     void M(ref sbyte p1, ref sbyte? p2)
@@ -3845,7 +3845,7 @@ class C
         [Fact]
         public void VariablesDeclaredInBrokenForeach()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 struct S
 {
     static void Main(string[] args)
@@ -3868,7 +3868,7 @@ struct S
         [Fact]
         public void TestReturnStatements03()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 using System;
 class C {
     public void F(int x)
@@ -3887,7 +3887,7 @@ class C {
         [Fact]
         public void TestReturnStatements04()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 using System;
 class C {
     public void F(int x)
@@ -3910,7 +3910,7 @@ class C {
         [Fact]
         public void TestReturnStatements05()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 using System;
 class C {
     public void F(int x)
@@ -3934,7 +3934,7 @@ class C {
         [Fact]
         public void TestReturnStatements06()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
         using System;
         class C {
             public void F(uint? x)
@@ -3960,7 +3960,7 @@ class C {
         [Fact]
         public void TestReturnStatements07()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 using System;
 class C {
     public int F(int x)
@@ -3981,7 +3981,7 @@ class C {
         [Fact]
         public void TestMultipleLambdaExpressions()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     void M()
@@ -4001,7 +4001,7 @@ class C
         [Fact]
         public void TestReturnFromLambda()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 using System.Linq;
 class Program
@@ -4013,8 +4013,8 @@ class Program
     }
 }
 ");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
@@ -4030,7 +4030,7 @@ class Program
         [Fact]
         public void DataFlowsOutLambda01()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 
 delegate void D();
@@ -4050,14 +4050,14 @@ class Program
 }
 ");
             //var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
         [Fact]
         public void DataFlowsOutLambda02()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 
 delegate void D();
@@ -4077,14 +4077,14 @@ class Program
 }
 ");
             //var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
         [Fact]
         public void DataFlowsOutLambda03()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 
 delegate void D();
@@ -4103,7 +4103,7 @@ class Program
 }
 ");
             //var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
         }
 
@@ -4111,7 +4111,7 @@ class Program
         [Fact]
         public void TestReadInside02()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class A
 {
     void Method()
@@ -4131,7 +4131,7 @@ class A
         [Fact]
         public void TestCaptured02()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 class C
 {
@@ -4154,7 +4154,7 @@ class C
         [Fact, WorkItem(539648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539648"), WorkItem(529185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529185")]
         public void ReturnsInsideLambda()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 class Program
 {
@@ -4171,8 +4171,8 @@ class Program
         f.Invoke(2);
     }
 }");
-            var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            ControlFlowAnalysis controlFlowAnalysisResults = analysisResults.Item1;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Empty(controlFlowAnalysisResults.ReturnStatements);
             Assert.Equal("f", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
             Assert.Equal("f, arg, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
@@ -4182,7 +4182,7 @@ class Program
         [Fact]
         public void VariableDeclaredLambda01()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 class Program
 {
@@ -4199,7 +4199,7 @@ class Program
 }
 ");
             //var controlFlowAnalysisResults = analysisResults.Item1;
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal("testDel, x", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("testDel, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
         }
@@ -4208,7 +4208,7 @@ class Program
         [Fact]
         public void VariableDeclaredLambda02()
         {
-            var results1 = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results1 = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 class Program
 {
@@ -4242,7 +4242,7 @@ class Program
         [Fact]
         public void AnalysisInsideLambdas()
         {
-            var results1 = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis results1 = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class C {
     static void Main()
@@ -4273,7 +4273,7 @@ class C {
         [Fact]
         public void AlwaysAssignedParameterLambda()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 
 internal class Test
@@ -4301,7 +4301,7 @@ internal class Test
         [Fact]
         public void LambdaInTernaryWithEmptyBody()
         {
-            var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> results = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 
 public delegate void D();
@@ -4317,8 +4317,8 @@ public class A
 }
 ");
 
-            var ctrlFlows = results.Item1;
-            var dataFlows = results.Item2;
+            ControlFlowAnalysis ctrlFlows = results.Item1;
+            DataFlowAnalysis dataFlows = results.Item2;
 
             Assert.True(ctrlFlows.EndPointIsReachable);
             Assert.Equal("d", GetSymbolNamesJoined(dataFlows.VariablesDeclared));
@@ -4337,7 +4337,7 @@ public class A
         [Fact]
         public void ForEachVariableInLambda()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 class Program
 {
@@ -4393,17 +4393,17 @@ class c1
         Console.WriteLine(b);
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var comp = CSharpCompilation.Create("FlowAnalysis", syntaxTrees: new[] { tree });
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var methodBlock = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().First();
-            var foreachStatement = methodBlock.DescendantNodes().OfType<ForEachStatementSyntax>().First();
-            var foreachBlock = foreachStatement.DescendantNodes().OfType<BlockSyntax>().First();
-            var lambdaExpression = methodBlock.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().First();
-            var lambdaBlock = lambdaExpression.DescendantNodes().OfType<BlockSyntax>().First();
+            BlockSyntax methodBlock = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            ForEachStatementSyntax foreachStatement = methodBlock.DescendantNodes().OfType<ForEachStatementSyntax>().First();
+            BlockSyntax foreachBlock = foreachStatement.DescendantNodes().OfType<BlockSyntax>().First();
+            ParenthesizedLambdaExpressionSyntax lambdaExpression = methodBlock.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().First();
+            BlockSyntax lambdaBlock = lambdaExpression.DescendantNodes().OfType<BlockSyntax>().First();
 
-            var flowAnalysis = model.AnalyzeDataFlow(methodBlock);
+            DataFlowAnalysis flowAnalysis = model.AnalyzeDataFlow(methodBlock);
             Assert.Equal(4, flowAnalysis.ReadInside.Count());
             Assert.Equal(5, flowAnalysis.WrittenInside.Count());
             Assert.Equal(5, flowAnalysis.VariablesDeclared.Count());
@@ -4426,7 +4426,7 @@ class c1
         [Fact]
         public void QueryExpression01()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System;
 using System.Linq;
 
@@ -4443,7 +4443,7 @@ class Program
 /*</bind>*/
     }
 }");
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal("q2, x", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("q2", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal("nums", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
@@ -4457,7 +4457,7 @@ class Program
         [Fact]
         public void QueryExpression02()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 
@@ -4485,7 +4485,7 @@ class Program
         [Fact]
         public void QueryExpression03()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 
@@ -4511,7 +4511,7 @@ class Program
         [Fact]
         public void QueryExpression04()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 
@@ -4536,7 +4536,7 @@ class Program
         [Fact]
         public void QueryExpression05()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 
@@ -4562,7 +4562,7 @@ class Program
         [Fact]
         public void ForEachVariableInQueryExpr()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 
@@ -4595,7 +4595,7 @@ class Program
         [Fact]
         public void ForVariableInQueryExpr()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Linq;
 
@@ -4626,7 +4626,7 @@ class Program
         [Fact]
         public void Bug8863()
         {
-            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+            Tuple<ControlFlowAnalysis, DataFlowAnalysis> analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 using System.Linq;
 class C
 {
@@ -4640,7 +4640,7 @@ class C
         /*</bind>*/
     }
 }");
-            var dataFlowAnalysisResults = analysisResults.Item2;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults.Item2;
             Assert.Equal("temp, x, z, w", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("temp", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
@@ -4657,7 +4657,7 @@ class C
         [Fact]
         public void Bug9415()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4688,7 +4688,7 @@ class Program
         [Fact]
         public void GroupByClause()
         {
-            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System.Linq;
 
 public class Test
@@ -4701,7 +4701,7 @@ public class Test
                     /*<bind>*/group t by t.Length/*</bind>*/;
     }
 }");
-            var dataFlowAnalysisResults = analysisResults;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults;
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
         }
 
@@ -4709,7 +4709,7 @@ public class Test
         [Fact]
         public void CaptureInQuery()
         {
-            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System.Linq;
 
 public class Test
@@ -4727,7 +4727,7 @@ public class Test
     }
     private static bool M(Func<int> f) => true;
 }");
-            var dataFlowAnalysisResults = analysisResults;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults;
             Assert.Equal("y, x, b", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
             Assert.Equal("b", GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
             Assert.Equal("y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
@@ -4740,7 +4740,7 @@ public class Test
         [Fact]
         public void LocalInOtherSwitchCase()
         {
-            var dataFlows = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlows = CompileAndAnalyzeDataFlowExpression(
 @"using System;
 using System.Linq;
 public class Test
@@ -4765,7 +4765,7 @@ public class Test
         [Fact]
         public void VariableDeclInsideSwitchCaptureInLambdaExpr()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 
 class C
@@ -4799,7 +4799,7 @@ class C
         [Fact]
         public void ArrayCreationExprInForEachInsideSwitchSection()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class Program
 {
     static void Main()
@@ -4833,7 +4833,7 @@ class Program
         [Fact]
         public void RegionInsideSwitchExpression()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class Program
 {
     static void Main()
@@ -4868,7 +4868,7 @@ class Program
         [Fact]
         public void NullableAsSwitchExpression()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 
 class C
@@ -4906,7 +4906,7 @@ class C
         [WorkItem(17281, "https://github.com/dotnet/roslyn/issues/17281")]
         public void DiscardVsVariablesDeclared()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class A { }
 
 class Test
@@ -4971,12 +4971,12 @@ public class MyClass : BaseClass
     {
     }
 }";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var invocation = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var flowAnalysis = model.AnalyzeDataFlow(invocation);
+            InvocationExpressionSyntax invocation = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            DataFlowAnalysis flowAnalysis = model.AnalyzeDataFlow(invocation);
             Assert.Empty(flowAnalysis.Captured);
             Assert.Empty(flowAnalysis.CapturedInside);
             Assert.Empty(flowAnalysis.CapturedOutside);
@@ -4986,7 +4986,7 @@ public class MyClass : BaseClass
             Assert.Empty(flowAnalysis.WrittenInside);
             Assert.Equal("MyClass this", flowAnalysis.WrittenOutside.Single().ToTestDisplayString());
 
-            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            ParenthesizedLambdaExpressionSyntax lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             flowAnalysis = model.AnalyzeDataFlow(lambda);
             Assert.Equal("MyClass this", flowAnalysis.Captured.Single().ToTestDisplayString());
             Assert.Equal("MyClass this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
@@ -5000,14 +5000,14 @@ public class MyClass : BaseClass
         [Fact]
         public void AnalysisInsideBaseClause()
         {
-            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class A
 {
     A(int x) : this(/*<bind>*/x.ToString()/*</bind>*/) { }
     A(string x) { }
 }
 ");
-            var dataFlowAnalysisResults = analysisResults;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults;
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
@@ -5025,7 +5025,7 @@ class A
         [Fact]
         public void BlockSyntaxOfALambdaInAttributeArg()
         {
-            var controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis controlFlowAnalysisResults = CompileAndAnalyzeControlFlowStatements(@"
 class Test
 {
     [Attrib(() => /*<bind>*/{ }/*</bind>*/)]
@@ -5041,7 +5041,7 @@ class Test
         [Fact()]
         public void DefaultValueOfOptionalParam()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 public class Derived
 {
     public void Goo(int x = /*<bind>*/ 2 /*</bind>*/)
@@ -5067,12 +5067,12 @@ class C
         S<object> o;
     }
 }";
-            var compilation = CreateEmptyCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o", StringComparison.Ordinal));
-            var analysis = model.AnalyzeDataFlow(statement);
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            StatementSyntax statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o", StringComparison.Ordinal));
+            DataFlowAnalysis analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
             Assert.Equal("o", GetSymbolNamesJoined(analysis.VariablesDeclared));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.AlwaysAssigned));
@@ -5104,13 +5104,13 @@ class Program
         Expression<Func<int>> f3 = () => switch (args[0]) {};
     }
 }";
-            var compilation = CreateEmptyCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("switch", StringComparison.Ordinal));
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            StatementSyntax statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("switch", StringComparison.Ordinal));
             Assert.Equal("switch (args[0]) {}", statement.ToFullString());
-            var analysis = model.AnalyzeDataFlow(statement);
+            DataFlowAnalysis analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
             Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("args, f3", GetSymbolNamesJoined(analysis.WrittenOutside));
@@ -5131,15 +5131,15 @@ class Program
         }
     }
 }";
-            var compilation = CreateEmptyCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("EditorOperations", StringComparison.Ordinal));
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            StatementSyntax statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("EditorOperations", StringComparison.Ordinal));
             Assert.Equal("this.EditorOperations = 1;", statement.ToString());
-            var analysis = model.AnalyzeDataFlow(statement);
+            DataFlowAnalysis analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
-            var v = analysis.DataFlowsOut;
+            System.Collections.Immutable.ImmutableArray<ISymbol> v = analysis.DataFlowsOut;
         }
 
         [Fact, WorkItem(547059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547059")]
@@ -5169,10 +5169,10 @@ public class ExportedSymbol
 }
 ";
 
-            var compilation = CreateEmptyCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().FirstOrDefault();
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            BlockSyntax statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().FirstOrDefault();
             var expectedtext = @"    {
         var symlist = new List<ISymbol>();
         var expList = from s in symlist
@@ -5181,7 +5181,7 @@ public class ExportedSymbol
 }
 ";
             Assert.Equal(expectedtext, statement.ToFullString());
-            var analysis = model.AnalyzeDataFlow(statement);
+            DataFlowAnalysis analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
         }
 
@@ -5197,12 +5197,12 @@ public class ExportedSymbol
     }
     static object P { get; set; }
 }";
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("P = new object()", StringComparison.Ordinal));
-            var analysis = model.AnalyzeDataFlow(statement);
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            StatementSyntax statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("P = new object()", StringComparison.Ordinal));
+            DataFlowAnalysis analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
         }
 
@@ -5219,17 +5219,17 @@ public class ExportedSymbol
         this.value = null;
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0170: Use of possibly unassigned field 'value'
                 //         S.Equals(value , value);
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "value").WithArguments("value")
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var root = tree.GetRoot();
-            var expression = GetLastNode<ExpressionSyntax>(tree, root.ToFullString().IndexOf("value ", StringComparison.Ordinal));
-            var analysis = model.AnalyzeDataFlow(expression);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SyntaxNode root = tree.GetRoot();
+            ExpressionSyntax expression = GetLastNode<ExpressionSyntax>(tree, root.ToFullString().IndexOf("value ", StringComparison.Ordinal));
+            DataFlowAnalysis analysis = model.AnalyzeDataFlow(expression);
             Assert.True(analysis.Succeeded);
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
         }
@@ -5237,7 +5237,7 @@ public class ExportedSymbol
         [Fact, WorkItem(14110, "https://github.com/dotnet/roslyn/issues/14110")]
         public void Test14110()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 class Program
 {
     static void Main()
@@ -5274,7 +5274,7 @@ class Program
         [Fact, WorkItem(15640, "https://github.com/dotnet/roslyn/issues/15640")]
         public void Test15640()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 
 class Programand 
@@ -5297,7 +5297,7 @@ class Programand
         [Fact]
         public void RegionAnalysisLocalFunctions()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 
 class C
@@ -5324,7 +5324,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions2()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 
 class C
@@ -5353,7 +5353,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions3()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 class C
 {
@@ -5381,7 +5381,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions4()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 class C
 {
@@ -5409,7 +5409,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions5()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     static void Main()
@@ -5442,7 +5442,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions6()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     static void Main()
@@ -5478,7 +5478,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions7()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 using System;
 class C
 {
@@ -5506,7 +5506,7 @@ class C
         [Fact]
         public void RegionAnalysisLocalFunctions8()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     static void Main()
@@ -5538,7 +5538,7 @@ class C
         [Fact]
         public void LocalFuncCapture1()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 public static class SomeClass
 {
     private static void Repro( int arg )
@@ -5564,7 +5564,7 @@ public static class SomeClass
         [Fact]
         public void LocalFuncCapture2()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     void M()
@@ -5592,7 +5592,7 @@ class C
         [Fact]
         public void LocalFuncCapture3()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     void M()
@@ -5620,7 +5620,7 @@ class C
         [Fact]
         public void LocalFuncCapture4()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     void M()
@@ -5650,7 +5650,7 @@ class C
         [Fact]
         public void LocalFuncCapture5()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     int x = 0;
@@ -5677,7 +5677,7 @@ class C
         [Fact]
         public void LocalFuncCapture6()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     void M(int x)
@@ -5712,7 +5712,7 @@ class C
         [Fact]
         public void LocalFuncCapture7()
         {
-            var results = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis results = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     void M()
@@ -5744,7 +5744,7 @@ class C
         [Fact]
         public void LocalFuncCapture8()
         {
-            var analysis = CompileAndAnalyzeDataFlowStatements(@"
+            DataFlowAnalysis analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C
 {
     int field = 123;
@@ -5773,7 +5773,7 @@ class C
         [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
         public void FallThroughInSwitch_01()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C
 {
     void M()
@@ -5795,7 +5795,7 @@ class C
         [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
         public void FallThroughInSwitch_02()
         {
-            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+            ControlFlowAnalysis analysis = CompileAndAnalyzeControlFlowStatements(@"
 class C
 {
     void M()
@@ -5817,7 +5817,7 @@ class C
         [Fact]
         public void AnalysisOfTupleEquality()
         {
-            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class A
 {
     void M()
@@ -5828,7 +5828,7 @@ class A
     }
 }
 ");
-            var dataFlowAnalysisResults = analysisResults;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults;
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
@@ -5845,7 +5845,7 @@ class A
         [Fact]
         public void AnalysisOfNestedTupleInTupleEquality()
         {
-            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class A
 {
     void M()
@@ -5856,7 +5856,7 @@ class A
     }
 }
 ");
-            var dataFlowAnalysisResults = analysisResults;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults;
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
@@ -5873,7 +5873,7 @@ class A
         [Fact]
         public void AnalysisOfExpressionInTupleEquality()
         {
-            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            DataFlowAnalysis analysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class A
 {
     void M()
@@ -5884,7 +5884,7 @@ class A
     }
 }
 ");
-            var dataFlowAnalysisResults = analysisResults;
+            DataFlowAnalysis dataFlowAnalysisResults = analysisResults;
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));

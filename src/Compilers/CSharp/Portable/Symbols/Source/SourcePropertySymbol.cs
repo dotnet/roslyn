@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
             bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
-            var interfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
+            ExplicitInterfaceSpecifierSyntax interfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             bool isExplicitInterfaceImplementation = (interfaceSpecifier != null);
 
             _location = location;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasAccessorList = syntax.AccessorList != null;
             var propertySyntax = syntax as PropertyDeclarationSyntax;
-            var arrowExpression = propertySyntax != null
+            ArrowExpressionClauseSyntax arrowExpression = propertySyntax != null
                 ? propertySyntax.ExpressionBody
                 : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
             bool hasExpressionBody = arrowExpression != null;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax setSyntax = null;
             if (hasAccessorList)
             {
-                foreach (var accessor in syntax.AccessorList.Accessors)
+                foreach (AccessorDeclarationSyntax accessor in syntax.AccessorList.Accessors)
                 {
                     switch (accessor.Kind())
                     {
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (_refKind == RefKind.RefReadOnly)
             {
-                var modifierType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.Type);
+                NamedTypeSymbol modifierType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.Type);
 
                 _customModifiers = CustomModifiersTuple.Create(
                     ImmutableArray<CustomModifier>.Empty,
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (notRegularProperty)
                     {
-                        var accessor = _getMethod ?? _setMethod;
+                        SourcePropertyAccessorSymbol accessor = _getMethod ?? _setMethod;
                         if (getSyntax == null)
                         {
                             diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, accessor.Locations[0], accessor);
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!this.IsOverride)
                     {
-                        var accessor = _getMethod ?? _setMethod;
+                        SourcePropertyAccessorSymbol accessor = _getMethod ?? _setMethod;
                         if ((object)accessor != null)
                         {
                             // Check accessibility is not set on the one accessor.
@@ -404,13 +404,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckForFieldTargetedAttribute(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            LanguageVersion languageVersion = this.DeclaringCompilation.LanguageVersion;
             if (languageVersion.AllowAttributesOnBackingFields())
             {
                 return;
             }
 
-            foreach (var attribute in syntax.AttributeLists)
+            foreach (AttributeListSyntax attribute in syntax.AttributeLists)
             {
                 if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
                 {
@@ -448,14 +448,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            var nameToken = syntax.Identifier;
-            var location = nameToken.GetLocation();
+            SyntaxToken nameToken = syntax.Identifier;
+            Location location = nameToken.GetLocation();
             return new SourcePropertySymbol(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
         }
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            var location = syntax.ThisKeyword.GetLocation();
+            Location location = syntax.ThisKeyword.GetLocation();
             return new SourcePropertySymbol(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
         }
 
@@ -474,9 +474,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)_lazyType == null)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var binder = this.CreateBinderForTypeAndParameters();
+                    Binder binder = this.CreateBinderForTypeAndParameters();
                     var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
-                    var result = this.ComputeType(binder, syntax, diagnostics);
+                    TypeSymbol result = this.ComputeType(binder, syntax, diagnostics);
                     if ((object)Interlocked.CompareExchange(ref _lazyType, result, null) == null)
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                 RefKind refKind;
-                var typeSyntax = syntax.Type.SkipRef(out refKind);
+                TypeSyntax typeSyntax = syntax.Type.SkipRef(out refKind);
                 return typeSyntax.Kind() == SyntaxKind.PointerType;
             }
         }
@@ -646,9 +646,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyParameters.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var binder = this.CreateBinderForTypeAndParameters();
+                    Binder binder = this.CreateBinderForTypeAndParameters();
                     var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
-                    var result = this.ComputeParameters(binder, syntax, diagnostics);
+                    ImmutableArray<ParameterSymbol> result = this.ComputeParameters(binder, syntax, diagnostics);
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, result))
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)_explicitInterfaceType != null)
             {
-                var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
+                ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(_modifiers);
+            CSDiagnosticInfo info = ModifierUtils.CheckAccessibility(_modifiers);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, location));
@@ -764,10 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation, bool isIndexer, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            DeclarationModifiers defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Unsafe;
+            DeclarationModifiers allowedModifiers = DeclarationModifiers.Unsafe;
             if (!isExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New;
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclarationModifiers.Extern;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            DeclarationModifiers mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SyntaxToken arglistToken;
-            var parameters = ParameterHelpers.MakeParameters(
+            ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                 binder, owner, parameterSyntaxOpt, out arglistToken,
                 allowRefOrOut: false,
                 allowThis: false,
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            var bag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> bag = _lazyCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CommonPropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal PropertyEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -1164,7 +1164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                CommonPropertyWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
         }
@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     return ((PropertyEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData)?.ObsoleteAttributeData;
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
@@ -1326,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var incompletePart = _state.NextIncompletePart;
+                CompletionPart incompletePart = _state.NextIncompletePart;
                 switch (incompletePart)
                 {
                     case CompletionPart.Attributes:
@@ -1338,12 +1338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (_state.NotePartComplete(CompletionPart.StartPropertyParameters))
                             {
-                                var parameters = this.Parameters;
+                                ImmutableArray<ParameterSymbol> parameters = this.Parameters;
                                 if (parameters.Length > 0)
                                 {
                                     var diagnostics = DiagnosticBag.GetInstance();
                                     var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                                    foreach (var parameter in this.Parameters)
+                                    foreach (ParameterSymbol parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
                                         parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(conversions, _location, diagnostics);
 
-                                var type = this.Type;
+                                TypeSymbol type = this.Type;
                                 if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
@@ -1415,8 +1415,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbol ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             RefKind refKind;
-            var typeSyntax = syntax.Type.SkipRef(out refKind);
-            var type = binder.BindType(typeSyntax, diagnostics);
+            TypeSyntax typeSyntax = syntax.Type.SkipRef(out refKind);
+            TypeSymbol type = binder.BindType(typeSyntax, diagnostics);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
@@ -1439,8 +1439,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> ComputeParameters(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            var parameterSyntaxOpt = GetParameterListSyntax(syntax);
-            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
+            BaseParameterListSyntax parameterSyntaxOpt = GetParameterListSyntax(syntax);
+            ImmutableArray<ParameterSymbol> parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             foreach (ParameterSymbol param in parameters)
@@ -1461,11 +1461,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private Binder CreateBinderForTypeAndParameters()
         {
-            var compilation = this.DeclaringCompilation;
-            var syntaxTree = _syntaxRef.SyntaxTree;
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            SyntaxTree syntaxTree = _syntaxRef.SyntaxTree;
             var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
-            var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(syntax, syntax, this);
+            BinderFactory binderFactory = compilation.GetBinderFactory(syntaxTree);
+            Binder binder = binderFactory.GetBinder(syntax, syntax, this);
             SyntaxTokenList modifiers = syntax.Modifiers;
             binder = binder.WithUnsafeRegionIfNecessary(modifiers);
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);

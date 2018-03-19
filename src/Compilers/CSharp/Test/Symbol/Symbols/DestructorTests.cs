@@ -22,7 +22,7 @@ class C
     ~C(int x) {}
 }";
             // This is a parse error.
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             Assert.NotEmpty(comp.GetParseDiagnostics());
         }
 
@@ -386,29 +386,29 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var destructor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName);
+            MethodSymbol destructor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName);
             Assert.Equal(MethodKind.Destructor, destructor.MethodKind);
             Assert.Equal(WellKnownMemberNames.DestructorName, destructor.Name);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var destructorDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single();
+            DestructorDeclarationSyntax destructorDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single();
 
-            var declaredSymbol = model.GetDeclaredSymbol(destructorDecl);
+            IMethodSymbol declaredSymbol = model.GetDeclaredSymbol(destructorDecl);
             Assert.NotNull(declaredSymbol);
             Assert.Equal(destructor, declaredSymbol);
 
-            var finalizeSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Name;
+            SimpleNameSyntax finalizeSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Name;
             Assert.Equal(WellKnownMemberNames.DestructorName, finalizeSyntax.ToString());
 
-            var info = model.GetSymbolInfo(finalizeSyntax);
+            SymbolInfo info = model.GetSymbolInfo(finalizeSyntax);
             Assert.NotNull(info);
             Assert.Equal(destructor, info.Symbol);
 
-            var lookupSymbols = model.LookupSymbols(finalizeSyntax.SpanStart, name: WellKnownMemberNames.DestructorName);
+            System.Collections.Immutable.ImmutableArray<ISymbol> lookupSymbols = model.LookupSymbols(finalizeSyntax.SpanStart, name: WellKnownMemberNames.DestructorName);
             Assert.Equal(2, lookupSymbols.Length); // Also includes object.Finalize
             Assert.Contains(destructor, lookupSymbols);
         }
@@ -513,7 +513,7 @@ class Derived : Base
     ~Derived() { }
 }";
 
-            var vbRef = CreateVisualBasicCompilation("VB", vb).EmitToImageReference();
+            MetadataReference vbRef = CreateVisualBasicCompilation("VB", vb).EmitToImageReference();
 
             // In dev11, compilation succeeded, but the finalizer would fail at runtime when it made
             // a non-virtual call to the abstract method Base.Finalize.

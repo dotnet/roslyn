@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Make a copy of the keys so that we are not changing the 
             // dictionary as we enumerate it.
-            foreach (var key in _dictionary.Keys.ToList())
+            foreach (T key in _dictionary.Keys.ToList())
             {
                 if (!_hashSet.Contains(key))
                 {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Now update the dictionary so that it contains the more
             // canonical of the items that are in both sets.
 
-            foreach (var item in _hashSet)
+            foreach (T item in _hashSet)
             {
                 T current;
                 if (_dictionary.TryGetValue(item, out current) && IsMoreCanonical(item, current))

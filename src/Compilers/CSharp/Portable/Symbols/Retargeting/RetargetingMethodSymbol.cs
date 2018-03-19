@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if ((object)_lazyReturnType == null)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                    TypeSymbol type = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
                     _lazyReturnType = type.AsDynamicIfNoPia(this.ContainingType);
                 }
                 return _lazyReturnType;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<ParameterSymbol> RetargetParameters()
         {
-            var list = _underlyingMethod.Parameters;
+            ImmutableArray<ParameterSymbol> list = _underlyingMethod.Parameters;
             int count = list.Length;
 
             if (count == 0)
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                var associatedPropertyOrEvent = _underlyingMethod.AssociatedSymbol;
+                Symbol associatedPropertyOrEvent = _underlyingMethod.AssociatedSymbol;
                 return (object)associatedPropertyOrEvent == null ? null : this.RetargetingTranslator.Retarget(associatedPropertyOrEvent);
             }
         }
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<MethodSymbol> RetargetExplicitInterfaceImplementations()
         {
-            var impls = _underlyingMethod.ExplicitInterfaceImplementations;
+            ImmutableArray<MethodSymbol> impls = _underlyingMethod.ExplicitInterfaceImplementations;
 
             if (impls.IsEmpty)
             {
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             for (int i = 0; i < impls.Length; i++)
             {
-                var retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
+                MethodSymbol retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
                 if ((object)retargeted != null)
                 {
                     builder.Add(retargeted);

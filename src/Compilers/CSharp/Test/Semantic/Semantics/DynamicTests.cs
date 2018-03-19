@@ -40,10 +40,10 @@ public unsafe class C
         [Fact]
         public void ConversionClassification()
         {
-            var c = CreateCompilation("", new[] { CSharpRef, SystemCoreRef });
+            CSharpCompilation c = CreateCompilation("", new[] { CSharpRef, SystemCoreRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
-            var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
+            Conversion dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
+            Conversion objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
 
             Assert.Equal(ConversionKind.Identity, dynamicToObject.Kind);
             Assert.Equal(ConversionKind.Identity, objectToDynamic.Kind);
@@ -800,7 +800,7 @@ class C
     static void Main() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
                 //             M % d1,
@@ -1453,7 +1453,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -1490,7 +1490,7 @@ public class C<V>
         C<T>.M(d, t, u, u);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // error CS1503: Argument 3: cannot convert from 'U' to 'T'
                 //         C<T>.M(d, t, u, u);
@@ -1823,13 +1823,13 @@ unsafe public class C<X>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
 
-            var c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
-            var f = c.GetMember<FieldSymbol>("F");
+            TypeSymbol c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
+            FieldSymbol f = c.GetMember<FieldSymbol>("F");
             var eraser = new DynamicTypeEraser(compilation.GetSpecialType(SpecialType.System_Object));
-            var erasedType = eraser.EraseDynamic(f.Type);
+            TypeSymbol erasedType = eraser.EraseDynamic(f.Type);
 
             Assert.Equal("System.Func<A<System.Object, A<System.Object, System.Boolean>.E*[]>.B<X>, System.Collections.Generic.Dictionary<System.Object[], System.Int32>>", erasedType.ToTestDisplayString());
         }
@@ -1852,12 +1852,12 @@ public class Derived : Base<dynamic>
     u.F();
   }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
-            var derived = compilation.GlobalNamespace.GetMember<TypeSymbol>("Derived");
-            var m = derived.GetMember<MethodSymbol>("M");
+            TypeSymbol derived = compilation.GlobalNamespace.GetMember<TypeSymbol>("Derived");
+            MethodSymbol m = derived.GetMember<MethodSymbol>("M");
 
-            var ebc = m.TypeParameters[0].EffectiveBaseClassNoUseSiteDiagnostics;
+            NamedTypeSymbol ebc = m.TypeParameters[0].EffectiveBaseClassNoUseSiteDiagnostics;
             Assert.Equal(SpecialType.System_Object, ebc.SpecialType);
 
             compilation.VerifyDiagnostics(
@@ -2945,7 +2945,7 @@ class C : B
   }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
@@ -2970,7 +2970,7 @@ class P
   }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -2987,7 +2987,7 @@ class P
   }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3004,7 +3004,7 @@ class P
   }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,10): error CS1503: Argument 2: cannot convert from 'double' to 'int'
                 //     f(d, 1.23);
@@ -3024,7 +3024,7 @@ class P
   }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,10): error CS1503: Argument 2: cannot convert from 'double' to 'int'
                 //     f(d, 1.23);
@@ -3045,7 +3045,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3063,7 +3063,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3080,7 +3080,7 @@ class C
   }
 }";
             TestOperatorKinds(source);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3162,7 +3162,7 @@ class C
   }
 }";
             TestOperatorKinds(source);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3181,7 +3181,7 @@ class C
   }
 }";
             TestOperatorKinds(source);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (8,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.C(string, string)'
                 //     return new C(d);
@@ -3204,7 +3204,7 @@ class C
   }
 }";
             TestOperatorKinds(source);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,7): error CS1503: Argument 1: cannot convert from 'C' to 'int'
                 //     N(new C(d));
@@ -3240,7 +3240,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3348,12 +3348,12 @@ class Test
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+            CompilationVerifier verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.Single();
-            var model = verifier.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.Single();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
             Assert.Equal("void Test.Goo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -3381,12 +3381,12 @@ class Test
 }";
             CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+            CompilationVerifier verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.Single();
-            var model = verifier.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.Single();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
             Assert.Equal("void Test.Goo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -3408,12 +3408,12 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            CompilationVerifier verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.Single();
-            var model = verifier.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.Single();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
             Assert.Equal("System.Object Program.Goo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -3435,12 +3435,12 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            CompilationVerifier verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.Single();
-            var model = verifier.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.Single();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
             Assert.Equal("System.Object Program.Goo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -3486,12 +3486,12 @@ class Program
     static T Goo<T>(Func<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
+            CompilationVerifier verifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.Single();
-            var model = verifier.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.Single();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
             Assert.Equal("dynamic Program.Goo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -3510,7 +3510,7 @@ Public Interface IB
 End Interface
 ";
 
-            var reference = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference = BasicCompilationUtils.CompileToMetadata(source1);
 
             string source2 = @"
 class CIB : IB
@@ -3535,7 +3535,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
@@ -3558,7 +3558,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
@@ -3585,7 +3585,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
                 //         System.Type t = i[null].GetType();
@@ -3644,12 +3644,12 @@ class Program
 
 } // end of class Generic`2
 ";
-            var comp = CreateCompilationWithILAndMscorlib40("", il, references: new[] { SystemCoreRef }, appendDefaultHeader: false);
-            var global = comp.GlobalNamespace;
-            var typeD = global.GetMember<NamedTypeSymbol>("D");
-            var typeG = global.GetMember<NamedTypeSymbol>("Generic");
-            var typeObject = comp.GetSpecialType(SpecialType.System_Object);
-            var typeGConstructed = typeG.Construct(typeObject, typeObject);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40("", il, references: new[] { SystemCoreRef }, appendDefaultHeader: false);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol typeD = global.GetMember<NamedTypeSymbol>("D");
+            NamedTypeSymbol typeG = global.GetMember<NamedTypeSymbol>("Generic");
+            NamedTypeSymbol typeObject = comp.GetSpecialType(SpecialType.System_Object);
+            NamedTypeSymbol typeGConstructed = typeG.Construct(typeObject, typeObject);
 
             Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
             Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
@@ -3762,7 +3762,7 @@ class Test
 }
 ";
 
-            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
+            CSharpCompilation compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation1.VerifyDiagnostics(
@@ -3785,7 +3785,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
+            CSharpCompilation compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(
@@ -3886,7 +3886,7 @@ class Test
     }
 }";
 
-            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
+            CSharpCompilation compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             CompileAndVerify(compilation1, expectedOutput: "MIndexer").VerifyDiagnostics();
@@ -3902,7 +3902,7 @@ class Test
     }
 }";
 
-            var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
+            CSharpCompilation compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(
@@ -3928,7 +3928,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
@@ -3953,7 +3953,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
@@ -3996,7 +3996,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
@@ -4035,7 +4035,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
@@ -4064,7 +4064,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.

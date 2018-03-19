@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
             _isExpressionBodied = syntax.Body == null && syntax.ExpressionBody != null;
 
-            var defaultAccess = DeclarationModifiers.Private;
-            var allowedModifiers =
+            DeclarationModifiers defaultAccess = DeclarationModifiers.Private;
+            DeclarationModifiers allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
             bool modifierErrors;
-            var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            DeclarationModifiers declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            CSDiagnosticInfo info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -110,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var binder = this.DeclaringCompilation.
+            Binder binder = this.DeclaringCompilation.
                 GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax, GetSyntax(), this);
 
             SyntaxToken arglistToken;
 
-            var signatureBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+            Binder signatureBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
 
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckValueParameters(DiagnosticBag diagnostics)
         {
             // SPEC: The parameters of an operator must be value parameters.
-            foreach (var p in this.Parameters)
+            foreach (ParameterSymbol p in this.Parameters)
             {
                 if (p.RefKind != RefKind.None && p.RefKind != RefKind.In)
                 {
@@ -261,10 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: nullable types let S0 and T0 refer to their underlying types,
             // SPEC: otherwise, S0 and T0 are equal to S and T, respectively.
 
-            var source = this.ParameterTypes[0];
-            var target = this.ReturnType;
-            var source0 = source.StrippedType();
-            var target0 = target.StrippedType();
+            TypeSymbol source = this.ParameterTypes[0];
+            TypeSymbol target = this.ReturnType;
+            TypeSymbol source0 = source.StrippedType();
+            TypeSymbol target0 = target.StrippedType();
 
             // SPEC: A class or struct is permitted to declare a conversion from S to T
             // SPEC: only if all the following are true:
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // parameter type is *good* do we then go on to try to report an error against
             // the return type.
 
-            var parameterType = this.ParameterTypes[0];
+            TypeSymbol parameterType = this.ParameterTypes[0];
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (parameterType.StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.ReturnType.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
 
-            foreach (var parameter in this.Parameters)
+            foreach (ParameterSymbol parameter in this.Parameters)
             {
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }

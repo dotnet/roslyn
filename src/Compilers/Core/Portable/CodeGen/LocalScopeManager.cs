@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal ScopeInfo OpenScope(ScopeType scopeType, Cci.ITypeReference exceptionType)
             {
-                var scope = CurrentScope.OpenScope(scopeType, exceptionType, _enclosingExceptionHandler);
+                ScopeInfo scope = CurrentScope.OpenScope(scopeType, exceptionType, _enclosingExceptionHandler);
                 _scopes.Push(scope);
 
                 if (scope.IsExceptionHandler)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal void CloseScope(ILBuilder builder)
             {
-                var scope = _scopes.Pop();
+                ScopeInfo scope = _scopes.Pop();
                 scope.CloseScope(builder);
 
                 if (scope.IsExceptionHandler)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private ExceptionHandlerScope GetEnclosingExceptionHandler()
             {
-                foreach (var scope in _scopes)
+                foreach (ScopeInfo scope in _scopes)
                 {
                     switch (scope.Type)
                     {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal bool PossiblyDefinedOutsideOfTry(LocalDefinition local)
             {
-                foreach (var s in _scopes)
+                foreach (ScopeInfo s in _scopes)
                 {
                     if (s.ContainsLocal(local))
                     {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 int begin = int.MaxValue;
                 int end = 0;
 
-                foreach (var scope in scopes)
+                foreach (TScopeInfo scope in scopes)
                 {
                     ScopeBounds bounds = scope.GetLocalScopes(result);
                     begin = Math.Min(begin, bounds.Begin);
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 int begin = int.MaxValue;
                 int end = 0;
 
-                foreach (var scope in scopes)
+                foreach (TScopeInfo scope in scopes)
                 {
                     ScopeBounds bounds = scope.GetHoistedLocalScopes(result);
                     begin = Math.Min(begin, bounds.Begin);
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 Cci.ITypeReference exceptionType,
                 ExceptionHandlerScope currentExceptionHandler)
             {
-                var scope = base.OpenScope(scopeType, exceptionType, currentExceptionHandler);
+                ScopeInfo scope = base.OpenScope(scopeType, exceptionType, currentExceptionHandler);
                 if (_nestedScopes == null)
                 {
                     _nestedScopes = ImmutableArray.CreateBuilder<ScopeInfo>(1);
@@ -369,14 +369,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal override bool ContainsLocal(LocalDefinition local)
             {
-                var locals = _localVariables;
+                ImmutableArray<LocalDefinition>.Builder locals = _localVariables;
                 return locals != null && locals.Contains(local);
             }
 
             public virtual BasicBlock CreateBlock(ILBuilder builder)
             {
-                var enclosingHandler = builder.EnclosingExceptionHandler;
-                var block = enclosingHandler == null ?
+                ExceptionHandlerScope enclosingHandler = builder.EnclosingExceptionHandler;
+                BasicBlock block = enclosingHandler == null ?
                     AllocatePooledBlock(builder) :
                     new BasicBlockWithHandlerScope(builder, enclosingHandler);
 
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private static BasicBlock AllocatePooledBlock(ILBuilder builder)
             {
-                var block = BasicBlock.Pool.Allocate();
+                BasicBlock block = BasicBlock.Pool.Allocate();
                 block.Initialize(builder);
                 return block;
             }
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     for (int i = 0; i < Blocks.Count; i++)
                     {
-                        var block = Blocks[i];
+                        BasicBlock block = Blocks[i];
 
                         if (block.Reachability != Reachability.NotReachable)
                         {
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     for (int i = 0; i < Blocks.Count; i++)
                     {
-                        var block = Blocks[i];
+                        BasicBlock block = Blocks[i];
 
                         if (block.Reachability != Reachability.NotReachable)
                         {
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             public override BasicBlock CreateBlock(ILBuilder builder)
             {
                 Debug.Assert(builder.EnclosingExceptionHandler == this);
-                var block = (Blocks == null) ?
+                BasicBlockWithHandlerScope block = (Blocks == null) ?
                     new ExceptionHandlerLeaderBlock(builder, this, this.GetLeaderBlockType()) :
                     new BasicBlockWithHandlerScope(builder, this);
 
@@ -705,13 +705,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 Debug.Assert(_handlers.Count > 1);
 
                 // Fix up the NextExceptionHandler reference of each leader block.
-                var tryScope = _handlers[0];
-                var previousBlock = tryScope.LeaderBlock;
+                ExceptionHandlerScope tryScope = _handlers[0];
+                ExceptionHandlerLeaderBlock previousBlock = tryScope.LeaderBlock;
 
                 for (int i = 1; i < _handlers.Count; i++)
                 {
-                    var handlerScope = _handlers[i];
-                    var nextBlock = handlerScope.LeaderBlock;
+                    ExceptionHandlerScope handlerScope = _handlers[i];
+                    ExceptionHandlerLeaderBlock nextBlock = handlerScope.LeaderBlock;
 
                     previousBlock.NextExceptionHandler = nextBlock;
                     previousBlock = nextBlock;
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 ExceptionHandlerScope tryScope = null;
                 ScopeBounds tryBounds = new ScopeBounds();
 
-                foreach (var handlerScope in _handlers)
+                foreach (ExceptionHandlerScope handlerScope in _handlers)
                 {
                     // Partition I, section 12.4.2.5:
                     // The ordering of the exception clauses in the Exception Handler Table is important. If handlers are nested, 
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // so we collect the inner regions first.
                     handlerScope.GetExceptionHandlerRegions(regions);
 
-                    var handlerBounds = GetBounds(handlerScope);
+                    ScopeBounds handlerBounds = GetBounds(handlerScope);
 
                     if (tryScope == null)
                     {
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         tryScope = handlerScope;
                         tryBounds = handlerBounds;
 
-                        var reachability = tryScope.LeaderBlock.Reachability;
+                        Reachability reachability = tryScope.LeaderBlock.Reachability;
                         Debug.Assert((reachability == Reachability.Reachable) || (reachability == Reachability.NotReachable));
 
                         // All handler blocks should have same reachability.
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             private static ScopeBounds GetBounds(ExceptionHandlerScope scope)
             {
                 var scopes = ArrayBuilder<Cci.LocalScope>.GetInstance();
-                var result = scope.GetLocalScopes(scopes);
+                ScopeBounds result = scope.GetLocalScopes(scopes);
                 scopes.Free();
                 return result;
             }
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 // No basic blocks owned directly here.
 
-                foreach (var scope in _handlers)
+                foreach (ExceptionHandlerScope scope in _handlers)
                 {
                     scope.FreeBasicBlocks();
                 }
@@ -831,10 +831,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal bool FinallyOnly()
             {
-                var curScope = this;
+                ExceptionHandlerContainerScope curScope = this;
                 do
                 {
-                    var handlers = curScope._handlers;
+                    ImmutableArray<ExceptionHandlerScope>.Builder handlers = curScope._handlers;
                     // handler[0] is always the try
                     // if we have a finally, then we do not have any catches and 
                     // the finally is as handlers[1]

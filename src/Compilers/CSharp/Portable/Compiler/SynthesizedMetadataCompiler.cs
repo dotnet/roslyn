@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var s in symbol.GetMembers())
+            foreach (Symbol s in symbol.GetMembers())
             {
                 s.Accept(this);
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // base type from another assembly) it is necessary for the compiler to generate explicit implementations for
                     // some interface methods.  They don't go in the symbol table, but if we are emitting metadata, then we should
                     // generate MethodDef entries for them.
-                    foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
+                    foreach (SynthesizedExplicitImplementationForwardingMethod synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
                     {
                         _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl);
                     }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceProperty = symbol as SourcePropertySymbol;
             if ((object)sourceProperty != null && sourceProperty.IsSealed)
             {
-                var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
+                SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
                 {
                     _moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);

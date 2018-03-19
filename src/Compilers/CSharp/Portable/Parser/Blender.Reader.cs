@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // First, move down so that we're actually pointing at a token.  If we're already
                 // pointing at a token, then we'll just stay there.
                 _oldTreeCursor = _oldTreeCursor.MoveToFirstToken();
-                var node = _oldTreeCursor.CurrentNodeOrToken;
+                SyntaxNodeOrToken node = _oldTreeCursor.CurrentNodeOrToken;
 
                 // Now, skip past it.
                 _changeDelta += node.FullWidth;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var oldPosition = _oldTreeCursor.CurrentNodeOrToken.Position;
                 while (!_changes.IsEmpty && oldPosition >= _changes.Peek().Span.End)
                 {
-                    var change = _changes.Peek();
+                    TextChangeRange change = _changes.Peek();
 
                     _changes = _changes.Pop();
                     _changeDelta += change.NewLength - change.Span.Length;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // The new text is either behind the cursor, or the cursor is done.  In either event,
                 // we need to lex a real token from the stream.
-                var token = this.LexNewToken(mode);
+                SyntaxToken token = this.LexNewToken(mode);
 
                 // If the oldTreeCursor was finished, then the below code isn't really necessary.
                 // We'll just repeat the outer reader loop and call right back into ReadNewToken.
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     mode |= _newLexerDrivenMode;
                 }
 
-                var token = _lexer.Lex(ref mode);
+                SyntaxToken token = _lexer.Lex(ref mode);
                 _newDirectives = _lexer.Directives;
                 _newLexerDrivenMode = mode & (LexerMode.MaskXmlDocCommentLocation | LexerMode.MaskXmlDocCommentStyle);
                 return token;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // See if we're actually able to reuse this node or token.  If not, our caller will
                 // move the cursor to the next appropriate position and will try again.
-                var currentNodeOrToken = _oldTreeCursor.CurrentNodeOrToken;
+                SyntaxNodeOrToken currentNodeOrToken = _oldTreeCursor.CurrentNodeOrToken;
                 if (!CanReuse(currentNodeOrToken))
                 {
                     blendedNode = default(BlendedNode);
@@ -280,8 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
-                var oldSpan = nodeOrToken.FullSpan;
-                var changeSpan = _changes.Peek().Span;
+                TextSpan oldSpan = nodeOrToken.FullSpan;
+                TextSpan changeSpan = _changes.Peek().Span;
 
                 // if old node intersects effective range of the change, we cannot use it
                 return oldSpan.IntersectsWith(changeSpan);

@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis
         {
             IReadOnlyDictionary<string, string> set = null;
 
-            foreach (var tree in trees)
+            foreach (SyntaxTree tree in trees)
             {
-                var treeFeatures = tree.Options.Features;
+                IReadOnlyDictionary<string, string> treeFeatures = tree.Options.Features;
                 if (set == null)
                 {
                     set = treeFeatures;
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsValidHostObjectType(Type type)
         {
-            var info = type.GetTypeInfo();
+            System.Reflection.TypeInfo info = type.GetTypeInfo();
             return !(info.IsValueType || info.IsPointer || info.IsByRef || info.ContainsGenericParameters);
         }
 
@@ -492,10 +492,10 @@ namespace Microsoft.CodeAnalysis
         internal static ImmutableArray<MetadataReference> ValidateReferences<T>(IEnumerable<MetadataReference> references)
             where T : CompilationReference
         {
-            var result = references.AsImmutableOrEmpty();
+            ImmutableArray<MetadataReference> result = references.AsImmutableOrEmpty();
             for (int i = 0; i < result.Length; i++)
             {
-                var reference = result[i];
+                MetadataReference reference = result[i];
                 if (reference == null)
                 {
                     throw new ArgumentNullException($"{nameof(references)}[{i}]");
@@ -548,12 +548,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                foreach (var reference in ExternalReferences)
+                foreach (MetadataReference reference in ExternalReferences)
                 {
                     yield return reference;
                 }
 
-                foreach (var reference in DirectiveReferences)
+                foreach (MetadataReference reference in DirectiveReferences)
                 {
                     yield return reference;
                 }
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis
             //EDMAURER if AddingReferences accepts duplicates, then a consumer supplying a list with
             //duplicates to add will not know exactly which to remove. Let them supply a list with
             //duplicates here.
-            foreach (var r in references.Distinct())
+            foreach (MetadataReference r in references.Distinct())
             {
                 if (!refSet.Remove(r))
                 {
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         private void AssertNoScriptTrees()
         {
-            foreach (var tree in this.SyntaxTrees)
+            foreach (SyntaxTree tree in this.SyntaxTrees)
             {
                 Debug.Assert(tree.Options.Kind != SourceCodeKind.Script);
             }
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var filtered = Options.FilterDiagnostic(d);
+                Diagnostic filtered = Options.FilterDiagnostic(d);
                 if (filtered == null ||
                     (!reportSuppressedDiagnostics && filtered.IsSuppressed))
                 {
@@ -1348,7 +1348,7 @@ namespace Microsoft.CodeAnalysis
 
             var resourceList = new List<Win32Resource>();
 
-            foreach (var r in resources)
+            foreach (RESOURCE r in resources)
             {
                 var result = new Win32Resource(
                     data: r.data,
@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis
             if (manifestResources != null && manifestResources.Any())
             {
                 var uniqueFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var resource in manifestResources)
+                foreach (ResourceDescription resource in manifestResources)
                 {
                     if (!uniqueResourceNames.Add(resource.ResourceName))
                     {
@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static DllCharacteristics GetDllCharacteristics(bool enableHighEntropyVA, bool configureToExecuteInAppContainer)
         {
-            var result =
+            DllCharacteristics result =
                 DllCharacteristics.DynamicBase |
                 DllCharacteristics.NxCompatible |
                 DllCharacteristics.NoSeh |
@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis
 
         private static Characteristics GetCharacteristics(OutputKind outputKind, bool requires32Bit)
         {
-            var characteristics = Characteristics.ExecutableImage;
+            Characteristics characteristics = Characteristics.ExecutableImage;
 
             if (requires32Bit)
             {
@@ -1763,7 +1763,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Check that all syntax trees are debuggable:
             bool allTreesDebuggable = true;
-            foreach (var tree in SyntaxTrees)
+            foreach (SyntaxTree tree in SyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
                 {
@@ -1783,11 +1783,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var embeddedDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
 
-                foreach (var text in embeddedTexts)
+                foreach (EmbeddedText text in embeddedTexts)
                 {
                     Debug.Assert(!string.IsNullOrEmpty(text.FilePath));
                     string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(text.FilePath, basePath: null);
-                    var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
+                    Cci.DebugSourceDocument existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
                     {
                         var document = new Cci.DebugSourceDocument(
@@ -1804,14 +1804,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Add debug documents for all trees with distinct paths.
-            foreach (var tree in SyntaxTrees)
+            foreach (SyntaxTree tree in SyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath))
                 {
                     // compilation does not guarantee that all trees will have distinct paths.
                     // Do not attempt adding a document for a particular path if we already added one.
                     string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(tree.FilePath, basePath: null);
-                    var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
+                    Cci.DebugSourceDocument existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
                     {
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
@@ -1826,7 +1826,7 @@ namespace Microsoft.CodeAnalysis
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
             // Therefore we need to add these in a separate pass after documents for syntax trees were added.
-            foreach (var tree in SyntaxTrees)
+            foreach (SyntaxTree tree in SyntaxTrees)
             {
                 AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);
             }
@@ -1903,7 +1903,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var discardedDiagnostics = DiagnosticBag.GetInstance();
 
-                    var moduleBeingBuilt = this.CreateModuleBuilder(
+                    CommonPEModuleBuilder moduleBeingBuilt = this.CreateModuleBuilder(
                         emitOptions: EmitOptions.Default,
                         debugEntryPoint: null,
                         manifestResources: null,
@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
+            CommonPEModuleBuilder moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
                 diagnostics,
                 manifestResources,
                 options,
@@ -2494,7 +2494,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (nativePdbWriter != null)
                         {
-                            var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            Stream nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
                             Debug.Assert(nativePdbStream != null || metadataDiagnostics.HasAnyErrors());
 
                             if (nativePdbStream != null)
@@ -2570,7 +2570,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var auxStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
+            Stream auxStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
             Debug.Assert(auxStream != null || metadataDiagnostics.HasAnyErrors());
             return auxStream;
         }
@@ -2703,7 +2703,7 @@ namespace Microsoft.CodeAnalysis
             string pdbFilePath,
             CancellationToken cancellationToken)
         {
-            var nativePdbWriterOpt = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+            Cci.PdbWriter nativePdbWriterOpt = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
                 new Cci.PdbWriter(
                     pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                     testSymWriterFactory,
@@ -2785,7 +2785,7 @@ namespace Microsoft.CodeAnalysis
             // Optimization: Don't initialize TreeToUsedImportDirectivesMap in submissions.
             if (!IsSubmission && syntaxTree != null)
             {
-                var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
+                SmallConcurrentSetOfInts set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
                 set.Add(position);
             }
         }
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var result = locations[0];
+            TLocation result = locations[0];
 
             for (int i = 1; i < locations.Length; i++)
             {

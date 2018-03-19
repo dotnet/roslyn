@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
             var rsrc2 = new SectionHeader();
 
             int foundCount = 0;
-            foreach (var sectionHeader in peHeaders.SectionHeaders)
+            foreach (SectionHeader sectionHeader in peHeaders.SectionHeaders)
             {
                 if (sectionHeader.Name == ".rsrc$01")
                 {
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis
             {
                 int sum = 0;
 
-                foreach (var verString in GetVerStrings())
+                foreach (KeyValuePair<string, string> verString in GetVerStrings())
                 {
                     sum = (sum + 3) & ~3;   //ensure that each String data structure starts on a 32bit boundary.
                     sum += SizeofVerString(verString.Key, verString.Value);
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis
                 System.Diagnostics.Debug.Assert(writer.BaseStream.Position - debugPos == dataSize - GetStringsSize());
                 debugPos = writer.BaseStream.Position;
 
-                foreach (var entry in GetVerStrings())
+                foreach (KeyValuePair<string, string> entry in GetVerStrings())
                 {
                     var writerPos = writer.BaseStream.Position;
 

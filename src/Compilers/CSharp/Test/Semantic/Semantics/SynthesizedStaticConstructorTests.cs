@@ -20,7 +20,7 @@ class C
     int i1;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -36,7 +36,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -53,7 +53,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -70,7 +70,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.True(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -87,7 +87,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -103,7 +103,7 @@ class C
     int i1;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -121,7 +121,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -140,7 +140,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -159,7 +159,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -178,7 +178,7 @@ class C
     static void Goo() { }
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -193,7 +193,7 @@ class C
     const decimal dec1 = 12345;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -210,7 +210,7 @@ class C
     const decimal dec1 = 12345;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -225,7 +225,7 @@ class C
     decimal dec1 = 12345;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
@@ -242,7 +242,7 @@ class C
     decimal dec1 = 12345;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.False(IsBeforeFieldInit(typeSymbol));
         }
@@ -258,21 +258,21 @@ class C
     const decimal dec1 = 12345;
 }";
 
-            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            SourceNamedTypeSymbol typeSymbol = CompileAndExtractTypeSymbol(source);
             Assert.True(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
         private static SourceNamedTypeSymbol CompileAndExtractTypeSymbol(string source)
         {
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             var typeSymbol = (SourceNamedTypeSymbol)compilation.GlobalNamespace.GetMembers("C").Single();
             return typeSymbol;
         }
 
         private static bool HasSynthesizedStaticConstructor(NamedTypeSymbol typeSymbol)
         {
-            foreach (var member in typeSymbol.GetMembers(WellKnownMemberNames.StaticConstructorName))
+            foreach (Symbol member in typeSymbol.GetMembers(WellKnownMemberNames.StaticConstructorName))
             {
                 if (member.IsImplicitlyDeclared)
                 {

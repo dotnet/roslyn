@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>Unique simple names of GAC assemblies.</returns>
         public override IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
-            var q = from nameObject in GetAssemblyObjects(partialNameFilter: null, architectureFilter: architectureFilter)
+            IEnumerable<string> q = from nameObject in GetAssemblyObjects(partialNameFilter: null, architectureFilter: architectureFilter)
                     select FusionAssemblyIdentity.GetName(nameObject);
             return q.Distinct();
         }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (!architectureFilter.IsDefault)
                 {
-                    var assemblyArchitecture = FusionAssemblyIdentity.GetProcessorArchitecture(nameObject);
+                    ProcessorArchitecture assemblyArchitecture = FusionAssemblyIdentity.GetProcessorArchitecture(nameObject);
                     if (!architectureFilter.Contains(assemblyArchitecture))
                     {
                         continue;
@@ -209,10 +209,10 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var candidates = GetAssemblyObjects(nameObject, architectureFilter);
+            IEnumerable<FusionAssemblyIdentity.IAssemblyName> candidates = GetAssemblyObjects(nameObject, architectureFilter);
             string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
 
-            var bestMatch = FusionAssemblyIdentity.GetBestMatch(candidates, cultureName);
+            FusionAssemblyIdentity.IAssemblyName bestMatch = FusionAssemblyIdentity.GetBestMatch(candidates, cultureName);
             if (bestMatch == null)
             {
                 return null;

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         internal Stream OpenReadChecked(string fullPath)
         {
-            var stream = OpenRead(fullPath);
+            Stream stream = OpenRead(fullPath);
 
             if (stream == null || !stream.CanRead)
             {

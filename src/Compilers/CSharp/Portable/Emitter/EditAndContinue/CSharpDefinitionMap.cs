@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var awaiters = new Dictionary<Cci.ITypeReference, int>();
             int maxAwaiterSlotIndex = -1;
 
-            foreach (var member in stateMachineType.GetMembers())
+            foreach (ISymbol member in stateMachineType.GetMembers())
             {
                 if (member.Kind == SymbolKind.Field)
                 {
@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(!handle.IsNil);
 
-            var localInfos = _metadataDecoder.GetLocalsOrThrow(handle);
-            var result = CreateLocalSlotMap(debugInfo, localInfos);
+            ImmutableArray<LocalInfo<TypeSymbol>> localInfos = _metadataDecoder.GetLocalsOrThrow(handle);
+            ImmutableArray<EncLocalInfo> result = CreateLocalSlotMap(debugInfo, localInfos);
             Debug.Assert(result.Length == localInfos.Length);
             return result;
         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var result = new EncLocalInfo[slotMetadata.Length];
 
-            var localSlots = methodEncInfo.LocalSlots;
+            ImmutableArray<LocalSlotDebugInfo> localSlots = methodEncInfo.LocalSlots;
             if (!localSlots.IsDefault)
             {
                 // In case of corrupted PDB or metadata, these lengths might not match.
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 for (int slotIndex = 0; slotIndex < slotCount; slotIndex++)
                 {
-                    var slot = localSlots[slotIndex];
+                    LocalSlotDebugInfo slot = localSlots[slotIndex];
                     if (slot.SynthesizedKind.IsLongLived())
                     {
-                        var metadata = slotMetadata[slotIndex];
+                        LocalInfo<TypeSymbol> metadata = slotMetadata[slotIndex];
 
                         // We do not emit custom modifiers on locals so ignore the
                         // previous version of the local if it had custom modifiers.
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
                 }
 
-                foreach (var pair in map)
+                foreach (KeyValuePair<EncLocalInfo, int> pair in map)
                 {
                     result[pair.Value] = pair.Key;
                 }

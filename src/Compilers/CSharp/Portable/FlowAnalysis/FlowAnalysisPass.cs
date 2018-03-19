@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!hasTrailingExpression || method.IsScriptInitializer);
             var initialDiagnosticCount = diagnostics.ToReadOnly().Length;
 #endif
-            var compilation = method.DeclaringCompilation;
+            CSharpCompilation compilation = method.DeclaringCompilation;
 
             if (method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(compilation))
             {
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(method.MethodKind != MethodKind.AnonymousFunction);
 
                 // Add implicit "return default(T)" if this is a submission that does not have a trailing expression.
-                var submissionResultType = (method as SynthesizedInteractiveInitializerMethod)?.ResultType;
+                TypeSymbol submissionResultType = (method as SynthesizedInteractiveInitializerMethod)?.ResultType;
                 if (!hasTrailingExpression && ((object)submissionResultType != null))
                 {
                     Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
 
                     var trailingExpression = new BoundDefaultExpression(method.GetNonNullSyntaxNode(), submissionResultType);
-                    var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
+                    ImmutableArray<BoundStatement> newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
                     block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
 #if DEBUG
                     // It should not be necessary to repeat analysis after adding this node, because adding a trailing
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (originalBodyNested)
             {
-                var statements = body.Statements;
+                ImmutableArray<BoundStatement> statements = body.Statements;
                 int n = statements.Length;
 
                 var builder = ArrayBuilder<BoundStatement>.GetInstance(n);

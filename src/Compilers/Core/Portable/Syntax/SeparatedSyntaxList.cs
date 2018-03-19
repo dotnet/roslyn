@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         {
             for (int i = 0; i < list.Count; i++)
             {
-                var item = list[i];
+                SyntaxNodeOrToken item = list[i];
                 if ((i & 1) == 0)
                 {
                     Debug.Assert(item.IsNode, "Node missing in separated list.");
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                var node = _list.Node;
+                SyntaxNode node = _list.Node;
                 if (node != null)
                 {
                     if (!node.IsList)
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public SyntaxToken GetSeparator(int index)
         {
-            var node = _list.Node;
+            SyntaxNode node = _list.Node;
             if (node != null)
             {
                 Debug.Assert(node.IsList, "separated list cannot be a singleton separator");
                 if (unchecked((uint)index < (uint)_separatorCount))
                 {
                     index = (index << 1) + 1;
-                    var green = node.Green.GetSlot(index);
+                    GreenNode green = node.Green.GetSlot(index);
                     Debug.Assert(green.IsToken);
                     return new SyntaxToken(node.Parent, green, node.GetChildPosition(index), _list.index + index);
                 }
@@ -375,13 +375,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var nodesWithSeps = this.GetWithSeparators();
+            SyntaxNodeOrTokenList nodesWithSeps = this.GetWithSeparators();
             int insertionIndex = index < this.Count ? nodesWithSeps.IndexOf(this[index]) : nodesWithSeps.Count;
 
             // determine how to deal with separators (commas)
             if (insertionIndex > 0 && insertionIndex < nodesWithSeps.Count)
             {
-                var previous = nodesWithSeps[insertionIndex - 1];
+                SyntaxNodeOrToken previous = nodesWithSeps[insertionIndex - 1];
                 if (previous.IsToken && !KeepSeparatorWithPreviousNode(previous.AsToken()))
                 {
                     // pull back so item in inserted before separator
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var nodesToInsertWithSeparators = new List<SyntaxNodeOrToken>();
-            foreach (var item in nodes)
+            foreach (TNode item in nodes)
             {
                 if (item != null)
                 {
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis
             // if item after last inserted node is a node, add separator
             if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex].IsNode)
             {
-                var node = nodesWithSeps[insertionIndex].AsNode();
+                SyntaxNode node = nodesWithSeps[insertionIndex].AsNode();
                 nodesToInsertWithSeparators.Add(node.Green.CreateSeparator<TNode>(node)); // separator
             }
 
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis
         {
             // if the trivia after the separator contains an explicit end of line or a single line comment
             // then it should stay associated with previous node
-            foreach (var tr in separator.TrailingTrivia)
+            foreach (SyntaxTrivia tr in separator.TrailingTrivia)
             {
                 if (tr.UnderlyingNode.IsTriviaWithEndOfLine())
                 {
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="node">The element to remove.</param>
         public SeparatedSyntaxList<TNode> Remove(TNode node)
         {
-            var nodesWithSeps = this.GetWithSeparators();
+            SyntaxNodeOrTokenList nodesWithSeps = this.GetWithSeparators();
             int index = nodesWithSeps.IndexOf(node);
 
             if (index >= 0 && index <= nodesWithSeps.Count)
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis
                     return this.Remove(nodeInList);
                 }
 
-                var listWithFirstReplaced = this.Replace(nodeInList, newNodeList[0]);
+                SeparatedSyntaxList<TNode> listWithFirstReplaced = this.Replace(nodeInList, newNodeList[0]);
 
                 if (newNodeList.Count > 1)
                 {
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="newSeparator">The new separator token.</param>
         public SeparatedSyntaxList<TNode> ReplaceSeparator(SyntaxToken separatorToken, SyntaxToken newSeparator)
         {
-            var nodesWithSeps = this.GetWithSeparators();
+            SyntaxNodeOrTokenList nodesWithSeps = this.GetWithSeparators();
             var index = nodesWithSeps.IndexOf(separatorToken);
             if (index < 0)
             {

@@ -35,7 +35,7 @@ IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'o is str
     ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
   IsType: System.String
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -104,7 +104,7 @@ IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'o is Tes
     ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
   IsType: TestIsOperator.TestType
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -201,7 +201,7 @@ IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 't is int
     IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
   IsType: System.Int32
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -230,7 +230,7 @@ IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 'u is obj
     IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U) (Syntax: 'u')
   IsType: System.Object
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -259,7 +259,7 @@ IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 't is U')
     IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
   IsType: U
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -288,7 +288,7 @@ IIsTypeOperation (OperationKind.IsType, Type: System.Boolean) (Syntax: 't is T')
     IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
   IsType: T
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

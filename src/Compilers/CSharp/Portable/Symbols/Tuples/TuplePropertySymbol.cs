@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> underlying = _underlyingProperty.Parameters;
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance(underlying.Length);
 
-            foreach (var parameter in underlying)
+            foreach (ParameterSymbol parameter in underlying)
             {
                 builder.Add(new TupleParameterSymbol(this, parameter));
             }

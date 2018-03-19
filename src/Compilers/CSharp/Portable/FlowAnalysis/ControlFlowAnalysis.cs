@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_entryPoints == null)
                 {
                     _succeeded = !_context.Failed;
-                    var result = _context.Failed ? ImmutableArray<SyntaxNode>.Empty :
+                    ImmutableArray<SyntaxNode> result = _context.Failed ? ImmutableArray<SyntaxNode>.Empty :
                             ((IEnumerable<SyntaxNode>)EntryPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, out _succeeded)).ToImmutableArray();
                     ImmutableInterlocked.InterlockedInitialize(ref _entryPoints, result);
                 }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_exitPoints == null)
                 {
-                    var result = Succeeded
+                    ImmutableArray<SyntaxNode> result = Succeeded
                         ? ((IEnumerable<SyntaxNode>)ExitPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).ToImmutableArray()
                         : ImmutableArray<SyntaxNode>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _exitPoints, result);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_succeeded == null)
                 {
-                    var discarded = EntryPoints;
+                    ImmutableArray<SyntaxNode> discarded = EntryPoints;
                 }
 
                 return _succeeded.Value;

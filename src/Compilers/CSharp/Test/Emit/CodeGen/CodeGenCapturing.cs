@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             {
                 // Fields are shared among methods, so we also share them in the
                 // capture context when cloning
-                var fieldsBuilder = ImmutableArray.CreateBuilder<string>(MaxVariables);
+                ImmutableArray<string>.Builder fieldsBuilder = ImmutableArray.CreateBuilder<string>(MaxVariables);
                 for (int i = 0; i < MaxVariables; i++)
                 {
                     fieldsBuilder.Add($"field_{i}");
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             public CaptureContext Clone()
             {
-                var fields = VariablesByScope[0];
+                IList<string> fields = VariablesByScope[0];
                 var newCtx = new CaptureContext();
                 newCtx.VariablesByScope.Add(fields);
                 newCtx.VariablesByScope.AddRange(
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var varNames = new List<string>();
             for (int varDepth = 0; varDepth < varsToCapture.Count; varDepth++)
             {
-                var variablesByScope = ctx.VariablesByScope;
+                List<IList<string>> variablesByScope = ctx.VariablesByScope;
                 // Do we have any variables in this scope depth?
                 // If not, initialize an empty list
                 if (variablesByScope.Count <= varDepth)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     variablesByScope.Add(new List<string>());
                 }
 
-                var varsAtCurrentDepth = variablesByScope[varDepth];
+                IList<string> varsAtCurrentDepth = variablesByScope[varDepth];
 
                 int numToCapture = varsToCapture[varDepth];
                 int numVarsAvailable = variablesByScope[varDepth].Count;
@@ -126,14 +126,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             {
                 for (int i = 0; i <= remainingSum; i++)
                 {
-                    var newSets = setsSoFar.Add(i);
+                    ImmutableList<int> newSets = setsSoFar.Add(i);
                     if (setIndex == numSubsets - 1)
                     {
                         yield return newSets;
                     }
                     else
                     {
-                        foreach (var captures in GenerateAll(remainingSum - i,
+                        foreach (ImmutableList<int> captures in GenerateAll(remainingSum - i,
                                                              setIndex + 1,
                                                              newSets))
                         {
@@ -310,13 +310,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // is a copy
             void DfsLayout(LayoutEnumerator e, MethodInfo methodSoFar, int localFuncNameIndex)
             {
-                var (depth, localFuncIndex) = e.Current;
+                (int depth, int localFuncIndex) = e.Current;
 
                 bool isLastFunc = !e.MoveNext();
 
-                foreach (var captureCombo in GenerateAllSetCombinations(MaxCaptures, depth + 2))
+                foreach (IList<int> captureCombo in GenerateAllSetCombinations(MaxCaptures, depth + 2))
                 {
-                    var copy = methodSoFar.Clone();
+                    MethodInfo copy = methodSoFar.Clone();
                     var expr = MakeCaptureExpression(captureCombo, copy.CaptureContext);
                     if (depth >= copy.LocalFuncs.Count)
                     {
@@ -348,11 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // Set combinations indicate what depth we will place local functions
             // at. For instance, { 0, 1 } indicates 0 local functions at method
             // depth and 1 local function at one nested scope below method level.
-            foreach (var localFuncLayout in GenerateAllSetCombinations(MaxLocalFuncs, MaxDepth))
+            foreach (IList<int> localFuncLayout in GenerateAllSetCombinations(MaxLocalFuncs, MaxDepth))
             {
                 // Given a local function map, we need to generate capture
                 // expressions for each local func at each depth
-                foreach (var method in MakeMethodsWithLayout(localFuncLayout))
+                foreach (MethodInfo method in MakeMethodsWithLayout(localFuncLayout))
                     yield return method;
             }
         }
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             int totalLocalFuncs = methodInfo.TotalLocalFuncs;
 
             var methodText = new StringBuilder();
-            var localFuncs = methodInfo.LocalFuncs;
+            List<IList<string>> localFuncs = methodInfo.LocalFuncs;
             for (int depth = 0; depth < localFuncs.Count; depth++)
             {
                 if (depth > 0)
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     methodText.AppendLine("{");
                 }
 
-                var captureVars = methodInfo.CaptureContext.VariablesByScope;
+                List<IList<string>> captureVars = methodInfo.CaptureContext.VariablesByScope;
                 if (captureVars.Count > (depth + 1) &&
                     captureVars[depth + 1] != null)
                 {
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             var methods = MakeAllMethods().ToList();
 
-            var fields = methods.First().CaptureContext.VariablesByScope[0];
+            IList<string> fields = methods.First().CaptureContext.VariablesByScope[0];
 
             const int PartitionSize = 500;
             const string ClassFmt = @"
@@ -441,11 +441,11 @@ public class C
 
             Parallel.ForEach(Partitioner.Create(0, methods.Count, PartitionSize), (range, state) =>
             {
-                var methodsText = GetClassStart();
+                StringBuilder methodsText = GetClassStart();
 
                 for (int methodIndex = range.Item1; methodIndex < range.Item2; methodIndex++)
                 {
-                    var methodInfo = methods[methodIndex];
+                    MethodInfo methodInfo = methods[methodIndex];
 
                     if (methodInfo.TotalLocalFuncs == 0)
                     {

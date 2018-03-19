@@ -27,8 +27,8 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+            SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"(?s)^.*$", "CS1646", "CS1024", "CS1525", "CS1002");
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"\s*(?=@)", "CS1646");
@@ -62,8 +62,8 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+            SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"var x = X;", "CS0103");
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"return Y;", "CS0103");
@@ -77,8 +77,8 @@ class C : Abracadabra
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+            SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             const string ErrorId = "CS0246";
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"(?s)^.*$", ErrorId);
@@ -101,28 +101,28 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var diag = compilation.GetDiagnostics().Single();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+            Diagnostic diag = compilation.GetDiagnostics().Single();
 
             Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
             Assert.Equal(3, diag.WarningLevel);
 
-            var error = diag.WithSeverity(DiagnosticSeverity.Error);
+            Diagnostic error = diag.WithSeverity(DiagnosticSeverity.Error);
             Assert.Equal(DiagnosticSeverity.Error, error.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, error.DefaultSeverity);
             Assert.Equal(0, error.WarningLevel);
 
-            var warning = error.WithSeverity(DiagnosticSeverity.Warning);
+            Diagnostic warning = error.WithSeverity(DiagnosticSeverity.Warning);
             Assert.Equal(DiagnosticSeverity.Warning, warning.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, warning.DefaultSeverity);
             Assert.Equal(3, warning.WarningLevel);
 
-            var hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
+            Diagnostic hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity);
             Assert.Equal(1, hidden.WarningLevel);
 
-            var info = diag.WithSeverity(DiagnosticSeverity.Info);
+            Diagnostic info = diag.WithSeverity(DiagnosticSeverity.Info);
             Assert.Equal(DiagnosticSeverity.Info, info.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
             Assert.Equal(1, info.WarningLevel);
@@ -150,13 +150,13 @@ namespace N1
 } 
 ";
 
-            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
-            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
+            SyntaxTree tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
+            SyntaxTree tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+            Compilation compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
 
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
-            var model = compilation.GetSemanticModel(tree1);
+            SemanticModel model = compilation.GetSemanticModel(tree1);
             model.GetDiagnostics(tree1.GetRoot().FullSpan);
 
             Assert.True(eventQueue.Count > 0);
@@ -199,13 +199,13 @@ namespace N1
 } 
 ";
 
-            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
-            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
+            SyntaxTree tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
+            SyntaxTree tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+            Compilation compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
 
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
-            var model = compilation.GetSemanticModel(tree1);
+            SemanticModel model = compilation.GetSemanticModel(tree1);
             model.GetDiagnostics(tree1.GetRoot().FullSpan);
 
             Assert.True(eventQueue.Count > 0);
@@ -238,11 +238,11 @@ namespace N1
     }
 } 
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, path: "file1");
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source, path: "file1");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }).WithEventQueue(eventQueue);
+            Compilation compilation = CreateCompilationWithMscorlib45(new[] { tree }).WithEventQueue(eventQueue);
             eventQueue.TryComplete(); // complete the queue before the compiler is finished with it
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             model.GetDiagnostics(tree.GetRoot().FullSpan);
         }
 
@@ -269,7 +269,7 @@ namespace N1
                     var symbolDeclaredEvent = compEvent as SymbolDeclaredCompilationEvent;
                     if (symbolDeclaredEvent != null)
                     {
-                        var symbol = symbolDeclaredEvent.Symbol;
+                        ISymbol symbol = symbolDeclaredEvent.Symbol;
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
@@ -298,10 +298,10 @@ namespace N1
         [Fact]
         public void TestEventQueueCompletionForEmptyCompilation()
         {
-            var compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            Compilation compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             // Force complete compilation event queue
-            var unused = compilation.GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> unused = compilation.GetDiagnostics();
 
             Assert.True(compilation.EventQueue.IsCompleted);
         }
@@ -309,7 +309,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
-            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            CSharpCompilation compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
 
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -321,7 +321,7 @@ namespace N1
         public void CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var compilation = CreateCompilationWithMscorlib45(string.Empty, parseOptions: new CSharpParseOptions().WithKind(SourceCodeKind.Interactive));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(string.Empty, parseOptions: new CSharpParseOptions().WithKind(SourceCodeKind.Interactive));
 #pragma warning restore CS0618 // Type or member is obsolete
 
             compilation.VerifyDiagnostics(
@@ -333,7 +333,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
         {
-            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
+            CSharpCompilation compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8192: Provided language version is unsupported or invalid: '10000'.
                 // 
@@ -343,7 +343,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
         {
-            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
+            CSharpCompilation compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 // 
@@ -353,12 +353,12 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidParseOptionsInMultipleSyntaxTreesShouldReportThemAll()
         {
-            var syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
-            var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
-            var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
+            SyntaxTree syntaxTree1 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            SyntaxTree syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
+            SyntaxTree syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
 
-            var compilation = CreateEmptyCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CreateEmptyCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -379,15 +379,15 @@ namespace N1
         [Fact]
         public void CompilingCodeWithSameParseOptionsInMultipleSyntaxTreesShouldReportOnlyNonDuplicates()
         {
-            var parseOptions1 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" });
-            var parseOptions2 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" });
+            CSharpParseOptions parseOptions1 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" });
+            CSharpParseOptions parseOptions2 = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" });
 
-            var syntaxTree1 = Parse(string.Empty, options: parseOptions1);
-            var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
-            var syntaxTree3 = Parse(string.Empty, options: parseOptions2);
+            SyntaxTree syntaxTree1 = Parse(string.Empty, options: parseOptions1);
+            SyntaxTree syntaxTree2 = Parse(string.Empty, options: parseOptions2);
+            SyntaxTree syntaxTree3 = Parse(string.Empty, options: parseOptions2);
 
-            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -406,10 +406,10 @@ namespace N1
         public void GettingDeclarationDiagnosticsForATreeShouldNotFreezeCompilation()
         {
             var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
-            var tree1 = Parse(string.Empty, options: parseOptions);
-            var tree2 = Parse("ref struct X {}", options: parseOptions);
+            SyntaxTree tree1 = Parse(string.Empty, options: parseOptions);
+            SyntaxTree tree2 = Parse("ref struct X {}", options: parseOptions);
 
-            var compilation = CreateCompilation(new[] { tree1, tree2 });
+            CSharpCompilation compilation = CreateCompilation(new[] { tree1, tree2 });
 
             // Verify diagnostics for the first tree. This should have sealed the attributes
             compilation.GetSemanticModel(tree1).GetDeclarationDiagnostics().Verify();

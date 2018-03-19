@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool hasPathAttribute = pathAttr != null;
                     if (!hasFileAttribute || !hasPathAttribute)
                     {
-                        var subMessage = hasFileAttribute ? MessageID.IDS_XMLMISSINGINCLUDEPATH.Localize() : MessageID.IDS_XMLMISSINGINCLUDEFILE.Localize();
+                        LocalizableErrorArgument subMessage = hasFileAttribute ? MessageID.IDS_XMLMISSINGINCLUDEPATH.Localize() : MessageID.IDS_XMLMISSINGINCLUDEFILE.Localize();
                         includeDiagnostics.Add(ErrorCode.WRN_InvalidInclude, location, subMessage);
                         commentMessage = MakeCommentMessage(location, MessageID.IDS_XMLBADINCLUDE);
                         return null;
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string xpathValue = pathAttr.Value;
                     string filePathValue = fileAttr.Value;
 
-                    var resolver = _compilation.Options.XmlReferenceResolver;
+                    XmlReferenceResolver resolver = _compilation.Options.XmlReferenceResolver;
                     if (resolver == null)
                     {
                         includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.XmlReferencesNotSupported)));

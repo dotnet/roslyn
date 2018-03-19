@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var translatedType = translator((TTypeSymbol)_marshalTypeNameOrSymbol, arg);
+            TTypeSymbol translatedType = translator((TTypeSymbol)_marshalTypeNameOrSymbol, arg);
             if ((object)translatedType == (object)_marshalTypeNameOrSymbol)
             {
                 return this;

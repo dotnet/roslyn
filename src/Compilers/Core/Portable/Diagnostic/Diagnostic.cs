@@ -458,9 +458,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool HasIntersectingLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
         {
-            var locations = this.GetDiagnosticLocationsWithinTree(tree);
+            IEnumerable<Location> locations = this.GetDiagnosticLocationsWithinTree(tree);
 
-            foreach (var location in locations)
+            foreach (Location location in locations)
             {
                 if (!filterSpanWithinTree.HasValue || filterSpanWithinTree.Value.IntersectsWith(location.SourceSpan))
                 {
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis
 
             if (this.AdditionalLocations != null)
             {
-                foreach (var additionalLocation in this.AdditionalLocations)
+                foreach (Location additionalLocation in this.AdditionalLocations)
                 {
                     if (additionalLocation.SourceTree == tree)
                     {

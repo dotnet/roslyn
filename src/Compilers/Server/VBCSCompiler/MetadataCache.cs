@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private ModuleMetadata CreateModuleMetadata(string path, bool prefetchEntireImage)
         {
             // TODO: exception handling?
-            var fileStream = FileUtilities.OpenRead(path);
+            Stream fileStream = FileUtilities.OpenRead(path);
 
-            var options = PEStreamOptions.PrefetchMetadata;
+            PEStreamOptions options = PEStreamOptions.PrefetchMetadata;
             if (prefetchEntireImage)
             {
                 options |= PEStreamOptions.PrefetchEntireImage;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     moduleBuilder.Add(manifestModule);
                 }
 
-                var module = CreateModuleMetadata(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName), prefetchEntireImage: false);
+                ModuleMetadata module = CreateModuleMetadata(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName), prefetchEntireImage: false);
                 moduleBuilder.Add(module);
             }
 
@@ -64,16 +64,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             if (properties.Kind == MetadataImageKind.Module)
             {
-                var result = CreateModuleMetadata(fullPath, prefetchEntireImage: true);
+                ModuleMetadata result = CreateModuleMetadata(fullPath, prefetchEntireImage: true);
                 //?? never add modules to cache?
                 return result;
             }
             else
             {
-                var primaryModule = CreateModuleMetadata(fullPath, prefetchEntireImage: false);
+                ModuleMetadata primaryModule = CreateModuleMetadata(fullPath, prefetchEntireImage: false);
 
                 // Get all the modules, and load them. Create an assembly metadata.
-                var allModules = GetAllModules(primaryModule, Path.GetDirectoryName(fullPath));
+                ImmutableArray<ModuleMetadata> allModules = GetAllModules(primaryModule, Path.GetDirectoryName(fullPath));
                 Metadata result = AssemblyMetadata.Create(allModules);
 
                 result = _metadataCache.GetOrAdd(fileKey.Value, result);

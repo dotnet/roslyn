@@ -30,7 +30,7 @@ class C {
   }
 }";
 
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (5,16): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
                 //       Nullable<Nullable<int>> x = null;
@@ -54,7 +54,7 @@ class C
     Console.WriteLine(s1.ToString() + s2.ToString());
   }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
 // (7,5): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
 //     string? s1 = null;
@@ -99,7 +99,7 @@ class C
     System.Console.WriteLine(object.ReferenceEquals(c, null));
   }
 }";
-            var comp = CreateCompilation(source1);
+            CSharpCompilation comp = CreateCompilation(source1);
             comp.VerifyDiagnostics(
                 // (11,5): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //     c++;
@@ -146,7 +146,7 @@ class C
   }
 }";
 
-            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            CompilationVerifier verifier = CompileAndVerify(source: source2, expectedOutput: "0");
             verifier = CompileAndVerify(source: source2, expectedOutput: "0");
 
             // And in fact, this should work if there is an implicit conversion from the result of the addition
@@ -287,7 +287,7 @@ class C
             foreach (string type in new[] { "uint", "short", "sbyte", "ulong", "double", "decimal" })
             {
                 string expected = "0";
-                var verifier = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
+                CompilationVerifier verifier = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
             }
         }
 
@@ -347,7 +347,7 @@ class C
 
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: "1");
         }
 
         [Fact]
@@ -501,7 +501,7 @@ class C
 +TFTF1TTF2TFTF3TTF4TFTF5TFTF6TFTF
 ~TTF1TTF2TTF3TTF4TTF";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact]
@@ -567,7 +567,7 @@ TF!x
 TF+x
 TF-x";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
@@ -714,7 +714,7 @@ class C
             foreach (string t in types)
             {
                 string s = source.Replace("TYPE", t).Replace("OP", oper).Replace("ZERO", zeros[t]).Replace("ONE", ones[t]);
-                var verifier = CompileAndVerify(source: s, expectedOutput: expected);
+                CompilationVerifier verifier = CompileAndVerify(source: s, expectedOutput: expected);
             }
         }
 
@@ -1250,7 +1250,7 @@ class C
 
             int m = 0;
 
-            foreach (var item in items)
+            foreach (Tuple<string, string[,]> item in items)
             {
                 string oper = item.Item1;
                 string[,] types = item.Item2;
@@ -1277,7 +1277,7 @@ class C
             source.Append(main);
             source.Append("} }");
 
-            var verifier = CompileAndVerify(source: source.ToString(), expectedOutput: "");
+            CompilationVerifier verifier = CompileAndVerify(source: source.ToString(), expectedOutput: "");
         }
 
         [Fact]
@@ -1373,7 +1373,7 @@ class C
             source += "}}";
 
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: "");
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
 
         [Fact]
@@ -1572,7 +1572,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: "");
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
 
         [Fact]
@@ -1617,7 +1617,7 @@ class C
     static void F(int x, bool b) { if (b) throw new Exception(x.ToString()); }
 }";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: "123");
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: "123");
         }
 
         #region "Regression"
@@ -1635,7 +1635,7 @@ class Program
         Console.WriteLine(0);
     }
 }";
-            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            CompilationVerifier verifier = CompileAndVerify(source: source2, expectedOutput: "0");
         }
 
         [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
@@ -1733,7 +1733,7 @@ class Test
 ";
             string expected = @"0: 1:1.11 2:2 3: 4:4 5:0 6:6 7: 8:";
 
-            var verifier = CompileAndVerify(source, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
@@ -1761,12 +1761,12 @@ public class Test
 }
 ";
 
-            var complib = CreateCompilation(
+            CSharpCompilation complib = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseDll,
                 assemblyName: "TestDLL");
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 source2,
                 references: new MetadataReference[] { complib.EmitToImageReference() },
                 options: TestOptions.ReleaseExe,

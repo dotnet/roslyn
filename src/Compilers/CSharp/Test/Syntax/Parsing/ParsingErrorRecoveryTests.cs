@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("private")]
         public void AccessibilityModifierErrorRecovery(string accessibility)
         {
-            var file = ParseTree($@"
+            CompilationUnitSyntax file = ParseTree($@"
 class C
 {{
     void M()
@@ -69,7 +69,7 @@ class C
         public void TestGlobalAttributeGarbageAfterLocation()
         {
             var text = "[assembly: $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -84,7 +84,7 @@ class C
         public void TestGlobalAttributeUsingAfterLocation()
         {
             var text = "[assembly: using n;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -100,7 +100,7 @@ class C
         public void TestGlobalAttributeExternAfterLocation()
         {
             var text = "[assembly: extern alias a;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -116,7 +116,7 @@ class C
         public void TestGlobalAttributeNamespaceAfterLocation()
         {
             var text = "[assembly: namespace n { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -132,7 +132,7 @@ class C
         public void TestGlobalAttributeClassAfterLocation()
         {
             var text = "[assembly: class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -148,7 +148,7 @@ class C
         public void TestGlobalAttributeAttributeAfterLocation()
         {
             var text = "[assembly: [assembly: attr]";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -163,7 +163,7 @@ class C
         public void TestGlobalAttributeEOFAfterLocation()
         {
             var text = "[assembly: ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -178,7 +178,7 @@ class C
         public void TestGlobalAttributeGarbageAfterAttribute()
         {
             var text = "[assembly: a $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -193,7 +193,7 @@ class C
         public void TestGlobalAttributeGarbageAfterParameterStart()
         {
             var text = "[assembly: a( $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -209,7 +209,7 @@ class C
         public void TestGlobalAttributeGarbageAfterParameter()
         {
             var text = "[assembly: a(b $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -225,7 +225,7 @@ class C
         public void TestGlobalAttributeMissingCommaBetweenParameters()
         {
             var text = "[assembly: a(b c)";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -240,7 +240,7 @@ class C
         public void TestGlobalAttributeWithGarbageBetweenParameters()
         {
             var text = "[assembly: a(b $ c)";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -256,7 +256,7 @@ class C
         public void TestGlobalAttributeWithGarbageBetweenAttributes()
         {
             var text = "[assembly: a $ b";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -277,7 +277,7 @@ class C
         public void TestGlobalAttributeWithUsingAfterParameterStart()
         {
             var text = "[assembly: a( using n;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -293,7 +293,7 @@ class C
         public void TestGlobalAttributeWithExternAfterParameterStart()
         {
             var text = "[assembly: a( extern alias n;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -309,7 +309,7 @@ class C
         public void TestGlobalAttributeWithNamespaceAfterParameterStart()
         {
             var text = "[assembly: a( namespace n { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -325,7 +325,7 @@ class C
         public void TestGlobalAttributeWithClassAfterParameterStart()
         {
             var text = "[assembly: a( class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -341,7 +341,7 @@ class C
         public void TestGarbageBeforeNamespace()
         {
             var text = "$ namespace n { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -355,7 +355,7 @@ class C
         public void TestGarbageAfterNamespace()
         {
             var text = "namespace n { } $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -369,7 +369,7 @@ class C
         public void MultipleSubsequentMisplacedCharactersSingleError1()
         {
             var text = "namespace n { } ,,,,,,,,";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -383,7 +383,7 @@ class C
         public void MultipleSubsequentMisplacedCharactersSingleError2()
         {
             var text = ",,,, namespace n { } ,,,,";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -398,7 +398,7 @@ class C
         public void TestGarbageInsideNamespace()
         {
             var text = "namespace n { $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -427,7 +427,7 @@ class C
 
 [a]fod;
 [b";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Externs.Count);
@@ -443,7 +443,7 @@ class C
         public void TestAttributeWithGarbageAfterStart()
         {
             var text = "[ $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -459,7 +459,7 @@ class C
         public void TestAttributeWithGarbageAfterName()
         {
             var text = "[a $";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -474,7 +474,7 @@ class C
         public void TestAttributeWithClassAfterBracket()
         {
             var text = "[ class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -489,7 +489,7 @@ class C
         public void TestAttributeWithClassAfterName()
         {
             var text = "[a class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -503,7 +503,7 @@ class C
         public void TestAttributeWithClassAfterParameterStart()
         {
             var text = "[a( class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -518,7 +518,7 @@ class C
         public void TestAttributeWithClassAfterParameter()
         {
             var text = "[a(b class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -533,7 +533,7 @@ class C
         public void TestAttributeWithClassAfterParameterAndComma()
         {
             var text = "[a(b, class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -549,7 +549,7 @@ class C
         public void TestAttributeWithCommaAfterParameterStart()
         {
             var text = "[a(, class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -566,7 +566,7 @@ class C
         public void TestAttributeWithCommasAfterParameterStart()
         {
             var text = "[a(,, class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -584,7 +584,7 @@ class C
         public void TestAttributeWithMissingFirstParameter()
         {
             var text = "[a(, b class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -600,7 +600,7 @@ class C
         public void TestNamespaceWithGarbage()
         {
             var text = "namespace n { $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -614,7 +614,7 @@ class C
         public void TestNamespaceWithUnexpectedKeyword()
         {
             var text = "namespace n { int }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -628,7 +628,7 @@ class C
         public void TestNamespaceWithUnexpectedBracing()
         {
             var text = "namespace n { { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -642,7 +642,7 @@ class C
         public void TestGlobalNamespaceWithUnexpectedBracingAtEnd()
         {
             var text = "namespace n { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -656,7 +656,7 @@ class C
         public void TestGlobalNamespaceWithUnexpectedBracingAtStart()
         {
             var text = "} namespace n { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -670,7 +670,7 @@ class C
         public void TestGlobalNamespaceWithOpenBraceBeforeNamespace()
         {
             var text = "{ namespace n { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -684,7 +684,7 @@ class C
         public void TestPartialNamespace()
         {
             var text = "partial namespace n { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -698,7 +698,7 @@ class C
         public void TestClassAfterStartOfBaseTypeList()
         {
             var text = "class c : class b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -715,7 +715,7 @@ class C
         public void TestClassAfterBaseType()
         {
             var text = "class c : t class b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -731,7 +731,7 @@ class C
         public void TestClassAfterBaseTypeAndComma()
         {
             var text = "class c : t, class b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -748,7 +748,7 @@ class C
         public void TestClassAfterBaseTypesWithMissingComma()
         {
             var text = "class c : x y class b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -765,7 +765,7 @@ class C
         public void TestGarbageAfterStartOfBaseTypeList()
         {
             var text = "class c : $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -780,7 +780,7 @@ class C
         public void TestGarbageAfterBaseType()
         {
             var text = "class c : t $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -794,7 +794,7 @@ class C
         public void TestGarbageAfterBaseTypeAndComma()
         {
             var text = "class c : t, $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -809,7 +809,7 @@ class C
         public void TestGarbageAfterBaseTypesWithMissingComma()
         {
             var text = "class c : x y $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -824,7 +824,7 @@ class C
         public void TestConstraintAfterStartOfBaseTypeList()
         {
             var text = "class c<t> : where t : b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -838,7 +838,7 @@ class C
         public void TestConstraintAfterBaseType()
         {
             var text = "class c<t> : x where t : b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -851,7 +851,7 @@ class C
         public void TestConstraintAfterBaseTypeComma()
         {
             var text = "class c<t> : x, where t : b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -865,7 +865,7 @@ class C
         public void TestConstraintAfterBaseTypes()
         {
             var text = "class c<t> : x, y where t : b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -878,7 +878,7 @@ class C
         public void TestConstraintAfterBaseTypesWithMissingComma()
         {
             var text = "class c<t> : x y where t : b { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -892,7 +892,7 @@ class C
         public void TestOpenBraceAfterStartOfBaseTypeList()
         {
             var text = "class c<t> : { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -906,7 +906,7 @@ class C
         public void TestOpenBraceAfterBaseType()
         {
             var text = "class c<t> : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -919,7 +919,7 @@ class C
         public void TestOpenBraceAfterBaseTypeComma()
         {
             var text = "class c<t> : x, { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -933,7 +933,7 @@ class C
         public void TestOpenBraceAfterBaseTypes()
         {
             var text = "class c<t> : x, y { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -946,7 +946,7 @@ class C
         public void TestBaseTypesWithMissingComma()
         {
             var text = "class c<t> : x y { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -960,7 +960,7 @@ class C
         public void TestOpenBraceAfterConstraintStart()
         {
             var text = "class c<t> where { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -976,7 +976,7 @@ class C
         public void TestOpenBraceAfterConstraintName()
         {
             var text = "class c<t> where t { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -991,7 +991,7 @@ class C
         public void TestOpenBraceAfterConstraintNameAndColon()
         {
             var text = "class c<t> where t : { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1005,7 +1005,7 @@ class C
         public void TestOpenBraceAfterConstraintNameAndTypeAndComma()
         {
             var text = "class c<t> where t : x, { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1019,7 +1019,7 @@ class C
         public void TestConstraintAfterConstraintStart()
         {
             var text = "class c<t> where where t : a { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1035,7 +1035,7 @@ class C
         public void TestConstraintAfterConstraintName()
         {
             var text = "class c<t> where t where t : a { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1050,7 +1050,7 @@ class C
         public void TestConstraintAfterConstraintNameAndColon()
         {
             var text = "class c<t> where t : where t : a { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1064,7 +1064,7 @@ class C
         public void TestConstraintAfterConstraintNameColonTypeAndComma()
         {
             var text = "class c<t> where t : a, where t : a { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1078,7 +1078,7 @@ class C
         public void TestGarbageAfterConstraintStart()
         {
             var text = "class c<t> where $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1095,7 +1095,7 @@ class C
         public void TestGarbageAfterConstraintName()
         {
             var text = "class c<t> where t $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1111,7 +1111,7 @@ class C
         public void TestGarbageAfterConstraintNameAndColon()
         {
             var text = "class c<t> where t : $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1126,7 +1126,7 @@ class C
         public void TestGarbageAfterConstraintNameColonAndType()
         {
             var text = "class c<t> where t : x $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1140,7 +1140,7 @@ class C
         public void TestGarbageAfterConstraintNameColonTypeAndComma()
         {
             var text = "class c<t> where t : x, $ { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1155,7 +1155,7 @@ class C
         public void TestGarbageAfterGenericClassNameStart()
         {
             var text = "class c<$> { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1170,7 +1170,7 @@ class C
         public void TestGarbageAfterGenericClassNameType()
         {
             var text = "class c<t $> { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1184,7 +1184,7 @@ class C
         public void TestGarbageAfterGenericClassNameTypeAndComma()
         {
             var text = "class c<t, $> { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1199,7 +1199,7 @@ class C
         public void TestOpenBraceAfterGenericClassNameStart()
         {
             var text = "class c< { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1214,7 +1214,7 @@ class C
         public void TestOpenBraceAfterGenericClassNameAndType()
         {
             var text = "class c<t { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1228,7 +1228,7 @@ class C
         public void TestClassAfterGenericClassNameStart()
         {
             var text = "class c< class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1246,7 +1246,7 @@ class C
         public void TestClassAfterGenericClassNameAndType()
         {
             var text = "class c<t class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1263,7 +1263,7 @@ class C
         public void TestClassAfterGenericClassNameTypeAndComma()
         {
             var text = "class c<t, class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1281,7 +1281,7 @@ class C
         public void TestBaseTypeAfterGenericClassNameStart()
         {
             var text = "class c< : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1296,7 +1296,7 @@ class C
         public void TestBaseTypeAfterGenericClassNameAndType()
         {
             var text = "class c<t : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1310,7 +1310,7 @@ class C
         public void TestBaseTypeAfterGenericClassNameTypeAndComma()
         {
             var text = "class c<t, : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1325,7 +1325,7 @@ class C
         public void TestConstraintAfterGenericClassNameStart()
         {
             var text = "class c< where t : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1340,7 +1340,7 @@ class C
         public void TestConstraintAfterGenericClassNameAndType()
         {
             var text = "class c<t where t : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1354,7 +1354,7 @@ class C
         public void TestConstraintAfterGenericClassNameTypeAndComma()
         {
             var text = "class c<t, where t : x { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1369,7 +1369,7 @@ class C
         public void TestFieldAfterFieldStart()
         {
             var text = "class c { int int y; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1387,7 +1387,7 @@ class C
         public void TestFieldAfterFieldTypeAndName()
         {
             var text = "class c { int x int y; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1405,7 +1405,7 @@ class C
         public void TestFieldAfterFieldTypeNameAndComma()
         {
             var text = "class c { int x, int y; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1424,7 +1424,7 @@ class C
         public void TestGarbageAfterFieldStart()
         {
             var text = "class c { int $ int y; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1444,7 +1444,7 @@ class C
         public void TestGarbageAfterFieldTypeAndName()
         {
             var text = "class c { int x $ int y; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1463,7 +1463,7 @@ class C
         public void TestGarbageAfterFieldTypeNameAndComma()
         {
             var text = "class c { int x, $ int y; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1483,7 +1483,7 @@ class C
         public void TestEndBraceAfterFieldStart()
         {
             var text = "class c { int }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1500,7 +1500,7 @@ class C
         public void TestEndBraceAfterFieldName()
         {
             var text = "class c { int x }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1517,7 +1517,7 @@ class C
         public void TestEndBraceAfterFieldNameAndComma()
         {
             var text = "class c { int x, }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1535,7 +1535,7 @@ class C
         public void TestEndBraceAfterMethodParameterStart()
         {
             var text = "class c { int m( }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1553,7 +1553,7 @@ class C
         public void TestEndBraceAfterMethodParameterType()
         {
             var text = "class c { int m(x }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1572,7 +1572,7 @@ class C
         public void TestEndBraceAfterMethodParameterName()
         {
             var text = "class c { int m(x y}";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1590,7 +1590,7 @@ class C
         public void TestEndBraceAfterMethodParameterTypeNameAndComma()
         {
             var text = "class c { int m(x y, }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1610,7 +1610,7 @@ class C
         public void TestEndBraceAfterMethodParameters()
         {
             var text = "class c { int m() }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1627,7 +1627,7 @@ class C
         public void TestGarbageAfterMethodParameterStart()
         {
             var text = "class c { int m( $ ); }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1644,7 +1644,7 @@ class C
         public void TestGarbageAfterMethodParameterType()
         {
             var text = "class c { int m( x $ ); }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1662,7 +1662,7 @@ class C
         public void TestGarbageAfterMethodParameterTypeAndName()
         {
             var text = "class c { int m( x y $ ); }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1679,7 +1679,7 @@ class C
         public void TestGarbageAfterMethodParameterTypeNameAndComma()
         {
             var text = "class c { int m( x y, $ ); }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1698,7 +1698,7 @@ class C
         public void TestMethodAfterMethodParameterStart()
         {
             var text = "class c { int m( public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1717,7 +1717,7 @@ class C
         public void TestMethodAfterMethodParameterType()
         {
             var text = "class c { int m(x public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1737,7 +1737,7 @@ class C
         public void TestMethodAfterMethodParameterTypeAndName()
         {
             var text = "class c { int m(x y public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1756,7 +1756,7 @@ class C
         public void TestMethodAfterMethodParameterTypeNameAndComma()
         {
             var text = "class c { int m(x y, public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1777,7 +1777,7 @@ class C
         public void TestMethodAfterMethodParameterList()
         {
             var text = "class c { int m(x y) public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1795,7 +1795,7 @@ class C
         public void TestMethodBodyAfterMethodParameterListStart()
         {
             var text = "class c { int m( { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1812,7 +1812,7 @@ class C
         public void TestSemicolonAfterMethodParameterListStart()
         {
             var text = "class c { int m( ; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1829,7 +1829,7 @@ class C
         public void TestConstructorBodyAfterConstructorParameterListStart()
         {
             var text = "class c { c( { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1846,7 +1846,7 @@ class C
         public void TestSemicolonAfterDelegateParameterListStart()
         {
             var text = "delegate void d( ;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1861,7 +1861,7 @@ class C
         public void TestEndBraceAfterIndexerParameterStart()
         {
             var text = "class c { int this[ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1897,7 +1897,7 @@ class C
         public void TestEndBraceAfterIndexerParameterType()
         {
             var text = "class c { int this[x }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1917,7 +1917,7 @@ class C
         public void TestEndBraceAfterIndexerParameterName()
         {
             var text = "class c { int this[x y }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1936,7 +1936,7 @@ class C
         public void TestEndBraceAfterIndexerParameterTypeNameAndComma()
         {
             var text = "class c { int this[x y, }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1957,7 +1957,7 @@ class C
         public void TestEndBraceAfterIndexerParameters()
         {
             var text = "class c { int this[x y] }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -1975,7 +1975,7 @@ class C
         public void TestGarbageAfterIndexerParameterStart()
         {
             var text = "class c { int this[ $ ] { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2003,7 +2003,7 @@ class C
         public void TestGarbageAfterIndexerParameterType()
         {
             var text = "class c { int this[ x $ ] { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2021,7 +2021,7 @@ class C
         public void TestGarbageAfterIndexerParameterTypeAndName()
         {
             var text = "class c { int this[ x y $ ] { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2038,7 +2038,7 @@ class C
         public void TestGarbageAfterIndexerParameterTypeNameAndComma()
         {
             var text = "class c { int this[ x y, $ ] { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2057,7 +2057,7 @@ class C
         public void TestMethodAfterIndexerParameterStart()
         {
             var text = "class c { int this[ public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2094,7 +2094,7 @@ class C
         public void TestMethodAfterIndexerParameterType()
         {
             var text = "class c { int this[x public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2115,7 +2115,7 @@ class C
         public void TestMethodAfterIndexerParameterTypeAndName()
         {
             var text = "class c { int this[x y public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2135,7 +2135,7 @@ class C
         public void TestMethodAfterIndexerParameterTypeNameAndComma()
         {
             var text = "class c { int this[x y, public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2157,7 +2157,7 @@ class C
         public void TestMethodAfterIndexerParameterList()
         {
             var text = "class c { int this[x y] public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2176,7 +2176,7 @@ class C
         public void TestEOFAfterDelegateStart()
         {
             var text = "delegate";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2194,7 +2194,7 @@ class C
         public void TestEOFAfterDelegateType()
         {
             var text = "delegate d";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2211,7 +2211,7 @@ class C
         public void TestEOFAfterDelegateName()
         {
             var text = "delegate void d";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2227,7 +2227,7 @@ class C
         public void TestEOFAfterDelegateParameterStart()
         {
             var text = "delegate void d(";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2242,7 +2242,7 @@ class C
         public void TestEOFAfterDelegateParameterType()
         {
             var text = "delegate void d(t";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2258,7 +2258,7 @@ class C
         public void TestEOFAfterDelegateParameterTypeName()
         {
             var text = "delegate void d(t n";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2273,7 +2273,7 @@ class C
         public void TestEOFAfterDelegateParameterList()
         {
             var text = "delegate void d(t n)";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2287,7 +2287,7 @@ class C
         public void TestEOFAfterDelegateParameterTypeNameAndComma()
         {
             var text = "delegate void d(t n, ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2304,7 +2304,7 @@ class C
         public void TestClassAfterDelegateStart()
         {
             var text = "delegate class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2323,7 +2323,7 @@ class C
         public void TestClassAfterDelegateType()
         {
             var text = "delegate d class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2341,7 +2341,7 @@ class C
         public void TestClassAfterDelegateName()
         {
             var text = "delegate void d class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2358,7 +2358,7 @@ class C
         public void TestClassAfterDelegateParameterStart()
         {
             var text = "delegate void d( class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2374,7 +2374,7 @@ class C
         public void TestClassAfterDelegateParameterType()
         {
             var text = "delegate void d(t class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2391,7 +2391,7 @@ class C
         public void TestClassAfterDelegateParameterTypeName()
         {
             var text = "delegate void d(t n class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2407,7 +2407,7 @@ class C
         public void TestClassAfterDelegateParameterList()
         {
             var text = "delegate void d(t n) class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2422,7 +2422,7 @@ class C
         public void TestClassAfterDelegateParameterTypeNameAndComma()
         {
             var text = "delegate void d(t n, class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2440,7 +2440,7 @@ class C
         public void TestGarbageAfterDelegateParameterStart()
         {
             var text = "delegate void d($);";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2454,7 +2454,7 @@ class C
         public void TestGarbageAfterDelegateParameterType()
         {
             var text = "delegate void d(t $);";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2469,7 +2469,7 @@ class C
         public void TestGarbageAfterDelegateParameterTypeAndName()
         {
             var text = "delegate void d(t n $);";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2483,7 +2483,7 @@ class C
         public void TestGarbageAfterDelegateParameterTypeNameAndComma()
         {
             var text = "delegate void d(t n, $);";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2499,7 +2499,7 @@ class C
         public void TestGarbageAfterEnumStart()
         {
             var text = "enum e { $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2513,7 +2513,7 @@ class C
         public void TestGarbageAfterEnumName()
         {
             var text = "enum e { n $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2527,7 +2527,7 @@ class C
         public void TestGarbageBeforeEnumName()
         {
             var text = "enum e { $ n }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2541,7 +2541,7 @@ class C
         public void TestGarbageAferEnumNameAndComma()
         {
             var text = "enum e { n, $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2555,7 +2555,7 @@ class C
         public void TestGarbageAferEnumNameCommaAndName()
         {
             var text = "enum e { n, n $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2569,7 +2569,7 @@ class C
         public void TestGarbageBetweenEnumNames()
         {
             var text = "enum e { n, $ n }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2583,7 +2583,7 @@ class C
         public void TestGarbageBetweenEnumNamesWithMissingComma()
         {
             var text = "enum e { n $ n }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2598,7 +2598,7 @@ class C
         public void TestGarbageAferEnumNameAndEquals()
         {
             var text = "enum e { n = $ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2613,7 +2613,7 @@ class C
         public void TestEOFAfterEnumStart()
         {
             var text = "enum e { ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2627,7 +2627,7 @@ class C
         public void TestEOFAfterEnumName()
         {
             var text = "enum e { n ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2641,7 +2641,7 @@ class C
         public void TestEOFAfterEnumNameAndComma()
         {
             var text = "enum e { n, ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2655,7 +2655,7 @@ class C
         public void TestClassAfterEnumStart()
         {
             var text = "enum e { class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2670,7 +2670,7 @@ class C
         public void TestClassAfterEnumName()
         {
             var text = "enum e { n class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2685,7 +2685,7 @@ class C
         public void TestClassAfterEnumNameAndComma()
         {
             var text = "enum e { n, class c { }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2700,7 +2700,7 @@ class C
         public void TestGarbageAfterFixedFieldRankStart()
         {
             var text = "class c { fixed int x[$]; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2717,7 +2717,7 @@ class C
         public void TestGarbageBeforeFixedFieldRankSize()
         {
             var text = "class c { fixed int x[$ 10]; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2733,7 +2733,7 @@ class C
         public void TestGarbageAfterFixedFieldRankSize()
         {
             var text = "class c { fixed int x[10 $]; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2751,7 +2751,7 @@ class C
         public void TestGarbageAfterFieldTypeRankStart()
         {
             var text = "class c { int[$] x; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2767,7 +2767,7 @@ class C
         public void TestGarbageAfterFieldTypeRankComma()
         {
             var text = "class c { int[,$] x; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2783,7 +2783,7 @@ class C
         public void TestGarbageBeforeFieldTypeRankComma()
         {
             var text = "class c { int[$,] x; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2799,7 +2799,7 @@ class C
         public void TestEndBraceAfterFieldRankStart()
         {
             var text = "class c { int[ }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2815,7 +2815,7 @@ class C
         public void TestEndBraceAfterFieldRankComma()
         {
             var text = "class c { int[, }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2831,7 +2831,7 @@ class C
         public void TestMethodAfterFieldRankStart()
         {
             var text = "class c { int[ public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2849,7 +2849,7 @@ class C
         public void TestMethodAfterFieldRankComma()
         {
             var text = "class c { int[, public void m() { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2867,7 +2867,7 @@ class C
         public void TestStatementAfterLocalDeclarationStart()
         {
             var text = "class c { void m() { int if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2890,7 +2890,7 @@ class C
         public void TestStatementAfterLocalRankStart()
         {
             var text = "class c { void m() { int [ if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2914,7 +2914,7 @@ class C
         public void TestStatementAfterLocalRankComma()
         {
             var text = "class c { void m() { int [, if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2938,7 +2938,7 @@ class C
         public void TestStatementAfterLocalDeclarationWithMissingSemicolon()
         {
             var text = "class c { void m() { int a if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2960,7 +2960,7 @@ class C
         public void TestStatementAfterLocalDeclarationWithCommaAndMissingSemicolon()
         {
             var text = "class c { void m() { int a, if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -2983,7 +2983,7 @@ class C
         public void TestStatementAfterLocalDeclarationEquals()
         {
             var text = "class c { void m() { int a = if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3006,7 +3006,7 @@ class C
         public void TestStatementAfterLocalDeclarationArrayInitializerStart()
         {
             var text = "class c { void m() { int a = { if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3029,7 +3029,7 @@ class C
         public void TestStatementAfterLocalDeclarationArrayInitializerExpression()
         {
             var text = "class c { void m() { int a = { e if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3052,7 +3052,7 @@ class C
         public void TestStatementAfterLocalDeclarationArrayInitializerExpressionAndComma()
         {
             var text = "class c { void m() { int a = { e, if (x) y(); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3075,7 +3075,7 @@ class C
         public void TestGarbageAfterLocalDeclarationArrayInitializerStart()
         {
             var text = "class c { void m() { int a = { $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3096,7 +3096,7 @@ class C
         public void TestGarbageAfterLocalDeclarationArrayInitializerExpression()
         {
             var text = "class c { void m() { int a = { e $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3117,7 +3117,7 @@ class C
         public void TestGarbageBeforeLocalDeclarationArrayInitializerExpression()
         {
             var text = "class c { void m() { int a = { $ e }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3138,7 +3138,7 @@ class C
         public void TestGarbageAfterLocalDeclarationArrayInitializerExpressionAndComma()
         {
             var text = "class c { void m() { int a = { e, $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3159,7 +3159,7 @@ class C
         public void TestGarbageAfterLocalDeclarationArrayInitializerExpressions()
         {
             var text = "class c { void m() { int a = { e, e $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3180,7 +3180,7 @@ class C
         public void TestGarbageBetweenLocalDeclarationArrayInitializerExpressions()
         {
             var text = "class c { void m() { int a = { e, $ e }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3201,7 +3201,7 @@ class C
         public void TestGarbageBetweenLocalDeclarationArrayInitializerExpressionsWithMissingComma()
         {
             var text = "class c { void m() { int a = { e $ e }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3223,7 +3223,7 @@ class C
         public void TestGarbageAfterMethodCallStart()
         {
             var text = "class c { void m() { m($); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3246,7 +3246,7 @@ class C
         public void TestGarbageAfterMethodArgument()
         {
             var text = "class c { void m() { m(a $); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3269,7 +3269,7 @@ class C
         public void TestGarbageBeforeMethodArgument()
         {
             var text = "class c { void m() { m($ a); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3292,7 +3292,7 @@ class C
         public void TestGarbageBeforeMethodArgumentAndComma()
         {
             var text = "class c { void m() { m(a, $); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3316,7 +3316,7 @@ class C
         public void TestSemiColonAfterMethodCallStart()
         {
             var text = "class c { void m() { m(; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3339,7 +3339,7 @@ class C
         public void TestSemiColonAfterMethodCallArgument()
         {
             var text = "class c { void m() { m(a; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3362,7 +3362,7 @@ class C
         public void TestSemiColonAfterMethodCallArgumentAndComma()
         {
             var text = "class c { void m() { m(a,; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3386,7 +3386,7 @@ class C
         public void TestClosingBraceAfterMethodCallArgumentAndCommaWithWhitespace()
         {
             var text = "class c { void m() { m(a,\t\t\n\t\t\t} }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             var md = (file.Members[0] as TypeDeclarationSyntax).Members[0] as MethodDeclarationSyntax;
             var ie = (md.Body.Statements[0] as ExpressionStatementSyntax).Expression as InvocationExpressionSyntax;
@@ -3405,7 +3405,7 @@ class C
         public void TestStatementAfterMethodCallStart()
         {
             var text = "class c { void m() { m( if(e) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3430,7 +3430,7 @@ class C
         public void TestStatementAfterMethodCallArgument()
         {
             var text = "class c { void m() { m(a if(e) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3455,7 +3455,7 @@ class C
         public void TestStatementAfterMethodCallArgumentAndComma()
         {
             var text = "class c { void m() { m(a, if(e) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3481,7 +3481,7 @@ class C
         public void TestCloseBraceAfterMethodCallStart()
         {
             var text = "class c { void m() { m( } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3505,7 +3505,7 @@ class C
         public void TestCloseBraceAfterMethodCallArgument()
         {
             var text = "class c { void m() { m(a } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3529,7 +3529,7 @@ class C
         public void TestCloseBraceAfterMethodCallArgumentAndComma()
         {
             var text = "class c { void m() { m(a, } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3554,7 +3554,7 @@ class C
         public void TestGarbageAfterIndexerStart()
         {
             var text = "class c { void m() { ++a[$]; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3578,7 +3578,7 @@ class C
         public void TestGarbageAfterIndexerArgument()
         {
             var text = "class c { void m() { ++a[e $]; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3602,7 +3602,7 @@ class C
         public void TestGarbageBeforeIndexerArgument()
         {
             var text = "class c { void m() { ++a[$ e]; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3626,7 +3626,7 @@ class C
         public void TestGarbageBeforeIndexerArgumentAndComma()
         {
             var text = "class c { void m() { ++a[e, $]; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3651,7 +3651,7 @@ class C
         public void TestSemiColonAfterIndexerStart()
         {
             var text = "class c { void m() { ++a[; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3675,7 +3675,7 @@ class C
         public void TestSemiColonAfterIndexerArgument()
         {
             var text = "class c { void m() { ++a[e; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3699,7 +3699,7 @@ class C
         public void TestSemiColonAfterIndexerArgumentAndComma()
         {
             var text = "class c { void m() { ++a[e,; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3724,7 +3724,7 @@ class C
         public void TestStatementAfterIndexerStart()
         {
             var text = "class c { void m() { ++a[ if(e) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3750,7 +3750,7 @@ class C
         public void TestStatementAfterIndexerArgument()
         {
             var text = "class c { void m() { ++a[e if(e) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3776,7 +3776,7 @@ class C
         public void TestStatementAfterIndexerArgumentAndComma()
         {
             var text = "class c { void m() { ++a[e, if(e) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3803,7 +3803,7 @@ class C
         public void TestCloseBraceAfterIndexerStart()
         {
             var text = "class c { void m() { ++a[ } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3828,7 +3828,7 @@ class C
         public void TestCloseBraceAfterIndexerArgument()
         {
             var text = "class c { void m() { ++a[e } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3853,7 +3853,7 @@ class C
         public void TestCloseBraceAfterIndexerArgumentAndComma()
         {
             var text = "class c { void m() { ++a[e, } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3879,7 +3879,7 @@ class C
         public void TestOpenBraceAfterFixedStatementStart()
         {
             var text = "class c { void m() { fixed(t v { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3900,7 +3900,7 @@ class C
         public void TestSemiColonAfterFixedStatementStart()
         {
             var text = "class c { void m() { fixed(t v; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3913,7 +3913,7 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.FixedStatement, ms.Body.Statements[0].Kind());
-            var diags = file.ErrorsAndWarnings();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> diags = file.ErrorsAndWarnings();
             Assert.Equal(1, diags.Length);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, diags[0].Code);
 
@@ -3942,7 +3942,7 @@ class C
         public void TestSemiColonAfterFixedStatementType()
         {
             var text = "class c { void m() { fixed(t ) { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3963,7 +3963,7 @@ class C
         public void TestCatchAfterTryBlockStart()
         {
             var text = "class c { void m() { try { catch { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -3984,7 +3984,7 @@ class C
         public void TestFinallyAfterTryBlockStart()
         {
             var text = "class c { void m() { try { finally { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4005,7 +4005,7 @@ class C
         public void TestFinallyAfterCatchStart()
         {
             var text = "class c { void m() { try { } catch finally { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4027,7 +4027,7 @@ class C
         public void TestCatchAfterCatchStart()
         {
             var text = "class c { void m() { try { } catch catch { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4049,7 +4049,7 @@ class C
         public void TestFinallyAfterCatchParameterStart()
         {
             var text = "class c { void m() { try { } catch (t finally { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4072,7 +4072,7 @@ class C
         public void TestCatchAfterCatchParameterStart()
         {
             var text = "class c { void m() { try { } catch (t catch { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4095,7 +4095,7 @@ class C
         public void TestCloseBraceAfterCatchStart()
         {
             var text = "class c { void m() { try { } catch } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4116,7 +4116,7 @@ class C
         public void TestCloseBraceAfterCatchParameterStart()
         {
             var text = "class c { void m() { try { } catch(t } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4139,7 +4139,7 @@ class C
         {
             // this shows that ';' is an exit condition for the expression
             var text = "class c { void m() { do { } while(e[; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4162,7 +4162,7 @@ class C
         {
             // this shows that ')' is an exit condition for the expression
             var text = "class c { void m() { do { } while(e[); } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4188,7 +4188,7 @@ class C
         {
             // this shows that ';' is an exit condition for the initializer expression
             var text = "class c { void m() { for (a[;;) { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4210,7 +4210,7 @@ class C
         {
             // this shows that '{' is an exit condition for the initializer expression
             var text = "class c { void m() { for (a[ { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4236,7 +4236,7 @@ class C
         {
             // this shows that '}' is an exit condition for the initializer expression
             var text = "class c { void m() { for (a[ } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4263,7 +4263,7 @@ class C
         public void TestCloseParenAfterForStatementConditionStart()
         {
             var text = "class c { void m() { for (;a[;) { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4284,7 +4284,7 @@ class C
         public void TestOpenBraceAfterForStatementConditionStart()
         {
             var text = "class c { void m() { for (;a[ { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4307,7 +4307,7 @@ class C
         public void TestCloseBraceAfterForStatementConditionStart()
         {
             var text = "class c { void m() { for (;a[ } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4332,7 +4332,7 @@ class C
         public void TestCloseParenAfterForStatementIncrementerStart()
         {
             var text = "class c { void m() { for (;;++a[) { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4357,7 +4357,7 @@ class C
         public void TestOpenBraceAfterForStatementIncrementerStart()
         {
             var text = "class c { void m() { for (;;++a[ { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4379,7 +4379,7 @@ class C
         public void TestCloseBraceAfterForStatementIncrementerStart()
         {
             var text = "class c { void m() { for (;;++a[ } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4404,7 +4404,7 @@ class C
         {
             // empty anonymous type is perfectly legal
             var text = "class c { void m() { var x = new {}; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4430,7 +4430,7 @@ class C
         public void TestSemicolonAfterAnonymousTypeStart()
         {
             var text = "class c { void m() { var x = new {; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4457,7 +4457,7 @@ class C
         public void TestSemicolonAfterAnonymousTypeMemberStart()
         {
             var text = "class c { void m() { var x = new {a; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4484,7 +4484,7 @@ class C
         public void TestSemicolonAfterAnonymousTypeMemberEquals()
         {
             var text = "class c { void m() { var x = new {a =; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4512,7 +4512,7 @@ class C
         public void TestSemicolonAfterAnonymousTypeMember()
         {
             var text = "class c { void m() { var x = new {a = b; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4539,7 +4539,7 @@ class C
         public void TestSemicolonAfterAnonymousTypeMemberComma()
         {
             var text = "class c { void m() { var x = new {a = b, ; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4566,7 +4566,7 @@ class C
         public void TestStatementAfterAnonymousTypeStart()
         {
             var text = "class c { void m() { var x = new { while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4595,7 +4595,7 @@ class C
         public void TestStatementAfterAnonymousTypeMemberStart()
         {
             var text = "class c { void m() { var x = new { a while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4624,7 +4624,7 @@ class C
         public void TestStatementAfterAnonymousTypeMemberEquals()
         {
             var text = "class c { void m() { var x = new { a = while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4654,7 +4654,7 @@ class C
         public void TestStatementAfterAnonymousTypeMember()
         {
             var text = "class c { void m() { var x = new { a = b while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4683,7 +4683,7 @@ class C
         public void TestStatementAfterAnonymousTypeMemberComma()
         {
             var text = "class c { void m() { var x = new { a = b, while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4712,7 +4712,7 @@ class C
         public void TestGarbageAfterAnonymousTypeStart()
         {
             var text = "class c { void m() { var x = new { $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4739,7 +4739,7 @@ class C
         public void TestGarbageBeforeAnonymousTypeMemberStart()
         {
             var text = "class c { void m() { var x = new { $ a }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4766,7 +4766,7 @@ class C
         public void TestGarbageAfterAnonymousTypeMemberStart()
         {
             var text = "class c { void m() { var x = new { a $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4793,7 +4793,7 @@ class C
         public void TestGarbageAfterAnonymousTypeMemberEquals()
         {
             var text = "class c { void m() { var x = new { a = $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4821,7 +4821,7 @@ class C
         public void TestGarbageAfterAnonymousTypeMember()
         {
             var text = "class c { void m() { var x = new { a = b $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4848,7 +4848,7 @@ class C
         public void TestGarbageAfterAnonymousTypeMemberComma()
         {
             var text = "class c { void m() { var x = new { a = b, $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4876,7 +4876,7 @@ class C
         {
             // empty object initializer is perfectly legal
             var text = "class c { void m() { var x = new C {}; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4902,7 +4902,7 @@ class C
         public void TestSemicolonAfterObjectInitializerStart()
         {
             var text = "class c { void m() { var x = new C {; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4929,7 +4929,7 @@ class C
         public void TestSemicolonAfterObjectInitializerMemberStart()
         {
             var text = "class c { void m() { var x = new C { a; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4956,7 +4956,7 @@ class C
         public void TestSemicolonAfterObjectInitializerMemberEquals()
         {
             var text = "class c { void m() { var x = new C { a =; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -4984,7 +4984,7 @@ class C
         public void TestSemicolonAfterObjectInitializerMember()
         {
             var text = "class c { void m() { var x = new C { a = b; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5011,7 +5011,7 @@ class C
         public void TestSemicolonAfterObjectInitializerMemberComma()
         {
             var text = "class c { void m() { var x = new C { a = b, ; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5039,7 +5039,7 @@ class C
         public void TestStatementAfterObjectInitializerStart()
         {
             var text = "class c { void m() { var x = new C { while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5068,7 +5068,7 @@ class C
         public void TestStatementAfterObjectInitializerMemberStart()
         {
             var text = "class c { void m() { var x = new C { a while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5097,7 +5097,7 @@ class C
         public void TestStatementAfterObjectInitializerMemberEquals()
         {
             var text = "class c { void m() { var x = new C { a = while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5127,7 +5127,7 @@ class C
         public void TestStatementAfterObjectInitializerMember()
         {
             var text = "class c { void m() { var x = new C { a = b while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5156,7 +5156,7 @@ class C
         public void TestStatementAfterObjectInitializerMemberComma()
         {
             var text = "class c { void m() { var x = new C { a = b, while (x) {} } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5186,7 +5186,7 @@ class C
         public void TestGarbageAfterObjectInitializerStart()
         {
             var text = "class c { void m() { var x = new C { $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5213,7 +5213,7 @@ class C
         public void TestGarbageBeforeObjectInitializerMemberStart()
         {
             var text = "class c { void m() { var x = new C { $ a }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5240,7 +5240,7 @@ class C
         public void TestGarbageAfterObjectInitializerMemberStart()
         {
             var text = "class c { void m() { var x = new C { a $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5267,7 +5267,7 @@ class C
         public void TestGarbageAfterObjectInitializerMemberEquals()
         {
             var text = "class c { void m() { var x = new C { a = $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5295,7 +5295,7 @@ class C
         public void TestGarbageAfterObjectInitializerMember()
         {
             var text = "class c { void m() { var x = new C { a = b $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5322,7 +5322,7 @@ class C
         public void TestGarbageAfterObjectInitializerMemberComma()
         {
             var text = "class c { void m() { var x = new C { a = b, $ }; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5350,7 +5350,7 @@ class C
         public void TestSemicolonAfterLambdaParameter()
         {
             var text = "class c { void m() { var x = (Y y, ; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5381,7 +5381,7 @@ class C
         public void TestSemicolonAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, ; } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseTree(text, options: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5409,7 +5409,7 @@ class C
         public void TestSemicolonAfterUntypedLambdaParameterWithCSharp6()
         {
             var text = "class c { void m() { var x = (y, ; } }";
-            var file = this.ParseTree(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CompilationUnitSyntax file = this.ParseTree(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5440,7 +5440,7 @@ class C
         public void TestStatementAfterLambdaParameter()
         {
             var text = "class c { void m() { var x = (Y y, while (c) { } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5474,7 +5474,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseTree(text, options: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5504,7 +5504,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameterWithCSharp6()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CompilationUnitSyntax file = this.ParseTree(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5540,7 +5540,7 @@ class C
         {
             // this is syntactically valid (even though it will produce a binding error)
             var text = "class c { int p { } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5564,7 +5564,7 @@ class C
         {
             // this is syntactically valid (even though it will produce a binding error)
             var text = "class c { int p { int M() {} }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5589,7 +5589,7 @@ class C
         public void TestMethodAfterPropertyGet()
         {
             var text = "class c { int p { get int M() {} }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5606,7 +5606,7 @@ class C
             Assert.NotNull(pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(1, pd.AccessorList.Accessors.Count);
-            var acc = pd.AccessorList.Accessors[0];
+            AccessorDeclarationSyntax acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
             Assert.NotNull(acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
@@ -5624,7 +5624,7 @@ class C
         public void TestClassAfterPropertyGetBrace()
         {
             var text = "class c { int p { get { class d {} }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5641,7 +5641,7 @@ class C
             Assert.NotNull(pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(1, pd.AccessorList.Accessors.Count);
-            var acc = pd.AccessorList.Accessors[0];
+            AccessorDeclarationSyntax acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
             Assert.NotNull(acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
@@ -5663,7 +5663,7 @@ class C
         public void TestModifiedMemberAfterPropertyGetBrace()
         {
             var text = "class c { int p { get { public class d {} }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5680,7 +5680,7 @@ class C
             Assert.NotNull(pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(1, pd.AccessorList.Accessors.Count);
-            var acc = pd.AccessorList.Accessors[0];
+            AccessorDeclarationSyntax acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
             Assert.NotNull(acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
@@ -5702,7 +5702,7 @@ class C
         public void TestPropertyAccessorMissingOpenBrace()
         {
             var text = "class c { int p { get return 0; } } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5711,17 +5711,17 @@ class C
             var classDecl = (TypeDeclarationSyntax)file.Members[0];
             var propertyDecl = (PropertyDeclarationSyntax)classDecl.Members[0];
 
-            var accessorDecls = propertyDecl.AccessorList.Accessors;
+            SyntaxList<AccessorDeclarationSyntax> accessorDecls = propertyDecl.AccessorList.Accessors;
             Assert.Equal(1, accessorDecls.Count);
 
-            var getDecl = accessorDecls[0];
+            AccessorDeclarationSyntax getDecl = accessorDecls[0];
             Assert.Equal(SyntaxKind.GetKeyword, getDecl.Keyword.Kind());
 
-            var getBodyDecl = getDecl.Body;
+            BlockSyntax getBodyDecl = getDecl.Body;
             Assert.NotNull(getBodyDecl);
             Assert.True(getBodyDecl.OpenBraceToken.IsMissing);
 
-            var getBodyStmts = getBodyDecl.Statements;
+            SyntaxList<StatementSyntax> getBodyStmts = getBodyDecl.Statements;
             Assert.Equal(1, getBodyStmts.Count);
             Assert.Equal(SyntaxKind.ReturnKeyword, getBodyStmts[0].GetFirstToken().Kind());
             Assert.False(getBodyStmts[0].ContainsDiagnostics);
@@ -5734,7 +5734,7 @@ class C
         public void TestPropertyAccessorsWithoutBodiesOrSemicolons()
         {
             var text = "class c { int p { get set } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5743,15 +5743,15 @@ class C
             var classDecl = (TypeDeclarationSyntax)file.Members[0];
             var propertyDecl = (PropertyDeclarationSyntax)classDecl.Members[0];
 
-            var accessorDecls = propertyDecl.AccessorList.Accessors;
+            SyntaxList<AccessorDeclarationSyntax> accessorDecls = propertyDecl.AccessorList.Accessors;
             Assert.Equal(2, accessorDecls.Count);
 
-            var getDecl = accessorDecls[0];
+            AccessorDeclarationSyntax getDecl = accessorDecls[0];
             Assert.Equal(SyntaxKind.GetKeyword, getDecl.Keyword.Kind());
             Assert.Null(getDecl.Body);
             Assert.True(getDecl.SemicolonToken.IsMissing);
 
-            var setDecl = accessorDecls[1];
+            AccessorDeclarationSyntax setDecl = accessorDecls[1];
             Assert.Equal(SyntaxKind.SetKeyword, setDecl.Keyword.Kind());
             Assert.Null(setDecl.Body);
             Assert.True(setDecl.SemicolonToken.IsMissing);
@@ -5765,7 +5765,7 @@ class C
         public void TestSemicolonAfterOrderingStart()
         {
             var text = "class c { void m() { var q = from x in y orderby; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5810,7 +5810,7 @@ class C
         public void TestSemicolonAfterOrderingExpression()
         {
             var text = "class c { void m() { var q = from x in y orderby e; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5854,7 +5854,7 @@ class C
         public void TestSemicolonAfterOrderingExpressionAndComma()
         {
             var text = "class c { void m() { var q = from x in y orderby e, ; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5903,7 +5903,7 @@ class C
         public void TestMemberAfterOrderingStart()
         {
             var text = "class c { void m() { var q = from x in y orderby public int Goo; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5951,7 +5951,7 @@ class C
         public void TestMemberAfterOrderingExpression()
         {
             var text = "class c { void m() { var q = from x in y orderby e public int Goo; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5998,7 +5998,7 @@ class C
         public void TestMemberAfterOrderingExpressionAndComma()
         {
             var text = "class c { void m() { var q = from x in y orderby e, public int Goo; }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -6050,7 +6050,7 @@ class C
         public void PartialInVariableDecl()
         {
             var text = "class C1 { void M1() { int x = 1, partial class y = 2; } }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -6103,7 +6103,7 @@ class C
                                  var x = ((x, this
                              }
                          }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.True(file.ContainsDiagnostics);
@@ -6114,7 +6114,7 @@ class C
         public void TestIncompleteAttribute()
         {
             var text = @"    [type: F";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.True(file.ContainsDiagnostics);
@@ -6133,7 +6133,7 @@ class C
                                 }
                             } 
                         ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.True(file.ContainsDiagnostics);
@@ -6158,7 +6158,7 @@ class A
   public void MM(int n) { }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.False(file.ContainsDiagnostics);
@@ -6174,7 +6174,7 @@ class A
     class @class : C1 { }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.False(file.ContainsDiagnostics);
@@ -6199,7 +6199,7 @@ class A
     }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.True(file.ContainsDiagnostics);
@@ -6209,13 +6209,13 @@ class A
         public void TestEmptyUsingDirective()
         {
             var text = @"using;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
 
-            var usings = file.Usings;
+            SyntaxList<UsingDirectiveSyntax> usings = file.Usings;
             Assert.Equal(1, usings.Count);
             Assert.True(usings[0].Name.IsMissing);
         }
@@ -6224,13 +6224,13 @@ class A
         public void TestNumericLiteralInUsingDirective()
         {
             var text = @"using 10;";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
 
-            var usings = file.Usings;
+            SyntaxList<UsingDirectiveSyntax> usings = file.Usings;
             Assert.Equal(1, usings.Count);
             Assert.True(usings[0].Name.IsMissing);
         }
@@ -6239,7 +6239,7 @@ class A
         public void TestNamespaceDeclarationInUsingDirective()
         {
             var text = @"using namespace Goo";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(3, file.Errors().Length);
@@ -6247,14 +6247,14 @@ class A
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
 
-            var usings = file.Usings;
+            SyntaxList<UsingDirectiveSyntax> usings = file.Usings;
             Assert.Equal(1, usings.Count);
             Assert.True(usings[0].Name.IsMissing);
 
-            var members = file.Members;
+            SyntaxList<MemberDeclarationSyntax> members = file.Members;
             Assert.Equal(1, members.Count);
 
-            var namespaceDeclaration = members[0];
+            MemberDeclarationSyntax namespaceDeclaration = members[0];
             Assert.Equal(SyntaxKind.NamespaceDeclaration, namespaceDeclaration.Kind());
             Assert.False(((NamespaceDeclarationSyntax)namespaceDeclaration).Name.IsMissing);
         }
@@ -6267,7 +6267,7 @@ class C
 { 
     int x = from equals in new[] { 1, 2, 3 } select 1;
 }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Errors().Length);
@@ -6298,7 +6298,7 @@ class C
         remove { }
     }
 }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             // Assert.True(file.ContainsDiagnostics); // CS0136 is not parser error
@@ -6314,7 +6314,7 @@ class C
   {    return 0;   }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.True(file.ContainsDiagnostics);
@@ -6330,7 +6330,7 @@ class C
   {    return a;   }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.True(file.ContainsDiagnostics);
@@ -6351,7 +6351,7 @@ class C
     }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.False(file.ContainsDiagnostics);
@@ -6369,7 +6369,7 @@ class C
   }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Errors().Length);
@@ -6389,7 +6389,7 @@ class C
   }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(0, file.Errors().Length);
@@ -6398,14 +6398,14 @@ class C
             // specify a method without a body.  This is a little silly, since we already know the method
             // isn't abstract.  It might be reasonable to say that an open brace was expected though.
 
-            var classDecl = file.ChildNodesAndTokens()[0];
+            SyntaxNodeOrToken classDecl = file.ChildNodesAndTokens()[0];
             Assert.Equal(SyntaxKind.ClassDeclaration, classDecl.Kind());
 
-            var methodDecl = classDecl.ChildNodesAndTokens()[3];
+            SyntaxNodeOrToken methodDecl = classDecl.ChildNodesAndTokens()[3];
             Assert.Equal(SyntaxKind.ConstructorDeclaration, methodDecl.Kind()); //not MethodDeclaration
             Assert.False(methodDecl.ContainsDiagnostics);
 
-            var methodBody = methodDecl.ChildNodesAndTokens()[3];
+            SyntaxNodeOrToken methodBody = methodDecl.ChildNodesAndTokens()[3];
             Assert.Equal(SyntaxKind.Block, methodBody.Kind());
             Assert.False(methodBody.ContainsDiagnostics);
         }
@@ -6415,31 +6415,31 @@ class C
         public void MissingInternalNode()
         {
             var text = @"[1]";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
 
-            var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
+            SyntaxNodeOrToken incompleteMemberDecl = file.ChildNodesAndTokens()[0];
             Assert.Equal(incompleteMemberDecl.Kind(), SyntaxKind.IncompleteMember);
             Assert.False(incompleteMemberDecl.IsMissing);
 
-            var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];
+            SyntaxNodeOrToken attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];
             Assert.Equal(attributeDecl.Kind(), SyntaxKind.AttributeList);
             Assert.False(attributeDecl.IsMissing);
 
-            var openBracketToken = attributeDecl.ChildNodesAndTokens()[0];
+            SyntaxNodeOrToken openBracketToken = attributeDecl.ChildNodesAndTokens()[0];
             Assert.Equal(openBracketToken.Kind(), SyntaxKind.OpenBracketToken);
             Assert.False(openBracketToken.IsMissing);
 
-            var attribute = attributeDecl.ChildNodesAndTokens()[1];
+            SyntaxNodeOrToken attribute = attributeDecl.ChildNodesAndTokens()[1];
             Assert.Equal(attribute.Kind(), SyntaxKind.Attribute);
             Assert.True(attribute.IsMissing);
 
-            var identifierName = attribute.ChildNodesAndTokens()[0];
+            SyntaxNodeOrToken identifierName = attribute.ChildNodesAndTokens()[0];
             Assert.Equal(identifierName.Kind(), SyntaxKind.IdentifierName);
             Assert.True(identifierName.IsMissing);
 
-            var identifierToken = identifierName.ChildNodesAndTokens()[0];
+            SyntaxNodeOrToken identifierToken = identifierName.ChildNodesAndTokens()[0];
             Assert.Equal(identifierToken.Kind(), SyntaxKind.IdentifierToken);
             Assert.True(identifierToken.IsMissing);
         }
@@ -6462,7 +6462,7 @@ public class QueryExpressionTest
         return 0;
     }
 }";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
 
@@ -6487,7 +6487,7 @@ class C : I<int>
     void I<.Goo() { }
 }
 ";
-            var file = this.ParseTree(text);
+            CompilationUnitSyntax file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
 
@@ -6507,13 +6507,13 @@ public class Test
     {
         foreach";
 
-            var srcTree = this.ParseTree(text);
+            CompilationUnitSyntax srcTree = this.ParseTree(text);
 
             Assert.Equal(text, srcTree.ToFullString());
             Assert.Equal("foreach", srcTree.GetLastToken().ToString());
 
             // Get the Foreach Node
-            var foreachNode = srcTree.GetLastToken().Parent;
+            SyntaxNode foreachNode = srcTree.GetLastToken().Parent;
 
             // Verify 3 empty nodes are created by the parser for error recovery.
             Assert.Equal(3, foreachNode.ChildNodes().ToList().Count);
@@ -6788,8 +6788,8 @@ _ _::this
         public void Repro649806()
         {
             var source = "a b:: /**/\r\n";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var diags = tree.GetDiagnostics();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            System.Collections.Generic.IEnumerable<Diagnostic> diags = tree.GetDiagnostics();
             diags.ToArray();
             Assert.Equal(1, diags.Count(d => d.Code == (int)ErrorCode.ERR_AliasQualAsExpression));
         }
@@ -6803,8 +6803,8 @@ class C
 {
     int P { set . } }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var diags = tree.GetDiagnostics();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            System.Collections.Generic.IEnumerable<Diagnostic> diags = tree.GetDiagnostics();
             diags.ToArray();
             diags.Verify(
                 // We see this diagnostic because the accessor has no open brace.
@@ -6888,7 +6888,7 @@ class C {}");
 
         private void AssertEqualRoundtrip(string source)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
         }
@@ -6903,7 +6903,7 @@ class C : I
     int I./*missing*/< {
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
             tree.GetDiagnostics().Verify(
@@ -6934,7 +6934,7 @@ class C : I
     event D I./*missing*/< {
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
             tree.GetDiagnostics().Verify(
@@ -6968,7 +6968,7 @@ class C : I
     event D I::
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
             tree.GetDiagnostics().Verify(
@@ -6993,7 +6993,7 @@ class C
     event System.Action this
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
             tree.GetDiagnostics().Verify(
@@ -7020,7 +7020,7 @@ class C
 enum
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
             tree.GetDiagnostics().ToArray();
@@ -7034,7 +7034,7 @@ enum
 static
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
             tree.GetDiagnostics().ToArray();
@@ -7046,8 +7046,8 @@ static
         {
             const int numTokens = 500000; // Prohibitively slow without fix.
             var source = new string(',', numTokens);
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var eofToken = ((CompilationUnitSyntax)tree.GetRoot()).EndOfFileToken;
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxToken eofToken = ((CompilationUnitSyntax)tree.GetRoot()).EndOfFileToken;
             Assert.Equal(numTokens, eofToken.FullWidth);
             Assert.Equal(numTokens, eofToken.LeadingTrivia.Count); // Confirm that we built a list.
         }
@@ -7062,15 +7062,15 @@ static
     class c
 }
 ";
-            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+            SyntaxNode root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
             // Verify incomplete class decls don't eat tokens of surrounding nodes
-            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            ClassDeclarationSyntax classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
             Assert.False(classDecl.Identifier.IsMissing);
             Assert.True(classDecl.OpenBraceToken.IsMissing);
             Assert.True(classDecl.CloseBraceToken.IsMissing);
-            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            NamespaceDeclarationSyntax ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }
@@ -7084,14 +7084,14 @@ static
     struct c : I
 }
 ";
-            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+            SyntaxNode root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
             // Verify incomplete struct decls don't eat tokens of surrounding nodes
-            var structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
+            StructDeclarationSyntax structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
             Assert.True(structDecl.OpenBraceToken.IsMissing);
             Assert.True(structDecl.CloseBraceToken.IsMissing);
-            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            NamespaceDeclarationSyntax ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }
@@ -7107,15 +7107,15 @@ static
     }
 }
 ";
-            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+            SyntaxNode root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
             // Verify incomplete struct decls don't eat tokens of surrounding nodes
-            var structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
+            StructDeclarationSyntax structDecl = root.DescendantNodes().OfType<StructDeclarationSyntax>().Single();
             Assert.True(structDecl.Identifier.IsMissing);
             Assert.False(structDecl.OpenBraceToken.IsMissing);
             Assert.False(structDecl.CloseBraceToken.IsMissing);
-            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            NamespaceDeclarationSyntax ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }
@@ -7131,15 +7131,15 @@ static
     }
 }
 ";
-            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+            SyntaxNode root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
 
             Assert.Equal(source, root.ToFullString());
             // Verify incomplete class decls don't eat tokens of surrounding nodes
-            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            ClassDeclarationSyntax classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
             Assert.True(classDecl.Identifier.IsMissing);
             Assert.False(classDecl.OpenBraceToken.IsMissing);
             Assert.False(classDecl.CloseBraceToken.IsMissing);
-            var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            NamespaceDeclarationSyntax ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
         }

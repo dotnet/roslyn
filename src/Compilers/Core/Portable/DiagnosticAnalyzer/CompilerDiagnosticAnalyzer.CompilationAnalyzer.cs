@@ -29,23 +29,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
             {
-                var semanticModel = _compilation.GetSemanticModel(context.Tree);
-                var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
+                SemanticModel semanticModel = _compilation.GetSemanticModel(context.Tree);
+                ImmutableArray<Diagnostic> diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation, s_syntactic);
             }
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
+                ImmutableArray<Diagnostic> declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
 
-                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
+                ImmutableArray<Diagnostic> bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
             }
 
             public static void AnalyzeCompilation(CompilationAnalysisContext context)
             {
-                var diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
+                ImmutableArray<Diagnostic> diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, location => !IsSourceLocation(location), s_declaration);
             }
 
@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Func<Location, bool> locationFilter,
                 ImmutableDictionary<string, string> properties = null)
             {
-                foreach (var diagnostic in diagnostics)
+                foreach (Diagnostic diagnostic in diagnostics)
                 {
                     if (locationFilter(diagnostic.Location) &&
                         diagnostic.Severity != DiagnosticSeverity.Hidden)
                     {
-                        var current = properties == null ? diagnostic : new CompilerDiagnostic(diagnostic, properties);
+                        Diagnostic current = properties == null ? diagnostic : new CompilerDiagnostic(diagnostic, properties);
                         reportDiagnostic(current);
                     }
                 }

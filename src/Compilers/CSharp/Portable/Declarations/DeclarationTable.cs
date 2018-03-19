@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Internal for unit tests only.
         internal MergedNamespaceDeclaration CalculateMergedRoot(CSharpCompilation compilation)
         {
-            var oldRoot = _cache.MergedRoot.Value;
+            MergedNamespaceDeclaration oldRoot = _cache.MergedRoot.Value;
             if (_latestLazyRootDeclaration == null)
             {
                 return oldRoot;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var oldRootDeclarations = oldRoot.Declarations;
+                System.Collections.Immutable.ImmutableArray<SingleNamespaceDeclaration> oldRootDeclarations = oldRoot.Declarations;
                 var builder = ArrayBuilder<SingleNamespaceDeclaration>.GetInstance(oldRootDeclarations.Length + 1);
                 builder.AddRange(oldRootDeclarations);
                 builder.Add(_latestLazyRootDeclaration.Value);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<string> GetMergedTypeNames()
         {
-            var cachedTypeNames = _cache.TypeNames.Value;
+            ISet<string> cachedTypeNames = _cache.TypeNames.Value;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<string> GetMergedNamespaceNames()
         {
-            var cachedNamespaceNames = _cache.NamespaceNames.Value;
+            ISet<string> cachedNamespaceNames = _cache.NamespaceNames.Value;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ICollection<ReferenceDirective> GetMergedReferenceDirectives()
         {
-            var cachedReferenceDirectives = _cache.ReferenceDirectives.Value;
+            System.Collections.Immutable.ImmutableArray<ReferenceDirective> cachedReferenceDirectives = _cache.ReferenceDirectives.Value;
 
             if (_latestLazyRootDeclaration == null)
             {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (stack.Count > 0)
             {
-                var current = stack.Pop();
+                Declaration current = stack.Pop();
                 if (current == null)
                 {
                     continue;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     set.Add(current.Name);
                 }
 
-                foreach (var child in current.Children)
+                foreach (Declaration child in current.Children)
                 {
                     stack.Push(child);
                 }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var current = stack.Pop();
+                MergedNamespaceOrTypeDeclaration current = stack.Pop();
                 if (current == null)
                 {
                     continue;
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                foreach (var child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
+                foreach (MergedNamespaceOrTypeDeclaration child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
                 {
                     if (includeMember || includeType)
                     {

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // interface method is also included, even if it is not otherwise referenced in the embedding project.
             NamedTypeSymbol underlyingContainingType = ContainingType.UnderlyingNamedType;
 
-            foreach (var attrData in underlyingContainingType.GetAttributes())
+            foreach (CSharpAttributeData attrData in underlyingContainingType.GetAttributes())
             {
                 if (attrData.IsTargetAttribute(underlyingContainingType, AttributeDescription.ComEventInterfaceAttribute))
                 {

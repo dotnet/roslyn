@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
         {
-            var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
+            CompilationAnalysisValueProvider<TKey, TValue> compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
         }
     }
@@ -590,14 +590,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
                             case SymbolKind.NamedType:
                                 var namedType = (INamedTypeSymbol)context.Symbol;
-                                var delegateInvokeMethod = namedType.DelegateInvokeMethod;
+                                IMethodSymbol delegateInvokeMethod = namedType.DelegateInvokeMethod;
                                 parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
                                 break;
                             default:
                                 throw new ArgumentException($"{context.Symbol.Kind} is not supported.", nameof(context));
                         }
 
-                        foreach (var parameter in parameters)
+                        foreach (IParameterSymbol parameter in parameters)
                         {
                             if (!parameter.IsImplicitlyDeclared)
                             {

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var underlyingNonArrayType = symbol.ElementType;
+            ITypeSymbol underlyingNonArrayType = symbol.ElementType;
             while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
             {
                 underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             underlyingNonArrayType.Accept(this.NotFirstVisitor);
 
-            var arrayType = symbol;
+            IArrayTypeSymbol arrayType = symbol;
             while (arrayType != null)
             {
                 if (!this.isFirstSymbolVisited)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsNullableType(symbol) && !symbol.IsDefinition)
                 {
                     // Can't have a type called "int*?".
-                    var typeArg = symbol.TypeArguments[0];
+                    ITypeSymbol typeArg = symbol.TypeArguments[0];
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         symbol.TypeArguments[0].Accept(this.NotFirstVisitor);
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
-                    var invokeMethod = symbol.DelegateInvokeMethod;
+                    IMethodSymbol invokeMethod = symbol.DelegateInvokeMethod;
                     if (invokeMethod.ReturnsByRef)
                     {
                         AddRefIfRequired();
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //only visit the namespace if the style requires it and there isn't an enclosing type
-            var containingSymbol = symbol.ContainingSymbol;
+            ISymbol containingSymbol = symbol.ContainingSymbol;
             if (ShouldVisitNamespace(containingSymbol))
             {
                 var namespaceSymbol = (INamespaceSymbol)containingSymbol;
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullableType(INamedTypeSymbol type)
         {
-            var original = type.OriginalDefinition;
+            INamedTypeSymbol original = type.OriginalDefinition;
             return original != null && original.SpecialType == SpecialType.System_Nullable_T;
         }
 
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var partKind = GetPartKind(symbol);
+            SymbolDisplayPartKind partKind = GetPartKind(symbol);
 
             if (symbolName == null)
             {
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndParameters ||
                     format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
-                    var method = symbol.DelegateInvokeMethod;
+                    IMethodSymbol method = symbol.DelegateInvokeMethod;
                     AddPunctuation(SyntaxKind.OpenParenToken);
                     AddParametersIfRequired(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
                     AddPunctuation(SyntaxKind.CloseParenToken);
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPunctuation(SyntaxKind.OpenParenToken);
             for (int i = 0; i < elements.Length; i++)
             {
-                var element = elements[i];
+                IFieldSymbol element = elements[i];
 
                 if (i != 0)
                 {
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var first = true;
                 for (int i = 0; i < typeArguments.Length; i++)
                 {
-                    var typeArg = typeArguments[i];
+                    ITypeSymbol typeArg = typeArguments[i];
 
                     if (!first)
                     {
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.isFirstSymbolVisited && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeConstraints))
             {
-                foreach (var typeArg in typeArguments)
+                foreach (ITypeSymbol typeArg in typeArguments)
                 {
                     if (typeArg.Kind == SymbolKind.TypeParameter)
                     {
@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 needComma = true;
                             }
 
-                            foreach (var baseType in typeParam.ConstraintTypes)
+                            foreach (ITypeSymbol baseType in typeParam.ConstraintTypes)
                             {
                                 if (needComma)
                                 {

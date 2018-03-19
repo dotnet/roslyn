@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         static internal SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
         {
             var text = interpolatedString.ToString();
-            var kind = SyntaxKind.InterpolatedStringToken;
+            SyntaxKind kind = SyntaxKind.InterpolatedStringToken;
             // TODO: scan the contents (perhaps using ScanInterpolatedStringLiteralContents) to reconstruct any lexical
             // errors such as // inside an expression hole
             return SyntaxFactory.Literal(

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Otherwise, compute the value.
                 // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
-                var descriptors = ComputeDescriptors(analyzer, analyzerExecutor);
+                ImmutableArray<DiagnosticDescriptor> descriptors = ComputeDescriptors(analyzer, analyzerExecutor);
 
                 lock (_gate)
                 {
@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticAnalyzer analyzer,
                 AnalyzerExecutor analyzerExecutor)
             {
-                var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
+                ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
                 analyzerExecutor.ExecuteAndCatchIfThrows(
                     analyzer,
                     _ =>
                     {
-                        var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
+                        ImmutableArray<DiagnosticDescriptor> supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
                         {
                             supportedDiagnostics = supportedDiagnosticsLocal;
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var handler = new EventHandler<Exception>((sender, ex) =>
                     {
-                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
+                        Diagnostic diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
                         onAnalyzerException(ex, analyzer, diagnostic);
                     });
 
-                    foreach (var descriptor in supportedDiagnostics)
+                    foreach (DiagnosticDescriptor descriptor in supportedDiagnostics)
                     {
                         ForceLocalizableStringExceptions(descriptor.Title, handler);
                         ForceLocalizableStringExceptions(descriptor.MessageFormat, handler);

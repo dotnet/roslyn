@@ -112,13 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PERF: we get members of the OriginalDefinition to not create substituted members/types 
             //       unless necessary.
-            foreach (var member in type.OriginalDefinition.GetMembersUnordered())
+            foreach (Symbol member in type.OriginalDefinition.GetMembersUnordered())
             {
-                var field = GetActualInstanceField(member, type);
+                FieldSymbol field = GetActualInstanceField(member, type);
 
                 if ((object)field != null)
                 {
-                    var actualFieldType = field.Type;
+                    TypeSymbol actualFieldType = field.Type;
                     if (!IsEmptyStructType(actualFieldType, typesWithMembersOfThisType))
                     {
                         return false;
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PERF: we get members of the OriginalDefinition to not create substituted members/types 
             //       unless necessary.
-            foreach (var member in type.OriginalDefinition.GetMembersUnordered())
+            foreach (Symbol member in type.OriginalDefinition.GetMembersUnordered())
             {
-                var field = GetActualInstanceField(member, type);
+                FieldSymbol field = GetActualInstanceField(member, type);
 
                 if ((object)field != null)
                 {

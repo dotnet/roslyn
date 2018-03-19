@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
         internal Stream OpenReadChecked(string fullPath)
         {
-            var stream = OpenRead(fullPath);
+            Stream stream = OpenRead(fullPath);
 
             if (stream == null || !stream.CanRead)
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="resolvedPath">Path returned by <see cref="ResolveReference(string, string)"/>.</param>
         public virtual SourceText ReadText(string resolvedPath)
         {
-            using (var stream = OpenRead(resolvedPath))
+            using (Stream stream = OpenRead(resolvedPath))
             {
                 return EncodedStringText.Create(stream);
             }

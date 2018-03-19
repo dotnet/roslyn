@@ -1192,7 +1192,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1224,7 +1224,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1267,7 +1267,7 @@ class Enumerator
     public bool MoveNext() { return false; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1310,7 +1310,7 @@ struct Enumerator
     public bool MoveNext() { return false; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1342,7 +1342,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1381,7 +1381,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
     System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator() { return null; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1422,7 +1422,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
     private class Hidden { }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1460,7 +1460,7 @@ class Enumerable : System.Collections.IEnumerable
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return null; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1492,7 +1492,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1522,7 +1522,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1563,7 +1563,7 @@ class Enumerator
     public bool MoveNext() { return false; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
             Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
@@ -1587,7 +1587,7 @@ class Enumerable : System.Collections.IEnumerable
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return null; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
             Assert.Equal(SpecialType.System_Object, boundNode.IterationVariables.Single().Type.SpecialType);
@@ -1607,7 +1607,7 @@ class C
     class var { }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1637,7 +1637,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1669,7 +1669,7 @@ class C
     }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1709,7 +1709,7 @@ public class Enumerable<T>
     public T GetEnumerator() { return default(T); }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1762,7 +1762,7 @@ class C<T>
     }
     static void M<U>(U u) { }
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
         }
 
@@ -1792,7 +1792,7 @@ interface MyEnumerator
     bool MoveNext();
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -1837,7 +1837,7 @@ struct Enumerator
     public bool MoveNext() { return false; }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             // NOTE: info is exactly as if the collection was not nullable.
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
@@ -1873,7 +1873,7 @@ public class Test
   }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text,
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text,
                 // (6,13): error CS1525: Invalid expression term 'int'
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
@@ -1925,7 +1925,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(text);
+            CSharpCompilation compilation = CreateEmptyCompilation(text);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -1945,7 +1945,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(text);
+            CSharpCompilation compilation = CreateEmptyCompilation(text);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -1964,7 +1964,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(text);
+            CSharpCompilation compilation = CreateEmptyCompilation(text);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -2091,15 +2091,15 @@ class C
 }
 ";
 
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRefPortable });
+            CSharpCompilation comp = CreateEmptyCompilation(source, new[] { MscorlibRefPortable });
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var loopSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            ForEachStatementSyntax loopSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
 
-            var loopInfo = model.GetForEachStatementInfo(loopSyntax);
+            ForEachStatementInfo loopInfo = model.GetForEachStatementInfo(loopSyntax);
             Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod);
             Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty);
             Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod);
@@ -2110,11 +2110,11 @@ class C
             Assert.Equal(SpecialType.System_Object, loopInfo.CurrentProperty.Type.SpecialType);
 
             // However, to match dev11, we actually infer "char" for "var".
-            var typeInfo = model.GetTypeInfo(loopSyntax.Type);
+            TypeInfo typeInfo = model.GetTypeInfo(loopSyntax.Type);
             Assert.Equal(SpecialType.System_Char, typeInfo.Type.SpecialType);
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
 
-            var conv = model.GetConversion(loopSyntax.Type);
+            Conversion conv = model.GetConversion(loopSyntax.Type);
             Assert.Equal(ConversionKind.Identity, conv.Kind);
         }
 
@@ -2140,18 +2140,18 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var udc = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
+            MethodSymbol udc = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var loopSyntaxes = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
+            ForEachStatementSyntax[] loopSyntaxes = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
             Assert.Equal(2, loopSyntaxes.Length);
 
-            var loopInfo0 = model.GetForEachStatementInfo(loopSyntaxes[0]);
+            ForEachStatementInfo loopInfo0 = model.GetForEachStatementInfo(loopSyntaxes[0]);
             Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo0.GetEnumeratorMethod);
             Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo0.CurrentProperty);
             Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo0.MoveNextMethod);
@@ -2160,7 +2160,7 @@ class C
             Assert.Equal(udc, loopInfo0.ElementConversion.Method);
             Assert.Equal(ConversionKind.ExplicitReference, loopInfo0.CurrentConversion.Kind);
 
-            var loopInfo1 = model.GetForEachStatementInfo(loopSyntaxes[1]);
+            ForEachStatementInfo loopInfo1 = model.GetForEachStatementInfo(loopSyntaxes[1]);
             Assert.Equal(loopInfo0.GetEnumeratorMethod, loopInfo1.GetEnumeratorMethod);
             Assert.Equal(loopInfo0.CurrentProperty, loopInfo1.CurrentProperty);
             Assert.Equal(loopInfo0.MoveNextMethod, loopInfo1.MoveNextMethod);
@@ -2198,7 +2198,7 @@ class Element
 {
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.GetDiagnostics();
         }
 
@@ -2239,7 +2239,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // (30,27): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
                 //         foreach (var c in e) { }
@@ -2276,7 +2276,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2338,7 +2338,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2408,7 +2408,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2478,7 +2478,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2523,7 +2523,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2588,7 +2588,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2651,7 +2651,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2714,7 +2714,7 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            CSharpCompilation comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
                 // For pattern:
 
@@ -2767,21 +2767,21 @@ namespace System
     public class String : Object { }
 }
 ";
-            var comp = CreateEmptyCompilation(source); // Lots of errors, since corlib is missing.
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateEmptyCompilation(source); // Lots of errors, since corlib is missing.
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-            var localSymbol = model.GetDeclaredSymbol(foreachSyntax);
+            ForEachStatementSyntax foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            ILocalSymbol localSymbol = model.GetDeclaredSymbol(foreachSyntax);
 
             // Code Path 1: SourceLocalSymbol.Type.
-            var localSymbolType = localSymbol.Type;
+            ITypeSymbol localSymbolType = localSymbol.Type;
             Assert.Equal(SpecialType.System_String, localSymbolType.SpecialType);
             Assert.NotEqual(TypeKind.Error, localSymbolType.TypeKind);
 
             // Code Path 2: SemanticModel.
-            var varSyntax = foreachSyntax.Type;
-            var info = model.GetSymbolInfo(varSyntax); // Used to assert.
+            TypeSyntax varSyntax = foreachSyntax.Type;
+            SymbolInfo info = model.GetSymbolInfo(varSyntax); // Used to assert.
             Assert.Equal(localSymbolType, info.Symbol);
         }
 
@@ -2948,8 +2948,8 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var text =
 @"class C
 {
@@ -2962,7 +2962,7 @@ namespace System.Collections
     }
 }";
 
-            var comp = CreateEmptyCompilation(text, new[] { reference1 });
+            CSharpCompilation comp = CreateEmptyCompilation(text, new[] { reference1 });
             CompileAndVerify(comp, verify: Verification.Fails).
             VerifyIL("C.M", @"
 {
@@ -2991,7 +2991,7 @@ namespace System.Collections
 }
 ");
 
-            var boundNode = GetBoundForEachStatement(text);
+            BoundForEachStatement boundNode = GetBoundForEachStatement(text);
 
             ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
             Assert.NotNull(info);
@@ -3013,16 +3013,16 @@ namespace System.Collections
 
         private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
         {
-            var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
 
-            var syntaxNode =
+            CommonForEachStatementSyntax syntaxNode =
                 (CommonForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachStatement).AsNode() ??
                 (CommonForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
             var treeModel = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree);
-            var memberModel = treeModel.GetMemberModel(syntaxNode);
+            MemberSemanticModel memberModel = treeModel.GetMemberModel(syntaxNode);
 
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(syntaxNode);
 
@@ -3108,11 +3108,11 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ForEachStatement).OfType<ForEachStatementSyntax>().Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ForEachStatementSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ForEachStatement).OfType<ForEachStatementSyntax>().Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             Assert.Null(model.GetDeclaredSymbol(node));
         }
@@ -3132,7 +3132,7 @@ namespace System
 }
 ";
 
-            var comp1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll, assemblyName: "MissingBaseType1");
+            CSharpCompilation comp1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll, assemblyName: "MissingBaseType1");
             comp1.VerifyDiagnostics();
 
             var source2 = @"
@@ -3160,7 +3160,7 @@ public struct Enumerator
     }
 }";
 
-            var comp2 = CreateEmptyCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            CSharpCompilation comp2 = CreateEmptyCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
             comp2.VerifyDiagnostics();
 
             var source3 = @"
@@ -3175,7 +3175,7 @@ namespace System
 }
 ";
 
-            var comp3 = CreateEmptyCompilation(source3, options: TestOptions.DebugDll, assemblyName: "MissingBaseType2");
+            CSharpCompilation comp3 = CreateEmptyCompilation(source3, options: TestOptions.DebugDll, assemblyName: "MissingBaseType2");
             comp3.VerifyDiagnostics();
 
             var source4 = @"
@@ -3188,7 +3188,7 @@ class Program
     }
 }";
 
-            var comp4 = CreateEmptyCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
+            CSharpCompilation comp4 = CreateEmptyCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
             comp4.VerifyDiagnostics(
                 // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         foreach (var x in new Enumerable())

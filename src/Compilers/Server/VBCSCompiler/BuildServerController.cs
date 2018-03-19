@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
+                using (Stream client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
                 {
                     var request = BuildRequest.CreateShutdown();
                     await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
-                    var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
+                    BuildResponse response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
                     var shutdownResponse = (ShutdownBuildResponse)response;
 
                     if (waitForProcess)

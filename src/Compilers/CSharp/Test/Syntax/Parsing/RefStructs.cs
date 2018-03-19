@@ -31,7 +31,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
         }
 
@@ -47,7 +47,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (4,5): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     ref struct S1{}
@@ -74,7 +74,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (4,9): error CS1031: Type expected
                 //     ref class S1{}
@@ -104,7 +104,7 @@ class Program
     partial ref struct S {}
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
@@ -120,7 +120,7 @@ class Program
         [Fact]
         public void RefPartialStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     ref partial struct S {}
@@ -132,7 +132,7 @@ class C
         [Fact]
         public void RefPartialReadonlyStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     ref partial readonly struct S {}
@@ -153,7 +153,7 @@ class C
         [Fact]
         public void RefReadonlyPartialStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     partial ref readonly struct S {}
@@ -180,7 +180,7 @@ class C
         [Fact]
         public void ReadonlyPartialRefStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     readonly partial ref struct S {}
@@ -201,7 +201,7 @@ class C
         [Fact]
         public void ReadonlyRefPartialStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     readonly ref partial struct S {}

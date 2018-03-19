@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         [Fact]
         public void Test1()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
-            var newMsCorLib = MscorlibRef;
+            PortableExecutableReference oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
+            MetadataReference newMsCorLib = MscorlibRef;
 
             var c1 = CSharpCompilation.Create("C1", references: new[]
             {
@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule
             });
 
-            var c1Assembly = c1.Assembly;
+            AssemblySymbol c1Assembly = c1.Assembly;
 
             CSharpCompilation c2 = CSharpCompilation.Create("C2", references: new MetadataReference[] { newMsCorLib, new CSharpCompilationReference(c1) });
 
-            var mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib);
+            AssemblySymbol mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib);
 
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib));
 
-            var modifiers = c2.GlobalNamespace.GetTypeMembers("Modifiers").Single();
+            NamedTypeSymbol modifiers = c2.GlobalNamespace.GetTypeMembers("Modifiers").Single();
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(modifiers);
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.Equal(1, f0.CustomModifiers.Length);
 
-            var f0Mod = f0.CustomModifiers[0];
+            CustomModifier f0Mod = f0.CustomModifiers[0];
 
             Assert.True(f0Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", f0Mod.Modifier.ToTestDisplayString());
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.Equal(1, p1.CustomModifiers.Length);
 
-            var p1Mod = p1.CustomModifiers[0];
+            CustomModifier p1Mod = p1.CustomModifiers[0];
 
             Assert.True(p1Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p1Mod.Modifier.ToTestDisplayString());
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.Equal(2, p2.CustomModifiers.Length);
 
-            foreach (var p2Mod in p2.CustomModifiers)
+            foreach (CustomModifier p2Mod in p2.CustomModifiers)
             {
                 Assert.True(p2Mod.IsOptional);
                 Assert.Equal("System.Runtime.CompilerServices.IsConst", p2Mod.Modifier.ToTestDisplayString());
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             Assert.True(m5.ReturnsVoid);
             Assert.Equal(1, m5.ReturnTypeCustomModifiers.Length);
 
-            var m5Mod = m5.ReturnTypeCustomModifiers[0];
+            CustomModifier m5Mod = m5.ReturnTypeCustomModifiers[0];
             Assert.True(m5Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", m5Mod.Modifier.ToTestDisplayString());
             Assert.Same(mscorlibAssembly, m5Mod.Modifier.ContainingAssembly);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             Assert.Equal("System.Int32", p5Type.ElementType.ToTestDisplayString());
 
             Assert.Equal(1, p5Type.CustomModifiers.Length);
-            var p5TypeMod = p5Type.CustomModifiers[0];
+            CustomModifier p5TypeMod = p5Type.CustomModifiers[0];
 
             Assert.True(p5TypeMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p5TypeMod.Modifier.ToTestDisplayString());
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             Assert.Equal("System.Int32", p6Type.PointedAtType.ToTestDisplayString());
 
             Assert.Equal(1, p6Type.CustomModifiers.Length);
-            var p6TypeMod = p6Type.CustomModifiers[0];
+            CustomModifier p6TypeMod = p6Type.CustomModifiers[0];
 
             Assert.True(p6TypeMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p6TypeMod.Modifier.ToTestDisplayString());
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             Assert.False(m7.ReturnsVoid);
             Assert.Equal(1, m7.ReturnTypeCustomModifiers.Length);
 
-            var m7Mod = m7.ReturnTypeCustomModifiers[0];
+            CustomModifier m7Mod = m7.ReturnTypeCustomModifiers[0];
             Assert.True(m7Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", m7Mod.Modifier.ToTestDisplayString());
             Assert.Same(mscorlibAssembly, m7Mod.Modifier.ContainingAssembly);
@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         [Fact]
         public void Test2()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
-            var newMsCorLib = MscorlibRef;
+            PortableExecutableReference oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
+            MetadataReference newMsCorLib = MscorlibRef;
 
             var source = @"
 public class Modifiers
@@ -139,19 +139,19 @@ public class Modifiers
 
             CSharpCompilation c1 = CSharpCompilation.Create("C1", new[] { Parse(source) }, new[] { oldMsCorLib });
 
-            var c1Assembly = c1.Assembly;
+            AssemblySymbol c1Assembly = c1.Assembly;
 
             var r1 = new CSharpCompilationReference(c1);
             CSharpCompilation c2 = CSharpCompilation.Create("C2", references: new[] { newMsCorLib, r1 });
-            var c1AsmRef = c2.GetReferencedAssemblySymbol(r1);
+            AssemblySymbol c1AsmRef = c2.GetReferencedAssemblySymbol(r1);
 
             Assert.NotSame(c1Assembly, c1AsmRef);
 
-            var mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib);
+            AssemblySymbol mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib);
 
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib));
 
-            var modifiers = c2.GlobalNamespace.GetTypeMembers("Modifiers").Single();
+            NamedTypeSymbol modifiers = c2.GlobalNamespace.GetTypeMembers("Modifiers").Single();
 
             Assert.IsType<RetargetingNamedTypeSymbol>(modifiers);
 
@@ -159,7 +159,7 @@ public class Modifiers
 
             Assert.Equal(1, volatileFld.CustomModifiers.Length);
 
-            var volatileFldMod = volatileFld.CustomModifiers[0];
+            CustomModifier volatileFldMod = volatileFld.CustomModifiers[0];
 
             Assert.False(volatileFldMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile", volatileFldMod.Modifier.ToTestDisplayString());

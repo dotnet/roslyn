@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void RewriteLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
         {
-            foreach (var local in locals)
+            foreach (LocalSymbol local in locals)
             {
                 LocalSymbol newLocal;
                 if (TryRewriteLocal(local, out newLocal))
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var newType = VisitType(local.Type);
+            TypeSymbol newType = VisitType(local.Type);
             if (newType == local.Type)
             {
                 newLocal = local;
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Yield/await aren't supported in catch block atm, but we need to rewrite the type 
                 // of the variables owned by the catch block. Note that one of these variables might be a closure frame reference.
-                var newLocals = RewriteLocals(node.Locals);
+                ImmutableArray<LocalSymbol> newLocals = RewriteLocals(node.Locals);
 
                 return node.Update(
                     newLocals,
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            var newLocals = RewriteLocals(node.Locals);
-            var newLocalFunctions = node.LocalFunctions;
-            var newStatements = VisitList(node.Statements);
+            ImmutableArray<LocalSymbol> newLocals = RewriteLocals(node.Locals);
+            ImmutableArray<LocalFunctionSymbol> newLocalFunctions = node.LocalFunctions;
+            ImmutableArray<BoundStatement> newStatements = VisitList(node.Statements);
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
@@ -144,17 +144,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
-            var newLocals = RewriteLocals(node.Locals);
-            var newSideEffects = VisitList<BoundExpression>(node.SideEffects);
+            ImmutableArray<LocalSymbol> newLocals = RewriteLocals(node.Locals);
+            ImmutableArray<BoundExpression> newSideEffects = VisitList<BoundExpression>(node.SideEffects);
             var newValue = (BoundExpression)this.Visit(node.Value);
-            var newType = this.VisitType(node.Type);
+            TypeSymbol newType = this.VisitType(node.Type);
             return node.Update(newLocals, newSideEffects, newValue, newType);
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var newInnerLocals = RewriteLocals(node.InnerLocals);
+            ImmutableArray<LocalSymbol> newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
             return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
@@ -162,9 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
-            var newOuterLocals = RewriteLocals(node.OuterLocals);
+            ImmutableArray<LocalSymbol> newOuterLocals = RewriteLocals(node.OuterLocals);
             BoundStatement initializer = (BoundStatement)this.Visit(node.Initializer);
-            var newInnerLocals = RewriteLocals(node.InnerLocals);
+            ImmutableArray<LocalSymbol> newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement increment = (BoundStatement)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitDoStatement(BoundDoStatement node)
         {
-            var newLocals = RewriteLocals(node.Locals);
+            ImmutableArray<LocalSymbol> newLocals = RewriteLocals(node.Locals);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
-            var newLocals = RewriteLocals(node.Locals);
+            ImmutableArray<LocalSymbol> newLocals = RewriteLocals(node.Locals);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            var newLocals = RewriteLocals(node.Locals);
+            ImmutableArray<LocalSymbol> newLocals = RewriteLocals(node.Locals);
             BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
@@ -218,24 +218,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitMethodInfo(BoundMethodInfo node)
         {
-            var rewrittenMethod = VisitMethodSymbol(node.Method);
+            MethodSymbol rewrittenMethod = VisitMethodSymbol(node.Method);
             // No need to rewrite the node's type, because it is always System.Reflection.MethodInfo
             return node.Update(rewrittenMethod, node.GetMethodFromHandle, node.Type);
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            var rewrittenPropertySymbol = VisitPropertySymbol(node.PropertySymbol);
+            PropertySymbol rewrittenPropertySymbol = VisitPropertySymbol(node.PropertySymbol);
             var rewrittenReceiver = (BoundExpression)Visit(node.ReceiverOpt);
             return node.Update(rewrittenReceiver, rewrittenPropertySymbol, node.ResultKind, VisitType(node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
         {
-            var rewrittenMethodSymbol = VisitMethodSymbol(node.Method);
+            MethodSymbol rewrittenMethodSymbol = VisitMethodSymbol(node.Method);
             var rewrittenReceiver = (BoundExpression)this.Visit(node.ReceiverOpt);
             var rewrittenArguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
-            var rewrittenType = this.VisitType(node.Type);
+            TypeSymbol rewrittenType = this.VisitType(node.Type);
 
             Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual() == node.Method.IsMetadataVirtual());
 
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private MethodSymbol GetMethodWrapperForBaseNonVirtualCall(MethodSymbol methodBeingCalled, SyntaxNode syntax)
         {
-            var newMethod = GetOrCreateBaseFunctionWrapper(methodBeingCalled, syntax);
+            MethodSymbol newMethod = GetOrCreateBaseFunctionWrapper(methodBeingCalled, syntax);
             if (!newMethod.IsGenericMethod)
             {
                 return newMethod;
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             //  for generic methods we need to construct the method to be actually called
             Debug.Assert(methodBeingCalled.IsGenericMethod);
-            var typeArgs = methodBeingCalled.TypeArguments;
+            ImmutableArray<TypeSymbol> typeArgs = methodBeingCalled.TypeArguments;
             Debug.Assert(typeArgs.Length == newMethod.Arity);
 
             TypeSymbol[] visitedTypeArgs = new TypeSymbol[typeArgs.Length];
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return wrapper;
             }
 
-            var containingType = this.ContainingType;
+            NamedTypeSymbol containingType = this.ContainingType;
 
             //  create a method symbol
             string methodName = GeneratedNames.MakeBaseMethodWrapperName(this.CompilationState.NextWrapperMethodIndex);
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)
         {
-            var rewrittenField = ((FieldSymbol)node.Field.OriginalDefinition)
+            FieldSymbol rewrittenField = ((FieldSymbol)node.Field.OriginalDefinition)
                 .AsMember((NamedTypeSymbol)this.VisitType(node.Field.ContainingType));
             return node.Update(rewrittenField, node.GetFieldFromHandle, node.Type);
         }
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            var fieldSymbol = ((FieldSymbol)node.FieldSymbol.OriginalDefinition)
+            FieldSymbol fieldSymbol = ((FieldSymbol)node.FieldSymbol.OriginalDefinition)
                 .AsMember((NamedTypeSymbol)this.VisitType(node.FieldSymbol.ContainingType));
             return node.Update(receiverOpt, fieldSymbol, node.ConstantValueOpt, node.ResultKind, type);
         }
@@ -510,8 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (method.IsTupleMethod)
             {
                 //  Method of a tuple type
-                var oldType = method.ContainingType;
-                var constructedFrom = method.ConstructedFrom;
+                NamedTypeSymbol oldType = method.ContainingType;
+                MethodSymbol constructedFrom = method.ConstructedFrom;
                 Debug.Assert(oldType.IsTupleType);
 
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(oldType).AsTypeSymbolOnly();
@@ -525,8 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(oldType.TupleElementTypes.Length == newType.TupleElementTypes.Length);
 
                 //  get a new method by position
-                var oldMembers = oldType.GetMembers();
-                var newMembers = newType.GetMembers();
+                ImmutableArray<Symbol> oldMembers = oldType.GetMembers();
+                ImmutableArray<Symbol> newMembers = newType.GetMembers();
                 Debug.Assert(oldMembers.Length == newMembers.Length);
 
                 for (int i = 0; i < oldMembers.Length; i++)
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //  get a new method by name
-                foreach (var member in newType.GetMembers(method.Name))
+                foreach (Symbol member in newType.GetMembers(method.Name))
                 {
                     if (member.Kind == SymbolKind.Method)
                     {
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             //  get a new property by name
-            foreach (var member in newType.GetMembers(property.Name))
+            foreach (Symbol member in newType.GetMembers(property.Name))
             {
                 if (member.Kind == SymbolKind.Property)
                 {
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol type = this.VisitType(node.Type);
             TypeSymbol receiverType = this.VisitType(node.ReceiverType);
 
-            var member = node.MemberSymbol;
+            Symbol member = node.MemberSymbol;
 
             switch (member.Kind)
             {

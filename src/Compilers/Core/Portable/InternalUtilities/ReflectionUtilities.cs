@@ -41,7 +41,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static Type GetTypeFromEither(string contractName, string desktopName)
         {
-            var type = TryGetType(contractName);
+            Type type = TryGetType(contractName);
 
             if (type == null)
             {
@@ -64,9 +64,9 @@ namespace Roslyn.Utilities
         public static T FindItem<T>(IEnumerable<T> collection, params Type[] paramTypes)
             where T : MethodBase
         {
-            foreach (var current in collection)
+            foreach (T current in collection)
             {
-                var p = current.GetParameters();
+                ParameterInfo[] p = current.GetParameters();
                 if (p.Length != paramTypes.Length)
                 {
                     continue;

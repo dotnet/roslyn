@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             // The only actual reference stored in the metadata image would be: mscorlib (rowid 1).
             // If we incorrectly assume the references are the same we will map TypeRefs of 
             // Mscorlib to System.Windows.Forms.
-            var references = new[] { SystemWindowsFormsRef, MscorlibRef, SystemCoreRef };
+            MetadataReference[] references = new[] { SystemWindowsFormsRef, MscorlibRef, SystemCoreRef };
 
             string src1 = @"
 using System;
@@ -59,8 +59,8 @@ class C
 }
 ";
 
-            var c1 = CreateEmptyCompilation(src1, references);
-            var c2 = c1.WithSource(src2);
+            CSharpCompilation c1 = CreateEmptyCompilation(src1, references);
+            CSharpCompilation c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 
@@ -69,7 +69,7 @@ class C
             var pdbStream = new MemoryStream();
             var updatedMethods = new List<MethodDefinitionHandle>();
 
-            var edits = new[]
+            SemanticEdit[] edits = new[]
             {
                 new SemanticEdit(
                     SemanticEditKind.Update,
@@ -131,8 +131,8 @@ class C
 ";
             var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
 
-            var c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
-            var c2 = c1.WithSource(src2);
+            CSharpCompilation c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
+            CSharpCompilation c2 = c1.WithSource(src2);
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 
             var mdStream = new MemoryStream();
@@ -140,7 +140,7 @@ class C
             var pdbStream = new MemoryStream();
             var updatedMethods = new List<MethodDefinitionHandle>();
 
-            var edits = new[]
+            SemanticEdit[] edits = new[]
             {
                 new SemanticEdit(
                     SemanticEditKind.Update,
@@ -194,37 +194,37 @@ class C
     public static int F(D a) { return 3; }
 }
 ";
-            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
-            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+            CSharpCompilation compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
+            CSharpCompilation compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
-            var v0 = CompileAndVerify(compilation0);
-            var v1 = CompileAndVerify(compilation1);
-            var v2 = CompileAndVerify(compilation2);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v1 = CompileAndVerify(compilation1);
+            CompilationVerifier v2 = CompileAndVerify(compilation2);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify();
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2)));
@@ -293,48 +293,48 @@ class C
     public static int G(D a) { return 4; }
 }
 ";
-            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
 
             ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version0);
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version1);
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version2);
 
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
-            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+            CSharpCompilation compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
+            CSharpCompilation compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
-            var v0 = CompileAndVerify(compilation0);
-            var v1 = CompileAndVerify(compilation1);
-            var v2 = CompileAndVerify(compilation2);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v1 = CompileAndVerify(compilation1);
+            CompilationVerifier v2 = CompileAndVerify(compilation2);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
-            var g2 = compilation2.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol g2 = compilation2.GetMember<MethodSymbol>("C.G");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2),
                     new SemanticEdit(SemanticEditKind.Insert, null, g2)));
 
-            var md1 = diff1.GetMetadata();
-            var md2 = diff2.GetMetadata();
+            PinnedMetadata md1 = diff1.GetMetadata();
+            PinnedMetadata md2 = diff2.GetMetadata();
 
             var aggReader = new AggregatedMetadataReader(md0.MetadataReader, md1.Reader, md2.Reader);
 
@@ -378,35 +378,35 @@ class C
     public static int G(D a) { return 4; }
 }
 ";
-            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1001));
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1002));
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            CSharpCompilation lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1003));
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
-            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
+            CSharpCompilation compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
+            CSharpCompilation compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
 
-            var v0 = CompileAndVerify(compilation0);
-            var v1 = CompileAndVerify(compilation1);
-            var v2 = CompileAndVerify(compilation2);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v1 = CompileAndVerify(compilation1);
+            CompilationVerifier v2 = CompileAndVerify(compilation2);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
-            var g2 = compilation2.GetMember<MethodSymbol>("C.G");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol g2 = compilation2.GetMember<MethodSymbol>("C.G");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
 
@@ -458,30 +458,30 @@ class C
     public static int F(L0::D a, L1::D b) => 2;
 }
 ";
-            var lib01 = CreateCompilation(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
-            var ref01 = lib01.ToMetadataReference(ImmutableArray.Create("L0"));
+            CSharpCompilation lib01 = CreateCompilation(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            CompilationReference ref01 = lib01.ToMetadataReference(ImmutableArray.Create("L0"));
 
-            var lib02 = CreateCompilation(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
-            var ref02 = lib02.ToMetadataReference(ImmutableArray.Create("L0"));
+            CSharpCompilation lib02 = CreateCompilation(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            CompilationReference ref02 = lib02.ToMetadataReference(ImmutableArray.Create("L0"));
 
-            var lib11 = CreateCompilation(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
-            var ref11 = lib11.ToMetadataReference(ImmutableArray.Create("L1"));
+            CSharpCompilation lib11 = CreateCompilation(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            CompilationReference ref11 = lib11.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var lib12 = CreateCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
-            var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
+            CSharpCompilation lib12 = CreateCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            CompilationReference ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
+            CSharpCompilation compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
-            var v0 = CompileAndVerify(compilation0);
+            CompilationVerifier v0 = CompileAndVerify(compilation0);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
 
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
 
@@ -500,7 +500,7 @@ class C
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
         public void CurrentCompilationVersionWildcards()
         {
-            var source0 = MarkedSource(@"
+            SourceWithMarkedNodes source0 = MarkedSource(@"
 using System;
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
 
@@ -515,7 +515,7 @@ class C
     {
     }
 }");
-            var source1 = MarkedSource(@"
+            SourceWithMarkedNodes source1 = MarkedSource(@"
 using System;
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
 
@@ -531,7 +531,7 @@ class C
     {
     }
 }");
-            var source2 = MarkedSource(@"
+            SourceWithMarkedNodes source2 = MarkedSource(@"
 using System;
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
 
@@ -548,7 +548,7 @@ class C
         Console.WriteLine(1);
     }
 }");
-            var source3 = MarkedSource(@"
+            SourceWithMarkedNodes source3 = MarkedSource(@"
 using System;
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
 
@@ -568,29 +568,29 @@ class C
     }
 }");
 
-            var options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+            CSharpCompilationOptions options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
 
-            var compilation0 = CreateCompilation(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
-            var compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 10)));
-            var compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
-            var compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 10)));
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
+            CSharpCompilation compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
 
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
+            CompilationVerifier v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-            var reader0 = md0.MetadataReader;
+            MetadataReader reader0 = md0.MetadataReader;
 
-            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
-            var m3 = compilation3.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m2 = compilation2.GetMember<MethodSymbol>("C.M");
+            MethodSymbol m3 = compilation3.GetMember<MethodSymbol>("C.M");
 
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             // First update adds some new synthesized members (lambda related)
-            var diff1 = compilation1.EmitDifference(
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
@@ -599,7 +599,7 @@ class C
                 "C.<>c: {<>9__0_0, <>9__0_1#1, <M>b__0_0, <M>b__0_1#1}");
 
             // Second update is to a method that doesn't produce any synthesized members 
-            var diff2 = compilation2.EmitDifference(
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
@@ -611,7 +611,7 @@ class C
             // Synthesized members added in the first update need to be mapped to the current compilation.
             // Their containing assembly version is different than the version of the previous assembly and 
             // hence we need to account for wildcards when comparing the versions.
-            var diff3 = compilation3.EmitDifference(
+            CompilationDifference diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
 

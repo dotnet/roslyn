@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings: true, useHexadecimalNumbers: false);
             Debug.Assert(valueString != null);
 
-            var kind = SymbolDisplayPartKind.NumericLiteral;
+            SymbolDisplayPartKind kind = SymbolDisplayPartKind.NumericLiteral;
             switch (type)
             {
                 case SpecialType.System_Boolean:

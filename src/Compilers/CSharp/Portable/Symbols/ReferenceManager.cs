@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var refs = new List<AssemblySymbol>();
 
-                foreach (var module in assemblySymbol.Modules)
+                foreach (ModuleSymbol module in assemblySymbol.Modules)
                 {
                     refs.AddRange(module.GetReferencedAssemblySymbols());
                 }
@@ -252,20 +252,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!HasCircularReference);
 
                 var referencedAssembliesByIdentity = new AssemblyIdentityMap<AssemblySymbol>();
-                foreach (var symbol in this.ReferencedAssemblies)
+                foreach (AssemblySymbol symbol in this.ReferencedAssemblies)
                 {
                     referencedAssembliesByIdentity.Add(symbol.Identity, symbol);
                 }
 
-                var assembly = metadata.GetAssembly();
+                PEAssembly assembly = metadata.GetAssembly();
 
-                var peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
+                ImmutableArray<AssemblySymbol> peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
 
                 assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences);
 
                 var assemblySymbol = new PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked: false, importOptions: importOptions);
 
-                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(unified => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false));
+                ImmutableArray<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(unified => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false));
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies);
 
                 if (assembly.ContainsNoPiaLocalTypes())
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sourceModuleReferences = new ModuleReferences<AssemblySymbol>(referencedAssemblies.SelectAsArray(a => a.Identity), referencedAssemblies, unifiedAssemblies);
                 assemblySymbol.Modules[0].SetReferences(sourceModuleReferences);
 
-                var assemblyModules = assemblySymbol.Modules;
-                var referencedModulesReferences = this.ReferencedModulesReferences;
+                ImmutableArray<ModuleSymbol> assemblyModules = assemblySymbol.Modules;
+                ImmutableArray<ModuleReferences<AssemblySymbol>> referencedModulesReferences = this.ReferencedModulesReferences;
                 Debug.Assert(assemblyModules.Length == referencedModulesReferences.Length + 1);
 
                 for (int i = 1; i < assemblyModules.Length; i++)
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resolutionDiagnostics);
 
                     var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName, noThrow:true), referencedAssemblies, modules);
-                    var explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
+                    ImmutableArray<AssemblyData> explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
 
                     // Let's bind all the references and resolve missing one (if resolver is available)
                     bool hasCircularReference;
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(bindingResult.Length == allAssemblyData.Length);
 
-                    var references = explicitReferences.AddRange(implicitlyResolvedReferences);
+                    ImmutableArray<MetadataReference> references = explicitReferences.AddRange(implicitlyResolvedReferences);
                     referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap);
 
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(newSymbols.Count > 0);
 
-                var corLibrary = sourceAssembly.CorLibrary;
+                AssemblySymbol corLibrary = sourceAssembly.CorLibrary;
                 Debug.Assert((object)corLibrary != null);
 
                 foreach (int i in newSymbols)
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Setup CorLibrary and NoPia stuff for newly created assemblies
 
                 var linkedReferencedAssembliesBuilder = ArrayBuilder<AssemblySymbol>.GetInstance();
-                var noPiaResolutionAssemblies = sourceAssembly.Modules[0].GetReferencedAssemblySymbols();
+                ImmutableArray<AssemblySymbol> noPiaResolutionAssemblies = sourceAssembly.Modules[0].GetReferencedAssemblySymbols();
 
                 foreach (int i in newSymbols)
                 {
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         linkedReferencedAssembliesBuilder.Add(bindingResult[i].AssemblySymbol);
                     }
 
-                    foreach (var referenceBinding in bindingResult[i].ReferenceBinding)
+                    foreach (AssemblyReferenceBinding referenceBinding in bindingResult[i].ReferenceBinding)
                     {
                         if (referenceBinding.IsBound &&
                             assemblies[referenceBinding.DefinitionIndex].IsLinked)
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (missingAssemblies != null)
                 {
-                    foreach (var missingAssembly in missingAssemblies.Values)
+                    foreach (MissingAssemblySymbol missingAssembly in missingAssemblies.Values)
                     {
                         missingAssembly.SetCorLibrary(corLibrary);
                     }
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (int k = 0; k < refsCount; k++)
                     {
-                        var referenceBinding = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
+                        AssemblyReferenceBinding referenceBinding = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
                         if (referenceBinding.IsBound)
                         {
                             symbols[k] = GetAssemblyDefinitionSymbol(bindingResult, referenceBinding, ref unifiedAssemblies);
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArrayBuilder<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies = null;
                     for (int k = 0; k < moduleReferenceCount; k++)
                     {
-                        var boundReference = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
+                        AssemblyReferenceBinding boundReference = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
                         if (boundReference.IsBound)
                         {
                             symbols[k] = GetAssemblyDefinitionSymbol(bindingResult, boundReference, ref unifiedAssemblies);
@@ -742,10 +742,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
                 out ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences)
             {
-                var moduleSymbols = sourceAssembly.Modules;
+                ImmutableArray<ModuleSymbol> moduleSymbols = sourceAssembly.Modules;
                 Debug.Assert(moduleSymbols.Length == 1 + modules.Length);
 
-                var moduleReferencesBuilder = (moduleSymbols.Length > 1) ? ArrayBuilder<ModuleReferences<AssemblySymbol>>.GetInstance() : null;
+                ArrayBuilder<ModuleReferences<AssemblySymbol>> moduleReferencesBuilder = (moduleSymbols.Length > 1) ? ArrayBuilder<ModuleReferences<AssemblySymbol>>.GetInstance() : null;
 
                 int refsUsed = 0;
                 for (int moduleIndex = 0; moduleIndex < moduleSymbols.Length; moduleIndex++)
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (int k = 0; k < refsCount; k++)
                     {
-                        var boundReference = bindingResult[0].ReferenceBinding[refsUsed + k];
+                        AssemblyReferenceBinding boundReference = bindingResult[0].ReferenceBinding[refsUsed + k];
                         if (boundReference.IsBound)
                         {
                             symbols[k] = GetAssemblyDefinitionSymbol(bindingResult, boundReference, ref unifiedAssemblies);
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(referenceBinding.IsBound);
 
-                var assembly = bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol;
+                AssemblySymbol assembly = bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol;
                 Debug.Assert((object)assembly != null);
 
                 if (referenceBinding.VersionDifference != 0)
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // accessing cached symbols requires a lock
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        foreach (var assembly in CachedSymbols)
+                        foreach (IAssemblySymbol assembly in CachedSymbols)
                         {
                             var peAssembly = assembly as PEAssemblySymbol;
                             if (IsMatchingAssembly(peAssembly))
@@ -1068,11 +1068,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Collect information about references
                     var result = ArrayBuilder<AssemblyIdentity>.GetInstance();
 
-                    var modules = compilation.Assembly.Modules;
+                    ImmutableArray<ModuleSymbol> modules = compilation.Assembly.Modules;
 
                     // Filter out linked assemblies referenced by the source module.
-                    var sourceReferencedAssemblies = modules[0].GetReferencedAssemblies();
-                    var sourceReferencedAssemblySymbols = modules[0].GetReferencedAssemblySymbols();
+                    ImmutableArray<AssemblyIdentity> sourceReferencedAssemblies = modules[0].GetReferencedAssemblies();
+                    ImmutableArray<AssemblySymbol> sourceReferencedAssemblySymbols = modules[0].GetReferencedAssemblySymbols();
 
                     Debug.Assert(sourceReferencedAssemblies.Length == sourceReferencedAssemblySymbols.Length);
 

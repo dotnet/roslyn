@@ -46,16 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            var oldPending = SavePending(); // we do not allow branches into a try statement
-            var initialState = this.State.Clone();
+            SavedPending oldPending = SavePending(); // we do not allow branches into a try statement
+            TLocalState initialState = this.State.Clone();
 
             // use this state to resolve all the branches introduced and internal to try/catch
-            var pendingBeforeTry = SavePending(); 
+            SavedPending pendingBeforeTry = SavePending(); 
 
             VisitTryBlock(node.TryBlock, node, ref initialState);
-            var finallyState = initialState.Clone();
-            var endState = this.State;
-            foreach (var catchBlock in node.CatchBlocks)
+            TLocalState finallyState = initialState.Clone();
+            TLocalState endState = this.State;
+            foreach (BoundCatchBlock catchBlock in node.CatchBlocks)
             {
                 SetState(initialState.Clone());
                 VisitCatchBlock(catchBlock, ref finallyState);
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // capture tryAndCatchPending before going into finally
                 // we will need pending branches as they were before finally later
-                var tryAndCatchPending = SavePending();
-                var unsetInFinally = AllBitsSet();
+                SavedPending tryAndCatchPending = SavePending();
+                TLocalState unsetInFinally = AllBitsSet();
                 VisitFinallyBlock(node.FinallyBlockOpt, ref unsetInFinally);                
-                foreach (var pend in tryAndCatchPending.PendingBranches)
+                foreach (PendingBranch pend in tryAndCatchPending.PendingBranches)
                 {
                     if (pend.Branch == null) continue; // a tracked exception
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)

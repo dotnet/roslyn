@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentNullException(nameof(localSignatureProvider));
             }
 
-            var reader = module.MetadataReader;
+            MetadataReader reader = module.MetadataReader;
 
             return new EmitBaseline(
                 null,
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(tableEntriesAdded[(int)TableIndex.EventMap] >= eventMapAdded.Count);
             Debug.Assert(tableEntriesAdded[(int)TableIndex.PropertyMap] >= propertyMapAdded.Count);
 
-            var reader = module.Module.MetadataReader;
+            MetadataReader reader = module.Module.MetadataReader;
 
             InitialBaseline = initialBaseline ?? this;
             OriginalMetadata = module;
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var result = new Dictionary<int, int>();
 
             int rowId = 1;
-            foreach (var parentType in reader.GetTypesWithProperties())
+            foreach (TypeDefinitionHandle parentType in reader.GetTypesWithProperties())
             {
                 Debug.Assert(!parentType.IsNil);
                 result.Add(reader.GetRowNumber(parentType), rowId);
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var result = new Dictionary<int, int>();
 
             int rowId = 1;
-            foreach (var parentType in reader.GetTypesWithEvents())
+            foreach (TypeDefinitionHandle parentType in reader.GetTypesWithEvents())
             {
                 Debug.Assert(!parentType.IsNil);
                 result.Add(reader.GetRowNumber(parentType), rowId);
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int n = reader.GetTableRowCount(TableIndex.MethodImpl);
             for (int row = 1; row <= n; row++)
             {
-                var methodImpl = reader.GetMethodImplementation(MetadataTokens.MethodImplementationHandle(row));
+                MethodImplementation methodImpl = reader.GetMethodImplementation(MetadataTokens.MethodImplementationHandle(row));
                 // Hold on to the implementing method def but use a simple
                 // index for the implemented method ref token. (We do not map
                 // member refs currently, and since we don't allow changes to
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal int GetNextAnonymousTypeIndex(bool fromDelegates = false)
         {
             int nextIndex = 0;
-            foreach (var pair in this.AnonymousTypeMap)
+            foreach (KeyValuePair<AnonymousTypeKey, AnonymousTypeValue> pair in this.AnonymousTypeMap)
             {
                 if (fromDelegates != pair.Key.IsDelegate)
                 {

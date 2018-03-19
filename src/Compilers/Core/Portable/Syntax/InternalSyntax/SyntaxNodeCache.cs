@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1);
                 int idx = h & CacheMask;
-                var e = s_cache[idx];
+                Entry e = s_cache[idx];
                 if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1))
                 {
                     GreenStats.CacheHit();
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
                 int idx = h & CacheMask;
-                var e = s_cache[idx];
+                Entry e = s_cache[idx];
                 if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2))
                 {
                     GreenStats.CacheHit();
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
                 int idx = h & CacheMask;
-                var e = s_cache[idx];
+                Entry e = s_cache[idx];
                 if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2, child3))
                 {
                     GreenStats.CacheHit();

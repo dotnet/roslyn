@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Dispose()
         {
-            var blendedTokens = _blendedTokens;
+            BlendedNode[] blendedTokens = _blendedTokens;
             if (blendedTokens != null)
             {
                 _blendedTokens = null;
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // NOTE: Do not cancel in this method. It is called from the constructor.
             var size = Math.Min(4096, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
             _lexedTokens = new ArrayElement<SyntaxToken>[size];
-            var lexer = this.lexer;
-            var mode = _mode;
+            Lexer lexer = this.lexer;
+            LexerMode mode = _mode;
 
             for (int i = 0; i < size; i++)
             {
-                var token = lexer.Lex(mode);
+                SyntaxToken token = lexer.Lex(mode);
                 this.AddLexedToken(token);
                 if (token.Kind == SyntaxKind.EndOfFileToken)
                 {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //PERF: currentNode is a BlendedNode, which is a fairly large struct.
                 // the following code tries not to pull the whole struct into a local
                 // we only need .Node
-                var node = _currentNode.Node;
+                CSharp.CSharpSyntaxNode node = _currentNode.Node;
                 if (node != null)
                 {
                     return node;
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                var cn = this.CurrentNode;
+                CSharp.CSharpSyntaxNode cn = this.CurrentNode;
                 return cn != null ? cn.Kind() : SyntaxKind.None;
             }
         }
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(_blendedTokens != null);
 
             // remember result
-            var result = CurrentNode.Green;
+            GreenNode result = CurrentNode.Green;
 
             // store possible non-token in token sequence 
             if (_tokenOffset >= _blendedTokens.Length)
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                var old = _blendedTokens;
+                BlendedNode[] old = _blendedTokens;
                 Array.Resize(ref _blendedTokens, _blendedTokens.Length * 2);
                 s_blendedNodesPool.ForgetTrackedObject(old, replacement: _blendedTokens);
             }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //we should keep it simple so that it can be inlined.
         protected SyntaxToken EatToken()
         {
-            var ct = this.CurrentToken;
+            SyntaxToken ct = this.CurrentToken;
             MoveToNextToken();
             return ct;
         }
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
-            var ct = this.CurrentToken;
+            SyntaxToken ct = this.CurrentToken;
             if (ct.Kind == kind)
             {
                 MoveToNextToken();
@@ -480,21 +480,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(expected));
 
-            var ct = this.CurrentToken;
+            SyntaxToken ct = this.CurrentToken;
             if (ct.Kind == expected)
             {
                 MoveToNextToken();
                 return ct;
             }
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            SyntaxToken replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
         private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
         {
             // should we eat the current ParseToken's leading trivia?
-            var token = SyntaxFactory.MissingToken(expected);
+            SyntaxToken token = SyntaxFactory.MissingToken(expected);
             if (reportError)
             {
                 token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken CreateMissingToken(SyntaxKind expected, ErrorCode code, bool reportError)
         {
             // should we eat the current ParseToken's leading trivia?
-            var token = SyntaxFactory.MissingToken(expected);
+            SyntaxToken token = SyntaxFactory.MissingToken(expected);
             if (reportError)
             {
                 token = AddError(token, code);
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected SyntaxToken EatTokenWithPrejudice(SyntaxKind kind)
         {
-            var token = this.CurrentToken;
+            SyntaxToken token = this.CurrentToken;
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
             if (token.Kind != kind)
             {
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected SyntaxToken EatTokenWithPrejudice(ErrorCode errorCode, params object[] args)
         {
-            var token = this.EatToken();
+            SyntaxToken token = this.EatToken();
             token = WithAdditionalDiagnostics(token, MakeError(token.GetLeadingTriviaWidth(), token.Width, errorCode, args));
             return token;
         }
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
-            var contextualKind = this.CurrentToken.ContextualKind;
+            SyntaxKind contextualKind = this.CurrentToken.ContextualKind;
             if (contextualKind != kind)
             {
                 return CreateMissingToken(kind, contextualKind, reportError);
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual, int offset, int width)
         {
-            var code = GetExpectedTokenErrorCode(expected, actual);
+            ErrorCode code = GetExpectedTokenErrorCode(expected, actual);
             if (code == ErrorCode.ERR_SyntaxError || code == ErrorCode.ERR_IdentifierExpectedKW)
             {
                 return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected), SyntaxFacts.GetText(actual));
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Otherwise the diagnostic offset and width is set
             // to the corresponding values of the current token
 
-            var trivia = _prevTokenTrailingTrivia;
+            GreenNode trivia = _prevTokenTrailingTrivia;
             if (trivia != null)
             {
                 SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 width = 0;
                 bool seenSkipped = false;
-                foreach (var trivia in token.TrailingTrivia)
+                foreach (CSharpSyntaxNode trivia in token.TrailingTrivia)
                 {
                     if (trivia.Kind == SyntaxKind.SkippedTokensTrivia)
                     {
@@ -763,13 +763,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
         {
-            var firstToken = node.GetFirstToken();
+            SyntaxToken firstToken = node.GetFirstToken();
             return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code));
         }
 
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
-            var firstToken = node.GetFirstToken();
+            SyntaxToken firstToken = node.GetFirstToken();
             return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code, args));
         }
 
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static void GetOffsetAndWidthForLastToken<TNode>(TNode node, out int offset, out int width) where TNode : CSharpSyntaxNode
         {
-            var lastToken = node.GetLastNonmissingToken();
+            SyntaxToken lastToken = node.GetLastNonmissingToken();
             offset = node.FullWidth; //advance to end of entire node
             width = 0;
             if (lastToken != null) //will be null if all tokens are missing
@@ -824,8 +824,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
-            var oldToken = node as SyntaxToken ?? node.GetFirstToken();
-            var newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
+            SyntaxToken oldToken = node as SyntaxToken ?? node.GetFirstToken();
+            SyntaxToken newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
 
@@ -848,8 +848,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                var lastToken = node.GetLastToken();
-                var newToken = AddSkippedSyntax(lastToken, skippedSyntax, trailing: true);
+                SyntaxToken lastToken = node.GetLastToken();
+                SyntaxToken newToken = AddSkippedSyntax(lastToken, skippedSyntax, trailing: true);
                 return SyntaxLastTokenReplacer.Replace(node, newToken);
             }
         }
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int diagnosticOffset = 0;
 
             int currentOffset = 0;
-            foreach (var node in skippedSyntax.EnumerateNodes())
+            foreach (GreenNode node in skippedSyntax.EnumerateNodes())
             {
                 SyntaxToken token = node as SyntaxToken;
                 if (token != null)
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         int leadingWidth = token.GetLeadingTriviaWidth();
                         if (leadingWidth > 0)
                         {
-                            var tokenDiagnostics = tk.GetDiagnostics();
+                            DiagnosticInfo[] tokenDiagnostics = tk.GetDiagnostics();
                             for (int i = 0; i < tokenDiagnostics.Length; i++)
                             {
                                 var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
@@ -922,13 +922,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             int triviaWidth = currentOffset;
-            var trivia = builder.ToListNode();
+            GreenNode trivia = builder.ToListNode();
 
             // total width of everything preceding the added trivia
             int triviaOffset;
             if (trailing)
             {
-                var trailingTrivia = target.GetTrailingTrivia();
+                GreenNode trailingTrivia = target.GetTrailingTrivia();
                 triviaOffset = target.FullWidth; //added trivia is full width (before addition)
                 target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
             }
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // the offset of each of its diagnostics.
                 if (triviaWidth > 0)
                 {
-                    var targetDiagnostics = target.GetDiagnostics();
+                    DiagnosticInfo[] targetDiagnostics = target.GetDiagnostics();
                     for (int i = 0; i < targetDiagnostics.Length; i++)
                     {
                         var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                var leadingTrivia = target.GetLeadingTrivia();
+                GreenNode leadingTrivia = target.GetLeadingTrivia();
                 target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
                 triviaOffset = 0; //added trivia is first, so offset is zero
             }
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 for (int i = 0, n = root.SlotCount; i < n; i++)
                 {
-                    var child = root.GetSlot(i);
+                    GreenNode child = root.GetSlot(i);
                     if (child == null)
                     {
                         // ignore null slots
@@ -1022,10 +1022,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (token.Kind != token.ContextualKind)
             {
-                var kw = token.IsMissing
+                SyntaxToken kw = token.IsMissing
                         ? SyntaxFactory.MissingToken(token.LeadingTrivia.Node, token.ContextualKind, token.TrailingTrivia.Node)
                         : SyntaxFactory.Token(token.LeadingTrivia.Node, token.ContextualKind, token.TrailingTrivia.Node);
-                var d = token.GetDiagnostics();
+                DiagnosticInfo[] d = token.GetDiagnostics();
                 if (d != null && d.Length > 0)
                 {
                     kw = kw.WithDiagnosticsGreen(d);
@@ -1067,8 +1067,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return node;
             }
 
-            var featureName = feature.Localize();
-            var requiredVersion = feature.RequiredVersion();
+            LocalizableErrorArgument featureName = feature.Localize();
+            LanguageVersion requiredVersion = feature.RequiredVersion();
 
             if (forceWarning)
             {

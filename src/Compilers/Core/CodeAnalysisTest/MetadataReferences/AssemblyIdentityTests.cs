@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(
                 () => new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), "", new byte[] { 1, 2, 3 }.AsImmutableOrNull(), hasPublicKey: false, isRetargetable: false));
 
-            foreach (var v in new Version[]
+            foreach (Version v in new Version[]
             {
                 new Version(),
                 new Version(0, 0),
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             an.Version = new Version(1, 0, 0, 0);
             an.SetPublicKey(PublicKey1);
             var anPkt = an.GetPublicKeyToken();
-            var aiPkt = AssemblyIdentity.CalculatePublicKeyToken(RoPublicKey1);
+            ImmutableArray<byte> aiPkt = AssemblyIdentity.CalculatePublicKeyToken(RoPublicKey1);
             AssertEx.Equal(PublicKeyToken1, anPkt);
             AssertEx.Equal(PublicKeyToken1, aiPkt);
         }

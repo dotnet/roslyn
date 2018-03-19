@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         public static IMethodSymbol FindLocalFunction(this CompilationVerifier verifier, string localFunctionName)
         {
             localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
-            var methods = verifier.TestData.GetMethodsByName();
+            System.Collections.Immutable.ImmutableDictionary<string, CodeAnalysis.CodeGen.CompilationTestData.MethodData> methods = verifier.TestData.GetMethodsByName();
             IMethodSymbol result = null;
-            foreach (var kvp in methods)
+            foreach (System.Collections.Generic.KeyValuePair<string, CodeAnalysis.CodeGen.CompilationTestData.MethodData> kvp in methods)
             {
                 if (kvp.Key.Contains(localFunctionName))
                 {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 using System.Linq;
 
@@ -80,7 +80,7 @@ public class E
         [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class Program
 {
     static void Main(string[] args)
@@ -88,11 +88,11 @@ class Program
         void local() { } => new object();
     }
 }");
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            ObjectCreationExpressionSyntax creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
 
-            var operation = model.GetOperation(creation);
+            IOperation operation = model.GetOperation(creation);
             Assert.NotNull(operation);
 
             comp.VerifyOperationTree(creation, expectedOperationTree:
@@ -109,7 +109,7 @@ IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.Obj
             // The block from the previous assert, should have a parent 
             Assert.Null(operation.Parent.Parent.Parent);
 
-            var info = model.GetTypeInfo(creation);
+            TypeInfo info = model.GetTypeInfo(creation);
             Assert.Equal("System.Object", info.Type.ToTestDisplayString());
             Assert.Equal("System.Object", info.ConvertedType.ToTestDisplayString());
         }
@@ -150,7 +150,7 @@ static void Main(string[] args)
         [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
         public void Repro21768()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 using System.Linq;
 class C
@@ -184,7 +184,7 @@ class C
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -276,7 +276,7 @@ class Program
         [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
         public void Repro472056()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -317,7 +317,7 @@ namespace ConsoleApp2
         [Fact]
         public void AsyncStructClosure()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Threading.Tasks;
 
@@ -334,7 +334,7 @@ class C
         await Task.FromResult(false);
     }
 }", options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "5");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "5");
             // No field captures
             verifier.VerifySynthesizedFields("C.<M>d__1",
                 "int <>1__state",
@@ -405,7 +405,7 @@ class C
         [Fact]
         public void IteratorStructClosure()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
 
@@ -703,7 +703,7 @@ class C
         [Fact]
         public void Repro20577()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System.Linq;
 
 public class Program {
@@ -771,7 +771,7 @@ class C
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 using System;
 class C
 {
@@ -974,7 +974,7 @@ public class Test
         [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
         public void Repro17719()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -993,7 +993,7 @@ class C
         [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
         public void Repro17890()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1093,7 +1093,7 @@ class C2
         [Fact]
         public void NameofRecursiveDefaultParameter()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -1490,7 +1490,7 @@ class Test<T>
     }
 }
 ";
-            var comp = CompileAndVerify(src);
+            CompilationVerifier comp = CompileAndVerify(src);
         }
 
         [Fact]
@@ -1652,7 +1652,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2506,8 +2506,8 @@ T Goo<T>(T x)
 }
 Console.Write(Goo(2));
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var goo = verify.FindLocalFunction("Goo");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol goo = verify.FindLocalFunction("Goo");
             Assert.True(goo.IsStatic);
             Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
         }
@@ -2523,9 +2523,9 @@ T Goo<T>(T x)
 Func<int, int> goo = Goo;
 Console.Write(goo(2));
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var goo = verify.FindLocalFunction("Goo");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol goo = verify.FindLocalFunction("Goo");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.False(goo.IsStatic);
             Assert.Equal("<>c", goo.ContainingType.Name);
             Assert.Equal(program, goo.ContainingType.ContainingType);
@@ -2631,9 +2631,9 @@ void Outer()
 }
 Outer();
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var outer = verify.FindLocalFunction("Outer");
-            var inner = verify.FindLocalFunction("Inner");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol outer = verify.FindLocalFunction("Outer");
+            IMethodSymbol inner = verify.FindLocalFunction("Inner");
             Assert.Equal(outer.ContainingType, inner.ContainingType);
         }
 
@@ -3046,9 +3046,9 @@ void Goo()
 }
 Goo();
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var goo = verify.FindLocalFunction("Goo");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol goo = verify.FindLocalFunction("Goo");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, goo.ContainingType);
             Assert.True(goo.IsStatic);
             Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
@@ -3071,9 +3071,9 @@ void Goo<T1>()
 }
 Goo<int>();
 ";
-            var verify = VerifyOutputInMain(source, "4", "System");
-            var goo = verify.FindLocalFunction("Goo");
-            var bar = verify.FindLocalFunction("Bar");
+            CompilationVerifier verify = VerifyOutputInMain(source, "4", "System");
+            IMethodSymbol goo = verify.FindLocalFunction("Goo");
+            IMethodSymbol bar = verify.FindLocalFunction("Bar");
             Assert.Equal(1, goo.Parameters.Length);
             Assert.Equal(2, bar.Parameters.Length);
             Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
@@ -3115,11 +3115,11 @@ void Outer()
 
 Outer();
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var inner = verify.FindLocalFunction("Inner");
-            var middle = verify.FindLocalFunction("Middle");
-            var outer = verify.FindLocalFunction("Outer");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol inner = verify.FindLocalFunction("Inner");
+            IMethodSymbol middle = verify.FindLocalFunction("Middle");
+            IMethodSymbol outer = verify.FindLocalFunction("Outer");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, inner.ContainingType);
             Assert.Equal(program, middle.ContainingType);
             Assert.Equal(program, outer.ContainingType);
@@ -3164,8 +3164,8 @@ class Program
     }
 }
 ";
-            var verify = VerifyOutput(source, "2");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            CompilationVerifier verify = VerifyOutput(source, "2");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, verify.FindLocalFunction("First").ContainingType);
             Assert.Equal(program, verify.FindLocalFunction("Second").ContainingType);
         }
@@ -3189,9 +3189,9 @@ void Goo()
 }
 Goo();
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var goo = verify.FindLocalFunction("Goo");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol goo = verify.FindLocalFunction("Goo");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, goo.ContainingType);
             Assert.True(goo.IsStatic);
             Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
@@ -3223,10 +3223,10 @@ void Goo(int depth)
 }
 Goo(0);
 ";
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
-            var goo = verify.FindLocalFunction("Goo");
-            var bar = verify.FindLocalFunction("Bar");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
+            IMethodSymbol goo = verify.FindLocalFunction("Goo");
+            IMethodSymbol bar = verify.FindLocalFunction("Bar");
             Assert.Equal(program, goo.ContainingType);
             Assert.Equal(program, bar.ContainingType);
             Assert.True(goo.IsStatic);
@@ -3311,8 +3311,8 @@ class Program
     }
 }
 ";
-            var verify = VerifyOutput(source, "2");
-            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            CompilationVerifier verify = VerifyOutput(source, "2");
+            INamedTypeSymbol program = verify.Compilation.GetTypeByMetadataName("Program");
             Assert.Equal(program, verify.FindLocalFunction("Inner").ContainingType);
         }
 
@@ -4153,8 +4153,8 @@ void Local()
 Local();
 ";
             // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
-            var verify = VerifyOutputInMain(source, "2", "System");
-            var goo = verify.FindLocalFunction("Local");
+            CompilationVerifier verify = VerifyOutputInMain(source, "2", "System");
+            IMethodSymbol goo = verify.FindLocalFunction("Local");
             Assert.True(goo.IsStatic);
             Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
         }
@@ -5048,7 +5048,7 @@ class Program
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
         public void StructFrameInitUnnecessary()
         {
-            var c = CompileAndVerify(@"
+            CompilationVerifier c = CompileAndVerify(@"
     class Program
     {
         static void Main(string[] args)
@@ -5113,13 +5113,13 @@ class Program
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
             return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 

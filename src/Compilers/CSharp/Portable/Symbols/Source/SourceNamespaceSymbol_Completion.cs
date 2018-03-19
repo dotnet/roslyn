@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var incompletePart = _state.NextIncompletePart;
+                CompletionPart incompletePart = _state.NextIncompletePart;
                 switch (incompletePart)
                 {
                     case CompletionPart.NameToMembersMap:
                         {
-                            var tmp = GetNameToMembersMap();
+                            System.Collections.Generic.Dictionary<string, System.Collections.Immutable.ImmutableArray<NamespaceOrTypeSymbol>> tmp = GetNameToMembersMap();
                         }
                         break;
 
                     case CompletionPart.MembersCompleted:
                         {
                             // ensure relevant imports are complete.
-                            foreach (var declaration in _mergedDeclaration.Declarations)
+                            foreach (SingleNamespaceDeclaration declaration in _mergedDeclaration.Declarations)
                             {
                                 if (locationOpt == null || locationOpt.SourceTree == declaration.SyntaxReference.SyntaxTree)
                                 {
@@ -40,23 +40,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                             }
 
-                            var members = this.GetMembers();
+                            System.Collections.Immutable.ImmutableArray<Symbol> members = this.GetMembers();
 
                             bool allCompleted = true;
 
                             if (this.DeclaringCompilation.Options.ConcurrentBuild)
                             {
-                                var po = cancellationToken.CanBeCanceled
+                                ParallelOptions po = cancellationToken.CanBeCanceled
                                     ? new ParallelOptions() { CancellationToken = cancellationToken }
                                     : CSharpCompilation.DefaultParallelOptions;
 
                                 Parallel.For(0, members.Length, po, UICultureUtilities.WithCurrentUICulture<int>(i =>
                                 {
-                                    var member = members[i];
+                                    Symbol member = members[i];
                                     ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
                                 }));
 
-                                foreach (var member in members)
+                                foreach (Symbol member in members)
                                 {
                                     if (!member.HasComplete(CompletionPart.All))
                                     {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                foreach (var member in members)
+                                foreach (Symbol member in members)
                                 {
                                     ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
                                     allCompleted = allCompleted && member.HasComplete(CompletionPart.All);

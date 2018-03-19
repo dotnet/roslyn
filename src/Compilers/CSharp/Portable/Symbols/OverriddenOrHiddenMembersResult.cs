@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal Symbol GetOverriddenMember()
         {
-            foreach (var overriddenMember in _overriddenMembers)
+            foreach (Symbol overriddenMember in _overriddenMembers)
             {
                 if (overriddenMember.IsAbstract || overriddenMember.IsVirtual || overriddenMember.IsOverride)
                 {

@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (_compilationAnalysisValueProviderFactoryOpt != null)
             {
-                var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactoryOpt.GetValueProvider(valueProvider);
+                CompilationAnalysisValueProvider<TKey, TValue> compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactoryOpt.GetValueProvider(valueProvider);
                 return compilationAnalysisValueProvider.TryGetValue(key, out value);
             }
 

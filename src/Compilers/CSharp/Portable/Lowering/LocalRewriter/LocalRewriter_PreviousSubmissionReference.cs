@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(_previousSubmissionFields != null);
 
-            var syntax = node.Syntax;
-            var targetScriptReference = _previousSubmissionFields.GetOrMakeField(targetType);
+            SyntaxNode syntax = node.Syntax;
+            FieldSymbol targetScriptReference = _previousSubmissionFields.GetOrMakeField(targetType);
             var thisReference = new BoundThisReference(syntax, _factory.CurrentType);
             return new BoundFieldAccess(syntax, thisReference, targetScriptReference, ConstantValue.NotAvailable);
         }

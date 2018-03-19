@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             OperatorDeclarationSyntax syntax,
             DiagnosticBag diagnostics)
         {
-            var location = syntax.OperatorToken.GetLocation();
+            Location location = syntax.OperatorToken.GetLocation();
 
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 

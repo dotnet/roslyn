@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void SimpleTuple()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     (int, string) Goo()
@@ -105,7 +105,7 @@ class C
         [Fact]
         public void LongTuple()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     (int, int, int, string, string, string, int, int, int) Goo()
@@ -219,7 +219,7 @@ class C
         [Fact]
         public void TuplesInLambda()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     var x = ((string, string) a, (int, int) b) => { };
@@ -323,7 +323,7 @@ class C
         [Fact]
         public void TuplesWithNamesInLambda()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     var x = ((string a, string) a, (int, int b) b) => { };
@@ -429,7 +429,7 @@ class C
         [Fact]
         public void TupleInParameters()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo((int, string) a)
@@ -495,7 +495,7 @@ class C
         [Fact]
         public void TupleTypeWithTooFewElements()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void M(int x, () y, (int a) z) { }
@@ -604,7 +604,7 @@ class C
         [Fact]
         public void TupleExpressionWithTooFewElements()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     object x = ((Alice: 1), ());

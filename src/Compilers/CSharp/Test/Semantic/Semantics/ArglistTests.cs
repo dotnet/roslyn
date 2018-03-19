@@ -128,7 +128,7 @@ public struct C
     public static bool N(__arglist) { return true;}
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
 // (8,44): error CS7053: An expression tree may not contain '__makeref'
 //         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
@@ -176,7 +176,7 @@ public struct C
   IL_0013:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32");
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
@@ -207,7 +207,7 @@ public struct C
 
             // UNDONE: Test what happens when __makereffing a volatile field, readonly field, etc.
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (8,30): error CS1601: Cannot make reference to variable of type 'TypedReference'
     //         TypedReference tr2 = __makeref(tr1); // CS1601
@@ -241,7 +241,7 @@ public class C
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,25): error CS8361: __arglist cannot have an argument of void type
                 //         M2(__arglist(1, M()));
@@ -278,7 +278,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r;
@@ -344,7 +344,7 @@ public struct C
   IL_0008:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.String");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: "System.String");
             verifier.VerifyIL("C.M", expectedIL);
         }
 
@@ -361,7 +361,7 @@ public struct C
 }";
 
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (6,25): error CS0037: Cannot convert null to 'System.TypedReference' because it is a non-nullable value type
 //         System.Type t = __reftype(null);
@@ -395,7 +395,7 @@ public class C
   IL_0008:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: "");
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
@@ -466,7 +466,7 @@ public class C
 }
 ";
             string expectedOutput = @"123True4567";
-            var verifier = CompileAndVerify(source: text, expectedOutput: expectedOutput);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: expectedOutput);
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
@@ -523,7 +523,7 @@ public class MyAttribute : System.Attribute
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,26): error CS1669: __arglist is not valid in this context
                 //     static void N(params __arglist) {}
@@ -659,7 +659,7 @@ public struct C
   IL_000c:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "1123");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: "1123");
             verifier.VerifyIL("C.Get", expectedGetIL);
             verifier.VerifyIL("C.Set", expectedSetIL);
             verifier.VerifyIL("C.Ref", expectedRefIL);
@@ -776,7 +776,7 @@ using System;
   IL_00c9:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: @"42
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: @"42
 333
 42
 333
@@ -809,7 +809,7 @@ static class C
             // CS0246: The type or namespace name 'Main' could not be found
             // The native compiler behavior seems better here; we might consider fixing Roslyn to match.
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (9,17): error CS0029: Cannot implicitly convert type 'int' to 'System.TypedReference'
 //         int b = __refvalue(123, int);
@@ -889,7 +889,7 @@ public struct C
     }
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "4242");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: "4242");
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       72 (0x48)
@@ -940,15 +940,15 @@ public struct C
         public void TestBug13263()
         {
             var text = @"public class C { public void M() { var t = __makeref(delegate); } }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var clss = root.Members[0] as ClassDeclarationSyntax;
             var meth = clss.Members[0] as MethodDeclarationSyntax;
             var stmt = meth.Body.Statements[0] as LocalDeclarationStatementSyntax;
-            var type = stmt.Declaration.Type;
-            var info = model.GetSymbolInfo(type);
+            TypeSyntax type = stmt.Declaration.Type;
+            SymbolInfo info = model.GetSymbolInfo(type);
             Assert.Equal("TypedReference", info.Symbol.Name);
         }
 
@@ -966,23 +966,23 @@ class A
     public void M4(__arglist, int x, __arglist) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var m1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol m1 = type.GetMember<MethodSymbol>("M1");
             Assert.Equal(0, m1.ParameterCount);
             Assert.Equal(0, m1.Parameters.Length);
 
-            var m2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol m2 = type.GetMember<MethodSymbol>("M2");
             Assert.Equal(1, m2.ParameterCount);
             Assert.Equal(1, m2.Parameters.Length);
 
-            var m3 = type.GetMember<MethodSymbol>("M3");
+            MethodSymbol m3 = type.GetMember<MethodSymbol>("M3");
             Assert.Equal(1, m3.ParameterCount);
             Assert.Equal(1, m3.Parameters.Length);
 
-            var m4 = type.GetMember<MethodSymbol>("M4");
+            MethodSymbol m4 = type.GetMember<MethodSymbol>("M4");
             Assert.Equal(1, m4.ParameterCount);
             Assert.Equal(1, m4.Parameters.Length);
         }
@@ -1025,15 +1025,15 @@ class Unused
 } // end of class A
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var m1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol m1 = type.GetMember<MethodSymbol>("M1");
             Assert.Equal(0, m1.ParameterCount);
             Assert.Equal(0, m1.Parameters.Length);
 
-            var m2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol m2 = type.GetMember<MethodSymbol>("M2");
             Assert.Equal(1, m2.ParameterCount);
             Assert.Equal(1, m2.Parameters.Length);
         }
@@ -1052,23 +1052,23 @@ class A
     public int operator /(__arglist, A a, __arglist) { return 0; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var m1 = type.GetMember<MethodSymbol>(WellKnownMemberNames.UnaryPlusOperatorName);
+            MethodSymbol m1 = type.GetMember<MethodSymbol>(WellKnownMemberNames.UnaryPlusOperatorName);
             Assert.Equal(0, m1.ParameterCount);
             Assert.Equal(0, m1.Parameters.Length);
 
-            var m2 = type.GetMember<MethodSymbol>(WellKnownMemberNames.SubtractionOperatorName);
+            MethodSymbol m2 = type.GetMember<MethodSymbol>(WellKnownMemberNames.SubtractionOperatorName);
             Assert.Equal(1, m2.ParameterCount);
             Assert.Equal(1, m2.Parameters.Length);
 
-            var m3 = type.GetMember<MethodSymbol>(WellKnownMemberNames.MultiplyOperatorName);
+            MethodSymbol m3 = type.GetMember<MethodSymbol>(WellKnownMemberNames.MultiplyOperatorName);
             Assert.Equal(1, m3.ParameterCount);
             Assert.Equal(1, m3.Parameters.Length);
 
-            var m4 = type.GetMember<MethodSymbol>(WellKnownMemberNames.DivisionOperatorName);
+            MethodSymbol m4 = type.GetMember<MethodSymbol>(WellKnownMemberNames.DivisionOperatorName);
             Assert.Equal(1, m4.ParameterCount);
             Assert.Equal(1, m4.Parameters.Length);
         }
@@ -1084,11 +1084,11 @@ class A
     public explicit operator A(__arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
+            MethodSymbol conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
             Assert.Equal(0, conversion.ParameterCount);
             Assert.Equal(0, conversion.Parameters.Length);
         }
@@ -1104,11 +1104,11 @@ class A
     public explicit operator A(int x, __arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
+            MethodSymbol conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
             Assert.Equal(1, conversion.ParameterCount);
             Assert.Equal(1, conversion.Parameters.Length);
         }
@@ -1124,11 +1124,11 @@ class A
     public explicit operator A(__arglist, A a) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
+            MethodSymbol conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
             Assert.Equal(1, conversion.ParameterCount);
             Assert.Equal(1, conversion.Parameters.Length);
         }
@@ -1144,11 +1144,11 @@ class A
     public explicit operator A(__arglist, A a, __arglist) { return null; } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
 
-            var conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
+            MethodSymbol conversion = type.GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
             Assert.Equal(1, conversion.ParameterCount);
             Assert.Equal(1, conversion.Parameters.Length);
         }
@@ -1164,9 +1164,9 @@ class A
     public A(__arglist) { }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
+            MethodSymbol constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(0, constructor.ParameterCount); //doesn't use syntax
             Assert.Equal(0, constructor.Parameters.Length);
         }
@@ -1182,9 +1182,9 @@ class A
     public A(int x, __arglist) { }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
+            MethodSymbol constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
             Assert.Equal(1, constructor.Parameters.Length);
         }
@@ -1201,9 +1201,9 @@ class A
     public A(__arglist, int x) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
+            MethodSymbol constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
             Assert.Equal(1, constructor.Parameters.Length);
         }
@@ -1219,9 +1219,9 @@ class A
     public A(__arglist, int x, __arglist) { } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
+            MethodSymbol constructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(1, constructor.ParameterCount); //doesn't use syntax
             Assert.Equal(1, constructor.Parameters.Length);
         }
@@ -1237,17 +1237,17 @@ class A
     public int this[__arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
+            PropertySymbol indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(0, indexer.ParameterCount); //doesn't use syntax
             Assert.Equal(0, indexer.Parameters.Length);
 
-            var getter = indexer.GetMethod;
+            MethodSymbol getter = indexer.GetMethod;
             Assert.Equal(0, getter.ParameterCount);
             Assert.Equal(0, getter.Parameters.Length);
 
-            var setter = indexer.SetMethod;
+            MethodSymbol setter = indexer.SetMethod;
             Assert.Equal(1, setter.ParameterCount);
             Assert.Equal(1, setter.Parameters.Length);
         }
@@ -1263,17 +1263,17 @@ class A
     public int this[int x, __arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
+            PropertySymbol indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
             Assert.Equal(1, indexer.Parameters.Length);
 
-            var getter = indexer.GetMethod;
+            MethodSymbol getter = indexer.GetMethod;
             Assert.Equal(1, getter.ParameterCount);
             Assert.Equal(1, getter.Parameters.Length);
 
-            var setter = indexer.SetMethod;
+            MethodSymbol setter = indexer.SetMethod;
             Assert.Equal(2, setter.ParameterCount);
             Assert.Equal(2, setter.Parameters.Length);
         }
@@ -1289,17 +1289,17 @@ class A
     public int this[__arglist, int x] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
+            PropertySymbol indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
             Assert.Equal(1, indexer.Parameters.Length);
 
-            var getter = indexer.GetMethod;
+            MethodSymbol getter = indexer.GetMethod;
             Assert.Equal(1, getter.ParameterCount);
             Assert.Equal(1, getter.Parameters.Length);
 
-            var setter = indexer.SetMethod;
+            MethodSymbol setter = indexer.SetMethod;
             Assert.Equal(2, setter.ParameterCount);
             Assert.Equal(2, setter.Parameters.Length);
         }
@@ -1315,17 +1315,17 @@ class A
     public int this[__arglist, int x, __arglist] { get { return 0; } set { } } //illegal, but shouldn't break
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
-            var indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
+            PropertySymbol indexer = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal(1, indexer.ParameterCount); //doesn't use syntax
             Assert.Equal(1, indexer.Parameters.Length);
 
-            var getter = indexer.GetMethod;
+            MethodSymbol getter = indexer.GetMethod;
             Assert.Equal(1, getter.ParameterCount);
             Assert.Equal(1, getter.Parameters.Length);
 
-            var setter = indexer.SetMethod;
+            MethodSymbol setter = indexer.SetMethod;
             Assert.Equal(2, setter.ParameterCount);
             Assert.Equal(2, setter.Parameters.Length);
         }
@@ -1355,7 +1355,7 @@ class C
         tr.GetHashCode();   // no error: virtual, overridden on TypedReference
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (11,9): error CS0029: Cannot implicitly convert type 'System.RuntimeArgumentHandle' to 'object'
 //         rah.GetType(); // not virtual
@@ -1496,7 +1496,7 @@ class E
         d(__arglist());
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'D'
                 //         d(__arglist());

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
-            var obj = ((PEModuleBuilder)context.Module).GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object,
+            Cci.INamedTypeReference obj = ((PEModuleBuilder)context.Module).GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object,
                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                               diagnostics: context.Diagnostics);
             return ((Cci.INamespaceTypeReference)obj).GetUnit(context);

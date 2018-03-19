@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (conditionalAccess != null &&
                     (conditionalAccess.WhenNullOpt == null || NullableNeverHasValue(conditionalAccess.WhenNullOpt)))
                 {
-                    var notNullAccess = NullableAlwaysHasValue(conditionalAccess.WhenNotNull);
+                    BoundExpression notNullAccess = NullableAlwaysHasValue(conditionalAccess.WhenNotNull);
                     if (notNullAccess != null)
                     {
-                        var whenNullOpt = rewrittenRight;
+                        BoundExpression whenNullOpt = rewrittenRight;
 
                         if (whenNullOpt.Type.IsNullableType())
                         {

@@ -187,7 +187,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerifyRef(text, expectedOutput: "42");
+            CompilationVerifier v = CompileAndVerifyRef(text, expectedOutput: "42");
 
             v.VerifyIL("Program.M()", @"
 {
@@ -240,7 +240,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -304,7 +304,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
+            CompilationVerifier compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -382,7 +382,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       18 (0x12)
@@ -435,7 +435,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -496,7 +496,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
+            CompilationVerifier compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -569,7 +569,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       19 (0x13)
@@ -652,7 +652,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -715,7 +715,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -759,7 +759,7 @@ class Program2
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: Verification.Fails);
+            CompilationVerifier compilation = CompileAndVerifyRef(text, verify: Verification.Fails);
             compilation.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size        7 (0x7)
@@ -819,7 +819,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -871,7 +871,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -941,7 +941,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       18 (0x12)
@@ -1016,7 +1016,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
@@ -1074,7 +1074,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
@@ -1153,7 +1153,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text);
+            CompilationVerifier compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M(ref int, ref int, object)", @"
 {
   // Code size       21 (0x15)
@@ -2298,7 +2298,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //     static ref int M()
@@ -2333,7 +2333,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //     static ref int M()
@@ -2375,7 +2375,7 @@ class Program
 delegate ref int D();
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 // delegate ref int D();
@@ -2396,7 +2396,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'ref for-loop variables' is not available in C# 6. Please use language version 7.3 or greater.
                 //         for (ref int a = ref d; ;) { }
@@ -2429,7 +2429,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 // delegate ref int D(int x);
@@ -2477,14 +2477,14 @@ class C
     .get instance object& B2::get_P()
   }
 }";
-            var ref1 = CompileIL(ilSource);
-            var compilation = CreateCompilation("", options: TestOptions.DebugDll, references: new[] { ref1 });
+            MetadataReference ref1 = CompileIL(ilSource);
+            CSharpCompilation compilation = CreateCompilation("", options: TestOptions.DebugDll, references: new[] { ref1 });
 
-            var method = compilation.GetMember<MethodSymbol>("B1.F");
+            MethodSymbol method = compilation.GetMember<MethodSymbol>("B1.F");
             Assert.Equal("System.Object B1.F()", method.ToTestDisplayString());
             Assert.Equal("System.Object A.F()", method.OverriddenMethod.ToTestDisplayString());
 
-            var property = compilation.GetMember<PropertySymbol>("B1.P");
+            PropertySymbol property = compilation.GetMember<PropertySymbol>("B1.P");
             Assert.Equal("System.Object B1.P { get; }", property.ToTestDisplayString());
             Assert.Null(property.OverriddenProperty);
 
@@ -2518,7 +2518,7 @@ public class A<T>
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                  // no diagnostics expected
@@ -2551,7 +2551,7 @@ public class A<T>
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
                 // no diagnostics expected
@@ -2587,7 +2587,7 @@ class E : Exception
     public E(int value) { this.Value = value; }
 }
 ";
-            var v = CompileAndVerify(text, expectedOutput: "12345");
+            CompilationVerifier v = CompileAndVerify(text, expectedOutput: "12345");
         }
 
         [Fact]
@@ -2707,7 +2707,7 @@ class Program
     }
 }";
 
-            var v = CompileAndVerify(source, expectedOutput: "2");
+            CompilationVerifier v = CompileAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -2785,7 +2785,7 @@ class Program
     }
 }";
 
-            var v = CompileAndVerify(source, expectedOutput: "23");
+            CompilationVerifier v = CompileAndVerify(source, expectedOutput: "23");
         }
 
         [Fact]
@@ -2965,9 +2965,9 @@ public class C
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
 
-            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
+            CompilationVerifier v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
 
             v.VerifyIL("C.F(ref dynamic)", @"
 {
@@ -3078,9 +3078,9 @@ public class C
     }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
 
-            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
+            CompilationVerifier v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
         }
 
         [Fact]

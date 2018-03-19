@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -72,7 +72,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullArrayConv()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -134,7 +134,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyArrayCtor()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -189,7 +189,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotConstArrayCtor()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -246,7 +246,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotConstArrayCtorByte()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -303,7 +303,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void NotBlittableArrayConv()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -361,7 +361,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EnumArrayCtor()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -418,7 +418,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EnumArrayCtorPEverify()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -491,7 +491,7 @@ class Test
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void ConvInMethodCall()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test

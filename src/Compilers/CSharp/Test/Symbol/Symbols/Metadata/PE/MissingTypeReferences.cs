@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.MDTestLib2);
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.MDTestLib2);
 
             TestMissingTypeReferencesHelper1(assembly);
 
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
                                     {
                                         TestReferences.SymbolsTests.MissingTypes.MDMissingType,
                                         TestReferences.SymbolsTests.MissingTypes.MDMissingTypeLib,
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private void TestMissingTypeReferencesHelper1(AssemblySymbol assembly)
         {
-            var module0 = assembly.Modules[0];
+            ModuleSymbol module0 = assembly.Modules[0];
 
-            var localTC10 = module0.GlobalNamespace.GetTypeMembers("TC10").Single();
+            NamedTypeSymbol localTC10 = module0.GlobalNamespace.GetTypeMembers("TC10").Single();
 
             MissingMetadataTypeSymbol @base = (MissingMetadataTypeSymbol)localTC10.BaseType();
             Assert.Equal(SymbolKind.ErrorType, @base.Kind);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(@base.ContainingAssembly.IsMissing);
             Assert.Equal("mscorlib", @base.ContainingAssembly.Identity.Name);
 
-            var localTC8 = module0.GlobalNamespace.GetTypeMembers("TC8").Single();
+            NamedTypeSymbol localTC8 = module0.GlobalNamespace.GetTypeMembers("TC8").Single();
             var genericBase = (ErrorTypeSymbol)localTC8.BaseType();
             Assert.Equal("C1<System.Type[missing]>[missing]", genericBase.ToTestDisplayString());
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(@base.ContainingAssembly.IsMissing);
             Assert.Equal("MDTestLib1", @base.ContainingAssembly.Identity.Name);
 
-            var localTC7 = module0.GlobalNamespace.GetTypeMembers("TC7").Single();
+            NamedTypeSymbol localTC7 = module0.GlobalNamespace.GetTypeMembers("TC7").Single();
             genericBase = (ErrorTypeSymbol)localTC7.BaseType();
             @base = (MissingMetadataTypeSymbol)genericBase.OriginalDefinition;
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(@base.GetUseSiteDiagnostic().ToString(), genericBase.GetUseSiteDiagnostic().ToString());
             Assert.Equal(@base.ErrorInfo.ToString(), genericBase.ErrorInfo.ToString());
 
-            var constructedFrom = genericBase.ConstructedFrom;
+            NamedTypeSymbol constructedFrom = genericBase.ConstructedFrom;
             Assert.Equal("C1<TC7_T1>[missing].C3[missing].C4<>[missing]", constructedFrom.ToTestDisplayString());
 
             Assert.Same(constructedFrom, constructedFrom.Construct(constructedFrom.TypeParameters.ToArray()));
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private void TestMissingTypeReferencesHelper2(AssemblySymbol[] assemblies, bool reflectionOnly = false)
         {
-            var module1 = assemblies[0].Modules[0];
-            var module2 = assemblies[1].Modules[0];
+            ModuleSymbol module1 = assemblies[0].Modules[0];
+            ModuleSymbol module2 = assemblies[1].Modules[0];
 
             var assembly2 = (MetadataOrSourceAssemblySymbol)assemblies[1];
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.NotNull(@base.ContainingModule);
 
             localTC = module1.GlobalNamespace.GetTypeMembers("TC4").Single();
-            var genericBase = localTC.BaseType();
+            NamedTypeSymbol genericBase = localTC.BaseType();
             Assert.Equal(SymbolKind.ErrorType, genericBase.Kind);
             Assert.Equal("MissingC4<T1, S1>[missing]", genericBase.ToTestDisplayString());
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.NotNull(@base.ContainingNamespace);
             Assert.NotNull(@base.ContainingSymbol);
             Assert.NotNull(@base.ContainingModule);
-            var missingC4 = @base;
+            MissingMetadataTypeSymbol missingC4 = @base;
 
             localTC = module1.GlobalNamespace.GetTypeMembers("TC5").Single();
             genericBase = localTC.BaseType();
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(@base.ContainingNamespace.IsGlobalNamespace);
             Assert.Same(@base.ContainingSymbol, missingC4);
 
-            var localC6 = module2.GlobalNamespace.GetTypeMembers("C6").Single();
+            NamedTypeSymbol localC6 = module2.GlobalNamespace.GetTypeMembers("C6").Single();
 
             localTC = module1.GlobalNamespace.GetTypeMembers("TC6").Single();
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(@base.ContainingSymbol, localC6);
             Assert.Same(@base.ContainingNamespace, localC6.ContainingNamespace);
 
-            var missingC7 = @base;
+            MissingMetadataTypeSymbol missingC7 = @base;
 
             localTC = module1.GlobalNamespace.GetTypeMembers("TC7").Single();
             genericBase = localTC.BaseType();
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(missingC7.ToTestDisplayString(), @base.ContainingSymbol.ToTestDisplayString());
             Assert.Same(@base.ContainingNamespace, localC6.ContainingNamespace);
 
-            var missingC8 = @base;
+            MissingMetadataTypeSymbol missingC8 = @base;
 
             localTC = module1.GlobalNamespace.GetTypeMembers("TC8").Single();
             genericBase = localTC.BaseType();
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Equality()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.MissingTypes.MissingTypesEquality1,
                 TestReferences.SymbolsTests.MissingTypes.MissingTypesEquality2,
@@ -276,18 +276,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             });
 
 
-            var asm1 = assemblies[0];
+            AssemblySymbol asm1 = assemblies[0];
 
-            var asm1classC = asm1.GlobalNamespace.GetTypeMembers("C").Single();
+            NamedTypeSymbol asm1classC = asm1.GlobalNamespace.GetTypeMembers("C").Single();
 
-            var asm1m1 = asm1classC.GetMembers("M1").OfType<MethodSymbol>().Single();
-            var asm1m2 = asm1classC.GetMembers("M2").OfType<MethodSymbol>().Single();
-            var asm1m3 = asm1classC.GetMembers("M3").OfType<MethodSymbol>().Single();
-            var asm1m4 = asm1classC.GetMembers("M4").OfType<MethodSymbol>().Single();
-            var asm1m5 = asm1classC.GetMembers("M5").OfType<MethodSymbol>().Single();
-            var asm1m6 = asm1classC.GetMembers("M6").OfType<MethodSymbol>().Single();
-            var asm1m7 = asm1classC.GetMembers("M7").OfType<MethodSymbol>().Single();
-            var asm1m8 = asm1classC.GetMembers("M8").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m1 = asm1classC.GetMembers("M1").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m2 = asm1classC.GetMembers("M2").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m3 = asm1classC.GetMembers("M3").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m4 = asm1classC.GetMembers("M4").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m5 = asm1classC.GetMembers("M5").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m6 = asm1classC.GetMembers("M6").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m7 = asm1classC.GetMembers("M7").OfType<MethodSymbol>().Single();
+            MethodSymbol asm1m8 = asm1classC.GetMembers("M8").OfType<MethodSymbol>().Single();
 
             Assert.NotEqual(asm1m2.ReturnType, asm1m1.ReturnType);
             Assert.NotEqual(asm1m3.ReturnType, asm1m1.ReturnType);
@@ -299,12 +299,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(asm1m7.ReturnType, asm1m1.ReturnType);
             Assert.Equal(asm1m8.ReturnType, asm1m4.ReturnType);
 
-            var asm2 = assemblies[1];
+            AssemblySymbol asm2 = assemblies[1];
 
-            var asm2classC = asm2.GlobalNamespace.GetTypeMembers("C").Single();
+            NamedTypeSymbol asm2classC = asm2.GlobalNamespace.GetTypeMembers("C").Single();
 
-            var asm2m1 = asm2classC.GetMembers("M1").OfType<MethodSymbol>().Single();
-            var asm2m4 = asm2classC.GetMembers("M4").OfType<MethodSymbol>().Single();
+            MethodSymbol asm2m1 = asm2classC.GetMembers("M1").OfType<MethodSymbol>().Single();
+            MethodSymbol asm2m4 = asm2classC.GetMembers("M4").OfType<MethodSymbol>().Single();
 
             Assert.Equal(asm2m1.ReturnType, asm1m1.ReturnType);
 

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             var hash = key.GetHashCode();
             var idx = hash & mask;
 
-            var entry = this.entries[idx];
+            Entry entry = this.entries[idx];
             if (entry != null && entry.hash == hash && entry.key.Equals(key))
             {
                 return false;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             int hash = key.GetHashCode();
             int idx = hash & mask;
 
-            var entry = this.entries[idx];
+            Entry entry = this.entries[idx];
             if (entry != null && entry.hash == hash && entry.key.Equals(key))
             {
                 value = entry.value;

@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (ignoreChildNode != null)
             {
-                var e1 = before.ChildNodesAndTokens().GetEnumerator();
-                var e2 = after.ChildNodesAndTokens().GetEnumerator();
+                CodeAnalysis.Syntax.InternalSyntax.ChildSyntaxList.Enumerator e1 = before.ChildNodesAndTokens().GetEnumerator();
+                CodeAnalysis.Syntax.InternalSyntax.ChildSyntaxList.Enumerator e2 = after.ChildNodesAndTokens().GetEnumerator();
                 while (true)
                 {
                     GreenNode child1 = null;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     // skip ignored children:
                     while (e1.MoveNext())
                     {
-                        var c = e1.Current;
+                        GreenNode c = e1.Current;
                         if (c != null && (c.IsToken || !ignoreChildNode((SyntaxKind)c.RawKind)))
                         {
                             child1 = c;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     while (e2.MoveNext())
                     {
-                        var c = e2.Current;
+                        GreenNode c = e2.Current;
                         if (c != null && (c.IsToken || !ignoreChildNode((SyntaxKind)c.RawKind)))
                         {
                             child2 = c;
@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 for (int i = 0; i < slotCount; i++)
                 {
-                    var child1 = before.GetSlot(i);
-                    var child2 = after.GetSlot(i);
+                    GreenNode child1 = before.GetSlot(i);
+                    GreenNode child2 = after.GetSlot(i);
 
                     if (!AreEquivalentRecursive(child1, child2, ignoreChildNode, topLevel))
                     {

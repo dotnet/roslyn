@@ -107,7 +107,7 @@ public class X
 4. 12
 5. 
 7. True";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // warning CS0184: The given expression is never of the provided ('bool') type
                 //         Console.WriteLine("7. {0}", (x is bool is bool));
@@ -116,7 +116,7 @@ public class X
                 //         Console.WriteLine("7. {0}", (x is bool is bool));
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool")
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -136,7 +136,7 @@ public class X
         if (x is Nullable<int> y) Console.WriteLine($""expression {x} is Nullable<int> y"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
     // (11,18): error CS8105: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
     //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
@@ -170,7 +170,7 @@ public class X
             Console.WriteLine($""expression {x} is not {typeof(T).Name}"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             using (new EnsureInvariantCulture())
@@ -184,7 +184,7 @@ expression 1.2 is Double 1.2
 expression 1 is Nullable`1 1
 expression  is not Nullable`1
 expression  is not String";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -207,7 +207,7 @@ public class X
         if (b is 1000) { } // error: cannot convert 1000 to byte
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is dynamic t) { } // null not allowed
@@ -250,14 +250,14 @@ class D
     public D(bool b) { Console.WriteLine(b); }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput =
 @"False
 True
 False";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -290,7 +290,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -298,7 +298,7 @@ public class X
 @"No for 1
 Yes for 10
 No for 1.2";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -325,7 +325,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -333,7 +333,7 @@ public class X
 @"False for 1
 True for 10
 False for 1.2";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -361,7 +361,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -369,7 +369,7 @@ public class X
 @"False for 1
 True for 10
 False for 1.2";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -397,7 +397,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -405,7 +405,7 @@ public class X
 @"False for 1
 True for 10
 False for 1.2";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -435,7 +435,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -443,7 +443,7 @@ public class X
 @"False for 1
 True for 10
 False for 1.2";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -463,7 +463,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
     // (2,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
     // [Obsolete("" is string s ? s : "")]
@@ -509,7 +509,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -517,7 +517,7 @@ public class X
 @"False for 1
 True for 10
 False for 1.2";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -562,7 +562,7 @@ public struct X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -577,7 +577,7 @@ null
 struct X X
 class Exception System.Exception: boo
 ";
-                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -604,7 +604,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,45): error CS0165: Use of unassigned local variable 'x2'
                 //         if (!(o is X x2)) Console.WriteLine(x2);
@@ -638,7 +638,7 @@ public class X
     public static void M2(out int x) { x = 1; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -679,7 +679,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 true
@@ -690,11 +690,11 @@ false
 2
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -729,16 +729,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -770,15 +770,15 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclaration(tree, "x1");
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
@@ -822,7 +822,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput:
@@ -840,14 +840,14 @@ public class X
 12
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             for (int i = 1; i < 13; i++)
             {
                 var id = "y" + i;
-                var yDecl = GetPatternDeclarations(tree, id).Single();
-                var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
+                SingleVariableDesignationSyntax yDecl = GetPatternDeclarations(tree, id).Single();
+                IdentifierNameSyntax yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
                 VerifyModelForDeclarationPattern(model, yDecl, yRef);
             }
         }
@@ -881,17 +881,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yDecl = GetPatternDeclaration(tree, "y1");
-            var yRef = GetReferences(tree, "y1").Single();
+            SingleVariableDesignationSyntax yDecl = GetPatternDeclaration(tree, "y1");
+            IdentifierNameSyntax yRef = GetReferences(tree, "y1").Single();
             VerifyModelForDeclarationPattern(model, yDecl, yRef);
         }
 
@@ -916,7 +916,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -945,7 +945,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 True
 1
@@ -973,7 +973,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -1011,7 +1011,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True
 2
@@ -1040,7 +1040,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1066,7 +1066,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -1099,7 +1099,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1143,17 +1143,17 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 True
 True");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -1211,18 +1211,18 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"2
 True
 1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -1261,18 +1261,18 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1 case 0
 Test1 {0}
 Test1 1
 Test1 {0}");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1307,16 +1307,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -1370,7 +1370,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b
@@ -1420,18 +1420,18 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
 a
 c
 b");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1474,14 +1474,14 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1526,7 +1526,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
@@ -1535,11 +1535,11 @@ a
 c
 b");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1583,16 +1583,16 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1641,7 +1641,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
@@ -1654,23 +1654,23 @@ b
 d
 f");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
+            SingleVariableDesignationSyntax[] x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
-            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
+            SingleVariableDesignationSyntax[] x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            IdentifierNameSyntax[] x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
@@ -1719,7 +1719,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
@@ -1732,23 +1732,23 @@ b
 d
 f");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
+            SingleVariableDesignationSyntax[] x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            IdentifierNameSyntax[] x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
-            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
+            SingleVariableDesignationSyntax[] x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            IdentifierNameSyntax[] x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
             VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
@@ -1779,17 +1779,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1824,16 +1824,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -1873,7 +1873,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1883,11 +1883,11 @@ public class X
 2
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1926,7 +1926,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1937,11 +1937,11 @@ public class X
 3
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -1981,7 +1981,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1994,11 +1994,11 @@ public class X
 3
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2029,14 +2029,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2073,16 +2073,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -2123,7 +2123,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
@@ -2132,11 +2132,11 @@ public class X
 2
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2170,7 +2170,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2180,21 +2180,21 @@ public class X
 200
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetPatternDeclarations(tree, "x0").Single();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            SingleVariableDesignationSyntax x0Decl = GetPatternDeclarations(tree, "x0").Single();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
             VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
         }
@@ -2226,7 +2226,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2236,21 +2236,21 @@ public class X
 200
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetPatternDeclarations(tree, "x0").Single();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            SingleVariableDesignationSyntax x0Decl = GetPatternDeclarations(tree, "x0").Single();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
             VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
         }
@@ -2286,7 +2286,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2296,17 +2296,17 @@ public class X
 3 20
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            SingleVariableDesignationSyntax[] x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
             VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2343,7 +2343,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2354,17 +2354,17 @@ public class X
 3 30
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            SingleVariableDesignationSyntax[] x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
             VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2402,7 +2402,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2415,17 +2415,17 @@ public class X
 3 30
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            SingleVariableDesignationSyntax[] x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(5, x0Ref.Length);
             VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2455,16 +2455,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
@@ -2493,17 +2493,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"lock
 lock
 lock");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2538,16 +2538,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -2576,7 +2576,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
@@ -2609,17 +2609,17 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2
 yield1");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2658,16 +2658,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -2698,14 +2698,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:@"return");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2742,15 +2742,15 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -2787,14 +2787,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"throw");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2837,16 +2837,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"throw 1
 throw 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
@@ -2879,16 +2879,16 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclaration(tree, "x1");
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclaration(tree, "x1");
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
@@ -2925,7 +2925,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -2966,7 +2966,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3007,7 +3007,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3031,7 +3031,7 @@ a:      Test1(2 is var x1);
         return null;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (6,1): warning CS0164: This label has not been referenced
@@ -3039,11 +3039,11 @@ a:      Test1(2 is var x1);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(6, 1)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -3078,7 +3078,7 @@ a:          Test2(2 is var x1, x1);
         return x;
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -3086,11 +3086,11 @@ a:          Test2(2 is var x1, x1);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(15, 1)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -3114,7 +3114,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,27): warning CS0184: The given expression is never of the provided ('string') type
                 //         Console.WriteLine(1L is string); // warning: type mismatch
@@ -3164,7 +3164,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
                 //         Console.WriteLine("goo" is System.String); // true
@@ -3209,7 +3209,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case typeof(string):
@@ -3247,7 +3247,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,22): error CS1001: Identifier expected
                 //             if (obj. is var o) { }
@@ -3256,11 +3256,11 @@ class Program
                 //             if (obj.Property is var o) { } // `obj` doesn't exist.
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "obj").WithArguments("obj").WithLocation(7, 17)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            foreach (var isExpression in tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>())
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            foreach (IsPatternExpressionSyntax isExpression in tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>())
             {
-                var symbolInfo = model.GetSymbolInfo(isExpression.Expression);
+                SymbolInfo symbolInfo = model.GetSymbolInfo(isExpression.Expression);
                 Assert.Null(symbolInfo.Symbol);
                 Assert.True(symbolInfo.CandidateSymbols.IsDefaultOrEmpty);
                 Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -3322,7 +3322,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"null
@@ -3353,7 +3353,7 @@ other 6");
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
@@ -3381,7 +3381,7 @@ public static class StaticType
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0723: Cannot declare a variable of static type 'StaticType'
                 //             case StaticType t:
@@ -3406,10 +3406,10 @@ public static class StaticType
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
 
         [Fact, WorkItem(12996, "https://github.com/dotnet/roslyn/issues/12996")]
@@ -3432,17 +3432,17 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var tree = compilation.SyntaxTrees[0];
+            SyntaxTree tree = compilation.SyntaxTrees[0];
 
-            var model1 = compilation.GetSemanticModel(tree);
+            SemanticModel model1 = compilation.GetSemanticModel(tree);
 
-            var declaration = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
-            var o1 = GetReferences(tree, "o1").Single();
+            IsPatternExpressionSyntax declaration = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            IdentifierNameSyntax o1 = GetReferences(tree, "o1").Single();
 
-            var typeInfo1 = model1.GetTypeInfo(declaration);
+            TypeInfo typeInfo1 = model1.GetTypeInfo(declaration);
             Assert.Equal(SymbolKind.NamedType, typeInfo1.Type.Kind);
             Assert.Equal("System.Boolean", typeInfo1.Type.ToTestDisplayString());
 
@@ -3450,9 +3450,9 @@ class Program
             Assert.Equal(SymbolKind.NamedType, typeInfo1.Type.Kind);
             Assert.Equal("System.Int32", typeInfo1.Type.ToTestDisplayString());
 
-            var model2 = compilation.GetSemanticModel(tree);
+            SemanticModel model2 = compilation.GetSemanticModel(tree);
 
-            var typeInfo2 = model2.GetTypeInfo(o1);
+            TypeInfo typeInfo2 = model2.GetTypeInfo(o1);
             Assert.Equal(SymbolKind.NamedType, typeInfo2.Type.Kind);
             Assert.Equal("System.Int32", typeInfo2.Type.ToTestDisplayString());
         }
@@ -3468,19 +3468,19 @@ unsafe struct S
     fixed int F2[3 is var x2 ? 3 : 3, x2];
 }
 ";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
             VerifyModelNotSupported(model, x1Decl, x1Ref);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelNotSupported(model, x2Decl, x2Ref);
             Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
 
@@ -3561,7 +3561,7 @@ unsafe struct S
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (7,29): error CS1525: Invalid expression term ')'
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
@@ -3576,8 +3576,8 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "object.Equals is()").WithLocation(8, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            IsPatternExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
 
             Assert.Equal("o.Equals is()", node.ToString());
 
@@ -3729,11 +3729,11 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
-            var verifier = CompileAndVerify(compilation);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("TestClass.Test", @"{
     // Code size       18 (0x12)
     .maxstack  1
@@ -3788,11 +3788,11 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
-            var verifier = CompileAndVerify(compilation);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("TestClass.Test", @"{
     // Code size       18 (0x12)
     .maxstack  1
@@ -3860,10 +3860,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"0123 123
 goo throws");
         }
@@ -3893,10 +3893,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"1
 thrown");
         }
@@ -3926,10 +3926,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"1
 thrown");
         }
@@ -3974,11 +3974,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
+            CSharpCompilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"making exception 2
 thrown 2");
         }
@@ -4005,10 +4005,10 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"blue");
         }
 
@@ -4042,10 +4042,10 @@ class MyException : Exception
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput:
 @"green");
         }
 
@@ -4080,7 +4080,7 @@ class B
     public static int operator +(bool left, B right) => 8;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
@@ -4097,7 +4097,7 @@ True
 True";
             compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
@@ -4142,9 +4142,9 @@ class D {}
 no
 True
 yes";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
@@ -4173,9 +4173,9 @@ class D {}
             var expectedOutput =
 @"True
 B";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             SyntaxFactory.ParseExpression("A is B < C, D > E").GetDiagnostics().Verify();
             SyntaxFactory.ParseExpression("A as B < C, D > E").GetDiagnostics().Verify(
@@ -4224,9 +4224,9 @@ False
 False
 False
 True";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
@@ -4249,13 +4249,13 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
         }
@@ -4288,20 +4288,20 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var discard1 = GetDiscardDesignations(tree).First();
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
             Assert.Null(model.GetTypeInfo(declaration1).Type);
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1.Type).Type.ToTestDisplayString());
 
-            var discard2 = GetDiscardDesignations(tree).Skip(1).First();
+            DiscardDesignationSyntax discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
@@ -4310,14 +4310,14 @@ public class C
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
-            var discard3 = GetDiscardDesignations(tree).Skip(2).First();
+            DiscardDesignationSyntax discard3 = GetDiscardDesignations(tree).Skip(2).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
             var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
             Assert.Equal("int _", declaration3.ToString());
             Assert.Null(model.GetTypeInfo(declaration3).Type);
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration3.Type).Type.ToTestDisplayString());
 
-            var discard4 = GetDiscardDesignations(tree).Skip(3).First();
+            DiscardDesignationSyntax discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
             var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
@@ -4346,7 +4346,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
@@ -4382,7 +4382,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (9,29): error CS0150: A constant value is expected
                 //         Write($"is _: {i is _}, ");
@@ -4424,7 +4424,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is int _) { Write(_); }
@@ -4468,7 +4468,7 @@ unsafe public class Typ
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
@@ -4551,9 +4551,9 @@ class C
     override public int GetHashCode() => 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: @"False
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"False
 False
 True");
         }
@@ -4578,9 +4578,9 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
 
         [Fact]
@@ -4608,9 +4608,9 @@ public class Color
     public const string Constant = ""abc"";
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
 
         [Fact]
@@ -4633,7 +4633,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
@@ -4802,7 +4802,7 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (9,32): error CS1525: Invalid expression term 'break'
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
@@ -4816,11 +4816,11 @@ public class Program5815
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
                 );
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
-            var colorRef = GetReferences(tree, "Color").ToArray();
+            SingleVariableDesignationSyntax[] colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
+            IdentifierNameSyntax[] colorRef = GetReferences(tree, "Color").ToArray();
             Assert.Equal(1, colorDecl.Length);
             Assert.Equal(2, colorRef.Length);
             Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
@@ -4844,16 +4844,16 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
                 );
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x3Decl = GetPatternDeclarations(tree, "x3").ToArray();
-            var x3Ref = GetReferences(tree, "x3").ToArray();
+            SingleVariableDesignationSyntax[] x3Decl = GetPatternDeclarations(tree, "x3").ToArray();
+            IdentifierNameSyntax[] x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(1, x3Ref.Length);
             VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
@@ -4999,9 +4999,9 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"TBase
 TDerived
 Neither
 TBase
@@ -5042,7 +5042,7 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case TDerived td:
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
@@ -5071,7 +5071,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<object> s:
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
@@ -5126,10 +5126,10 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"1
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
 1
@@ -5208,10 +5208,10 @@ True
 False
 True
 False";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
@@ -5228,7 +5228,7 @@ public class Program
         Console.WriteLine(1 is null);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         Console.WriteLine(b is 12L);
@@ -5507,10 +5507,10 @@ M13b
 M14a
 M15a
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -5548,7 +5548,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(source);
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
@@ -5581,7 +5581,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
@@ -5619,7 +5619,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 2:
@@ -5681,8 +5681,8 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
-            var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 
         [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
@@ -5714,7 +5714,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
@@ -5757,7 +5757,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
@@ -5800,7 +5800,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
@@ -5846,7 +5846,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
@@ -5892,7 +5892,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
@@ -5929,7 +5929,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) { }
@@ -5979,10 +5979,10 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
         }
 
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
@@ -6012,10 +6012,10 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
         }
 
         [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
@@ -6040,10 +6040,10 @@ public class C {
                 //     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Packet<T>").WithArguments("T", "Packet<T>", "7.0", "7.1").WithLocation(12, 52)
                 );
-            var compilation = CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation compilation = CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
         }
 
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
@@ -6066,7 +6066,7 @@ unsafe public class C {
         return b1 && b2 && b3;
     }
 }";
-            var compilation = CreateCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 // (6,23): error CS1525: Invalid expression term 'int'
                 //         var p1 = p is int* p0;           // syntax error 1
@@ -6125,10 +6125,10 @@ unsafe public class C {
         return z0;
     }
 }";
-            var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: "ok");
         }
 
         [Fact]
@@ -6178,7 +6178,7 @@ public class X
 1
 Func called
 2";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -6199,7 +6199,7 @@ class Program
 }
 ";
             var expectedOutput = @"Hello";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): warning CS0184: The given expression is never of the provided ('object') type
                 //         if (Console.Write("Hello") is object) {}
@@ -6222,7 +6222,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0039: Cannot convert type 'void' to 'object' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         var o = Console.WriteLine("world!") as object;
@@ -6248,7 +6248,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (10,17): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         var o = Console.WriteLine("Hello") as T;
@@ -6269,7 +6269,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var x) { }
@@ -6290,7 +6290,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var _) {}
@@ -6315,7 +6315,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'void'.
                 //         switch (Console.WriteLine("Hello"))
@@ -6339,7 +6339,7 @@ class Program
 }
 ";
             var expectedOutput = @"Hello World";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) {} else { Console.Write("Hello "); }
@@ -6378,9 +6378,9 @@ internal class Program
 }
 ";
             var expectedOutput = @"Exception";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
@@ -6421,7 +6421,7 @@ True
 False
 False
 False";
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
@@ -6444,7 +6444,7 @@ False";
         switch (i) { case (default) when true: break; } // error 7
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
                 //         if (i is default) {} // error 1
@@ -6493,7 +6493,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 

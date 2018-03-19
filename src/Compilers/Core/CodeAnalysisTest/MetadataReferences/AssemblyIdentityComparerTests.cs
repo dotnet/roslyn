@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 fusionMatch = match;
             }
 
-            using (var fusionPolicy = policyPath != null ? FusionAssemblyPortabilityPolicy.LoadFromFile(policyPath) : null)
+            using (FusionAssemblyPortabilityPolicy fusionPolicy = policyPath != null ? FusionAssemblyPortabilityPolicy.LoadFromFile(policyPath) : null)
             {
-                var comparer = DesktopAssemblyIdentityComparer.Default;
+                DesktopAssemblyIdentityComparer comparer = DesktopAssemblyIdentityComparer.Default;
 
                 var policy = default(AssemblyPortabilityPolicy);
                 if (policyPath != null)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 bool fusionUnificationApplied1;
-                var fusionResult1 = FusionAssemblyIdentityComparer.CompareAssemblyIdentity(displayName1, displayName2, ignoreVersion, policy: fusionPolicy, unificationApplied: out fusionUnificationApplied1);
+                AssemblyIdentityComparer.ComparisonResult fusionResult1 = FusionAssemblyIdentityComparer.CompareAssemblyIdentity(displayName1, displayName2, ignoreVersion, policy: fusionPolicy, unificationApplied: out fusionUnificationApplied1);
                 Assert.Equal(fusionMatch, fusionResult1);
                 Assert.Equal(fusionUnificationApplied ?? unificationApplied, fusionUnificationApplied1);
 
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.True(AssemblyIdentity.IsFullName(parts2), "Expected full name");
 
                 bool unificationApplied1;
-                var actual1 = comparer.Compare(null, displayName1, id2, out unificationApplied1, ignoreVersion);
+                AssemblyIdentityComparer.ComparisonResult actual1 = comparer.Compare(null, displayName1, id2, out unificationApplied1, ignoreVersion);
                 Assert.Equal(match, actual1);
                 Assert.Equal(unificationApplied, unificationApplied1);
 
                 if (!partial && id1 != null)
                 {
                     bool unificationApplied2;
-                    var actual2 = comparer.Compare(id1, null, id2, out unificationApplied2, ignoreVersion);
+                    AssemblyIdentityComparer.ComparisonResult actual2 = comparer.Compare(id1, null, id2, out unificationApplied2, ignoreVersion);
                     Assert.Equal(match, actual2);
                     Assert.Equal(unificationApplied, unificationApplied2);
                 }
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 fusionMatch: AssemblyIdentityComparer.ComparisonResult.Equivalent,
                 partial: false);
 
-            var appConfig = Temp.CreateFile().WriteAllText(
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile().WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
   <runtime>

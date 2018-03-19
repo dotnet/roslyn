@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     var call = (BoundCall)expression;
-                    var methodRefKind = call.Method.RefKind;
+                    RefKind methodRefKind = call.Method.RefKind;
 
                     if (methodRefKind == RefKind.Ref || 
                         (IsReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     goto default;
 
                 case BoundKind.DefaultExpression:
-                    var type = expression.Type;
+                    TypeSymbol type = expression.Type;
 
-                    var temp = this.AllocateTemp(type, expression.Syntax);
+                    LocalDefinition temp = this.AllocateTemp(type, expression.Syntax);
                     _builder.EmitLocalAddress(temp);                  //  ldloca temp
                     _builder.EmitOpCode(ILOpCode.Dup);                //  dup
                     _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <type>
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!expression.Type.IsReferenceType);
             Debug.Assert(!expression.Type.IsValueType);
 
-            var receiverType = expression.Type;
+            TypeSymbol receiverType = expression.Type;
 
             var whenValueTypeLabel = new Object();
             var doneLabel = new Object();
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitBox(receiverType, expression.Syntax);
             _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
 
-            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.ReadOnly);
+            LocalDefinition receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, AddressKind.ReadOnly);
             Debug.Assert(receiverTemp == null);
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
             _builder.AdjustStack(-1);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitLocalAddress(BoundLocal localAccess, AddressKind addressKind)
         {
-            var local = localAccess.LocalSymbol;
+            LocalSymbol local = localAccess.LocalSymbol;
 
             if (!HasHome(localAccess, addressKind))
             {
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private LocalDefinition EmitAddressOfTempClone(BoundExpression expression)
         {
             EmitExpression(expression, true);
-            var value = this.AllocateTemp(expression.Type, expression.Syntax);
+            LocalDefinition value = this.AllocateTemp(expression.Type, expression.Syntax);
             _builder.EmitLocalStore(value);
             _builder.EmitLocalAddress(value);
 
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             DefineAndRecordLocals(sequence);
             EmitSideEffects(sequence);
-            var result =  EmitAddress(sequence.Value, addressKind);
+            LocalDefinition result =  EmitAddress(sequence.Value, addressKind);
             CloseScopeAndKeepLocals(sequence);
 
             return result;
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 case BoundKind.Local:
                     var local = (BoundLocal)value;
-                    var symbol = local.LocalSymbol;
+                    LocalSymbol symbol = local.LocalSymbol;
                     if (topSequence.Locals.Contains(symbol))
                     {
                         return symbol;
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var fieldAccess = (BoundFieldAccess)value;
                     if (!fieldAccess.FieldSymbol.IsStatic)
                     {
-                        var receiver = fieldAccess.ReceiverOpt;
+                        BoundExpression receiver = fieldAccess.ReceiverOpt;
                         if (!receiver.Type.IsReferenceType)
                         {
                             return DigForValueLocal(topSequence, receiver);
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.ThisReference:
-                    var type = expression.Type;
+                    TypeSymbol type = expression.Type;
                     if (type.IsReferenceType)
                     {
                         Debug.Assert(IsReadOnly(addressKind), "`this` is readonly in classes");
@@ -423,18 +423,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Local:
                     // locals have home unless they are byval stack locals or ref-readonly
                     // locals in a mutating call
-                    var local = ((BoundLocal)expression).LocalSymbol;
+                    LocalSymbol local = ((BoundLocal)expression).LocalSymbol;
                     return !((IsStackLocal(local) && local.RefKind == RefKind.None) || 
                         (!IsReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
 
                 case BoundKind.Call:
-                    var methodRefKind = ((BoundCall)expression).Method.RefKind;
+                    RefKind methodRefKind = ((BoundCall)expression).Method.RefKind;
                     return methodRefKind == RefKind.Ref ||
                            (IsReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.Dup:
                     //NB: Dup represents locals that do not need IL slot
-                    var dupRefKind = ((BoundDup)expression).RefKind;
+                    RefKind dupRefKind = ((BoundDup)expression).RefKind;
                     return dupRefKind == RefKind.Ref ||
                         (IsReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         return false;
                     }
-                    var lhsRefKind = assignment.Left.GetRefKind();
+                    RefKind lhsRefKind = assignment.Left.GetRefKind();
                     return lhsRefKind == RefKind.Ref ||
                         (IsReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
 
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     Debug.Assert(!IsReadOnly(addressKind));
 
-                    var receiver = fieldAccess.ReceiverOpt;
+                    BoundExpression receiver = fieldAccess.ReceiverOpt;
                     if (receiver?.Type.IsValueType == true)
                     {
                         // Check receiver:
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (((ArrayTypeSymbol)arrayAccess.Expression.Type).IsSZArray)
             {
                 _builder.EmitOpCode(ILOpCode.Ldelema);
-                var elementType = arrayAccess.Type;
+                TypeSymbol elementType = arrayAccess.Type;
                 EmitSymbolToken(elementType, arrayAccess.Syntax);
             }
             else
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitReceiverRef(BoundExpression receiver, AddressKind addressKind)
         {
-            var receiverType = receiver.Type;
+            TypeSymbol receiverType = receiver.Type;
             if (receiverType.IsVerifierReference())
             {
                 EmitExpression(receiver, used: true);
@@ -714,12 +714,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitInstanceFieldAddress(BoundFieldAccess fieldAccess, AddressKind addressKind)
         {
-            var field = fieldAccess.FieldSymbol;
+            FieldSymbol field = fieldAccess.FieldSymbol;
 
             //NOTE: we are not propagating AddressKind.Constrained here.
             //      the reason is that while Constrained permits calls, it does not permit 
             //      taking field addresses, so we have to turn Constrained into writeable.
-            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind);
+            LocalDefinition tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind);
 
             _builder.EmitOpCode(ILOpCode.Ldflda);
             EmitSymbolToken(field, fieldAccess.Syntax);
@@ -731,8 +731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // PEVerify errors because the struct has unexpected type. (Ex: struct& when int& is expected)
             if (field.IsFixed)
             {
-                var fixedImpl = field.FixedImplementationType(_module);
-                var fixedElementField = fixedImpl.FixedElementField;
+                NamedTypeSymbol fixedImpl = field.FixedImplementationType(_module);
+                FieldSymbol fixedElementField = fixedImpl.FixedElementField;
 
                 // if we get a mildly corrupted FixedImplementationType which does
                 // not happen to have fixedElementField

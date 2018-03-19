@@ -43,8 +43,8 @@ public class Program
     }
 }
 ";
-            var validator = GetDestructorValidator("Base");
-            var compVerifier = CompileAndVerify(text,
+            Action<ModuleSymbol> validator = GetDestructorValidator("Base");
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Base",
@@ -97,8 +97,8 @@ public class Program
     }
 }
 ";
-            var validator = GetDestructorValidator("Base");
-            var compVerifier = CompileAndVerify(text,
+            Action<ModuleSymbol> validator = GetDestructorValidator("Base");
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Base",
@@ -156,8 +156,8 @@ public class Program
     }
 }
 ";
-            var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileAndVerify(text,
+            Action<ModuleSymbol> validator = GetDestructorValidator("Derived");
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -242,8 +242,8 @@ public class Program
     }
 }
 ";
-            var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileAndVerify(text,
+            Action<ModuleSymbol> validator = GetDestructorValidator("Derived");
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -342,9 +342,9 @@ public class Program
             // even in cases where the user creates their own Finalize methods (which is legal, but ill-advised).
             // This may not be the case for metadata from other C# compilers (which will likely not have
             // destructors explicitly override System.Object.Finalize).
-            var validator = GetDestructorValidator("Derived");
+            Action<ModuleSymbol> validator = GetDestructorValidator("Derived");
 
-            var compVerifier = CompileAndVerify(text,
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: expectedOutput,
@@ -398,8 +398,8 @@ public class Program
     }
 }
 ";
-            var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileAndVerify(text,
+            Action<ModuleSymbol> validator = GetDestructorValidator("Derived");
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -454,8 +454,8 @@ public class Program
     }
 }
 ";
-            var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileAndVerify(text,
+            Action<ModuleSymbol> validator = GetDestructorValidator("Derived");
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -490,7 +490,7 @@ class C
     private string Finalize;
 }
 ";
-            var compVerifier = CompileAndVerify(text);
+            CompilationVerifier compVerifier = CompileAndVerify(text);
 
             compVerifier.VerifyDiagnostics(
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -576,10 +576,10 @@ public class M<T> : L<T>
 ";
             Action<ModuleSymbol> validator = module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var mscorlib = module.ContainingAssembly.CorLibrary;
-                var systemNamespace = mscorlib.GlobalNamespace.GetMember<NamespaceSymbol>("System");
+                AssemblySymbol mscorlib = module.ContainingAssembly.CorLibrary;
+                NamespaceSymbol systemNamespace = mscorlib.GlobalNamespace.GetMember<NamespaceSymbol>("System");
                 Assert.True(systemNamespace.GetMember<NamedTypeSymbol>("Object").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
 
                 Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
@@ -592,27 +592,27 @@ public class M<T> : L<T>
                 Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("H").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
                 Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
 
-                var intType = systemNamespace.GetMember<TypeSymbol>("Int32");
+                TypeSymbol intType = systemNamespace.GetMember<TypeSymbol>("Int32");
                 Assert.Equal(SpecialType.System_Int32, intType.SpecialType);
 
-                var classJ = globalNamespace.GetMember<NamedTypeSymbol>("J");
+                NamedTypeSymbol classJ = globalNamespace.GetMember<NamedTypeSymbol>("J");
                 Assert.False(classJ.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
-                var classJInt = classJ.Construct(intType);
+                NamedTypeSymbol classJInt = classJ.Construct(intType);
                 Assert.False(classJInt.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
 
-                var classK = globalNamespace.GetMember<NamedTypeSymbol>("K");
+                NamedTypeSymbol classK = globalNamespace.GetMember<NamedTypeSymbol>("K");
                 Assert.True(classK.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
-                var classKInt = classK.Construct(intType);
+                NamedTypeSymbol classKInt = classK.Construct(intType);
                 Assert.True(classKInt.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
 
-                var classL = globalNamespace.GetMember<NamedTypeSymbol>("L");
+                NamedTypeSymbol classL = globalNamespace.GetMember<NamedTypeSymbol>("L");
                 Assert.True(classL.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
-                var classLInt = classL.Construct(intType);
+                NamedTypeSymbol classLInt = classL.Construct(intType);
                 Assert.True(classLInt.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
 
-                var classM = globalNamespace.GetMember<NamedTypeSymbol>("M");
+                NamedTypeSymbol classM = globalNamespace.GetMember<NamedTypeSymbol>("M");
                 Assert.True(classM.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
-                var classMInt = classM.Construct(intType);
+                NamedTypeSymbol classMInt = classM.Construct(intType);
                 Assert.True(classMInt.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
             };
 
@@ -661,9 +661,9 @@ public class M<T> : L<T>
 
 } // end of class D
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40("", text);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40("", text);
 
-            var globalNamespace = compilation.GlobalNamespace;
+            NamespaceSymbol globalNamespace = compilation.GlobalNamespace;
 
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer()); //override of object.Finalize
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer()); //same but has "newslot"
@@ -684,7 +684,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(
@@ -763,7 +763,7 @@ public class A
 ";
             CompileAndVerify(text, assemblyValidator: (assembly) =>
             {
-                var peFileReader = assembly.GetMetadataReader();
+                MetadataReader peFileReader = assembly.GetMetadataReader();
 
                 // Find the handle and row for A.
                 var pairA = peFileReader.TypeDefinitions.AsEnumerable().
@@ -815,8 +815,8 @@ public class A
         // NOTE: assumes there's a destructor.
         private static void ValidateDestructor(ModuleSymbol module, string typeName)
         {
-            var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName);
-            var destructor = @class.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName);
+            NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName);
+            MethodSymbol destructor = @class.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName);
 
             Assert.Equal(MethodKind.Destructor, destructor.MethodKind);
 

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             int arityOffset = 0;
 
-            var containingType = namedType.ContainingType;
+            NamedTypeSymbol containingType = namedType.ContainingType;
             if ((object)containingType != null)
             {
                 int containingTypeCumulativeArity;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            var substituted = new TypeWithModifiers(candidateParam.Type, candidateParam.CustomModifiers).SubstituteType(candidateMethodTypeMap);
+            TypeWithModifiers substituted = new TypeWithModifiers(candidateParam.Type, candidateParam.CustomModifiers).SubstituteType(candidateMethodTypeMap);
             if (substituted.Type != targetParam.Type)
             {
                 return false;
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol targetReturnType = targetReturnParam.Type;
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            var substituted = new TypeWithModifiers(candidateReturnType, candidateMethod.ReturnTypeCustomModifiers).SubstituteType(candidateMethodTypeMap);
+            TypeWithModifiers substituted = new TypeWithModifiers(candidateReturnType, candidateMethod.ReturnTypeCustomModifiers).SubstituteType(candidateMethodTypeMap);
             if (substituted.Type != targetReturnType)
             {
                 return false;
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             for (int i = 0; i < n; i++)
             {
-                var targetCustomModifier = targetCustomModifiers[i];
+                ModifierInfo<TypeSymbol> targetCustomModifier = targetCustomModifiers[i];
                 CustomModifier candidateCustomModifier = candidateCustomModifiers[i];
 
                 if (targetCustomModifier.IsOptional != candidateCustomModifier.IsOptional ||

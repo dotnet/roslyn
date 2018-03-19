@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExplicitInterfaceImplementationRetargeting()
         {
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 new AssemblyIdentity("Assembly1"),
                 new string[]
                 { @"
@@ -49,10 +49,10 @@ public class C : Interface1
 
             comp1.VerifyDiagnostics();
 
-            var globalNamespace1 = comp1.GlobalNamespace;
-            var classC = globalNamespace1.GetTypeMembers("C").Single();
+            NamespaceSymbol globalNamespace1 = comp1.GlobalNamespace;
+            NamedTypeSymbol classC = globalNamespace1.GetTypeMembers("C").Single();
 
-            var interfaceV1 = globalNamespace1.GetTypeMembers("Interface1").Single();
+            NamedTypeSymbol interfaceV1 = globalNamespace1.GetTypeMembers("Interface1").Single();
 
             var interfaceV1Method1 = (MethodSymbol)interfaceV1.GetMembers("Method1").Single();
             var interfaceV1Method2 = (MethodSymbol)interfaceV1.GetMembers("Method2").Single();
@@ -64,17 +64,17 @@ public class C : Interface1
             var interfaceV1Property3 = (PropertySymbol)interfaceV1.GetMembers("Property3").Single();
             var interfaceV1Property4 = (PropertySymbol)interfaceV1.GetMembers("Property4").Single();
 
-            var interfaceV1Indexer1 = FindIndexerWithParameterCount(interfaceV1, 1);
-            var interfaceV1Indexer2 = FindIndexerWithParameterCount(interfaceV1, 2);
-            var interfaceV1Indexer3 = FindIndexerWithParameterCount(interfaceV1, 3);
-            var interfaceV1Indexer4 = FindIndexerWithParameterCount(interfaceV1, 4);
+            PropertySymbol interfaceV1Indexer1 = FindIndexerWithParameterCount(interfaceV1, 1);
+            PropertySymbol interfaceV1Indexer2 = FindIndexerWithParameterCount(interfaceV1, 2);
+            PropertySymbol interfaceV1Indexer3 = FindIndexerWithParameterCount(interfaceV1, 3);
+            PropertySymbol interfaceV1Indexer4 = FindIndexerWithParameterCount(interfaceV1, 4);
 
             var interfaceV1Event1 = (EventSymbol)interfaceV1.GetMembers("Event1").Single();
             var interfaceV1Event2 = (EventSymbol)interfaceV1.GetMembers("Event2").Single();
             var interfaceV1Event3 = (EventSymbol)interfaceV1.GetMembers("Event3").Single();
             var interfaceV1Event4 = (EventSymbol)interfaceV1.GetMembers("Event4").Single();
 
-            foreach (var member in classC.GetMembers())
+            foreach (Symbol member in classC.GetMembers())
             {
                 switch (member.Kind)
                 {
@@ -97,7 +97,7 @@ public class C : Interface1
                 }
             }
 
-            var comp2 = CreateCompilation(
+            CSharpCompilation comp2 = CreateCompilation(
                 new AssemblyIdentity("Assembly2"),
                 new string[]
                 {@"
@@ -115,9 +115,9 @@ public  class D : C
 
             Assert.False(comp2.GetDiagnostics().Any());
 
-            var globalNamespace2 = comp2.GlobalNamespace;
+            NamespaceSymbol globalNamespace2 = comp2.GlobalNamespace;
 
-            var interfaceV2 = globalNamespace2.GetTypeMembers("Interface1").Single();
+            NamedTypeSymbol interfaceV2 = globalNamespace2.GetTypeMembers("Interface1").Single();
             Assert.NotSame(interfaceV1, interfaceV2);
 
             var interfaceV2Method1 = (MethodSymbol)interfaceV2.GetMembers("Method1").Single();
@@ -130,18 +130,18 @@ public  class D : C
             var interfaceV2Property3 = (PropertySymbol)interfaceV2.GetMembers("Property3").Single();
             var interfaceV2Property4 = (PropertySymbol)interfaceV2.GetMembers("Property4").Single();
 
-            var interfaceV2Indexer1 = FindIndexerWithParameterCount(interfaceV2, 1);
+            PropertySymbol interfaceV2Indexer1 = FindIndexerWithParameterCount(interfaceV2, 1);
             //Two-parameter indexer deleted
-            var interfaceV2Indexer3 = FindIndexerWithParameterCount(interfaceV2, 3);
-            var interfaceV2Indexer4 = FindIndexerWithParameterCount(interfaceV2, 4);
+            PropertySymbol interfaceV2Indexer3 = FindIndexerWithParameterCount(interfaceV2, 3);
+            PropertySymbol interfaceV2Indexer4 = FindIndexerWithParameterCount(interfaceV2, 4);
 
             var interfaceV2Event1 = (EventSymbol)interfaceV2.GetMembers("Event1").Single();
             //Event2 deleted
             var interfaceV2Event3 = (EventSymbol)interfaceV2.GetMembers("Event3").Single();
             var interfaceV2Event4 = (EventSymbol)interfaceV2.GetMembers("Event4").Single();
 
-            var classD = globalNamespace2.GetTypeMembers("D").Single();
-            var retargetedClassC = classD.BaseType();
+            NamedTypeSymbol classD = globalNamespace2.GetTypeMembers("D").Single();
+            NamedTypeSymbol retargetedClassC = classD.BaseType();
 
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetedClassC);
 
@@ -152,7 +152,7 @@ public  class D : C
                 Assert.IsType<RetargetingMethodSymbol>(retargetedClassCMethod1);
                 Assert.Equal(MethodKind.ExplicitInterfaceImplementation, retargetedClassCMethod1.MethodKind);
 
-                var retargetedClassCMethod1Impl = retargetedClassCMethod1.ExplicitInterfaceImplementations.Single();
+                MethodSymbol retargetedClassCMethod1Impl = retargetedClassCMethod1.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Method1, retargetedClassCMethod1Impl);
                 Assert.NotSame(interfaceV1Method1, retargetedClassCMethod1Impl);
                 Assert.Equal(retargetedClassCMethod1Impl.ToTestDisplayString(), interfaceV1Method1.ToTestDisplayString());
@@ -181,7 +181,7 @@ public  class D : C
                 Assert.IsType<RetargetingMethodSymbol>(retargetedClassCMethod4);
                 Assert.Equal(MethodKind.ExplicitInterfaceImplementation, retargetedClassCMethod4.MethodKind);
 
-                var retargetedClassCMethod4Impl = retargetedClassCMethod4.ExplicitInterfaceImplementations.Single();
+                MethodSymbol retargetedClassCMethod4Impl = retargetedClassCMethod4.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Method4, retargetedClassCMethod4Impl);
                 Assert.NotSame(interfaceV1Method4, retargetedClassCMethod4Impl);
                 Assert.Equal(retargetedClassCMethod4Impl.ToTestDisplayString(), interfaceV1Method4.ToTestDisplayString());
@@ -191,7 +191,7 @@ public  class D : C
             {
                 Assert.IsType<RetargetingPropertySymbol>(retargetedClassCProperty1);
 
-                var retargetedClassCProperty1Impl = retargetedClassCProperty1.ExplicitInterfaceImplementations.Single();
+                PropertySymbol retargetedClassCProperty1Impl = retargetedClassCProperty1.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Property1, retargetedClassCProperty1Impl);
                 Assert.NotSame(interfaceV1Property1, retargetedClassCProperty1Impl);
                 Assert.Equal(retargetedClassCProperty1Impl.Name, interfaceV1Property1.Name);
@@ -218,25 +218,25 @@ public  class D : C
             {
                 Assert.IsType<RetargetingPropertySymbol>(retargetedClassCProperty4);
 
-                var retargetedClassCProperty4Impl = retargetedClassCProperty4.ExplicitInterfaceImplementations.Single();
+                PropertySymbol retargetedClassCProperty4Impl = retargetedClassCProperty4.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Property4, retargetedClassCProperty4Impl);
                 Assert.NotSame(interfaceV1Property4, retargetedClassCProperty4Impl);
                 Assert.Equal(retargetedClassCProperty4Impl.Name, interfaceV1Property4.Name);
                 Assert.Equal(retargetedClassCProperty4Impl.Type.ToTestDisplayString(), interfaceV1Property4.Type.ToTestDisplayString());
             }
 
-            var retargetedClassCIndexer1 = FindIndexerWithParameterCount(retargetedClassC, 1);
+            PropertySymbol retargetedClassCIndexer1 = FindIndexerWithParameterCount(retargetedClassC, 1);
             {
                 Assert.IsType<RetargetingPropertySymbol>(retargetedClassCIndexer1);
 
-                var retargetedClassCIndexer1Impl = retargetedClassCIndexer1.ExplicitInterfaceImplementations.Single();
+                PropertySymbol retargetedClassCIndexer1Impl = retargetedClassCIndexer1.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Indexer1, retargetedClassCIndexer1Impl);
                 Assert.NotSame(interfaceV1Indexer1, retargetedClassCIndexer1Impl);
                 Assert.Equal(retargetedClassCIndexer1Impl.Name, interfaceV1Indexer1.Name);
                 Assert.Equal(retargetedClassCIndexer1Impl.Type.ToTestDisplayString(), interfaceV1Indexer1.Type.ToTestDisplayString());
             }
 
-            var retargetedClassCIndexer2 = FindIndexerWithParameterCount(retargetedClassC, 2);
+            PropertySymbol retargetedClassCIndexer2 = FindIndexerWithParameterCount(retargetedClassC, 2);
             {
                 Assert.IsType<RetargetingPropertySymbol>(retargetedClassCIndexer2);
 
@@ -244,7 +244,7 @@ public  class D : C
                 Assert.False(retargetedClassCIndexer2.ExplicitInterfaceImplementations.Any());
             }
 
-            var retargetedClassCIndexer3 = FindIndexerWithParameterCount(retargetedClassC, 3);
+            PropertySymbol retargetedClassCIndexer3 = FindIndexerWithParameterCount(retargetedClassC, 3);
             {
                 Assert.IsType<RetargetingPropertySymbol>(retargetedClassCIndexer3);
 
@@ -252,11 +252,11 @@ public  class D : C
                 Assert.False(retargetedClassCIndexer3.ExplicitInterfaceImplementations.Any());
             }
 
-            var retargetedClassCIndexer4 = FindIndexerWithParameterCount(retargetedClassC, 4);
+            PropertySymbol retargetedClassCIndexer4 = FindIndexerWithParameterCount(retargetedClassC, 4);
             {
                 Assert.IsType<RetargetingPropertySymbol>(retargetedClassCIndexer4);
 
-                var retargetedClassCIndexer4Impl = retargetedClassCIndexer4.ExplicitInterfaceImplementations.Single();
+                PropertySymbol retargetedClassCIndexer4Impl = retargetedClassCIndexer4.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Indexer4, retargetedClassCIndexer4Impl);
                 Assert.NotSame(interfaceV1Indexer4, retargetedClassCIndexer4Impl);
                 Assert.Equal(retargetedClassCIndexer4Impl.Name, interfaceV1Indexer4.Name);
@@ -267,7 +267,7 @@ public  class D : C
             {
                 Assert.IsType<RetargetingEventSymbol>(retargetedClassCEvent1);
 
-                var retargetedClassCEvent1Impl = retargetedClassCEvent1.ExplicitInterfaceImplementations.Single();
+                EventSymbol retargetedClassCEvent1Impl = retargetedClassCEvent1.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Event1, retargetedClassCEvent1Impl);
                 Assert.NotSame(interfaceV1Event1, retargetedClassCEvent1Impl);
                 Assert.Equal(retargetedClassCEvent1Impl.Name, interfaceV1Event1.Name);
@@ -294,7 +294,7 @@ public  class D : C
             {
                 Assert.IsType<RetargetingEventSymbol>(retargetedClassCEvent4);
 
-                var retargetedClassCEvent4Impl = retargetedClassCEvent4.ExplicitInterfaceImplementations.Single();
+                EventSymbol retargetedClassCEvent4Impl = retargetedClassCEvent4.ExplicitInterfaceImplementations.Single();
                 Assert.Same(interfaceV2Event4, retargetedClassCEvent4Impl);
                 Assert.NotSame(interfaceV1Event4, retargetedClassCEvent4Impl);
                 Assert.Equal(retargetedClassCEvent4Impl.Name, interfaceV1Event4.Name);
@@ -310,7 +310,7 @@ public  class D : C
         [Fact]
         public void ExplicitInterfaceImplementationRetargetingGeneric()
         {
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 new AssemblyIdentity("Assembly1"),
                 new string[]
                 { @"
@@ -342,21 +342,21 @@ public class C3 : Interface2<Class1>
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
-            var d = comp1.GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> d = comp1.GetDiagnostics();
             Assert.False(comp1.GetDiagnostics().Any());
 
-            var globalNamespace1 = comp1.GlobalNamespace;
-            var classC1 = globalNamespace1.GetTypeMembers("C1").Single();
-            var classC2 = globalNamespace1.GetTypeMembers("C2").Single();
-            var classC3 = globalNamespace1.GetTypeMembers("C3").Single();
+            NamespaceSymbol globalNamespace1 = comp1.GlobalNamespace;
+            NamedTypeSymbol classC1 = globalNamespace1.GetTypeMembers("C1").Single();
+            NamedTypeSymbol classC2 = globalNamespace1.GetTypeMembers("C2").Single();
+            NamedTypeSymbol classC3 = globalNamespace1.GetTypeMembers("C3").Single();
 
-            foreach (var diag in comp1.GetDiagnostics())
+            foreach (Diagnostic diag in comp1.GetDiagnostics())
             {
                 Console.WriteLine(diag);
             }
 
 
-            var comp2 = CreateCompilation(
+            CSharpCompilation comp2 = CreateCompilation(
                 new AssemblyIdentity("Assembly2"),
                 new string[]
                 {@"
@@ -380,55 +380,55 @@ public  class D3 : C3
 
             Assert.False(comp2.GetDiagnostics().Any());
 
-            var globalNamespace2 = comp2.GlobalNamespace;
+            NamespaceSymbol globalNamespace2 = comp2.GlobalNamespace;
 
-            var interfaceV2 = globalNamespace2.GetTypeMembers("Interface2").Single();
-            var interfaceV2Method1 = interfaceV2.GetMembers("Method1").Single();
-            var interfaceV2Property1 = interfaceV2.GetMembers("Property1").Single();
-            var interfaceV2Event1 = interfaceV2.GetMembers("Event1").Single();
+            NamedTypeSymbol interfaceV2 = globalNamespace2.GetTypeMembers("Interface2").Single();
+            Symbol interfaceV2Method1 = interfaceV2.GetMembers("Method1").Single();
+            Symbol interfaceV2Property1 = interfaceV2.GetMembers("Property1").Single();
+            Symbol interfaceV2Event1 = interfaceV2.GetMembers("Event1").Single();
 
-            var classD1 = globalNamespace2.GetTypeMembers("D1").Single();
-            var classD2 = globalNamespace2.GetTypeMembers("D2").Single();
-            var classD3 = globalNamespace2.GetTypeMembers("D3").Single();
+            NamedTypeSymbol classD1 = globalNamespace2.GetTypeMembers("D1").Single();
+            NamedTypeSymbol classD2 = globalNamespace2.GetTypeMembers("D2").Single();
+            NamedTypeSymbol classD3 = globalNamespace2.GetTypeMembers("D3").Single();
 
-            var retargetedClassC1 = classD1.BaseType();
-            var retargetedClassC2 = classD2.BaseType();
-            var retargetedClassC3 = classD3.BaseType();
+            NamedTypeSymbol retargetedClassC1 = classD1.BaseType();
+            NamedTypeSymbol retargetedClassC2 = classD2.BaseType();
+            NamedTypeSymbol retargetedClassC3 = classD3.BaseType();
 
             var retargetedClassC1Method1 = (MethodSymbol)retargetedClassC1.GetMembers("Interface2<S>.Method1").Single();
-            var retargetedClassC1Method1Impl = retargetedClassC1Method1.ExplicitInterfaceImplementations.Single();
+            MethodSymbol retargetedClassC1Method1Impl = retargetedClassC1Method1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Method1, retargetedClassC1Method1Impl.OriginalDefinition);
 
             var retargetedClassC2Method1 = (MethodSymbol)retargetedClassC2.GetMembers("Interface2<System.Int32>.Method1").Single();
-            var retargetedClassC2Method1Impl = retargetedClassC2Method1.ExplicitInterfaceImplementations.Single();
+            MethodSymbol retargetedClassC2Method1Impl = retargetedClassC2Method1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Method1, retargetedClassC2Method1Impl.OriginalDefinition);
 
             var retargetedClassC3Method1 = (MethodSymbol)retargetedClassC3.GetMembers("Interface2<Class1>.Method1").Single();
-            var retargetedClassC3Method1Impl = retargetedClassC3Method1.ExplicitInterfaceImplementations.Single();
+            MethodSymbol retargetedClassC3Method1Impl = retargetedClassC3Method1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Method1, retargetedClassC3Method1Impl.OriginalDefinition);
 
             var retargetedClassC1Property1 = (PropertySymbol)retargetedClassC1.GetMembers("Interface2<S>.Property1").Single();
-            var retargetedClassC1Property1Impl = retargetedClassC1Property1.ExplicitInterfaceImplementations.Single();
+            PropertySymbol retargetedClassC1Property1Impl = retargetedClassC1Property1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Property1, retargetedClassC1Property1Impl.OriginalDefinition);
 
             var retargetedClassC2Property1 = (PropertySymbol)retargetedClassC2.GetMembers("Interface2<System.Int32>.Property1").Single();
-            var retargetedClassC2Property1Impl = retargetedClassC2Property1.ExplicitInterfaceImplementations.Single();
+            PropertySymbol retargetedClassC2Property1Impl = retargetedClassC2Property1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Property1, retargetedClassC2Property1Impl.OriginalDefinition);
 
             var retargetedClassC3Property1 = (PropertySymbol)retargetedClassC3.GetMembers("Interface2<Class1>.Property1").Single();
-            var retargetedClassC3Property1Impl = retargetedClassC3Property1.ExplicitInterfaceImplementations.Single();
+            PropertySymbol retargetedClassC3Property1Impl = retargetedClassC3Property1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Property1, retargetedClassC3Property1Impl.OriginalDefinition);
 
             var retargetedClassC1Event1 = (EventSymbol)retargetedClassC1.GetMembers("Interface2<S>.Event1").Single();
-            var retargetedClassC1Event1Impl = retargetedClassC1Event1.ExplicitInterfaceImplementations.Single();
+            EventSymbol retargetedClassC1Event1Impl = retargetedClassC1Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC1Event1Impl.OriginalDefinition);
 
             var retargetedClassC2Event1 = (EventSymbol)retargetedClassC2.GetMembers("Interface2<System.Int32>.Event1").Single();
-            var retargetedClassC2Event1Impl = retargetedClassC2Event1.ExplicitInterfaceImplementations.Single();
+            EventSymbol retargetedClassC2Event1Impl = retargetedClassC2Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC2Event1Impl.OriginalDefinition);
 
             var retargetedClassC3Event1 = (EventSymbol)retargetedClassC3.GetMembers("Interface2<Class1>.Event1").Single();
-            var retargetedClassC3Event1Impl = retargetedClassC3Event1.ExplicitInterfaceImplementations.Single();
+            EventSymbol retargetedClassC3Event1Impl = retargetedClassC3Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC3Event1Impl.OriginalDefinition);
         }
     }

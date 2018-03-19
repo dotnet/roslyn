@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                for (var container = this.ContainingSymbol; (object)container != null; container = container.ContainingSymbol)
+                for (Symbol container = this.ContainingSymbol; (object)container != null; container = container.ContainingSymbol)
                 {
                     var ns = container as NamespaceSymbol;
                     if ((object)ns != null)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Default implementation gets the containers assembly.
 
-                var container = this.ContainingSymbol;
+                Symbol container = this.ContainingSymbol;
                 return (object)container != null ? container.ContainingAssembly : null;
             }
         }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Default implementation gets the containers module.
 
-                var container = this.ContainingSymbol;
+                Symbol container = this.ContainingSymbol;
                 return (object)container != null ? container.ContainingModule : null;
             }
         }
@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            var locations = this.Locations;
-            var declaringCompilation = this.DeclaringCompilation;
+            ImmutableArray<Location> locations = this.Locations;
+            CSharpCompilation declaringCompilation = this.DeclaringCompilation;
             Debug.Assert(declaringCompilation != null); // require that it is a source symbol
             return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
         }
@@ -684,13 +684,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var declaringReferences = this.DeclaringSyntaxReferences;
+            ImmutableArray<SyntaxReference> declaringReferences = this.DeclaringSyntaxReferences;
             if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
             {
                 return this.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken);
             }
 
-            foreach (var syntaxRef in declaringReferences)
+            foreach (SyntaxReference syntaxRef in declaringReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var diagnostic = GetUseSiteDiagnostic();
+                DiagnosticInfo diagnostic = GetUseSiteDiagnostic();
                 return diagnostic != null && diagnostic.Severity == DiagnosticSeverity.Error;
             }
         }
@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
         {
-            var info = this.GetUseSiteDiagnostic();
+            DiagnosticInfo info = this.GetUseSiteDiagnostic();
             if (info != null && info.Severity == DiagnosticSeverity.Error)
             {
                 return info;
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool GetUnificationUseSiteDiagnosticRecursive<T>(ref DiagnosticInfo result, ImmutableArray<T> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) where T : TypeSymbol
         {
-            foreach (var t in types)
+            foreach (T t in types)
             {
                 if (t.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
                 {
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<CustomModifier> modifiers, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            foreach (var modifier in modifiers)
+            foreach (CustomModifier modifier in modifiers)
             {
                 if (((TypeSymbol)modifier.Modifier).GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
                 {
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            foreach (var parameter in parameters)
+            foreach (ParameterSymbol parameter in parameters)
             {
                 if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes) ||
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeParameterSymbol> typeParameters, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            foreach (var typeParameter in typeParameters)
+            foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
                 if (GetUnificationUseSiteDiagnosticRecursive(ref result, typeParameter.ConstraintTypesNoUseSiteDiagnostics, owner, ref checkedTypes))
                 {
@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var data = this.ObsoleteAttributeData;
+                ObsoleteAttributeData data = this.ObsoleteAttributeData;
                 return (data == null) ? ObsoleteAttributeKind.None : data.Kind;
             }
         }
@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool GetGuidStringDefaultImplementation(out string guidString)
         {
-            foreach (var attrData in this.GetAttributes())
+            foreach (CSharpAttributeData attrData in this.GetAttributes())
             {
                 if (attrData.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
                 {

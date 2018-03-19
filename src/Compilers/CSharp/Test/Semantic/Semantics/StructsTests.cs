@@ -79,7 +79,7 @@ struct S {
     }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "10 20 False").VerifyDiagnostics();
         }
@@ -336,7 +336,7 @@ class Test
         [Fact]
         public void RetargetedSynthesizedStructConstructor()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
+            PortableExecutableReference oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },
@@ -348,15 +348,15 @@ class Test
                 new[] { MscorlibRef, new CSharpCompilationReference(c1) },
                 TestOptions.ReleaseDll);
 
-            var c1AsmRef = c2.GetReferencedAssemblySymbol(new CSharpCompilationReference(c1));
+            AssemblySymbol c1AsmRef = c2.GetReferencedAssemblySymbol(new CSharpCompilationReference(c1));
 
             Assert.NotSame(c1.Assembly, c1AsmRef);
 
-            var mscorlibAssembly = c2.GetReferencedAssemblySymbol(MscorlibRef);
+            AssemblySymbol mscorlibAssembly = c2.GetReferencedAssemblySymbol(MscorlibRef);
 
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib));
 
-            var @struct = c2.GlobalNamespace.GetMember<RetargetingNamedTypeSymbol>("S");
+            RetargetingNamedTypeSymbol @struct = c2.GlobalNamespace.GetMember<RetargetingNamedTypeSymbol>("S");
             var method = (RetargetingMethodSymbol)@struct.GetMembers().Single();
 
             Assert.True(method.IsDefaultValueTypeConstructor());
@@ -440,7 +440,7 @@ public class C
 ";
 
             // Calls constructor (vs initobj), then initobj
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             // TODO (tomat)
             CompileAndVerify(compilation).VerifyIL("C.M", @"
 {
@@ -494,7 +494,7 @@ public class C
             // Uses initobj for both
             // CONSIDER: This is the dev10 behavior, but it seems like a bug.
             // Shouldn't there be an error for trying to call an inaccessible ctor?
-            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             CompileAndVerify(comp).VerifyIL("C.M", @"
 {

@@ -47,7 +47,7 @@ namespace Roslyn.Utilities
             Debug.Assert(fileExists != null);
 
             string combinedPath;
-            var kind = PathUtilities.GetPathKind(path);
+            PathKind kind = PathUtilities.GetPathKind(path);
             if (kind == PathKind.Relative)
             {
                 // first, look in the base directory:

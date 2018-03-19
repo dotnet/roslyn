@@ -803,13 +803,13 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
@@ -833,13 +833,13 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
@@ -877,12 +877,12 @@ public class Test
     }
 }";
 
-            var compilation = CreateCSharpCompilation(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCSharpCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var book = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "b").Parent;
-            var bookType = model.GetTypeInfo(book).Type;
+            ITypeSymbol bookType = model.GetTypeInfo(book).Type;
 
             Assert.Equal("Book", bookType.Name);
         }
@@ -918,12 +918,12 @@ public class Test
     }
 }";
 
-            var compilation = CreateCSharpCompilation(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCSharpCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var author = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "a").Parent;
-            var authorType = model.GetTypeInfo(author).Type;
+            ITypeSymbol authorType = model.GetTypeInfo(author).Type;
 
             Assert.Equal("Author", authorType.Name);
         }
@@ -959,16 +959,16 @@ public class Test
     }
 }";
 
-            var compilation = CreateCSharpCompilation(source).VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCSharpCompilation(source).VerifyDiagnostics();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var bookResult = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "bookResult").Parent;
-            var bookResultType = model.GetTypeInfo(bookResult).Type;
+            ITypeSymbol bookResultType = model.GetTypeInfo(bookResult).Type;
             Assert.Equal("Book", bookResultType.Name);
 
             var authorResult = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "authorResult").Parent;
-            var authorResultType = model.GetTypeInfo(authorResult).Type;
+            ITypeSymbol authorResultType = model.GetTypeInfo(authorResult).Type;
             Assert.Equal("Author", authorResultType.Name);
         }
     }

@@ -17,7 +17,7 @@ using System;
 var o = new { a = 1 };
 Console.WriteLine(o.ToString());
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
                 CreateCompilationWithMscorlib45(
@@ -36,7 +36,7 @@ using System;
 object o = new { a = 1 };
 Console.WriteLine(o.ToString());
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
                 CreateCompilationWithMscorlib45(
@@ -54,7 +54,7 @@ Console.WriteLine(o.ToString());
 using System;
 Console.WriteLine(new { a = 1 }.ToString());
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
                 CreateCompilationWithMscorlib45(
@@ -80,7 +80,7 @@ class CLS
 
 new CLS().M();
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
                 CreateCompilationWithMscorlib45(
@@ -105,9 +105,9 @@ class CLS
 }
 new CLS().M();
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -130,9 +130,9 @@ public void M(object p = new { a = 1 })
 
 M();
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -161,9 +161,9 @@ public void M()
 
 M();
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -189,9 +189,9 @@ class CLS
 {
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 new[] { tree },
                 options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
@@ -204,10 +204,10 @@ class CLS
         [Fact]
         public void CompilationChain_AnonymousTypeTemplates()
         {
-            var s0 = CreateSubmission("var x = new { a = 1 }; ");
-            var sx = CreateSubmission("var y = new { b = 2 }; ", previous: s0);
-            var s1 = CreateSubmission("var y = new { b = new { a = 3 } };", previous: s0);
-            var s2 = CreateSubmission("x = y.b; ", previous: s1);
+            CSharpCompilation s0 = CreateSubmission("var x = new { a = 1 }; ");
+            CSharpCompilation sx = CreateSubmission("var y = new { b = 2 }; ", previous: s0);
+            CSharpCompilation s1 = CreateSubmission("var y = new { b = new { a = 3 } };", previous: s0);
+            CSharpCompilation s2 = CreateSubmission("x = y.b; ", previous: s1);
 
             s2.VerifyDiagnostics();
             s2.EmitToArray();
@@ -230,9 +230,9 @@ class CLS
             // TODO: references should be inherited
             MetadataReference[] references = { SystemCoreRef, CSharpRef };
 
-            var s0 = CreateSubmission("var i = 1; dynamic d = null; d.m(ref i);", references);
-            var sx = CreateSubmission("var i = 1; dynamic d = null; d.m(ref i, ref i);", references, previous: s0);
-            var s1 = CreateSubmission("var i = 1; dynamic d = null; d.m(out i);", references, previous: s0);
+            CSharpCompilation s0 = CreateSubmission("var i = 1; dynamic d = null; d.m(ref i);", references);
+            CSharpCompilation sx = CreateSubmission("var i = 1; dynamic d = null; d.m(ref i, ref i);", references, previous: s0);
+            CSharpCompilation s1 = CreateSubmission("var i = 1; dynamic d = null; d.m(out i);", references, previous: s0);
 
             s1.VerifyDiagnostics();
             s1.EmitToArray();
@@ -251,9 +251,9 @@ class CLS
         [Fact]
         public void Submissions_EmitToPeStream()
         {
-            var s0 = CreateSubmission("int a = 1;");
-            var s11 = CreateSubmission("a + 1", previous: s0);
-            var s12 = CreateSubmission("a + 2", previous: s0);
+            CSharpCompilation s0 = CreateSubmission("int a = 1;");
+            CSharpCompilation s11 = CreateSubmission("a + 1", previous: s0);
+            CSharpCompilation s12 = CreateSubmission("a + 2", previous: s0);
 
             s11.VerifyEmitDiagnostics();
             s12.VerifyEmitDiagnostics();
@@ -262,14 +262,14 @@ class CLS
         [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Generic()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public interface I<T>
 {
     void m<TT>(T x, TT y);
 }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 abstract public class C : I<int>
 {
     public void m<TT>(int x, TT y)
@@ -284,14 +284,14 @@ abstract public class C : I<int>
         [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit_GenericMethod()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public interface I<T>
 {
     void m<S>(T x, S y);
 }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 abstract public class C : I<int>
 {
     void I<int>.m<S>(int x, S y)
@@ -306,14 +306,14 @@ abstract public class C : I<int>
         [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public interface I<T>
 {
     void m(T x);
 }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 abstract public class C : I<int>
 {
     void I<int>.m(int x)
@@ -328,14 +328,14 @@ abstract public class C : I<int>
         [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public interface I<T>
 {
     void m(byte x);
 }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 abstract public class C : I<int>
 {
     void I<int>.m(byte x)
@@ -350,7 +350,7 @@ abstract public class C : I<int>
         [Fact]
         public void GenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public interface I<T>
 {
     void m(byte x);
@@ -367,14 +367,14 @@ abstract public class C : I<int>
         [Fact]
         public void CrossSubmissionInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public interface I
 {
     void m(byte x);
 }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 abstract public class C : I
 {
     void I.m(byte x)
@@ -389,7 +389,7 @@ abstract public class C : I
         [Fact]
         public void CrossSubmissionNestedGenericInterfaceImplementation_Explicit()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 class C<T>
 {
     public interface I
@@ -399,7 +399,7 @@ class C<T>
 }
 ");
 
-            var c1 = CreateSubmission(@"
+            CSharpCompilation c1 = CreateSubmission(@"
 abstract public class D : C<int>.I
 {
     void C<int>.I.m(int x)
@@ -414,7 +414,7 @@ abstract public class D : C<int>.I
         [Fact]
         public void NestedGenericInterfaceImplementation_Explicit()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 class C<T>
 {
     public interface I
@@ -434,7 +434,7 @@ abstract public class D : C<int>.I
         [Fact]
         public void ExternalInterfaceImplementation_Explicit()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 using System.Collections;
 using System.Collections.Generic;
 
@@ -456,7 +456,7 @@ abstract public class C : IEnumerable<int>
         [Fact]
         public void AbstractAccessors()
         {
-            var c0 = CreateSubmission(@"
+            CSharpCompilation c0 = CreateSubmission(@"
 public abstract class C
 {
     public abstract event System.Action vEv;
@@ -469,8 +469,8 @@ public abstract class C
         [Fact]
         public void ExprStmtWithMethodCall()
         {
-            var s0 = CreateSubmission("int Goo() { return 2;}");
-            var s1 = CreateSubmission("(4 + 5) * Goo()", previous: s0);
+            CSharpCompilation s0 = CreateSubmission("int Goo() { return 2;}");
+            CSharpCompilation s1 = CreateSubmission("(4 + 5) * Goo()", previous: s0);
 
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();
@@ -488,9 +488,9 @@ public abstract class C
     await System.Threading.Tasks.Task.Delay(100);
     System.Console.Write(""complete"");
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
-            var methodData = verifier.TestData.GetMethodData("<Initialize>");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
+            CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData = verifier.TestData.GetMethodData("<Initialize>");
             Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
@@ -542,7 +542,7 @@ public abstract class C
         [ConditionalFact(typeof(DesktopOnly))]
         public void SubmissionEntryPoint()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            MetadataReference[] references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"{
     await System.Threading.Tasks.Task.Delay(100);
@@ -552,8 +552,8 @@ public abstract class C
                 "s0.dll",
                 SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);
-            var verifier = CompileAndVerify(s0, verify: Verification.Fails);
-            var methodData = verifier.TestData.GetMethodData("<Initialize>");
+            CompilationVerifier verifier = CompileAndVerify(s0, verify: Verification.Fails);
+            CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData = verifier.TestData.GetMethodData("<Initialize>");
             Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
@@ -601,7 +601,7 @@ public abstract class C
         public void ScriptEntryPoint_MissingMethods()
         {
             var source = "System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyEmitDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 // System.Console.WriteLine(1);

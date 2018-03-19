@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
-            var value = Create(expression);
+            IOperation value = Create(expression);
 
             // put argument syntax to argument operation
             var argument = value.Syntax?.Parent as ArgumentSyntax;
@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
             {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
-                var body = switchSection.Statements.SelectAsArray(s => Create(s));
+                ImmutableArray<ICaseClauseOperation> clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
+                ImmutableArray<IOperation> body = switchSection.Statements.SelectAsArray(s => Create(s));
 
                 return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
             {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
-                var body = switchSection.Statements.SelectAsArray(s => Create(s));
+                ImmutableArray<ICaseClauseOperation> clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
+                ImmutableArray<IOperation> body = switchSection.Statements.SelectAsArray(s => Create(s));
 
                 return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });

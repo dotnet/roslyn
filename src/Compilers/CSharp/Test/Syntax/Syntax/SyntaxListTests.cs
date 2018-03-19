@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Equality()
         {
-            var node1 = SyntaxFactory.ReturnStatement();
-            var node2 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node1 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node2 = SyntaxFactory.ReturnStatement();
 
             EqualityTesting.AssertEqual(default(SyntaxList<CSharpSyntaxNode>), default(SyntaxList<CSharpSyntaxNode>));
             EqualityTesting.AssertEqual(new SyntaxList<CSharpSyntaxNode>(node1), new SyntaxList<CSharpSyntaxNode>(node1));
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAddInsertRemoveReplace()
         {
-            var list = SyntaxFactory.List<SyntaxNode>(
+            SyntaxList<SyntaxNode> list = SyntaxFactory.List<SyntaxNode>(
                 new[] {
                     SyntaxFactory.ParseExpression("A "),
                     SyntaxFactory.ParseExpression("B "),
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("C", list[2].ToString());
             Assert.Equal("A B C ", list.ToFullString());
 
-            var elementA = list[0];
-            var elementB = list[1];
-            var elementC = list[2];
+            SyntaxNode elementA = list[0];
+            SyntaxNode elementB = list[1];
+            SyntaxNode elementC = list[2];
 
             Assert.Equal(0, list.IndexOf(elementA));
             Assert.Equal(1, list.IndexOf(elementB));
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SyntaxNode nodeD = SyntaxFactory.ParseExpression("D ");
             SyntaxNode nodeE = SyntaxFactory.ParseExpression("E ");
 
-            var newList = list.Add(nodeD);
+            SyntaxList<SyntaxNode> newList = list.Add(nodeD);
             Assert.Equal(4, newList.Count);
             Assert.Equal("A B C D ", newList.ToFullString());
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SyntaxNode nodeD = SyntaxFactory.ParseExpression("D ");
             SyntaxNode nodeE = SyntaxFactory.ParseExpression("E ");
 
-            var newList = list.Add(nodeD);
+            SyntaxList<SyntaxNode> newList = list.Add(nodeD);
             Assert.Equal(1, newList.Count);
             Assert.Equal("D ", newList.ToFullString());
 
@@ -221,14 +221,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void AddEmptySyntaxList()
         {
             var attributes = new AttributeListSyntax[0];
-            var newMethodDeclaration = SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "M");
+            MethodDeclarationSyntax newMethodDeclaration = SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "M");
             newMethodDeclaration.AddAttributeLists(attributes);
         }
 
         [Fact]
         public void Extensions()
         {
-            var list = SyntaxFactory.List<SyntaxNode>(
+            SyntaxList<SyntaxNode> list = SyntaxFactory.List<SyntaxNode>(
                 new[] {
                     SyntaxFactory.ParseExpression("A+B"),
                     SyntaxFactory.IdentifierName("B"),
@@ -252,12 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var alphabet = "abcdefghijklmnopqrstuvwxyz";
             var commaSeparatedList = string.Join(",", (IEnumerable<char>)alphabet);
-            var parsedArgumentList = SyntaxFactory.ParseArgumentList(commaSeparatedList);
+            ArgumentListSyntax parsedArgumentList = SyntaxFactory.ParseArgumentList(commaSeparatedList);
             Assert.Equal(alphabet.Length, parsedArgumentList.Arguments.Count);
 
             for (int position = 0; position < parsedArgumentList.FullWidth; position++)
             {
-                var item = ChildSyntaxList.ChildThatContainsPosition(parsedArgumentList, position);
+                SyntaxNodeOrToken item = ChildSyntaxList.ChildThatContainsPosition(parsedArgumentList, position);
                 Assert.Equal(position, item.Position);
                 Assert.Equal(1, item.Width);
                 if (position % 2 == 0)

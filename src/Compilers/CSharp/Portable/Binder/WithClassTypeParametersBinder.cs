@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanConsiderTypeParameters(options))
             {
-                foreach (var parameter in _namedType.TypeParameters)
+                foreach (TypeParameterSymbol parameter in _namedType.TypeParameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {

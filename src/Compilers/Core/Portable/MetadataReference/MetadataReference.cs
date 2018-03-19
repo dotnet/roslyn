@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceProperties properties = default(MetadataReferenceProperties),
             DocumentationProvider documentation = null)
         {
-            var peStream = FileUtilities.OpenFileStream(path);
+            Stream peStream = FileUtilities.OpenFileStream(path);
 
             // prefetch image, close stream to avoid locking it:
             var module = ModuleMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage);

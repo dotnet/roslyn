@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: We generate every one of these as "temp = x; T.false(temp) ? temp : T.&(temp, y)" even
             // TODO: when x has no side effects. We can optimize away the temporary if there are no side effects.
 
-            var syntax = node.Syntax;
-            var operatorKind = node.OperatorKind;
-            var type = node.Type;
+            SyntaxNode syntax = node.Syntax;
+            BinaryOperatorKind operatorKind = node.OperatorKind;
+            TypeSymbol type = node.Type;
 
             BoundExpression loweredLeft = VisitExpression(node.Left);
             BoundExpression loweredRight = VisitExpression(node.Right);
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundAssignmentOperator tempAssignment;
-            var boundTemp = _factory.StoreToTemp(loweredLeft, out tempAssignment);
+            BoundLocal boundTemp = _factory.StoreToTemp(loweredLeft, out tempAssignment);
 
             // T.false(temp)
             var falseOperatorCall = BoundCall.Synthesized(syntax, null, operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp);
 
             // T.&(temp, y)
-            var andOperatorCall = LowerUserDefinedBinaryOperator(syntax, operatorKind & ~BinaryOperatorKind.Logical, boundTemp, loweredRight, type, node.LogicalOperator);
+            BoundExpression andOperatorCall = LowerUserDefinedBinaryOperator(syntax, operatorKind & ~BinaryOperatorKind.Logical, boundTemp, loweredRight, type, node.LogicalOperator);
 
             // T.false(temp) ? temp : T.&(temp, y)
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loweredLeft.Kind == BoundKind.ArrayLength && loweredRight.IsDefaultValue())
                         {
                             //array length is never negative
-                            var newOp = operatorKind == BinaryOperatorKind.IntGreaterThan ?
+                            BinaryOperatorKind newOp = operatorKind == BinaryOperatorKind.IntGreaterThan ?
                                                         BinaryOperatorKind.NotEqual :
                                                         BinaryOperatorKind.Equal;
 
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loweredRight.Kind == BoundKind.ArrayLength && loweredLeft.IsDefaultValue())
                         {
                             //array length is never negative
-                            var newOp = operatorKind == BinaryOperatorKind.IntLessThan ?
+                            BinaryOperatorKind newOp = operatorKind == BinaryOperatorKind.IntLessThan ?
                                                         BinaryOperatorKind.NotEqual :
                                                         BinaryOperatorKind.Equal;
 
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loweredLeft = conditionalLeft.WhenNotNull;
             }
 
-            var result = operatorKind.IsComparison() ?
+            BoundExpression result = operatorKind.IsComparison() ?
                             operatorKind.IsUserDefined() ?
                                 LowerLiftedUserDefinedComparisonOperator(syntax, operatorKind, loweredLeft, loweredRight, method) :
                                 LowerLiftedBuiltInComparisonOperator(syntax, operatorKind, loweredLeft, loweredRight) :
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isAnd = operatorKind.Operator() == BinaryOperatorKind.And;
 
             // Operator to be used to test the left operand:
-            var testOperator = isAnd ? UnaryOperatorKind.DynamicFalse : UnaryOperatorKind.DynamicTrue;
+            UnaryOperatorKind testOperator = isAnd ? UnaryOperatorKind.DynamicFalse : UnaryOperatorKind.DynamicTrue;
 
             // VisitUnaryOperator ensures we are never called with parentUnaryOperator != null when we can't perform the optimization.
             Debug.Assert(applyParentUnaryOperator == null || applyParentUnaryOperator.OperatorKind == testOperator);
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result;
-            var boolean = _compilation.GetSpecialType(SpecialType.System_Boolean);
+            NamedTypeSymbol boolean = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             // Store left to local if needed. If constant or already local we don't need a temp 
             // since the value of left can't change until right is evaluated.
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constantLeft == null && loweredLeft.Kind != BoundKind.Local && loweredLeft.Kind != BoundKind.Parameter)
             {
                 BoundAssignmentOperator assignment;
-                var local = _factory.StoreToTemp(loweredLeft, out assignment);
+                BoundLocal local = _factory.StoreToTemp(loweredLeft, out assignment);
                 loweredLeft = local;
                 tempAssignment = assignment;
                 temp = local;
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temp = null;
             }
 
-            var op = _dynamicFactory.MakeDynamicBinaryOperator(operatorKind, loweredLeft, loweredRight, isCompoundAssignment, type).ToExpression();
+            BoundExpression op = _dynamicFactory.MakeDynamicBinaryOperator(operatorKind, loweredLeft, loweredRight, isCompoundAssignment, type).ToExpression();
 
             // IsFalse(true) or IsTrue(false) are always false:
             bool leftTestIsConstantFalse = testOperator == UnaryOperatorKind.DynamicFalse && constantLeft == ConstantValue.True ||
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We might need to box.
                     BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, leftTruthOperator, negative: isAnd);
-                    var convertedLeft = MakeConversionNode(loweredLeft, type, @checked: false);
+                    BoundExpression convertedLeft = MakeConversionNode(loweredLeft, type, @checked: false);
                     result = _factory.Conditional(leftTest, convertedLeft, op, type);
                 }
             }
@@ -674,13 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If not the type has to implement IsTrue/IsFalse operator - we checked it during binding.
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, ref useSiteDiagnostics);
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, ref useSiteDiagnostics);
             _diagnostics.Add(loweredLeft.Syntax, useSiteDiagnostics);
             if (conversion.IsImplicit)
             {
                 Debug.Assert(leftTruthOperator == null);
 
-                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
+                BoundExpression converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
                 if (negative)
                 {
                     return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, LookupResultKind.Viable, boolean)
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (CanChangeValueBetweenReads(operand))
             {
                 BoundAssignmentOperator tempAssignment;
-                var tempAccess = _factory.StoreToTemp(operand, out tempAssignment);
+                BoundLocal tempAccess = _factory.StoreToTemp(operand, out tempAssignment);
                 sideeffects.Add(tempAssignment);
                 locals.Add(tempAccess.LocalSymbol);
                 operand = tempAccess;
@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft.IsLiteralNull() ? loweredLeft : loweredRight,
                     returnType);
 
-                var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
+                BoundExpression whenNull = kind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
 
                 return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
             }
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return oldNode.Update(operatorKind, loweredLeft, loweredRight, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ResultKind, type);
             }
 
-            var method = UnsafeGetSpecialTypeMethod(syntax, member);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
@@ -1900,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // call Operator (left, right)
-            var method = UnsafeGetSpecialTypeMethod(syntax, member);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeSizeOfMultiplication(BoundExpression numericOperand, PointerTypeSymbol pointerType, bool isChecked)
         {
-            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
+            BoundExpression sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
             Debug.Assert(sizeOfExpression.Type.SpecialType == SpecialType.System_Int32);
 
             // Common case: adding or subtracting one  (e.g. for ++)
@@ -2083,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sizeOfExpression;
             }
 
-            var numericSpecialType = numericOperand.Type.SpecialType;
+            SpecialType numericSpecialType = numericOperand.Type.SpecialType;
 
             // Optimization: the size is exactly one byte, then multiplication is unnecessary.
             if (sizeOfExpression.ConstantValue?.Int32Value == 1)
@@ -2107,7 +2107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // As a result, in checked contexts, we will force sign-extending cast to be sure
                         if (isChecked)
                         {
-                            var constVal = numericOperand.ConstantValue;
+                            ConstantValue constVal = numericOperand.ConstantValue;
                             if (constVal == null || constVal.Int32Value < 0)
                             {
                                 destinationType = SpecialType.System_IntPtr;
@@ -2118,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // add operator treats operands as signed and will sign-extend on x64
                             // to prevent sign-extending, convert the operand to unsigned native int.
-                            var constVal = numericOperand.ConstantValue;
+                            ConstantValue constVal = numericOperand.ConstantValue;
                             if (constVal == null || constVal.UInt32Value > int.MaxValue)
                             {
                                 destinationType = SpecialType.System_UIntPtr;
@@ -2207,7 +2207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 multiplicationKind |= BinaryOperatorKind.Checked;
             }
-            var multiplication = _factory.Binary(multiplicationKind, multiplicationResultType, numericOperand, sizeOfExpression);
+            BoundBinaryOperator multiplication = _factory.Binary(multiplicationKind, multiplicationResultType, numericOperand, sizeOfExpression);
             return convertedMultiplicationResultType == multiplicationResultType
                 ? multiplication
                 : _factory.Convert(convertedMultiplicationResultType, multiplication, Conversion.IntegerToPointer); // NOTE: for some reason, dev10 doesn't check this conversion.
@@ -2224,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(returnType.SpecialType == SpecialType.System_Int64);
 
             PointerTypeSymbol pointerType = (PointerTypeSymbol)loweredLeft.Type;
-            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
+            BoundExpression sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
 
             // NOTE: to match dev10, the result of the subtraction is treated as an IntPtr
             // and then the result of the division is converted to long.

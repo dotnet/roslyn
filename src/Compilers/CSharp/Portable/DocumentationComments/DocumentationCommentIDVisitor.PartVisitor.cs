@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append('(');
                 bool needsComma = false;
 
-                foreach (var parameter in parameters)
+                foreach (ParameterSymbol parameter in parameters)
                 {
                     if (needsComma)
                     {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         bool needsComma = false;
 
-                        foreach (var typeArgument in symbol.TypeArgumentsNoUseSiteDiagnostics)
+                        foreach (TypeSymbol typeArgument in symbol.TypeArgumentsNoUseSiteDiagnostics)
                         {
                             if (needsComma)
                             {

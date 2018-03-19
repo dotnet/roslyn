@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private Symbol CreateMockSymbol(NamespaceExtent extent, XElement xel)
         {
             Symbol result;
-            var childSymbols = from childElement in xel.Elements()
+            System.Collections.Generic.IEnumerable<Symbol> childSymbols = from childElement in xel.Elements()
                                select CreateMockSymbol(extent, childElement);
 
             string name = xel.Attribute("name").Value;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (sym is NamespaceOrTypeSymbol && ((NamespaceOrTypeSymbol)sym).GetMembers().Any())
             {
                 builder.AppendLine(" { ");
-                var q = from c in ((NamespaceOrTypeSymbol)sym).GetMembers()
+                IOrderedEnumerable<Symbol> q = from c in ((NamespaceOrTypeSymbol)sym).GetMembers()
                         orderby c.Name
                         select c;
 

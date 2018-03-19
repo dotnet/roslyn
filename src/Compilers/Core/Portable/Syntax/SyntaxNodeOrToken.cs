@@ -717,8 +717,8 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var thisUnderlying = this.UnderlyingNode;
-            var otherUnderlying = other.UnderlyingNode;
+            GreenNode thisUnderlying = this.UnderlyingNode;
+            GreenNode otherUnderlying = other.UnderlyingNode;
 
             return (thisUnderlying == otherUnderlying) || (thisUnderlying != null && thisUnderlying.IsEquivalentTo(otherUnderlying));
         }
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (node.ContainsDirectives)
             {
-                foreach (var child in node.ChildNodesAndTokens())
+                foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
                 {
                     GetDirectives(child, filter, ref directives);
                 }
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis
         private static void GetDirectives<TDirective>(SyntaxTriviaList trivia, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
-            foreach (var tr in trivia)
+            foreach (SyntaxTrivia tr in trivia)
             {
                 if (tr.IsDirective)
                 {
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis
             {
                 int r = lo + ((hi - lo) >> 1);
 
-                var m = list[r];
+                SyntaxNodeOrToken m = list[r];
                 if (position < m.Position)
                 {
                     hi = r - 1;
@@ -924,13 +924,13 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxNodeOrToken GetNextSibling()
         {
-            var parent = this.Parent;
+            SyntaxNode parent = this.Parent;
             if (parent == null)
             {
                 return default(SyntaxNodeOrToken);
             }
 
-            var siblings = parent.ChildNodesAndTokens();
+            ChildSyntaxList siblings = parent.ChildNodesAndTokens();
 
             return siblings.Count < 8
                 ? GetNextSiblingFromStart(siblings)
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis
                 // walk reverse in parent's child list until we find ourself 
                 // and then return the next child
                 var returnNext = false;
-                foreach (var child in this.Parent.ChildNodesAndTokens().Reverse())
+                foreach (SyntaxNodeOrToken child in this.Parent.ChildNodesAndTokens().Reverse())
                 {
                     if (returnNext)
                     {
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis
         private SyntaxNodeOrToken GetNextSiblingFromStart(ChildSyntaxList siblings)
         {
             var returnNext = false;
-            foreach (var sibling in siblings)
+            foreach (SyntaxNodeOrToken sibling in siblings)
             {
                 if (returnNext)
                 {

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<DocumentationCommentTriviaSyntax> builder = null;
             bool seenOtherTrivia = false;
-            foreach (var trivia in syntaxNode.GetLeadingTrivia().Reverse())
+            foreach (SyntaxTrivia trivia in syntaxNode.GetLeadingTrivia().Reverse())
             {
                 switch (trivia.Kind())
                 {

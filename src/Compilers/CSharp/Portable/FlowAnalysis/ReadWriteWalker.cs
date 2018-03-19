@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (MethodSymbol m = this.currentMethodOrLambda; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
             {
-                foreach (var p in m.Parameters)
+                foreach (ParameterSymbol p in m.Parameters)
                 {
                     if (p.RefKind != RefKind.None) _readOutside.Add(p);
                 }
 
-                var thisParameter = m.ThisParameter;
+                ParameterSymbol thisParameter = m.ThisParameter;
                 if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
                 {
                     _readOutside.Add(thisParameter);
@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expr.FieldSymbol.IsStatic) return;
             if (expr.FieldSymbol.ContainingType.IsReferenceType) return;
-            var receiver = expr.ReceiverOpt;
+            BoundExpression receiver = expr.ReceiverOpt;
             if (receiver == null) return;
-            var receiverSyntax = receiver.Syntax;
+            SyntaxNode receiverSyntax = receiver.Syntax;
             if (receiverSyntax == null) return;
             switch (receiver.Kind)
             {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.QueryClause:
                     {
                         base.AssignImpl(node, value, isRef, written, read);
-                        var symbol = ((BoundQueryClause)node).DefinedSymbol;
+                        RangeVariableSymbol symbol = ((BoundQueryClause)node).DefinedSymbol;
                         if ((object)symbol != null)
                         {
                             if (written) NoteWrite(symbol, value, read);

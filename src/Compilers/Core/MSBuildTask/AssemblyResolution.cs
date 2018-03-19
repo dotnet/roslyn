@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             switch (name.Name)
             {
                 case "System.IO.Pipes.AccessControl":
-                    var assembly = TryRedirectToRuntimesDir(name);
+                    Assembly assembly = TryRedirectToRuntimesDir(name);
                     if (assembly != null)
                     {
                         return assembly;

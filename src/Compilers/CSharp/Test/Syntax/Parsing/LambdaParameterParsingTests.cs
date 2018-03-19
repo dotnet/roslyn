@@ -538,7 +538,7 @@ class C {
         [Fact, WorkItem(14167, "https://github.com/dotnet/roslyn/issues/14167")]
         public void HangingLambdaParsing_Bug14167()
         {
-            var tree = UsingNode(@"(int a, int b Main();");
+            CSharpSyntaxNode tree = UsingNode(@"(int a, int b Main();");
             tree.GetDiagnostics().Verify(
                 // (1,1): error CS1073: Unexpected token 'b'
                 // (int a, int b Main();

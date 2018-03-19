@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
             // so that we find the one that matters first.
             for (int referenceIndex = referenceCount - 1; referenceIndex >= 0; referenceIndex--)
             {
-                var boundReference = references[referenceIndex];
+                MetadataReference boundReference = references[referenceIndex];
                 if (boundReference == null)
                 {
                     continue;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
                             // compilationAssembly.Compilation yet, we want this to happen 
                             // right now. Conveniently, this constructor will trigger creation of the 
                             // SourceAssemblySymbol.
-                            var asmData = CreateAssemblyDataForCompilation(compilationReference);
+                            AssemblyData asmData = CreateAssemblyDataForCompilation(compilationReference);
                             AddAssembly(asmData, referenceIndex, referenceMap, assembliesBuilder);
                             break;
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
-                                var asmData = CreateAssemblyDataForFile(
+                                AssemblyData asmData = CreateAssemblyDataForFile(
                                     assembly,
                                     cachedSymbols,
                                     peReference.DocumentationProvider,
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis
 
             if (supersedeLowerVersions)
             {
-                foreach (var other in sameSimpleNameIdentities)
+                foreach (ReferencedAssemblyIdentity other in sameSimpleNameIdentities)
                 {
                     if (identity.Version == other.Identity.Version)
                     {
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis
             ReferencedAssemblyIdentity equivalent = default(ReferencedAssemblyIdentity);
             if (identity.IsStrongName)
             {
-                foreach (var other in sameSimpleNameIdentities)
+                foreach (ReferencedAssemblyIdentity other in sameSimpleNameIdentities)
                 {
                     // Only compare strong with strong (weak is never equivalent to strong and vice versa).
                     // In order to eliminate duplicate references we need to try to match their identities in both directions since 
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                foreach (var other in sameSimpleNameIdentities)
+                foreach (ReferencedAssemblyIdentity other in sameSimpleNameIdentities)
                 {
                     // only compare weak with weak
                     if (!other.Identity.IsStrongName && WeakIdentityPropertiesEquivalent(identity, other.Identity))
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                foreach (var referenceDirective in compilation.ReferenceDirectives)
+                foreach (ReferenceDirective referenceDirective in compilation.ReferenceDirectives)
                 {
                     if (compilation.Options.MetadataReferenceResolver == null)
                     {
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis
                 referencesBuilder.AddRange(compilation.ExternalReferences);
 
                 // Add all explicit references of the previous script compilation.
-                var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+                Compilation previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
                 if (previousScriptCompilation != null)
                 {
                     referencesBuilder.AddRange(previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences);
@@ -821,13 +821,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static PortableExecutableReference ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
         {
-            var tree = location.SourceTree;
+            SyntaxTree tree = location.SourceTree;
             string basePath = (tree != null && tree.FilePath.Length > 0) ? tree.FilePath : null;
 
             // checked earlier:
             Debug.Assert(compilation.Options.MetadataReferenceResolver != null);
 
-            var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
+            ImmutableArray<PortableExecutableReference> references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
             if (references.IsDefaultOrEmpty)
             {
                 return null;
@@ -963,8 +963,8 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = definitionStartIndex; i < definitions.Length; i++)
                 {
-                    var definition = definitions[i].Identity;
-                    var sourceCompilation = definitions[i].SourceCompilation;
+                    AssemblyIdentity definition = definitions[i].Identity;
+                    Compilation sourceCompilation = definitions[i].SourceCompilation;
                     if (definition.ContentType == AssemblyContentType.Default &&
                         sourceCompilation?.Options.OutputKind == OutputKind.WindowsRuntimeMetadata &&
                         AssemblyIdentityComparer.SimpleNameComparer.Equals(reference.Name, definition.Name) &&

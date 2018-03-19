@@ -32,10 +32,10 @@ class C
 // no code
 ";
 
-            var tree1 = Parse(source1, "f:/build/goo.cs");
-            var tree2 = Parse(source2, "f:/build/nocode.cs");
-            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
-            var embeddedTexts = new[] 
+            SyntaxTree tree1 = Parse(source1, "f:/build/goo.cs");
+            SyntaxTree tree2 = Parse(source2, "f:/build/nocode.cs");
+            CSharpCompilation c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+            EmbeddedText[] embeddedTexts = new[] 
             {
                 EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
@@ -93,22 +93,22 @@ class C
     }
 }
 ";
-            var tree = Parse(source, "f:/build/goo.cs");
-            var c = CreateCompilation(tree, options: TestOptions.DebugDll);
+            SyntaxTree tree = Parse(source, "f:/build/goo.cs");
+            CSharpCompilation c = CreateCompilation(tree, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
-            var peBlob = c.EmitToArray(
+            System.Collections.Immutable.ImmutableArray<byte> peBlob = c.EmitToArray(
                 EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
                 embeddedTexts: new[] { EmbeddedText.FromSource(tree.FilePath, tree.GetText()) });
             pdbStream.Position = 0;
 
             using (var peReader = new PEReader(peBlob))
             {
-                var embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                DebugDirectoryEntry embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
-                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
+                using (System.Reflection.Metadata.MetadataReaderProvider embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
                 {
-                    var pdbReader = embeddedMetadataProvider.GetMetadataReader();
+                    System.Reflection.Metadata.MetadataReader pdbReader = embeddedMetadataProvider.GetMetadataReader();
 
                     var embeddedSource =
                         (from documentHandle in pdbReader.Documents

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CompilerTrait(CompilerFeature.Tuples)]
         public void TupleFieldNameAliasing()
         {
-            var comp = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(@"
 using System;
 
 class C
@@ -63,11 +63,11 @@ struct S
     public S(int x, int y) : this() { this.x = x; this.y = y; }
 }
 ";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
 
-            var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-            var constructors = structType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
+            NamedTypeSymbol structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+            System.Collections.Immutable.ImmutableArray<Symbol> constructors = structType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
             Assert.Equal(2, constructors.Length);
 
             var sourceConstructor = (MethodSymbol)constructors.First(c => !c.IsImplicitlyDeclared);
@@ -97,14 +97,14 @@ class Program
  
 struct P { public int X; }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void TestEmptyStructs()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
 @"struct S { }
 
 class C
@@ -169,7 +169,7 @@ class SectionInformation2
         return _flags.Goo(x);
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
         }
 
@@ -196,7 +196,7 @@ class GraphicsContext
     }
     public PointF TransformOffset { get { return this.transformOffset; } }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
         }
 
@@ -218,7 +218,7 @@ class GraphicsContext
         [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
         public void EmptyStructsFromMetadata()
         {
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
 @"public struct StructWithReference
 {
     string PrivateData;
@@ -228,7 +228,7 @@ public struct StructWithValue
     int PrivateData;
 }");
             var sourceReference = new CSharpCompilationReference(comp1);
-            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            PortableExecutableReference metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
             var source2 =
 @"class Program
@@ -272,14 +272,14 @@ public struct StructWithValue
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
         {
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
 @"public struct GenericStruct<T> where T : class
 {
     T PrivateData;
 }
 ");
             var sourceReference = new CSharpCompilationReference(comp1);
-            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            PortableExecutableReference metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
             var source2 =
 @"class Program<T> where T : class
@@ -305,14 +305,14 @@ public struct StructWithValue
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
         {
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
 @"public struct Struct
 {
     internal string data;
 }
 ");
             var sourceReference = new CSharpCompilationReference(comp1);
-            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            PortableExecutableReference metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
             var source2 =
 @"class Program
@@ -336,7 +336,7 @@ public struct StructWithValue
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
         {
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
 @"
 internal class C1
 {
@@ -351,7 +351,7 @@ public struct Struct
 }
 ");
             var sourceReference = new CSharpCompilationReference(comp1);
-            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            PortableExecutableReference metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
             var source2 =
 @"class Program
@@ -388,8 +388,8 @@ public struct Struct
     internal C1.S data;
 }
 ";
-            var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
-            var moduleReference = comp1.EmitToImageReference();
+            CSharpCompilation comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
+            MetadataReference moduleReference = comp1.EmitToImageReference();
 
             var source2 =
 @"class Program
@@ -416,8 +416,8 @@ public struct Struct
     private string data;
 }
 ";
-            var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
-            var moduleReference = comp1.EmitToImageReference();
+            CSharpCompilation comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
+            MetadataReference moduleReference = comp1.EmitToImageReference();
 
             var source2 =
 @"class Program

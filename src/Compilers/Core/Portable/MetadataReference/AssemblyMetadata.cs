@@ -268,8 +268,8 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyPublishedModules.IsDefault)
             {
-                var data = GetOrCreateData();
-                var newModules = data.Modules;
+                Data data = GetOrCreateData();
+                ImmutableArray<ModuleMetadata> newModules = data.Modules;
 
                 if (!IsImageOwner)
                 {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(_initialModules.Length == 1);
 
-                        var additionalModuleNames = _initialModules[0].GetModuleNames();
+                        ImmutableArray<string> additionalModuleNames = _initialModules[0].GetModuleNames();
                         if (additionalModuleNames.Length > 0)
                         {
                             moduleBuilder = ImmutableArray.CreateBuilder<ModuleMetadata>(1 + additionalModuleNames.Length);
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override void Dispose()
         {
-            var previousData = Interlocked.Exchange(ref _lazyData, Data.Disposed);
+            Data previousData = Interlocked.Exchange(ref _lazyData, Data.Disposed);
 
             if (previousData == Data.Disposed || !this.IsImageOwner)
             {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // AssemblyMetadata assumes their ownership of all modules passed to the constructor.
-            foreach (var module in _initialModules)
+            foreach (ModuleMetadata module in _initialModules)
             {
                 module.Dispose();
             }
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
         internal bool IsValidAssembly()
         {
-            var modules = GetModules();
+            ImmutableArray<ModuleMetadata> modules = GetModules();
 
             if (!modules[0].Module.IsManifestModule)
             {
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 1; i < modules.Length; i++)
             {
                 // Ignore winmd modules since runtime winmd modules may be loaded as non-primary modules.
-                var module = modules[i].Module;
+                PEModule module = modules[i].Module;
                 if (!module.IsLinkedModule && module.MetadataReader.MetadataKind != MetadataKind.WindowsMetadata)
                 {
                     return false;

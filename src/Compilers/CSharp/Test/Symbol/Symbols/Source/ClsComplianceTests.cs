@@ -444,9 +444,9 @@ public class B2 : Generic<Bad2> { }
 
 public class Generic<T> { }
 ";
-            var lib1 = CreateCompilation(libSource1, assemblyName: "lib1").EmitToImageReference();
-            var lib2 = CreateCompilation(libSource2, assemblyName: "lib2").EmitToImageReference();
-            var lib3 = CreateCompilation(libSource3, assemblyName: "lib3").EmitToImageReference();
+            MetadataReference lib1 = CreateCompilation(libSource1, assemblyName: "lib1").EmitToImageReference();
+            MetadataReference lib2 = CreateCompilation(libSource2, assemblyName: "lib2").EmitToImageReference();
+            MetadataReference lib3 = CreateCompilation(libSource3, assemblyName: "lib3").EmitToImageReference();
 
             CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (6,14): warning CS3009: 'A1': base type 'Bad1' is not CLS-compliant
@@ -502,16 +502,16 @@ public class C
 [CLSCompliant(false)]
 public class Bad { }
 ";
-            var libCompliant = CreateCompilationWithMscorlib46(libCompliant_cs).EmitToImageReference();
-            var compCompliant = CreateCompilationWithMscorlib46(source, new[] { libCompliant }, TestOptions.ReleaseDll);
+            MetadataReference libCompliant = CreateCompilationWithMscorlib46(libCompliant_cs).EmitToImageReference();
+            CSharpCompilation compCompliant = CreateCompilationWithMscorlib46(source, new[] { libCompliant }, TestOptions.ReleaseDll);
             compCompliant.VerifyDiagnostics(
                 // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
                 //     public (Bad, Bad) Method2() { throw new Exception(); }
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "Method2").WithArguments("C.Method2()").WithLocation(8, 23)
                 );
 
-            var libNotCompliant = CreateCompilationWithMscorlib46(libNotCompliant_cs).EmitToImageReference();
-            var compNotCompliant = CreateCompilationWithMscorlib46(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
+            MetadataReference libNotCompliant = CreateCompilationWithMscorlib46(libNotCompliant_cs).EmitToImageReference();
+            CSharpCompilation compNotCompliant = CreateCompilationWithMscorlib46(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
             compNotCompliant.VerifyDiagnostics(
                 // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
                 //     public (Bad, Bad) Method2() { throw new Exception(); }
@@ -1856,10 +1856,10 @@ public class C : B
 }
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il);
             comp.VerifyDiagnostics();
 
-            var accessor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PropertySymbol>("P").GetMethod;
+            MethodSymbol accessor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PropertySymbol>("P").GetMethod;
             Assert.True(accessor.Name[0] == '_');
         }
 
@@ -2112,9 +2112,9 @@ public class C
         [Fact]
         public void WRN_CLS_ModuleMissingCLS()
         {
-            var trueModuleRef = CreateCompilation("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilation("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
-            var noneModuleRef = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
+            MetadataReference trueModuleRef = CreateCompilation("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            MetadataReference falseModuleRef = CreateCompilation("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            MetadataReference noneModuleRef = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
 
             // Assembly is marked compliant.
             CreateCompilation("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
@@ -2147,9 +2147,9 @@ public class C
         [Fact]
         public void WRN_CLS_ModuleMissingCLS_AssemblyLevelOnly()
         {
-            var trueModuleRef = CreateCompilation("[assembly:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilation("[assembly:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
-            var noneModuleRef = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
+            MetadataReference trueModuleRef = CreateCompilation("[assembly:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            MetadataReference falseModuleRef = CreateCompilation("[assembly:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            MetadataReference noneModuleRef = CreateCompilation("", options: TestOptions.ReleaseModule, assemblyName: "none").EmitToImageReference();
 
             // Assembly is marked compliant.
             CreateCompilation("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef }).VerifyDiagnostics();
@@ -2180,8 +2180,8 @@ public class C
         [Fact]
         public void MultipleDisagreeingModules()
         {
-            var trueModuleRef = CreateCompilation("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
-            var falseModuleRef = CreateCompilation("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
+            MetadataReference trueModuleRef = CreateCompilation("[assembly:System.CLSCompliant(true)][module:System.CLSCompliant(true)]", options: TestOptions.ReleaseModule, assemblyName: "true").EmitToImageReference();
+            MetadataReference falseModuleRef = CreateCompilation("[assembly:System.CLSCompliant(false)][module:System.CLSCompliant(false)]", options: TestOptions.ReleaseModule, assemblyName: "false").EmitToImageReference();
 
             CreateCompilation("[assembly:System.CLSCompliant(true)]", new[] { trueModuleRef, falseModuleRef }).VerifyDiagnostics(
                 // CONSIDER: dev11 actually reports CS0647 (failure to emit duplicate)
@@ -2867,7 +2867,7 @@ internal class C
 [assembly:System.CLSCompliant(true)]
 ";
 
-            var moduleRef = CreateCompilation(moduleSource, assemblyName: "module").EmitToImageReference(expectedWarnings: new[]
+            MetadataReference moduleRef = CreateCompilation(moduleSource, assemblyName: "module").EmitToImageReference(expectedWarnings: new[]
             {
                 // (8,16): warning CS3019: CLS compliance checking will not be performed on 'C' because it is not visible from outside this assembly
                 // internal class C
@@ -2892,8 +2892,8 @@ public class C
 }}
 ";
 
-            var helper = CreateCompilationWithMscorlib45("");
-            var intType = helper.GetSpecialType(SpecialType.System_Int32);
+            CSharpCompilation helper = CreateCompilationWithMscorlib45("");
+            NamedTypeSymbol intType = helper.GetSpecialType(SpecialType.System_Int32);
 
             foreach (SpecialType st in Enum.GetValues(typeof(SpecialType)))
             {
@@ -2905,7 +2905,7 @@ public class C
                         continue;
                 }
 
-                var type = helper.GetSpecialType(st);
+                NamedTypeSymbol type = helper.GetSpecialType(st);
                 if (type.Arity > 0)
                 {
                     type = type.Construct(ArrayBuilder<TypeSymbol>.GetInstance(type.Arity, intType).ToImmutableAndFree());
@@ -2913,7 +2913,7 @@ public class C
                 var qualifiedName = type.ToTestDisplayString();
 
                 var source = string.Format(sourceTemplate, qualifiedName);
-                var comp = CreateCompilationWithMscorlib45(source);
+                CSharpCompilation comp = CreateCompilationWithMscorlib45(source);
 
                 switch (st)
                 {
@@ -3022,7 +3022,7 @@ using System;
 public class Test { }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,2): error CS0246: The type or namespace name 'MissingAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [Missing]
@@ -3048,7 +3048,7 @@ public sealed class C
 }
 ";
 
-            var comp = CreateEmptyCompilation(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
+            CSharpCompilation comp = CreateEmptyCompilation(source, WinRtRefs, options: TestOptions.ReleaseWinMD);
 
             // CONSIDER: The CLS spec requires that event accessors have a certain shape and WinRT event
             // accessors do not.  However, dev11 does not report a diagnostic.
@@ -3057,7 +3057,7 @@ public sealed class C
                 //     public event D E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
 
-            var @event = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
+            EventSymbol @event = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
             Assert.True(@event.IsWindowsRuntimeEvent);
         }
 
@@ -3193,9 +3193,9 @@ public class D
     public C M() { return null; }
 }
 ";
-            var libRef = CreateCompilation(libSource).EmitToImageReference();
-            var comp = CreateCompilation(source, new[] { libRef });
-            var tree = comp.SyntaxTrees.Single();
+            MetadataReference libRef = CreateCompilation(libSource).EmitToImageReference();
+            CSharpCompilation comp = CreateCompilation(source, new[] { libRef });
+            SyntaxTree tree = comp.SyntaxTrees.Single();
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false, cancellationToken: CancellationToken.None);
         }
 
@@ -3231,9 +3231,9 @@ namespace N{0}
 }}
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
-            var comp = CreateCompilation(new[] { tree1, tree2 });
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
+            SyntaxTree tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
+            CSharpCompilation comp = CreateCompilation(new[] { tree1, tree2 });
 
             comp.VerifyDiagnostics(
                 // (21,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
@@ -3380,7 +3380,7 @@ public class C
 }
 ";
             // NOTE: As in dev11, we ignore the fact that Derived inherits CLSCompliantAttribute from Base.
-            var libRef = CreateCompilation(libSource).EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource).EmitToImageReference();
             CreateCompilation(source, new[] { libRef }).VerifyDiagnostics(
                 // (9,17): warning CS3003: Type of 'C.d' is not CLS-compliant
                 // 	public Derived d;
@@ -3442,7 +3442,7 @@ public class C
 }
 ";
             // NOTE: As in dev11, we ignore the fact that Derived inherits CLSCompliantAttribute from Base.
-            var libRef = CompileIL(libIL, prependDefaultHeader: false);
+            MetadataReference libRef = CompileIL(libIL, prependDefaultHeader: false);
             CreateCompilation(source, new[] { libRef }).VerifyDiagnostics(
                 // (8,14): warning CS3003: Type of 'C.b' is not CLS-compliant
                 // 	public Base b;
@@ -3490,7 +3490,7 @@ namespace A
     }
 }
 ";
-            var libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
             CreateCompilationWithMscorlib40AndSystemCore(source, new[] { libRef }).GetDiagnostics();
         }
@@ -3600,7 +3600,7 @@ namespace N1
     public class A { }
 }
 ";
-            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseModule);
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.ReleaseModule);
 
             var source2 = @"
 using System;
@@ -3613,7 +3613,7 @@ namespace N1
     public class B { }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { comp1.EmitToImageReference() }, TestOptions.ReleaseDll.WithConcurrentBuild(false));
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { comp1.EmitToImageReference() }, TestOptions.ReleaseDll.WithConcurrentBuild(false));
             comp2.VerifyDiagnostics(
     // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
     Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
@@ -3624,7 +3624,7 @@ namespace N1
     Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
                 );
 
-            var comp3 = comp2.WithOptions(TestOptions.ReleaseModule.WithConcurrentBuild(false));
+            CSharpCompilation comp3 = comp2.WithOptions(TestOptions.ReleaseModule.WithConcurrentBuild(false));
             comp3.VerifyDiagnostics(
     // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
     Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)

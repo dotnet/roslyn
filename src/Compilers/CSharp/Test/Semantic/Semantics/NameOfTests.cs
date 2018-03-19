@@ -142,7 +142,7 @@ interface I3 : I1, I2
     int Test(string arg = nameof(M), string arg2 = ""N"" /* nameof(N) */);
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 var2
 nameof
 var1
@@ -234,7 +234,7 @@ class Test<T>
 {
     static string s;
 }";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CSharpCompilationOptions option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term 'int'
                 //         s = nameof(int);
@@ -438,7 +438,7 @@ class NameofLocal
     }
 ";
             MetadataReference[] references = new[] { SystemCoreRef, CSharpRef };
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CSharpCompilationOptions option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlib45(source, references, options: option).VerifyDiagnostics(
                 // (104,31): error CS1501: No overload for method 'nameof' takes 1 arguments
                 //             Console.WriteLine(nameof(Class.var));
@@ -532,7 +532,7 @@ Correct");
         [Fact]
         public void TestNameofLowerLangVersion()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class Program
 {
     Program(string s = nameof(Program))
@@ -610,7 +610,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -634,7 +634,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -653,7 +653,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
@@ -675,7 +675,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
@@ -701,11 +701,11 @@ class Program
         return 1;
     }
 }";
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal("Goo", symbolInfo.CandidateSymbols[0].Name);
         }
@@ -727,11 +727,11 @@ class Program
         return string.Empty;
     }
 }";
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
         }
@@ -757,16 +757,16 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(13, 20)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
@@ -804,16 +804,16 @@ namespace N1
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (22,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //                 Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(22, 28)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
@@ -841,16 +841,16 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
@@ -874,7 +874,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,22): error CS0572: 'Nested': cannot reference a type through an expression; try 'A.Nested' instead
                 //         Use(nameof(a.Nested));
@@ -883,10 +883,10 @@ public class Program
                 //         A a = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(9, 11)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Nested").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Nested").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.NotNull(symbolInfo.Symbol);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
@@ -923,16 +923,16 @@ namespace N1
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (21,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //                 Use(nameof(A.Extension));
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "A.Extension").WithLocation(21, 28)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "A.Extension").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "A.Extension").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
@@ -956,16 +956,16 @@ public class Program
     private static void Use(object o) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(9, 22)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
@@ -995,7 +995,7 @@ public class Program
     private static void Use(object o) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
@@ -1025,7 +1025,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1057,7 +1057,7 @@ public class Program
         SS = SS + S1 + S2;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1074,7 +1074,7 @@ public class Program
 {
     public string S = nameof(Class.Method);
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,36): error CS0122: 'Class.Method()' is inaccessible due to its protection level
                 //     public string S = nameof(Class.Method);
@@ -1100,7 +1100,7 @@ public class Program
 {
     public string S = nameof(I3.Property);
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,33): error CS0229: Ambiguity between 'I1.Property' and 'I2.Property'
                 //     public string S = nameof(I3.Property);
@@ -1128,12 +1128,12 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "X1.Extension").OfType<ExpressionSyntax>().First();
-            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "X1.Extension").OfType<ExpressionSyntax>().First();
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
@@ -1152,8 +1152,8 @@ public class Program
         System.Console.WriteLine(N1 + N2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            var comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
         }
 
         [Fact, WorkItem(42, "github.com/dotnet/roslyn")]
@@ -1166,7 +1166,7 @@ public class Program
     string s = nameof(T) // ok
   ) { }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
@@ -1208,7 +1208,7 @@ class Other {
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
             CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
@@ -1246,7 +1246,7 @@ unsafe struct Struct1
     }
   }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, null,
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, null,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     return nameof(MessageType);
@@ -1291,7 +1291,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
         }
 
@@ -1323,7 +1323,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
 
@@ -1403,10 +1403,10 @@ public static class Extensions
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
+            CompilationVerifier comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
     }
 }

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // (a) Sort switch labels: This was done in the constructor
 
             Debug.Assert(!_sortedCaseLabels.IsEmpty);
-            var sortedCaseLabels = _sortedCaseLabels;
+            ImmutableArray<KeyValuePair<ConstantValue, object>> sortedCaseLabels = _sortedCaseLabels;
 
             int endLabelIndex = sortedCaseLabels.Length - 1;
             int startLabelIndex;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // crumble leaf buckets into degenerate buckets where possible
             var crumbled = ArrayBuilder<SwitchBucket>.GetInstance();
-            foreach (var uncrumbled in switchBucketsStack)
+            foreach (SwitchBucket uncrumbled in switchBucketsStack)
             {
                 var degenerateSplit = uncrumbled.DegenerateBucketSplit;
                 switch (degenerateSplit)
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             if (switchBucket.LabelsCount == 1)
             {
-                var c = switchBucket[0];
+                KeyValuePair<ConstantValue, object> c = switchBucket[0];
                 //  if(key == constant)
                 //      goto caseLabel;
                 ConstantValue constant = c.Key;

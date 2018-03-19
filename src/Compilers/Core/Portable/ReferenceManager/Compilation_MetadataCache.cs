@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void AddRetargetingAssemblySymbolsNoLock<T>(List<T> result) where T : IAssemblySymbol
         {
-            foreach (var symbol in _retargetingAssemblySymbols)
+            foreach (IAssemblySymbol symbol in _retargetingAssemblySymbols)
             {
                 result.Add((T)symbol);
             }

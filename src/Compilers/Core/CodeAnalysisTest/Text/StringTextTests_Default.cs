@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Ctor2()
         {
-            var data = Create(string.Empty);
+            SourceText data = Create(string.Empty);
             Assert.Equal(1, data.Lines.Count);
             Assert.Equal(0, data.Lines[0].Span.Length);
         }
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Indexer1()
         {
-            var data = Create(String.Empty);
+            SourceText data = Create(String.Empty);
             Assert.Throws(
                 typeof(IndexOutOfRangeException),
                 () => { var value = data[-1]; });
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var data = Create("goo" + Environment.NewLine + " bar");
+            SourceText data = Create("goo" + Environment.NewLine + " bar");
             Assert.Equal(2, data.Lines.Count);
             Assert.Equal(3, data.Lines[0].Span.Length);
             Assert.Equal(5, data.Lines[1].Span.Start);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 @"goo
 bar
 baz";
-            var data = Create(text);
+            SourceText data = Create(text);
             Assert.Equal(3, data.Lines.Count);
             Assert.Equal("goo", data.ToString(data.Lines[0].Span));
             Assert.Equal("bar", data.ToString(data.Lines[1].Span));
@@ -74,7 +74,7 @@ baz";
         [Fact]
         public void NewLines3()
         {
-            var data = Create("goo\r\nbar");
+            SourceText data = Create("goo\r\nbar");
             Assert.Equal(2, data.Lines.Count);
             Assert.Equal("goo", data.ToString(data.Lines[0].Span));
             Assert.Equal("bar", data.ToString(data.Lines[1].Span));
@@ -83,14 +83,14 @@ baz";
         [Fact]
         public void NewLines4()
         {
-            var data = Create("goo\n\rbar");
+            SourceText data = Create("goo\n\rbar");
             Assert.Equal(3, data.Lines.Count);
         }
 
         [Fact]
         public void LinesGetText1()
         {
-            var data = Create(
+            SourceText data = Create(
 @"goo
 bar baz");
             Assert.Equal(2, data.Lines.Count);
@@ -101,7 +101,7 @@ bar baz");
         [Fact]
         public void LinesGetText2()
         {
-            var data = Create("goo");
+            SourceText data = Create("goo");
             Assert.Equal("goo", data.Lines[0].ToString());
         }
 
@@ -140,7 +140,7 @@ bar baz");
         public void GetExtendedAsciiText()
         {
             var originalText = Encoding.Default.GetString(new byte[] { 0xAB, 0xCD, 0xEF });
-            var encodedText = Create(originalText);
+            SourceText encodedText = Create(originalText);
             Assert.Equal(originalText, encodedText.ToString());
         }
     }

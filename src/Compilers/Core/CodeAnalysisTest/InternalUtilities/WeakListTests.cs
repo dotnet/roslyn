@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void EnumeratorCompacts()
         {
-            var a = Create("a");
-            var b = Create("B");
-            var c = Create("C");
-            var d = Create("D");
-            var e = Create("E");
+            ObjectReference<C> a = Create("a");
+            ObjectReference<C> b = Create("B");
+            ObjectReference<C> c = Create("C");
+            ObjectReference<C> d = Create("D");
+            ObjectReference<C> e = Create("E");
 
             var list = new WeakList<object>();
             Assert.Equal(0, list.TestOnly_UnderlyingArray.Length);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void ResizeCompactsAllDead()
         {
-            var a = Create("A");
+            ObjectReference<C> a = Create("A");
 
             var list = new WeakList<object>();
             for (int i = 0; i < 9; i++)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             a.AssertReleased();
 
-            var b = Create("B");
+            ObjectReference<C> b = Create("B");
 
             Add(list, b); // shrinks, #alive < length/4
             Assert.Equal(4, list.TestOnly_UnderlyingArray.Length);
@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void ResizeCompactsFirstFourth()
         {
-            var a = Create("A");
-            var b = Create("B");
+            ObjectReference<C> a = Create("A");
+            ObjectReference<C> b = Create("B");
 
             var list = new WeakList<object>();
             for (int i = 0; i < 8; i++)
@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void ResizeCompactsSecondFourth()
         {
-            var a = Create("A");
-            var b = Create("B");
+            ObjectReference<C> a = Create("A");
+            ObjectReference<C> b = Create("B");
 
             var list = new WeakList<object>();
             for (int i = 0; i < 6; i++)
@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void ResizeCompactsThirdFourth()
         {
-            var a = Create("A");
-            var b = Create("B");
+            ObjectReference<C> a = Create("A");
+            ObjectReference<C> b = Create("B");
 
             var list = new WeakList<object>();
             for (int i = 0; i < 4; i++)
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void ResizeCompactsLastFourth()
         {
-            var a = Create("A");
-            var b = Create("B");
+            ObjectReference<C> a = Create("A");
+            ObjectReference<C> b = Create("B");
 
             var list = new WeakList<object>();
             for (int i = 0; i < 2; i++)
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void ResizeCompactsAllAlive()
         {
-            var b = Create("B");
+            ObjectReference<C> b = Create("B");
 
             var list = new WeakList<object>();
             for (int i = 0; i < 9; i++)

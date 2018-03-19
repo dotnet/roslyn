@@ -35,7 +35,7 @@ class A
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,22): warning CS0219: The variable 'o2' is assigned but its value is never used
                 //         const string o2 = (string)o1; // Dev10 reports CS0133
@@ -58,7 +58,7 @@ class B : IFace<B.C.D>
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
@@ -75,7 +75,7 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ public class Derived : Base<int>
     public sealed override List<int> Property1 { get { return null; } }
     public sealed override List<int> Property2 { set { } }
 }";
-            var comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
             comp.VerifyDiagnostics();
 
             // This is not a breaking change - but it is a change in behavior from Dev10
@@ -94,9 +94,9 @@ public class Derived : Base<int>
             // Error CS0507: 'Derived.Property2.get': cannot change access modifiers when overriding 'protected' inherited member 'Base<int>.Property2.get'
             // Roslyn makes this case work by synthesizing 'protected' accessors for the missing ones
 
-            var baseClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty1 = baseClass.GetMember<PropertySymbol>("Property1");
-            var baseProperty2 = baseClass.GetMember<PropertySymbol>("Property2");
+            NamedTypeSymbol baseClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty1 = baseClass.GetMember<PropertySymbol>("Property1");
+            PropertySymbol baseProperty2 = baseClass.GetMember<PropertySymbol>("Property2");
 
             Assert.Equal(Accessibility.Public, baseProperty1.DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, baseProperty1.GetMethod.DeclaredAccessibility);
@@ -106,9 +106,9 @@ public class Derived : Base<int>
             Assert.Equal(Accessibility.ProtectedOrInternal, baseProperty2.GetMethod.DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, baseProperty2.SetMethod.DeclaredAccessibility);
 
-            var derivedClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty1 = derivedClass.GetMember<SourcePropertySymbol>("Property1");
-            var derivedProperty2 = derivedClass.GetMember<SourcePropertySymbol>("Property2");
+            NamedTypeSymbol derivedClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            SourcePropertySymbol derivedProperty1 = derivedClass.GetMember<SourcePropertySymbol>("Property1");
+            SourcePropertySymbol derivedProperty2 = derivedClass.GetMember<SourcePropertySymbol>("Property2");
 
             Assert.Equal(Accessibility.Public, derivedProperty1.DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, derivedProperty1.GetMethod.DeclaredAccessibility);
@@ -118,8 +118,8 @@ public class Derived : Base<int>
             Assert.Null(derivedProperty2.GetMethod);
             Assert.Equal(Accessibility.Public, derivedProperty2.SetMethod.DeclaredAccessibility);
 
-            var derivedProperty1Synthesized = derivedProperty1.SynthesizedSealedAccessorOpt;
-            var derivedProperty2Synthesized = derivedProperty2.SynthesizedSealedAccessorOpt;
+            SynthesizedSealedPropertyAccessor derivedProperty1Synthesized = derivedProperty1.SynthesizedSealedAccessorOpt;
+            SynthesizedSealedPropertyAccessor derivedProperty2Synthesized = derivedProperty2.SynthesizedSealedAccessorOpt;
 
             Assert.Equal(MethodKind.PropertySet, derivedProperty1Synthesized.MethodKind);
             Assert.Equal(Accessibility.Protected, derivedProperty1Synthesized.DeclaredAccessibility);
@@ -154,11 +154,11 @@ public class MonthDays : idx
    }
 }
 ";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics();
 
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("MonthDays").Indexers.Single();
+            PropertySymbol indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("MonthDays").Indexers.Single();
             Assert.Equal(Microsoft.CodeAnalysis.WellKnownMemberNames.Indexer, indexer.Name);
             Assert.Equal("MonthInfoIndexer", indexer.MetadataName);
         }
@@ -190,7 +190,7 @@ class Test
 }
 ";
 
-            var tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
+            SyntaxTree tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
             // Dev10 allows (no warning)
@@ -209,7 +209,7 @@ class Test
 class A { }
 ";
 
-            var tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
+            SyntaxTree tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
             // Native Warning CS1570 - "XML Comment has badly formed XML..."
@@ -288,7 +288,7 @@ public class Test { }
         static T x;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,18): warning CS0169: The field 'S1<T>.x' is never used
                 //     S1<S1<T>>.S2 x;
@@ -399,8 +399,8 @@ class C
     }
 }
 ";
-            var standardCompilation = CreateCompilation(source);
-            var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            CSharpCompilation standardCompilation = CreateCompilation(source);
+            CSharpCompilation strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
             standardCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
@@ -1000,7 +1000,7 @@ public class c
    }
 } 
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
             // In Roslyn the single definition rule is relaxed and we do not give an error.
             comp.VerifyDiagnostics();
@@ -1151,7 +1151,7 @@ class Program
 }
 ";
             // Native print "++ ++ EX 2"
-            var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
 
             // must not load "<>4__this"
             verifier.VerifyIL("Program.test.<Goo>d__1.System.Collections.IEnumerator.MoveNext()", @"
@@ -1425,27 +1425,27 @@ public class Program
         [Fact, WorkItem(530303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")]
         public void TestReferenceResolution()
         {
-            var cs1Compilation = CreateCSharpCompilation("CS1",
+            CSharpCompilation cs1Compilation = CreateCSharpCompilation("CS1",
 @"public class CS1 {}",
                 compilationOptions: TestOptions.ReleaseDll);
-            var cs1Verifier = CompileAndVerify(cs1Compilation);
+            CompilationVerifier cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
-            var cs2Compilation = CreateCSharpCompilation("CS2",
+            CSharpCompilation cs2Compilation = CreateCSharpCompilation("CS2",
 @"public class CS2<T> {}",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation });
-            var cs2Verifier = CompileAndVerify(cs2Compilation);
+            CompilationVerifier cs2Verifier = CompileAndVerify(cs2Compilation);
             cs2Verifier.VerifyDiagnostics();
 
-            var cs3Compilation = CreateCSharpCompilation("CS3",
+            CSharpCompilation cs3Compilation = CreateCSharpCompilation("CS3",
 @"public class CS3 : CS2<CS1> {}",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
-            var cs3Verifier = CompileAndVerify(cs3Compilation);
+            CompilationVerifier cs3Verifier = CompileAndVerify(cs3Compilation);
             cs3Verifier.VerifyDiagnostics();
 
-            var cs4Compilation = CreateCSharpCompilation("CS4",
+            CSharpCompilation cs4Compilation = CreateCSharpCompilation("CS4",
 @"public class Program
 {
     static void Main()
@@ -1598,7 +1598,7 @@ public static class Util
 }
 ";
 
-            var libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
             {
                 var source = @"
@@ -1621,7 +1621,7 @@ class Test
 ";
 
                 // As in dev11.
-                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+                CSharpCompilation comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "03");
             }
 
@@ -1646,7 +1646,7 @@ class Test
 
                 // As in dev11.
                 // NOTE: The spec will likely be updated to make this illegal.
-                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+                CSharpCompilation comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "3");
             }
 
@@ -1670,7 +1670,7 @@ class Test
 ";
 
                 // BREAK: dev11 compiles and prints "0"
-                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+                CSharpCompilation comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 comp.VerifyDiagnostics(
                     // (15,33): error CS1918: Members of property 'Wrapper<T>.Item' of type 'T' cannot be assigned with an object initializer because it is of a value type
                     //         return new Wrapper<T> { Item = { 1, 2, 3} };

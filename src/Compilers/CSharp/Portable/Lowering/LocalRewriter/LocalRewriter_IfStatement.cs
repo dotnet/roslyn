@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIfStatement(BoundIfStatement node)
         {
             Debug.Assert(node != null);
-            var rewrittenCondition = VisitExpression(node.Condition);
-            var rewrittenConsequence = VisitStatement(node.Consequence);
-            var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
+            BoundExpression rewrittenCondition = VisitExpression(node.Condition);
+            BoundStatement rewrittenConsequence = VisitStatement(node.Consequence);
+            BoundStatement rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCondition = _instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
             }
 
-            var result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+            BoundStatement result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
             if (this.Instrument && !node.WasCompilerGenerated)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(rewrittenConsequence);
                 builder.Add(new BoundSequencePoint(null, null));
                 builder.Add(new BoundLabelStatement(syntax, afterif));
-                var statements = builder.ToImmutableAndFree();
+                ImmutableArray<BoundStatement> statements = builder.ToImmutableAndFree();
                 return new BoundStatementList(syntax, statements, hasErrors);
             }
             else

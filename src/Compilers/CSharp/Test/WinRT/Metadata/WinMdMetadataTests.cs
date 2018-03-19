@@ -38,16 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FunctionPrototypeForwarded()
         {
             var text = "public class A{};";
-            var comp = CreateCompilationWithWinRT(text);
+            CSharpCompilation comp = CreateCompilationWithWinRT(text);
 
-            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            MetadataReference winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            AssemblySymbol winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
-            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            NamespaceSymbol wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
             wns1 = wns1.GetMember<NamespaceSymbol>("UI");
             wns1 = wns1.GetMember<NamespaceSymbol>("Text");
-            var itextrange = wns1.GetMember<PENamedTypeSymbol>("ITextRange");
-            var func = itextrange.GetMember<PEMethodSymbol>("SetPoint");
+            PENamedTypeSymbol itextrange = wns1.GetMember<PENamedTypeSymbol>("ITextRange");
+            PEMethodSymbol func = itextrange.GetMember<PEMethodSymbol>("SetPoint");
             var pt = ((PEParameterSymbol)(func.Parameters[0])).Type as PENamedTypeSymbol;
             Assert.Equal(pt.ContainingAssembly.Name, "System.Runtime.WindowsRuntime");
         }
@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DelegateConstructorMarkedPublic()
         {
             var text = "public class A{};";
-            var comp = CreateCompilationWithWinRT(text);
+            CSharpCompilation comp = CreateCompilationWithWinRT(text);
 
-            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            MetadataReference winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            AssemblySymbol winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
-            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            NamespaceSymbol wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
             wns1 = wns1.GetMember<NamespaceSymbol>("UI");
             wns1 = wns1.GetMember<NamespaceSymbol>("Xaml");
-            var itextrange = wns1.GetMember<PENamedTypeSymbol>("SuspendingEventHandler");
-            var func = itextrange.GetMember<PEMethodSymbol>(".ctor");
+            PENamedTypeSymbol itextrange = wns1.GetMember<PENamedTypeSymbol>("SuspendingEventHandler");
+            PEMethodSymbol func = itextrange.GetMember<PEMethodSymbol>(".ctor");
             Assert.Equal(func.DeclaredAccessibility, Accessibility.Public);
         }
 
@@ -81,16 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TypeForwardingRenaming()
         {
             var text = "public class A{};";
-            var comp = CreateCompilationWithWinRT(text);
+            CSharpCompilation comp = CreateCompilationWithWinRT(text);
 
-            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            MetadataReference winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            AssemblySymbol winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
-            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            NamespaceSymbol wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
             wns1 = wns1.GetMember<NamespaceSymbol>("Foundation");
-            var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
-            var func = iref.GetMember<PEMethodSymbol>("CombineUri");
-            var ret = func.ReturnType;
+            PENamedTypeSymbol iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
+            PEMethodSymbol func = iref.GetMember<PEMethodSymbol>("CombineUri");
+            TypeSymbol ret = func.ReturnType;
             Assert.Equal(func.ReturnType.ToTestDisplayString(), "System.Uri");
         }
 
@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WinMdTypesDefPrivate()
         {
             var text = "public class A{};";
-            var comp = CreateCompilationWithWinRT(text);
-            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
-            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            CSharpCompilation comp = CreateCompilationWithWinRT(text);
+            MetadataReference winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            AssemblySymbol winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            NamespaceSymbol wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
 
-            var wns2 = wns1.GetMember<NamespaceSymbol>("Foundation");
-            var clas = wns2.GetMember<PENamedTypeSymbol>("Point");
+            NamespaceSymbol wns2 = wns1.GetMember<NamespaceSymbol>("Foundation");
+            PENamedTypeSymbol clas = wns2.GetMember<PENamedTypeSymbol>("Point");
             Assert.Equal(clas.DeclaredAccessibility, Accessibility.Internal);
         }
 
@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "public class A{};";
 
-            var comp = CreateCompilationWithWinRT(text);
+            CSharpCompilation comp = CreateCompilationWithWinRT(text);
 
-            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
-            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-            var wns2 = wns1.GetMember<NamespaceSymbol>("UI");
-            var clas = wns2.GetMember<TypeSymbol>("Colors");
-            var blk = clas.GetMembers("Black").Single();
+            MetadataReference winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            AssemblySymbol winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            NamespaceSymbol wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            NamespaceSymbol wns2 = wns1.GetMember<NamespaceSymbol>("UI");
+            TypeSymbol clas = wns2.GetMember<TypeSymbol>("Colors");
+            Symbol blk = clas.GetMembers("Black").Single();
             //The windows.winmd module points to a Windows.UI.Color which should be modified to belong
             //to System.Runtime.WindowsRuntime
             Assert.Equal(((Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PENamedTypeSymbol)
@@ -165,15 +165,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "public class A{};";
 
-            var comp = CreateCompilationWithWinRT(text);
+            CSharpCompilation comp = CreateCompilationWithWinRT(text);
 
-            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
-            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-            var wns2 = wns1.GetMember<NamespaceSymbol>("Globalization");
-            var wns3 = wns2.GetMember<NamespaceSymbol>("NumberFormatting");
-            var clas = wns3.GetMember<TypeSymbol>("DecimalFormatter");
-            var puint = clas.GetMembers("ParseUInt").Single();
+            MetadataReference winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            AssemblySymbol winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            NamespaceSymbol wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            NamespaceSymbol wns2 = wns1.GetMember<NamespaceSymbol>("Globalization");
+            NamespaceSymbol wns3 = wns2.GetMember<NamespaceSymbol>("NumberFormatting");
+            TypeSymbol clas = wns3.GetMember<TypeSymbol>("DecimalFormatter");
+            Symbol puint = clas.GetMembers("ParseUInt").Single();
 
             // The return type of ParseUInt should be Nullable<ulong>, not IReference<ulong>
             Assert.Equal("ulong?",
@@ -202,7 +202,7 @@ public class C
         Console.WriteLine(result);
     }
 }";
-            var verifier = this.CompileAndVerifyOnWin8Only(source,
+            CompilationVerifier verifier = this.CompileAndVerifyOnWin8Only(source,
                 expectedOutput: "10\r\n0");
             verifier.VerifyDiagnostics();
         }
@@ -235,7 +235,7 @@ public class MyAttribute : System.Attribute
             {
                 var module = (PEModuleSymbol)m;
                 var c = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("C");
-                var attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
+                System.Reflection.Metadata.CustomAttributeHandle attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
                 string value;
                 module.Module.TryExtractStringValueFromAttribute(attributeHandle, out value);
 

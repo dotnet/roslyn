@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var binder = _current.Binder;
+                Binder binder = _current.Binder;
                 if (!_current.SearchUsingsNotNamespace)
                 {
                     // Return a scope for the same Binder that was previously exposed
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ExtensionMethodScope GetNextScope(Binder binder)
         {
-            for (var scope = binder; scope != null; scope = scope.Next)
+            for (Binder scope = binder; scope != null; scope = scope.Next)
             {
                 if (scope.SupportsExtensionMethods)
                 {

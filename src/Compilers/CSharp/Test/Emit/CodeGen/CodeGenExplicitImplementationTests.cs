@@ -117,9 +117,9 @@ class Test
 }
 ";
 
-            var comp1 = CreateCompilation(text1, assemblyName: "OHI_ExplicitImplProp1");
+            CSharpCompilation comp1 = CreateCompilation(text1, assemblyName: "OHI_ExplicitImplProp1");
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 text2,
                 references: new[] { comp1.EmitToImageReference() },
                 options: TestOptions.ReleaseExe,
@@ -204,13 +204,13 @@ class Test
     }
 }
 ";
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 text1,
                 references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01 },
                 assemblyName: "OHI_ExpImpImpl001",
                 options: TestOptions.ReleaseDll);
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 text2,
                 references: new MetadataReference[]
                 {
@@ -244,10 +244,10 @@ class Test
     }
 }
 ";
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 text,
                 references: new[] { asm01, asm02 },
                 assemblyName: "OHI_ExpImpVBImpl001",
@@ -361,15 +361,15 @@ class Test
 }
 ";
 
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateCompilation(
+            CSharpCompilation comp1 = CreateCompilation(
                 text1,
                 references: new[] { asm01 },
                 assemblyName: "OHI_ExpImpPropImpl001",
                 options: TestOptions.ReleaseDll);
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, new CSharpCompilationReference(comp1) },
                 assemblyName: "OHI_ExpImpPropImpl002",
@@ -428,7 +428,7 @@ class Test
         i1.Method(4, 5, ""c"", l1);
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(3, 4, c)
@@ -582,7 +582,7 @@ class Test
         i4.Method<List<long>>(new List<int>(), new List<string>[]{}, new List<List<List<string>>>(), new Dictionary<int, List<long>>());
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
@@ -663,7 +663,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
@@ -741,7 +741,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -806,7 +806,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -953,7 +953,7 @@ class Outer<T>
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Outer`1+IInner", "M", ".method public hidebysig newslot abstract virtual instance System.Void M(T t) cil managed"),
                 Signature("Outer`1+Inner", "Outer<T>.IInner.M", ".method private hidebysig newslot virtual final instance System.Void Outer<T>.IInner.M(T t) cil managed"),
@@ -986,14 +986,14 @@ class C : Q::I
 }
 ";
 
-            var libComp = CreateCompilation(libSource);
+            CSharpCompilation libComp = CreateCompilation(libSource);
             libComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp, aliases: ImmutableArray.Create("Q")) });
+            CSharpCompilation comp = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp, aliases: ImmutableArray.Create("Q")) });
             comp.VerifyDiagnostics();
 
-            var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var classCMembers = classC.GetMembers();
+            NamedTypeSymbol classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            ImmutableArray<Symbol> classCMembers = classC.GetMembers();
 
             // The alias is preserved, in case a similar interface is implemented from another aliased assembly.
             AssertEx.All(classCMembers.Select(m => m.Name), name => name == WellKnownMemberNames.InstanceConstructorName || name.StartsWith("Q::I.", StringComparison.Ordinal));
@@ -1031,22 +1031,22 @@ class C : A::I, B::I
 }
 ";
 
-            var libComp1 = CreateCompilation(libSource, assemblyName: "lib1");
+            CSharpCompilation libComp1 = CreateCompilation(libSource, assemblyName: "lib1");
             libComp1.VerifyDiagnostics();
 
-            var libComp2 = CreateCompilation(libSource, assemblyName: "lib2");
+            CSharpCompilation libComp2 = CreateCompilation(libSource, assemblyName: "lib2");
             libComp2.VerifyDiagnostics();
 
             // Same reference, two aliases.
-            var comp1 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("B")) });
+            CSharpCompilation comp1 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("B")) });
             comp1.VerifyDiagnostics(
                 // (5,17): error CS0528: 'I' is already listed in interface list
                 // class C : A::I, B::I
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "B::I").WithArguments("I"));
 
             // Two assemblies with the same content, two aliases.
-            var comp2 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });
-            var verifier2 = CompileAndVerify(comp2, expectedSignatures: new[]
+            CSharpCompilation comp2 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });
+            CompilationVerifier verifier2 = CompileAndVerify(comp2, expectedSignatures: new[]
             {
                 Signature("C", "A::I.M", ".method private hidebysig newslot virtual final instance System.Void A::I.M() cil managed"),
                 Signature("C", "A::I.get_P", ".method private hidebysig newslot specialname virtual final instance System.Int32 A::I.get_P() cil managed"),
@@ -1062,8 +1062,8 @@ class C : A::I, B::I
             });
 
             // Simple verification that the test infrastructure supports such methods.
-            var testData = verifier2.TestData;
-            var pair = testData.Methods.Single(m => m.Key.Name == "A::I.M");
+            CodeAnalysis.CodeGen.CompilationTestData testData = verifier2.TestData;
+            System.Collections.Generic.KeyValuePair<IMethodSymbol, CodeAnalysis.CodeGen.CompilationTestData.MethodData> pair = testData.Methods.Single(m => m.Key.Name == "A::I.M");
             pair.Value.VerifyIL(@"
 {
   // Code size        1 (0x1)

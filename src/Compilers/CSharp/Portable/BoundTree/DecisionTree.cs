@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WhenNull.DumpInternal(builder, indent + "    ");
                 }
 
-                foreach (var kv in TypeAndDecision)
+                foreach (KeyValuePair<TypeSymbol, DecisionTree> kv in TypeAndDecision)
                 {
                     builder.AppendLine($"{indent}  {kv.Key}");
                     kv.Value.DumpInternal(builder, indent + "    ");
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override void DumpInternal(StringBuilder builder, string indent)
             {
                 builder.AppendLine($"{indent}ByValue");
-                foreach (var kv in ValueAndDecision)
+                foreach (KeyValuePair<object, DecisionTree> kv in ValueAndDecision)
                 {
                     builder.AppendLine($"{indent}  {kv.Key}");
                     kv.Value.DumpInternal(builder, indent + "    ");

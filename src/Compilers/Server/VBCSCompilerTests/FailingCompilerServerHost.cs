@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
         {
-            var underlyingConnection = await _underlyingHost.CreateListenTask(cancellationToken);
+            IClientConnection underlyingConnection = await _underlyingHost.CreateListenTask(cancellationToken);
             return new FailingClientConnection(underlyingConnection);
         }
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0, s = green.SlotCount; i < s; i++)
             {
-                var child = green.GetSlot(i);
+                GreenNode child = green.GetSlot(i);
                 if (child != null)
                 {
                     if (!child.IsList)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
         {
             GreenNode greenChild;
-            var green = node.Green;
+            GreenNode green = node.Green;
             var idx = index;
             var slotIndex = 0;
             var position = node.Position;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // get node that represents this slot
-            var red = node.GetNodeSlot(slotIndex);
+            SyntaxNode red = node.GetNodeSlot(slotIndex);
             if (!greenChild.IsList)
             {
                 // this is a single node or token
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
             else if (red != null)
             {
                 // it is a red list of nodes (separated or not), most common case
-                var redChild = red.GetNodeSlot(idx);
+                SyntaxNode redChild = red.GetNodeSlot(idx);
                 if (redChild != null)
                 {
                     // this is our node
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
             // The targetPosition must already be within this node
             Debug.Assert(node.FullSpan.Contains(targetPosition));
 
-            var green = node.Green;
+            GreenNode green = node.Green;
             var position = node.Position;
             var index = 0;
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Realize the red node (if any)
-            var red = node.GetNodeSlot(slot);
+            SyntaxNode red = node.GetNodeSlot(slot);
             if (!green.IsList)
             {
                 // This is a single node or token.
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis
         internal static SyntaxNode ItemInternalAsNode(SyntaxNode node, int index)
         {
             GreenNode greenChild;
-            var green = node.Green;
+            GreenNode green = node.Green;
             var idx = index;
             var slotIndex = 0;
 
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // get node that represents this slot
-            var red = node.GetNodeSlot(slotIndex);
+            SyntaxNode red = node.GetNodeSlot(slotIndex);
             if (greenChild.IsList && red != null)
             {
                 // it is a red list of nodes (separated or not), most common case

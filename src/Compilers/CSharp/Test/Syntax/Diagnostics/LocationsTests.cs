@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int expectedEndOffset,
             bool hasMappedPath)
         {
-            var span = GetSpanIn(syntaxTree, sourceText);
-            var mappedSpan = syntaxTree.GetMappedLineSpan(span);
+            TextSpan span = GetSpanIn(syntaxTree, sourceText);
+            FileLinePositionSpan mappedSpan = syntaxTree.GetMappedLineSpan(span);
             var actualDisplayPath = syntaxTree.GetDisplayPath(span, s_resolver);
 
             Assert.Equal(hasMappedPath, mappedSpan.HasMappedPath);
@@ -235,9 +235,9 @@ class Program
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
             // verify missing semicolon diagnostic is on the same line
-            var diags = syntaxTree.GetDiagnostics();
+            System.Collections.Generic.IEnumerable<Diagnostic> diags = syntaxTree.GetDiagnostics();
             Assert.Equal(1, diags.Count());
-            var diag = diags.First();
+            Diagnostic diag = diags.First();
             FileLinePositionSpan flps = diag.Location.GetLineSpan();
             // verify the diagnostic is positioned at the end of the line "int x" and has zero width
             Assert.Equal(flps, new FileLinePositionSpan("c:\\goo.cs", new LinePosition(8, 13), new LinePosition(8, 13)));
@@ -297,10 +297,10 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
-            var diags = syntaxTree.GetDiagnostics();
+            System.Collections.Generic.IEnumerable<Diagnostic> diags = syntaxTree.GetDiagnostics();
             // verify missing identifier diagnostic has the correct span
             Assert.NotEmpty(diags);
-            var diag = diags.First();
+            Diagnostic diag = diags.First();
             FileLinePositionSpan flps = diag.Location.GetLineSpan();
             // verify the diagnostic width spans the entire token "2131"
             Assert.Equal(flps, new FileLinePositionSpan("c:\\goo.cs", new LinePosition(8, 15), new LinePosition(8, 19)));
@@ -319,9 +319,9 @@ class C
     int[] array = new int[
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
-            var diags = syntaxTree.GetDiagnostics();
+            System.Collections.Generic.IEnumerable<Diagnostic> diags = syntaxTree.GetDiagnostics();
             Assert.NotEmpty(diags);
-            foreach (var diag in diags)
+            foreach (Diagnostic diag in diags)
             {
                 // verify the diagnostic span doesn't go past the text span
                 Assert.InRange(diag.Location.SourceSpan.End, diag.Location.SourceSpan.Start, syntaxTree.GetText().Length);
@@ -342,7 +342,7 @@ end class";
             // Expected(tree.GetDiagnostics()[2].Location.GetLineSpan("", false), "", 1, 9, 1, 9);
 
             // This line throws ArgumentOutOfRangeException.
-            var span = syntaxTree.GetDiagnostics().ElementAt(3).Location.GetLineSpan();
+            FileLinePositionSpan span = syntaxTree.GetDiagnostics().ElementAt(3).Location.GetLineSpan();
             Assert.Equal(span, new FileLinePositionSpan("", new LinePosition(1, 9), new LinePosition(1, 9)));
         }
 
@@ -379,14 +379,14 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(sampleProgram.IndexOf("ct", StringComparison.Ordinal));
+            SyntaxToken token = syntaxTree.GetCompilationUnitRoot().FindToken(sampleProgram.IndexOf("ct", StringComparison.Ordinal));
 
             // Get the diagnostics from the ExpressionStatement Syntax node which is the current token's Parent's Parent
-            var expressionDiags = syntaxTree.GetDiagnostics(token.Parent.Parent);
+            System.Collections.Generic.IEnumerable<Diagnostic> expressionDiags = syntaxTree.GetDiagnostics(token.Parent.Parent);
 
             expressionDiags.First().Location.GetLineSpan();
 
-            foreach (var diag in expressionDiags)
+            foreach (Diagnostic diag in expressionDiags)
             {
                 // verify the diagnostic span doesn't go past the text span
                 Assert.InRange(diag.Location.SourceSpan.Start, 0, syntaxTree.GetText().Length);
@@ -438,14 +438,14 @@ class MainClass
         [Fact]
         public void TestDiagnosticsLocationsExistInsideTreeSpan()
         {
-            var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    ")), "x", default(SyntaxTriviaList)));
+            Syntax.IdentifierNameSyntax node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    ")), "x", default(SyntaxTriviaList)));
 
             // create node with error that would place itself outside the tree.
-            var nodeWithBadError = node.Green.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) }).CreateRed();
+            SyntaxNode nodeWithBadError = node.Green.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) }).CreateRed();
 
-            var tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
+            SyntaxTree tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
 
-            var treeSpan = tree.GetRoot().FullSpan;
+            TextSpan treeSpan = tree.GetRoot().FullSpan;
             Assert.Equal(5, treeSpan.Length);
 
             var diagnostics = tree.GetDiagnostics().ToList();
@@ -456,7 +456,7 @@ class MainClass
 
             Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
 
-            var lineSpan = diagnostics[0].Location.GetLineSpan();
+            FileLinePositionSpan lineSpan = diagnostics[0].Location.GetLineSpan();
             Assert.Equal(0, lineSpan.StartLinePosition.Line);
             Assert.Equal(5, lineSpan.StartLinePosition.Character);
             Assert.Equal(0, lineSpan.EndLinePosition.Line);
@@ -467,13 +467,13 @@ class MainClass
         [Fact]
         public void TestDiagnosticsLocationsExistInsideTreeSpan_ZeroWidthTree()
         {
-            var node = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
+            SyntaxToken node = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
 
             // create node with error that would place itself outside the tree.
-            var nodeWithBadError = SyntaxFactory.IdentifierName(new SyntaxToken(node.Node.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) })));
-            var tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
+            Syntax.IdentifierNameSyntax nodeWithBadError = SyntaxFactory.IdentifierName(new SyntaxToken(node.Node.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) })));
+            SyntaxTree tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
 
-            var treeSpan = tree.GetRoot().FullSpan;
+            TextSpan treeSpan = tree.GetRoot().FullSpan;
             Assert.Equal(0, treeSpan.Length);
 
             var diagnostics = tree.GetDiagnostics().ToList();
@@ -484,7 +484,7 @@ class MainClass
 
             Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
 
-            var lineSpan = diagnostics[0].Location.GetLineSpan();
+            FileLinePositionSpan lineSpan = diagnostics[0].Location.GetLineSpan();
             Assert.Equal(0, lineSpan.StartLinePosition.Line);
             Assert.Equal(0, lineSpan.StartLinePosition.Character);
             Assert.Equal(0, lineSpan.EndLinePosition.Line);

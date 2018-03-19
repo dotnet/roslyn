@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
             {
                 TestReferences.SymbolsTests.Fields.CSFields.dll,
                 TestReferences.SymbolsTests.Fields.VBFields.dll,
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             },
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var module1 = assemblies[0].Modules[0];
-            var module2 = assemblies[1].Modules[0];
-            var module3 = assemblies[2].Modules[0];
+            ModuleSymbol module1 = assemblies[0].Modules[0];
+            ModuleSymbol module2 = assemblies[1].Modules[0];
+            ModuleSymbol module3 = assemblies[2].Modules[0];
 
-            var vbFields = module2.GlobalNamespace.GetTypeMembers("VBFields").Single();
-            var csFields = module1.GlobalNamespace.GetTypeMembers("CSFields").Single();
+            NamedTypeSymbol vbFields = module2.GlobalNamespace.GetTypeMembers("VBFields").Single();
+            NamedTypeSymbol csFields = module1.GlobalNamespace.GetTypeMembers("CSFields").Single();
 
             var f1 = (FieldSymbol)vbFields.GetMembers("F1").Single();
             var f2 = (FieldSymbol)vbFields.GetMembers("F2").Single();
@@ -131,7 +131,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(text, il, options:TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(text, il, options:TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"Value1
 Value2");
         }

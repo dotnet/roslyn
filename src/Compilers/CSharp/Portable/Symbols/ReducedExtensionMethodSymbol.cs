@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var conversions = new TypeConversions(method.ContainingAssembly.CorLibrary);
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteDiagnostics);
+            Conversion conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteDiagnostics);
             if (!conversion.Exists)
             {
                 return null;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (useSiteDiagnostics != null)
             {
-                foreach (var diag in useSiteDiagnostics)
+                foreach (DiagnosticInfo diag in useSiteDiagnostics)
                 {
                     if (diag.Severity == DiagnosticSeverity.Error)
                     {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
 
             // The reduced form is always created from the unconstructed method symbol.
-            var constructedFrom = method.ConstructedFrom;
+            MethodSymbol constructedFrom = method.ConstructedFrom;
             var reducedMethod = new ReducedExtensionMethodSymbol(constructedFrom);
 
             if (constructedFrom == method)
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> MakeParameters()
         {
-            var reducedFromParameters = _reducedFrom.Parameters;
+            ImmutableArray<ParameterSymbol> reducedFromParameters = _reducedFrom.Parameters;
             int count = reducedFromParameters.Length;
 
             if (count <= 1)

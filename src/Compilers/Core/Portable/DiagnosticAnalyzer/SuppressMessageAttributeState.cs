@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbol.Kind == SymbolKind.Method)
             {
-                var associated = ((IMethodSymbol)symbol).AssociatedSymbol;
+                ISymbol associated = ((IMethodSymbol)symbol).AssociatedSymbol;
                 if (associated != null &&
                     (IsDiagnosticLocallySuppressed(id, associated, out info) || IsDiagnosticGloballySuppressed(id, associated, out info)))
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check for suppression on parent symbol
-            var parent = symbol.ContainingSymbol;
+            ISymbol parent = symbol.ContainingSymbol;
             return parent != null && IsDiagnosticSuppressed(id, parent, out info);
         }
 
@@ -167,17 +167,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Walk up the syntax tree checking for suppression by any declared symbols encountered
             if (location.IsInSource)
             {
-                var model = _compilation.GetSemanticModel(location.SourceTree);
+                SemanticModel model = _compilation.GetSemanticModel(location.SourceTree);
                 bool inImmediatelyContainingSymbol = true;
 
-                for (var node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);
+                for (SyntaxNode node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);
                     node != null;
                     node = node.Parent)
                 {
-                    var declaredSymbols = model.GetDeclaredSymbolsForNode(node);
+                    ImmutableArray<ISymbol> declaredSymbols = model.GetDeclaredSymbolsForNode(node);
                     Debug.Assert(declaredSymbols != null);
 
-                    foreach (var symbol in declaredSymbols)
+                    foreach (ISymbol symbol in declaredSymbols)
                     {
                         if (symbol.Kind == SymbolKind.Namespace)
                         {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsDiagnosticLocallySuppressed(string id, ISymbol symbol, out SuppressMessageInfo info)
         {
-            var suppressions = _localSuppressionsBySymbol.GetOrAdd(symbol, this.DecodeLocalSuppressMessageAttributes);
+            ImmutableDictionary<string, SuppressMessageInfo> suppressions = _localSuppressionsBySymbol.GetOrAdd(symbol, this.DecodeLocalSuppressMessageAttributes);
             return suppressions.TryGetValue(id, out info);
         }
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var suppressions = new GlobalSuppressions();
                 DecodeGlobalSuppressMessageAttributes(_compilation, _compilation.Assembly, suppressions);
 
-                foreach (var module in _compilation.Assembly.Modules)
+                foreach (IModuleSymbol module in _compilation.Assembly.Modules)
                 {
                     DecodeGlobalSuppressMessageAttributes(_compilation, module, suppressions);
                 }
@@ -242,14 +242,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(ISymbol symbol)
         {
-            var attributes = symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute);
+            IEnumerable<AttributeData> attributes = symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute);
             return DecodeLocalSuppressMessageAttributes(symbol, attributes);
         }
 
         private static ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(ISymbol symbol, IEnumerable<AttributeData> attributes)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, SuppressMessageInfo>();
-            foreach (var attribute in attributes)
+            ImmutableDictionary<string, SuppressMessageInfo>.Builder builder = ImmutableDictionary.CreateBuilder<string, SuppressMessageInfo>();
+            foreach (AttributeData attribute in attributes)
             {
                 SuppressMessageInfo info;
                 if (!TryDecodeSuppressMessageAttributeData(attribute, out info))
@@ -278,13 +278,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(symbol is IAssemblySymbol || symbol is IModuleSymbol);
 
-            var attributes = symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute);
+            IEnumerable<AttributeData> attributes = symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute);
             DecodeGlobalSuppressMessageAttributes(compilation, symbol, globalSuppressions, attributes);
         }
 
         private static void DecodeGlobalSuppressMessageAttributes(Compilation compilation, ISymbol symbol, GlobalSuppressions globalSuppressions, IEnumerable<AttributeData> attributes)
         {
-            foreach (var instance in attributes)
+            foreach (AttributeData instance in attributes)
             {
                 SuppressMessageInfo info;
                 if (!TryDecodeSuppressMessageAttributeData(instance, out info))
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                foreach (var target in ResolveTargetSymbols(compilation, info.Target, scope))
+                foreach (ISymbol target in ResolveTargetSymbols(compilation, info.Target, scope))
                 {
                     globalSuppressions.AddGlobalSymbolSuppression(target, info);
                 }

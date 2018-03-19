@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         public ConcurrentLruCache(KeyValuePair<K, V>[] array)
             : this(array.Length)
         {
-            foreach (var kvp in array)
+            foreach (KeyValuePair<K, V> kvp in array)
             {
                 this.UnsafeAdd(kvp.Key, kvp.Value, true);
             }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         private void UnsafeEvictLastNode()
         {
             Debug.Assert(_capacity > 0);
-            var lastNode = _nodeList.Last;
+            LinkedListNode<K> lastNode = _nodeList.Last;
             _nodeList.Remove(lastNode);
             _cache.Remove(lastNode.Value);
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         /// </summary>
         private void UnsafeAdd(K key, V value, bool throwExceptionIfKeyExists)
         {
-            if (_cache.TryGetValue(key, out var result))
+            if (_cache.TryGetValue(key, out CacheValue result))
             {
                 if (throwExceptionIfKeyExists)
                 {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             get
             {
-                if (TryGetValue(key, out var value))
+                if (TryGetValue(key, out V value))
                 {
                     return value;
                 }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         /// </summary>
         public bool UnsafeTryGetValue(K key, out V value)
         {
-            if (_cache.TryGetValue(key, out var result))
+            if (_cache.TryGetValue(key, out CacheValue result))
             {
                 MoveNodeToTop(result.Node);
                 value = result.Value;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             lock (_lockObject)
             {
-                if (UnsafeTryGetValue(key, out var result))
+                if (UnsafeTryGetValue(key, out V result))
                 {
                     return result;
                 }
@@ -203,13 +203,13 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             lock (_lockObject)
             {
-                if (UnsafeTryGetValue(key, out var result))
+                if (UnsafeTryGetValue(key, out V result))
                 {
                     return result;
                 }
                 else
                 {
-                    var value = creator();
+                    V value = creator();
                     UnsafeAdd(key, value, true);
                     return value;
                 }
@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             lock (_lockObject)
             {
-                if (UnsafeTryGetValue(key, out var result))
+                if (UnsafeTryGetValue(key, out V result))
                 {
                     return result;
                 }
                 else
                 {
-                    var value = creator(arg);
+                    V value = creator(arg);
                     UnsafeAdd(key, value, true);
                     return value;
                 }

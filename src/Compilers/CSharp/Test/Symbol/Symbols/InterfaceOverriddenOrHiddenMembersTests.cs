@@ -777,7 +777,7 @@ public interface Derived2 : Base
      int M { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,9): error CS0102: The type 'Base' already contains a definition for 'M'
                 //     int M { get; set; } // NOTE: illegal, since there's already a method M.
@@ -790,22 +790,22 @@ public interface Derived2 : Base
                 //      void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("Derived1.M()", "Base.M()"));
 
-            var global = comp.GlobalNamespace;
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var baseInterface = global.GetMember<NamedTypeSymbol>("Base");
-            var baseMethod = baseInterface.GetMembers("M").OfType<MethodSymbol>().Single();
-            var baseProperty = baseInterface.GetMembers("M").OfType<PropertySymbol>().Single();
+            NamedTypeSymbol baseInterface = global.GetMember<NamedTypeSymbol>("Base");
+            MethodSymbol baseMethod = baseInterface.GetMembers("M").OfType<MethodSymbol>().Single();
+            PropertySymbol baseProperty = baseInterface.GetMembers("M").OfType<PropertySymbol>().Single();
 
-            var derivedInterface1 = global.GetMember<NamedTypeSymbol>("Derived1");
-            var derivedMethod = derivedInterface1.GetMember<MethodSymbol>("M");
+            NamedTypeSymbol derivedInterface1 = global.GetMember<NamedTypeSymbol>("Derived1");
+            MethodSymbol derivedMethod = derivedInterface1.GetMember<MethodSymbol>("M");
 
-            var overriddenOrHidden1 = derivedMethod.OverriddenOrHiddenMembers;
+            OverriddenOrHiddenMembersResult overriddenOrHidden1 = derivedMethod.OverriddenOrHiddenMembers;
             AssertEx.SetEqual(overriddenOrHidden1.HiddenMembers, baseMethod, baseProperty);
 
-            var derivedInterface2 = global.GetMember<NamedTypeSymbol>("Derived2");
-            var derivedProperty = derivedInterface2.GetMember<PropertySymbol>("M");
+            NamedTypeSymbol derivedInterface2 = global.GetMember<NamedTypeSymbol>("Derived2");
+            PropertySymbol derivedProperty = derivedInterface2.GetMember<PropertySymbol>("M");
 
-            var overriddenOrHidden2 = derivedProperty.OverriddenOrHiddenMembers;
+            OverriddenOrHiddenMembersResult overriddenOrHidden2 = derivedProperty.OverriddenOrHiddenMembers;
             AssertEx.SetEqual(overriddenOrHidden2.HiddenMembers, baseMethod, baseProperty);
         }
 
@@ -834,13 +834,13 @@ interface B : A
     void M(in int x);
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,10): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
                 //     void M(in int x);
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 10));
 
-            var aMethod = comp.GetMember<MethodSymbol>("A.M");
-            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+            MethodSymbol aMethod = comp.GetMember<MethodSymbol>("A.M");
+            MethodSymbol bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -863,13 +863,13 @@ interface B : A
     ref readonly int M();
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 22));
 
-            var aMethod = comp.GetMember<MethodSymbol>("A.M");
-            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+            MethodSymbol aMethod = comp.GetMember<MethodSymbol>("A.M");
+            MethodSymbol bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -892,13 +892,13 @@ interface B : A
     ref readonly int M();
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 22));
 
-            var aMethod = comp.GetMember<MethodSymbol>("A.M");
-            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+            MethodSymbol aMethod = comp.GetMember<MethodSymbol>("A.M");
+            MethodSymbol bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -921,13 +921,13 @@ interface B : A
     ref int M();
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,13): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 13));
 
-            var aMethod = comp.GetMember<MethodSymbol>("A.M");
-            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+            MethodSymbol aMethod = comp.GetMember<MethodSymbol>("A.M");
+            MethodSymbol bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -950,13 +950,13 @@ interface B : A
     ref readonly int Property { get; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     ref readonly int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 22));
 
-            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
-            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
+            PropertySymbol aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            PropertySymbol bProperty = comp.GetMember<PropertySymbol>("B.Property");
 
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
@@ -979,13 +979,13 @@ interface B : A
     ref int Property { get; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,13): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     ref int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 13));
 
-            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
-            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
+            PropertySymbol aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            PropertySymbol bProperty = comp.GetMember<PropertySymbol>("B.Property");
 
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
@@ -1008,13 +1008,13 @@ interface B : A
     ref readonly int Property { get; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     ref readonly int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 22));
 
-            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
-            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
+            PropertySymbol aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            PropertySymbol bProperty = comp.GetMember<PropertySymbol>("B.Property");
 
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
@@ -1037,10 +1037,10 @@ interface B : A
     new void M(in int x);
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
 
-            var aMethod = comp.GetMember<MethodSymbol>("A.M");
-            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+            MethodSymbol aMethod = comp.GetMember<MethodSymbol>("A.M");
+            MethodSymbol bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -1063,10 +1063,10 @@ interface B : A
     new ref readonly int M();
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
 
-            var aMethod = comp.GetMember<MethodSymbol>("A.M");
-            var bMethod = comp.GetMember<MethodSymbol>("B.M");
+            MethodSymbol aMethod = comp.GetMember<MethodSymbol>("A.M");
+            MethodSymbol bMethod = comp.GetMember<MethodSymbol>("B.M");
 
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aMethod.OverriddenOrHiddenMembers.HiddenMembers);
@@ -1089,10 +1089,10 @@ interface B : A
     new ref readonly int Property { get; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
 
-            var aProperty = comp.GetMember<PropertySymbol>("A.Property");
-            var bProperty = comp.GetMember<PropertySymbol>("B.Property");
+            PropertySymbol aProperty = comp.GetMember<PropertySymbol>("A.Property");
+            PropertySymbol bProperty = comp.GetMember<PropertySymbol>("B.Property");
 
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.OverriddenMembers);
             Assert.Empty(aProperty.OverriddenOrHiddenMembers.HiddenMembers);
@@ -1115,7 +1115,7 @@ class B : A
     public void M(in int x) { }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1133,7 +1133,7 @@ class B : A
     public ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1151,7 +1151,7 @@ class B : A
     public ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1168,7 +1168,7 @@ class B : A
     public void M(ref int x) { }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS0535: 'B' does not implement interface member 'A.M(in int)'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.M(in int)").WithLocation(6, 11));
@@ -1194,7 +1194,7 @@ class DerivedClass : BaseInterface
     public ref readonly int this[int a] { get { return ref field; } }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1213,7 +1213,7 @@ class ChildClass : BaseInterface
     public void Method2(ref int x) { }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method2(in int)'
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2(in int)").WithLocation(7, 20),
@@ -1239,7 +1239,7 @@ class ChildClass : BaseInterface
     public ref int Method2() { return ref x; }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (7,20): error CS8152: 'ChildClass' does not implement interface member 'BaseInterface.Method2()'. 'ChildClass.Method2()' cannot implement 'BaseInterface.Method2()' because it does not have matching return by reference.
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2()", "ChildClass.Method2()").WithLocation(7, 20),
@@ -1265,7 +1265,7 @@ class B : A
     public ref int Property2 { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (7,11): error CS8152: 'B' does not implement interface member 'A.Property2'. 'B.Property2' cannot implement 'A.Property2' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.Property2", "B.Property2").WithLocation(7, 11),
@@ -1289,7 +1289,7 @@ class B : A
     public ref readonly int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS8152: 'B' does not implement interface member 'A.this[int]'. 'B.this[int]' cannot implement 'A.this[int]' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.this[int]", "B.this[int]").WithLocation(6, 11));
@@ -1310,7 +1310,7 @@ class B : A
     public ref int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS8152: 'B' does not implement interface member 'A.this[int]'. 'B.this[int]' cannot implement 'A.this[int]' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.this[int]", "B.this[int]").WithLocation(6, 11));
@@ -1330,7 +1330,7 @@ class B : A
     public int this[in int p] { get { return p; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1347,7 +1347,7 @@ class B : A
     public int this[int p] { get { return p; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS0535: 'B' does not implement interface member 'A.this[in int]'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[in int]").WithLocation(6, 11));
@@ -1367,7 +1367,7 @@ class B : A
     public int this[in int p] { get { return p; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS0535: 'B' does not implement interface member 'A.this[int]'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[int]").WithLocation(6, 11));

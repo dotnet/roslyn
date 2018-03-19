@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var info = MarshallingInformation;
+                MarshalPseudoCustomAttributeData info = MarshallingInformation;
                 return info != null ? info.UnmanagedType : 0;
             }
         }

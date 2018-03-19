@@ -176,7 +176,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics(
     // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
     //     public S2()
@@ -1437,8 +1437,8 @@ ulong.MinValue --> 0";
 
         private static string ParseAndGetConstantFoldingSteps(string source, Func<BoundNode, bool> predicate)
         {
-            var block = ParseAndBindMethodBody(source);
-            var constants = BoundTreeSequencer.GetNodes(block).
+            BoundBlock block = ParseAndBindMethodBody(source);
+            IEnumerable<string> constants = BoundTreeSequencer.GetNodes(block).
                 Where(predicate).
                 OfType<BoundExpression>().
                 Where(node => node.ConstantValue != null).
@@ -1566,7 +1566,7 @@ class C
         return string.Join("""", decimal.GetBits(d).Select(word => string.Format(""{0:x8}"", word)));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"00000000000000000000000000010000
 00000000000000000000000080010000
@@ -1983,7 +1983,7 @@ public class goo
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,21): error CS0220: The operation overflows at compile time in checked mode
                 //             int k = i * j;
@@ -2009,7 +2009,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2050,7 +2050,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                     // (6,17): error CS0220: The operation overflows at compile time in checked mode
                     //         int r = int.MaxValue + 1;
@@ -2124,7 +2124,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2179,7 +2179,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,17): error CS0220: The operation overflows at compile time in checked mode
                 //             r = int.MaxValue + 1;
@@ -2366,7 +2366,7 @@ b --> BAD
 {
     const string F = F;
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,18): error CS0110: The evaluation of the constant value for 'C.F' involves a circular definition
                 Diagnostic(CSharp.ErrorCode.ERR_CircConstValue, "F").WithArguments("C.F").WithLocation(3, 18));
@@ -2397,8 +2397,8 @@ public class E
 {
     public const string E1 = C.C1;
 }";
-            var compilation1 = CreateCompilation(source1);
-            var compilation2 = CreateCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation2 = CreateCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
             compilation2.VerifyDiagnostics();
             compilation1.VerifyDiagnostics();
         }
@@ -2438,13 +2438,13 @@ public class F
 {
     public const string G1 = F.F1 + D.D1;
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
             var reference1 = new CSharpCompilationReference(compilation1);
-            var compilation2 = CreateCompilation(source2);
+            CSharpCompilation compilation2 = CreateCompilation(source2);
             var reference2 = new CSharpCompilationReference(compilation2);
-            var compilation3 = CreateCompilation(source3, new MetadataReference[] { reference1 });
+            CSharpCompilation compilation3 = CreateCompilation(source3, new MetadataReference[] { reference1 });
             var reference3 = new CSharpCompilationReference(compilation3);
-            var compilation4 = CreateCompilation(source4, new MetadataReference[] { reference2, reference3 });
+            CSharpCompilation compilation4 = CreateCompilation(source4, new MetadataReference[] { reference2, reference3 });
             compilation4.VerifyDiagnostics();
             compilation3.VerifyDiagnostics();
             compilation2.VerifyDiagnostics(
@@ -2460,7 +2460,7 @@ public class F
         [Fact]
         public void TestConstantValueInsideAttributes()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 class c1
 {
     const int A = 1;
@@ -2476,9 +2476,9 @@ class c1
     {
     }
 }");
-            var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-            var comp = CreateCompilation(tree);
-            var constantValue = comp.GetSemanticModel(tree).GetConstantValue(expr);
+            BinaryExpressionSyntax expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            CSharpCompilation comp = CreateCompilation(tree);
+            Optional<object> constantValue = comp.GetSemanticModel(tree).GetConstantValue(expr);
             Assert.True(constantValue.HasValue);
             Assert.Equal(constantValue.Value, 6);
         }
@@ -2487,14 +2487,14 @@ class c1
         [Fact]
         public void NoConstantValueForOverflows()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 class c1
 {
     const byte Z1 = 300;
     const byte Z2 = (byte)300;
 }");
 
-            var compilation = CreateCompilation(tree);
+            CSharpCompilation compilation = CreateCompilation(tree);
             compilation.VerifyDiagnostics(
                 // (4,21): error CS0031: Constant value '300' cannot be converted to a 'byte'
                 //     const byte Z1 = 300;
@@ -2504,7 +2504,7 @@ class c1
                 Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(byte)300").WithArguments("300", "byte")
                 );
 
-            var symbol = compilation.GlobalNamespace.GetTypeMembers("c1").First().GetMembers("Z1").First();
+            Symbol symbol = compilation.GlobalNamespace.GetTypeMembers("c1").First().GetMembers("Z1").First();
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
 
             symbol = compilation.GlobalNamespace.GetTypeMembers("c1").First().GetMembers("Z2").First();
@@ -2522,15 +2522,15 @@ class C{0}
 {{
     public const int X = C{1}.X;
 }}";
-            var range = Enumerable.Range(0, numConstants);
+            IEnumerable<int> range = Enumerable.Range(0, numConstants);
 
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numConstants)));
 
-            var compilation = CreateCompilation(source);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
+            IEnumerable<NamedTypeSymbol> types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
 
             // Complete all the types at the same time.
             Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
@@ -2552,17 +2552,17 @@ class C{0}
 {{
     public const int X = C{1}.X + C{2}.X;
 }}";
-            var range = Enumerable.Range(0, numConstants);
+            IEnumerable<int> range = Enumerable.Range(0, numConstants);
 
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 i == 0 ? string.Format(template, i, i + 1, i + 1) :
                 i == (numConstants - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateCompilation(source);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
+            IEnumerable<NamedTypeSymbol> types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
 
             // Complete all the types at the same time.
             Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
@@ -2609,15 +2609,15 @@ enum E{0}
 {{
     X = E{1}.X
 }}";
-            var range = Enumerable.Range(0, numConstants);
+            IEnumerable<int> range = Enumerable.Range(0, numConstants);
 
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numConstants)));
 
-            var compilation = CreateCompilation(source);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
+            IEnumerable<NamedTypeSymbol> types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
             Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
@@ -2639,17 +2639,17 @@ enum E{0}
 {{
     X = E{1}.X | E{2}.X
 }}";
-            var range = Enumerable.Range(0, numConstants);
+            IEnumerable<int> range = Enumerable.Range(0, numConstants);
 
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 i == 0 ? string.Format(template, i, i + 1, i + 1) :
                 i == (numConstants - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateCompilation(source);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
+            IEnumerable<NamedTypeSymbol> types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
             Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
@@ -2699,15 +2699,15 @@ enum E{0}
     C,
     D,
 }}";
-            var range = Enumerable.Range(0, numEnums);
+            IEnumerable<int> range = Enumerable.Range(0, numEnums);
 
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numEnums)));
 
-            var compilation = CreateCompilation(source);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
+            IEnumerable<NamedTypeSymbol> types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
             Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
@@ -2732,17 +2732,17 @@ enum E{0}
     C,
     D,
 }}";
-            var range = Enumerable.Range(0, numEnums);
+            IEnumerable<int> range = Enumerable.Range(0, numEnums);
 
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 i == 0 ? string.Format(template, i, i + 1, i + 1) :
                 i == (numEnums - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateCompilation(source);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
+            IEnumerable<NamedTypeSymbol> types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
             Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
@@ -2993,7 +2993,7 @@ class C
         c.Select(o => new { E = F });
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
             comp.VerifyDiagnostics(
                 // (9,9): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IEnumerable<<anonymous type: int E>>' to 'int'
                 //         c.Select(o => new { E = F });
@@ -3015,7 +3015,7 @@ class C
         const int F = c.Sum(o => F);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
             comp.VerifyDiagnostics(
                 // (8,34): error CS0110: The evaluation of the constant value for 'F' involves a circular definition
                 //         const int F = c.Sum(o => F);
@@ -3030,7 +3030,7 @@ class C
         {
             var s = new BoundTreeSequencer();
             s.Visit(root);
-            foreach (var node in s._list)
+            foreach (BoundNode node in s._list)
                 yield return node;
         }
 

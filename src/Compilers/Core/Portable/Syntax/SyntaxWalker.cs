@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="node">The current node that the walker is visiting.</param>
         public virtual void Visit(SyntaxNode node)
         {
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
                 {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (token.HasLeadingTrivia)
             {
-                foreach (var trivia in token.LeadingTrivia)
+                foreach (SyntaxTrivia trivia in token.LeadingTrivia)
                 {
                     VisitTrivia(trivia);
                 }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (token.HasTrailingTrivia)
             {
-                foreach (var trivia in token.TrailingTrivia)
+                foreach (SyntaxTrivia trivia in token.TrailingTrivia)
                 {
                     VisitTrivia(trivia);
                 }

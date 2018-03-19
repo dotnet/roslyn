@@ -5587,7 +5587,7 @@ public abstract class Base<T>
     public abstract List<T> Property1 { get; internal set; }
     public abstract List<T> Property2 { set; internal get; }
 }";
-            var comp1 = CreateCompilation(text1);
+            CSharpCompilation comp1 = CreateCompilation(text1);
 
             var text2 = @"
 using System.Collections.Generic;
@@ -5625,7 +5625,7 @@ public class Base<T>
     public virtual List<T> Property1 { get; set; }
     public virtual List<T> Property2 { set { } get { return null; } }
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -5640,7 +5640,7 @@ class Derived2 : Derived
     public override List<int> Property1 { set { } }
     public override List<int> Property2 { get { return null; } }
 }";
-            var comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
             comp.VerifyDiagnostics(
                 // (11,31): error CS0239: 'Derived2.Property1': cannot override inherited member 'Derived.Property1' because it is sealed
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Property1").WithArguments("Derived2.Property1", "Derived.Property1"),
@@ -6006,7 +6006,7 @@ class C : I
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             // This also forces computation of IsMetadataVirtual.
             compilation.VerifyDiagnostics(
@@ -6016,13 +6016,13 @@ class C : I
 
             const int numEvents = 3;
 
-            var @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
+            NamedTypeSymbol @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
             var interfaceEvents = new EventSymbol[numEvents];
             interfaceEvents[0] = @interface.GetMember<EventSymbol>("E");
             interfaceEvents[1] = @interface.GetMember<EventSymbol>("F");
             interfaceEvents[2] = @interface.GetMember<EventSymbol>("G");
 
-            var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var classEvents = new EventSymbol[numEvents];
             classEvents[0] = @class.GetEvent("I.E");
             classEvents[1] = @class.GetMember<EventSymbol>("F");
@@ -6030,8 +6030,8 @@ class C : I
 
             for (int i = 0; i < numEvents; i++)
             {
-                var classEvent = classEvents[i];
-                var interfaceEvent = interfaceEvents[i];
+                EventSymbol classEvent = classEvents[i];
+                EventSymbol interfaceEvent = interfaceEvents[i];
 
                 Assert.Equal(classEvent, @class.FindImplementationForInterfaceMember(interfaceEvent));
 
@@ -6089,8 +6089,8 @@ class C2 : C1, I1, I2
     public new void Bar() { }
 }
 ";
-            var comp = CreateCompilation(text);
-            var c2Type = comp.Assembly.Modules[0].GlobalNamespace.GetTypeMembers("C2").Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamedTypeSymbol c2Type = comp.Assembly.Modules[0].GlobalNamespace.GetTypeMembers("C2").Single();
             comp.VerifyDiagnostics(DiagnosticDescription.None);
             Assert.True(c2Type.Interfaces().All(iface => iface.Name == "I1" || iface.Name == "I2"));
         }
@@ -7620,8 +7620,8 @@ class A<T> : global::T
         private static CSharpCompilation CompileAndVerifyDiagnostics(string text, ErrorDescription[] expectedErrors, params CSharpCompilation[] baseCompilations)
         {
             var refs = new List<MetadataReference>(baseCompilations.Select(c => new CSharpCompilationReference(c)));
-            var comp = CreateCompilation(text, refs);
-            var actualErrors = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(text, refs);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = comp.GetDiagnostics();
 
             //ostensibly, we could just pass exactMatch: true to VerifyErrorCodes, but that method is short-circuited when 0 errors are expected
             Assert.Equal(expectedErrors.Length, actualErrors.Count());
@@ -7632,8 +7632,8 @@ class A<T> : global::T
 
         private static CSharpCompilation CompileAndVerifyDiagnostics(string text1, string text2, ErrorDescription[] expectedErrors1, ErrorDescription[] expectedErrors2)
         {
-            var comp1 = CompileAndVerifyDiagnostics(text1, expectedErrors1);
-            var comp2 = CompileAndVerifyDiagnostics(text2, expectedErrors2, comp1);
+            CSharpCompilation comp1 = CompileAndVerifyDiagnostics(text1, expectedErrors1);
+            CSharpCompilation comp2 = CompileAndVerifyDiagnostics(text2, expectedErrors2, comp1);
             return comp2;
         }
 

@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (type.TypeKind == TypeKind.TypeParameter)
             {
-                var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
-                foreach (var constraintType in constraintTypes)
+                ImmutableArray<TypeSymbol> constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
+                foreach (TypeSymbol constraintType in constraintTypes)
                 {
                     if (IsNullableTypeOrTypeParameter(constraintType))
                     {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsValidEnumType(this TypeSymbol type)
         {
-            var underlyingType = type.GetEnumUnderlyingType();
+            NamedTypeSymbol underlyingType = type.GetEnumUnderlyingType();
             // SpecialType will be None if the underlying type is invalid.
             return ((object)underlyingType != null) && (underlyingType.SpecialType != SpecialType.None);
         }
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = type.GetEnumUnderlyingType();
             }
 
-            var typedConstantKind = TypedConstant.GetTypedConstantKind(type, compilation);
+            TypedConstantKind typedConstantKind = TypedConstant.GetTypedConstantKind(type, compilation);
             switch (typedConstantKind)
             {
                 case TypedConstantKind.Array:
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
-            var invokeMethod = type.DelegateInvokeMethod();
+            MethodSymbol invokeMethod = type.DelegateInvokeMethod();
             if ((object)invokeMethod == null)
             {
                 return default(ImmutableArray<ParameterSymbol>);
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym);
+            TypeSymbol result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym);
             useSiteDiagnostics = localUseSiteDiagnostics;
             return (object)result == null;
         }
@@ -542,11 +542,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
                         {
-                            var containingType = current.ContainingType;
+                            NamedTypeSymbol containingType = current.ContainingType;
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = containingType.VisitType(predicate, arg);
+                                TypeSymbol result = containingType.VisitType(predicate, arg);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -584,9 +584,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             current = current.TupleUnderlyingType;
                         }
 
-                        foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        foreach (TypeSymbol nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
-                            var result = nestedType.VisitType(predicate, arg);
+                            TypeSymbol result = nestedType.VisitType(predicate, arg);
                             if ((object)result != null)
                             {
                                 return result;
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case Accessibility.Protected:
                         {
-                            var parent1 = s1.ContainingType;
+                            NamedTypeSymbol parent1 = s1.ContainingType;
 
                             if ((object)parent1 == null)
                             {
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 // if s2 is private and within s1's parent or within a subclass of s1's parent,
                                 // then this is at least as restrictive as s1's protected.
-                                for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
+                                for (NamedTypeSymbol parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
                                 {
                                     if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteDiagnostics))
                                     {
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                 // then this is at least as restrictive as s1's protected
-                                var parent2 = s2.ContainingType;
+                                NamedTypeSymbol parent2 = s2.ContainingType;
                                 if ((object)parent2 != null && parent1.IsAccessibleViaInheritance(parent2, ref useSiteDiagnostics))
                                 {
                                     return true;
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case Accessibility.ProtectedOrInternal:
                         {
-                            var parent1 = s1.ContainingType;
+                            NamedTypeSymbol parent1 = s1.ContainingType;
 
                             if ((object)parent1 == null)
                             {
@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         return true;
                                     }
 
-                                    for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
+                                    for (NamedTypeSymbol parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
                                     {
                                         if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteDiagnostics))
                                         {
@@ -768,8 +768,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 break;
                             }
 
-                            var parent1OriginalDefinition = parent1.OriginalDefinition;
-                            for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
+                            NamedTypeSymbol parent1OriginalDefinition = parent1.OriginalDefinition;
+                            for (NamedTypeSymbol parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
                             {
                                 if (ReferenceEquals(parent2.OriginalDefinition, parent1OriginalDefinition) || parent1OriginalDefinition.TypeKind == TypeKind.Submission && parent2.TypeKind == TypeKind.Submission)
                                 {
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsTypeParameter(this TypeSymbol type, TypeParameterSymbol parameter = null)
         {
-            var result = type.VisitType(s_containsTypeParameterPredicate, parameter);
+            TypeSymbol result = type.VisitType(s_containsTypeParameterPredicate, parameter);
             return (object)result != null;
         }
 
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)parameterContainer != null);
 
-            var result = type.VisitType(s_isTypeParameterWithSpecificContainerPredicate, parameterContainer);
+            TypeSymbol result = type.VisitType(s_isTypeParameterWithSpecificContainerPredicate, parameterContainer);
             return (object)result != null;
         }
 
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
         {
-            var result = type.VisitType(s_containsTypeParametersPredicate, parameters);
+            TypeSymbol result = type.VisitType(s_containsTypeParametersPredicate, parameters);
             return (object)result != null;
         }
 
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsDynamic(this TypeSymbol type)
         {
-            var result = type.VisitType(s_containsDynamicPredicate, null);
+            TypeSymbol result = type.VisitType(s_containsDynamicPredicate, null);
             return (object)result != null;
         }
 
@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal static TypeSymbol GetNonErrorGuess(this TypeSymbol type)
         {
-            var result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
+            TypeSymbol result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
             Debug.Assert((object)result == null || !result.IsErrorType());
             return result;
         }
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  In short - we are not interested in the type parameters of unconstructed types.
             if ((object)type.ConstructedFrom != (object)type)
             {
-                foreach (var arg in type.TypeArgumentsNoUseSiteDiagnostics)
+                foreach (TypeSymbol arg in type.TypeArgumentsNoUseSiteDiagnostics)
                 {
                     code = Hash.Combine(arg, code);
                 }
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static void GetAllTypeParameters(this NamedTypeSymbol type, ArrayBuilder<TypeParameterSymbol> result)
         {
-            var containingType = type.ContainingType;
+            NamedTypeSymbol containingType = type.ContainingType;
             if ((object)containingType != null)
             {
                 containingType.GetAllTypeParameters(result);
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         return null;
                 }
-                foreach (var typeParameter in methodOrType.GetMemberTypeParameters())
+                foreach (TypeParameterSymbol typeParameter in methodOrType.GetMemberTypeParameters())
                 {
                     if (typeParameter.Name == name)
                     {
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             const StringComparison comparison = StringComparison.Ordinal;
 
-            var container = type.ContainingSymbol;
+            Symbol container = type.ContainingSymbol;
             if (container.Kind != SymbolKind.Namespace)
             {
                 // Nested type. For simplicity, compare qualified name to SymbolDisplay result.
@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var container = @namespace.ContainingNamespace;
+            NamespaceSymbol container = @namespace.ContainingNamespace;
             int separator = namespaceName.LastIndexOf('.', length - 1, length);
             int offset = 0;
             if (separator >= 0)
@@ -1355,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (arity < 2)
             {
                 // Find the AsyncBuilder attribute.
-                foreach (var attr in type.GetAttributes())
+                foreach (CSharpAttributeData attr in type.GetAttributes())
                 {
                     if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
                         && attr.CommonConstructorArguments.Length == 1
@@ -1427,8 +1427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
                 for (int i = 0; i < typeArgumentsBuilder.Count; i++)
                 {
-                    var typeWithModifier = typeArgumentsBuilder[i];
-                    var typeArgNormalized = typeWithModifier.Type;
+                    TypeWithModifiers typeWithModifier = typeArgumentsBuilder[i];
+                    TypeSymbol typeArgNormalized = typeWithModifier.Type;
                     if (NormalizeTaskTypesInType(compilation, ref typeArgNormalized))
                     {
                         hasChanged = true;
@@ -1438,8 +1438,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 if (hasChanged)
                 {
-                    var originalDefinition = type.OriginalDefinition;
-                    var typeParameters = originalDefinition.GetAllTypeParameters();
+                    NamedTypeSymbol originalDefinition = type.OriginalDefinition;
+                    ImmutableArray<TypeParameterSymbol> typeParameters = originalDefinition.GetAllTypeParameters();
                     var typeMap = new TypeMap(typeParameters, typeArgumentsBuilder.ToImmutable(), allowAlpha: true);
                     type = typeMap.SubstituteNamedType(originalDefinition);
                 }
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int arity = type.Arity;
                 Debug.Assert(arity < 2);
-                var taskType = compilation.GetWellKnownType(
+                NamedTypeSymbol taskType = compilation.GetWellKnownType(
                     arity == 0 ?
                     WellKnownType.System_Threading_Tasks_Task :
                     WellKnownType.System_Threading_Tasks_Task_T);
@@ -1477,7 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool NormalizeTaskTypesInTuple(CSharpCompilation compilation, ref NamedTypeSymbol type)
         {
             Debug.Assert(type.IsTupleType);
-            var underlyingType = type.TupleUnderlyingType;
+            NamedTypeSymbol underlyingType = type.TupleUnderlyingType;
             if (!NormalizeTaskTypesInNamedType(compilation, ref underlyingType))
             {
                 return false;
@@ -1488,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
         {
-            var elementType = arrayType.ElementType;
+            TypeSymbol elementType = arrayType.ElementType;
             if (!NormalizeTaskTypesInType(compilation, ref elementType))
             {
                 return false;
@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool NormalizeTaskTypesInPointer(CSharpCompilation compilation, ref PointerTypeSymbol pointerType)
         {
-            var pointedAtType = pointerType.PointedAtType;
+            TypeSymbol pointedAtType = pointerType.PointedAtType;
             if (!NormalizeTaskTypesInType(compilation, ref pointedAtType))
             {
                 return false;
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (type.ContainsTupleNames())
             {
-                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
+                SynthesizedAttributeData attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
                 if (attr != null)
                 {
                     return new Cci.TypeReferenceWithAttributes(
@@ -1539,25 +1539,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var interopServicesNamespace = typeSymbol.ContainingNamespace;
+            INamespaceSymbol interopServicesNamespace = typeSymbol.ContainingNamespace;
             if (interopServicesNamespace?.Name != "InteropServices")
             {
                 return false;
             }
 
-            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
+            INamespaceSymbol runtimeNamespace = interopServicesNamespace.ContainingNamespace;
             if (runtimeNamespace?.Name != "Runtime")
             {
                 return false;
             }
 
-            var systemNamespace = runtimeNamespace.ContainingNamespace;
+            INamespaceSymbol systemNamespace = runtimeNamespace.ContainingNamespace;
             if (systemNamespace?.Name != "System")
             {
                 return false;
             }
 
-            var globalNamespace = systemNamespace.ContainingNamespace;
+            INamespaceSymbol globalNamespace = systemNamespace.ContainingNamespace;
 
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }

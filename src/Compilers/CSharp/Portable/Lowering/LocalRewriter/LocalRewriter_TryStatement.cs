@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Block:
                     {
                         var block = (BoundBlock)statement;
-                        foreach (var stmt in block.Statements)
+                        foreach (BoundStatement stmt in block.Statements)
                         {
                             if (HasSideEffects(stmt)) return true;
                         }

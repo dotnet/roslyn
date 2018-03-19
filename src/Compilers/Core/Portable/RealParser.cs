@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis
         public static bool TryParseDouble(string s, out double d)
         {
             var str = DecimalFloatingPointString.FromSource(s);
-            var dbl = DoubleFloatingPointType.Instance;
+            DoubleFloatingPointType dbl = DoubleFloatingPointType.Instance;
             ulong result;
-            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+            Status status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
             d = BitConverter.Int64BitsToDouble((long)result);
             return status != Status.Overflow;
         }
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis
         public static bool TryParseFloat(string s, out float f)
         {
             var str = DecimalFloatingPointString.FromSource(s);
-            var dbl = FloatFloatingPointType.Instance;
+            FloatFloatingPointType dbl = FloatFloatingPointType.Instance;
             ulong result;
-            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+            Status status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
             f = Int32BitsToFloat((uint)result);
             return status != Status.Overflow;
         }

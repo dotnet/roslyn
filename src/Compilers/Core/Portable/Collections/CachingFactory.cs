@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis
             int hash = GetKeyHash(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            Entry[] entries = this.entries;
             if (entries[idx].hash == hash)
             {
-                var candidate = entries[idx].value;
+                TValue candidate = entries[idx].value;
                 if (_keyValueEquality(key, candidate))
                 {
                     value = candidate;
@@ -88,17 +88,17 @@ namespace Microsoft.CodeAnalysis
             int hash = GetKeyHash(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            Entry[] entries = this.entries;
             if (entries[idx].hash == hash)
             {
-                var candidate = entries[idx].value;
+                TValue candidate = entries[idx].value;
                 if (_keyValueEquality(key, candidate))
                 {
                     return candidate;
                 }
             }
 
-            var value = _valueFactory(key);
+            TValue value = _valueFactory(key);
             entries[idx].hash = hash;
             entries[idx].value = value;
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            Entry[] entries = this.entries;
             if ((object)entries[idx].key == (object)key)
             {
                 value = entries[idx].value;
@@ -175,13 +175,13 @@ namespace Microsoft.CodeAnalysis
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            Entry[] entries = this.entries;
             if ((object)entries[idx].key == (object)key)
             {
                 return entries[idx].value;
             }
 
-            var value = _valueFactory(key);
+            TValue value = _valueFactory(key);
             entries[idx].key = key;
             entries[idx].value = value;
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
         public void Free()
         {
-            var pool = _pool;
+            ObjectPool<CachingIdentityFactory<TKey, TValue>> pool = _pool;
 
             // Array.Clear(this.entries, 0, this.entries.Length);
 

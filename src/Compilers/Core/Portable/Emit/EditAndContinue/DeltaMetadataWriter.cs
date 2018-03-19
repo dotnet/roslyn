@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _definitionMap = definitionMap;
             _changes = changes;
 
-            var sizes = previousGeneration.TableSizes;
+            ImmutableArray<int> sizes = previousGeneration.TableSizes;
 
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
@@ -135,13 +135,13 @@ namespace Microsoft.CodeAnalysis.Emit
         internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
-            foreach (var pair in _addedOrChangedMethods)
+            foreach (KeyValuePair<IMethodDefinition, AddedOrChangedMethodInfo> pair in _addedOrChangedMethods)
             {
                 addedOrChangedMethodsByIndex.Add(MetadataTokens.GetRowNumber(GetMethodDefinitionHandle(pair.Key)), pair.Value);
             }
 
-            var previousTableSizes = _previousGeneration.TableEntriesAdded;
-            var deltaTableSizes = GetDeltaTableSizes(metadataSizes.RowCounts);
+            ImmutableArray<int> previousTableSizes = _previousGeneration.TableEntriesAdded;
+            ImmutableArray<int> deltaTableSizes = GetDeltaTableSizes(metadataSizes.RowCounts);
             var tableSizes = new int[MetadataTokens.TableCount];
 
             for (int i = 0; i < tableSizes.Length; i++)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetSynthesizedMembers() : baseline.SynthesizedMembers;
+            ImmutableDictionary<ITypeDefinition, ImmutableArray<ITypeDefinitionMember>> synthesizedMembers = (baseline.Ordinal == 0) ? module.GetSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
@@ -195,12 +195,12 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var result = new Dictionary<K, V>();
-            foreach (var pair in previous)
+            foreach (KeyValuePair<K, V> pair in previous)
             {
                 result.Add(pair.Key, pair.Value);
             }
 
-            foreach (var pair in current)
+            foreach (KeyValuePair<K, V> pair in current)
             {
                 Debug.Assert(replace || !previous.ContainsKey(pair.Key));
                 result[pair.Key] = pair.Value;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public void GetMethodTokens(ICollection<MethodDefinitionHandle> methods)
         {
-            foreach (var def in _methodDefs.GetRows())
+            foreach (IMethodDefinition def in _methodDefs.GetRows())
             {
                 // The debugger tries to remap all modified methods, which requires presence of sequence points.
                 if (!_methodDefs.IsAddedNotChanged(def) && def.GetBody(Context)?.SequencePoints.Length > 0)
@@ -353,8 +353,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override AssemblyReferenceHandle GetOrAddAssemblyReferenceHandle(IAssemblyReference reference)
         {
-            var identity = reference.Identity;
-            var versionPattern = reference.AssemblyVersionPattern;
+            AssemblyIdentity identity = reference.Identity;
+            Version versionPattern = reference.AssemblyVersionPattern;
 
             if ((object)versionPattern != null)
             {
@@ -452,15 +452,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
-            var change = _changes.GetChange(typeDef);
+            SymbolChange change = _changes.GetChange(typeDef);
             switch (change)
             {
                 case SymbolChange.Added:
                     _typeDefs.Add(typeDef);
-                    var typeParameters = this.GetConsolidatedTypeParameters(typeDef);
+                    IEnumerable<IGenericTypeParameter> typeParameters = this.GetConsolidatedTypeParameters(typeDef);
                     if (typeParameters != null)
                     {
-                        foreach (var typeParameter in typeParameters)
+                        foreach (IGenericTypeParameter typeParameter in typeParameters)
                         {
                             _genericParameters.Add(typeParameter);
                         }
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var ok = _typeDefs.TryGetValue(typeDef, out typeIndex);
             Debug.Assert(ok);
 
-            foreach (var eventDef in typeDef.GetEvents(this.Context))
+            foreach (IEventDefinition eventDef in typeDef.GetEvents(this.Context))
             {
                 int eventMapIndex;
                 if (!_eventMap.TryGetValue(typeIndex, out eventMapIndex))
@@ -498,16 +498,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_eventDefs, eventDef);
             }
 
-            foreach (var fieldDef in typeDef.GetFields(this.Context))
+            foreach (IFieldDefinition fieldDef in typeDef.GetFields(this.Context))
             {
                 this.AddDefIfNecessary(_fieldDefs, fieldDef);
             }
 
-            foreach (var methodDef in typeDef.GetMethods(this.Context))
+            foreach (IMethodDefinition methodDef in typeDef.GetMethods(this.Context))
             {
                 if (this.AddDefIfNecessary(_methodDefs, methodDef))
                 {
-                    foreach (var paramDef in this.GetParametersToEmit(methodDef))
+                    foreach (IParameterDefinition paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
                         _parameterDefList.Add(KeyValuePair.Create(methodDef, paramDef));
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     if (methodDef.GenericParameterCount > 0)
                     {
-                        foreach (var typeParameter in methodDef.GenericParameters)
+                        foreach (IGenericMethodParameter typeParameter in methodDef.GenericParameters)
                         {
                             _genericParameters.Add(typeParameter);
                         }
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            foreach (var propertyDef in typeDef.GetProperties(this.Context))
+            foreach (IPropertyDefinition propertyDef in typeDef.GetProperties(this.Context))
             {
                 int propertyMapIndex;
                 if (!_propertyMap.TryGetValue(typeIndex, out propertyMapIndex))
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var implementingMethods = ArrayBuilder<int>.GetInstance();
 
             // First, visit all MethodImplementations and add to this.methodImplList.
-            foreach (var methodImpl in typeDef.GetExplicitImplementationOverrides(Context))
+            foreach (Cci.MethodImplementation methodImpl in typeDef.GetExplicitImplementationOverrides(Context))
             {
                 var methodDef = (IMethodDefinition)methodImpl.ImplementingMethod.AsDefinition(this.Context);
                 int methodDefIndex;
@@ -604,12 +604,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected override void ReportReferencesToAddedSymbols()
         {
-            foreach (var typeRef in GetTypeRefs())
+            foreach (ITypeReference typeRef in GetTypeRefs())
             {
                 ReportReferencesToAddedSymbol(typeRef as ISymbol);
             }
 
-            foreach (var memberRef in GetMemberRefs())
+            foreach (ITypeMemberReference memberRef in GetMemberRefs())
             {
                 ReportReferencesToAddedSymbol(memberRef as ISymbol);
             }
@@ -630,13 +630,13 @@ namespace Microsoft.CodeAnalysis.Emit
         protected override StandaloneSignatureHandle SerializeLocalVariablesSignature(IMethodBody body)
         {
             StandaloneSignatureHandle localSignatureHandle;
-            var localVariables = body.LocalVariables;
+            ImmutableArray<ILocalDefinition> localVariables = body.LocalVariables;
             var encInfos = ArrayBuilder<EncLocalInfo>.GetInstance();
 
             if (localVariables.Length > 0)
             {
                 var writer = PooledBlobBuilder.GetInstance();
-                var encoder = new BlobEncoder(writer).LocalVariableSignature(localVariables.Length);
+                LocalVariablesEncoder encoder = new BlobEncoder(writer).LocalVariableSignature(localVariables.Length);
 
                 foreach (ILocalDefinition local in localVariables)
                 {
@@ -703,8 +703,8 @@ namespace Microsoft.CodeAnalysis.Emit
             // The EncLog table is a log of all the operations needed
             // to update the previous metadata. That means all
             // new references must be added to the EncLog.
-            var previousSizes = _previousGeneration.TableSizes;
-            var deltaSizes = this.GetDeltaTableSizes(rowCounts);
+            ImmutableArray<int> previousSizes = _previousGeneration.TableSizes;
+            ImmutableArray<int> deltaSizes = this.GetDeltaTableSizes(rowCounts);
 
             PopulateEncLogTableRows(TableIndex.AssemblyRef, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.ModuleRef, previousSizes, deltaSizes);
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Emit
             TableIndex mapTable)
             where T : ITypeDefinitionMember
         {
-            foreach (var member in index.GetRows())
+            foreach (T member in index.GetRows())
             {
                 if (index.IsAddedNotChanged(member))
                 {
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.Emit
             EditAndContinueOperation addCode)
             where T : ITypeDefinitionMember
         {
-            foreach (var member in index.GetRows())
+            foreach (T member in index.GetRows())
             {
                 if (index.IsAddedNotChanged(member))
                 {
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var parameterFirstId = _parameterDefs.FirstRowId;
             for (int i = 0; i < _parameterDefList.Count; i++)
             {
-                var methodDef = _parameterDefList[i].Key;
+                IMethodDefinition methodDef = _parameterDefList[i].Key;
 
                 metadata.AddEncLogEntry(
                     entity: MetadataTokens.MethodDefinitionHandle(_methodDefs[methodDef]),
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
             where T : IDefinition
         {
-            foreach (var member in index.GetRows())
+            foreach (T member in index.GetRows())
             {
                 metadata.AddEncLogEntry(
                     entity: MetadataTokens.Handle(tableIndex, index[member]),
@@ -841,8 +841,8 @@ namespace Microsoft.CodeAnalysis.Emit
             // list of all tokens in all tables from the delta sorted by table
             // and, within each table, sorted by row.
             var tokens = ArrayBuilder<EntityHandle>.GetInstance();
-            var previousSizes = _previousGeneration.TableSizes;
-            var deltaSizes = this.GetDeltaTableSizes(rowCounts);
+            ImmutableArray<int> previousSizes = _previousGeneration.TableSizes;
+            ImmutableArray<int> deltaSizes = this.GetDeltaTableSizes(rowCounts);
 
             AddReferencedTokens(tokens, TableIndex.AssemblyRef, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.ModuleRef, previousSizes, deltaSizes);
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // Should not be any duplicates.
             Debug.Assert(tokens.Distinct().Count() == tokens.Count);
 
-            foreach (var token in tokens)
+            foreach (EntityHandle token in tokens)
             {
                 metadata.AddEncMapEntry(token);
             }
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Should not be any duplicates.
                 Debug.Assert(debugTokens.Distinct().Count() == debugTokens.Count);
 
-                foreach (var token in debugTokens)
+                foreach (EntityHandle token in debugTokens)
                 {
                     _debugMetadataOpt.AddEncMapEntry(token);
                 }
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private static void AddDefinitionTokens<T>(ArrayBuilder<EntityHandle> tokens, DefinitionIndex<T> index, TableIndex tableIndex)
             where T : IDefinition
         {
-            foreach (var member in index.GetRows())
+            foreach (T member in index.GetRows())
             {
                 tokens.Add(MetadataTokens.Handle(tableIndex, index[member]));
             }
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.Emit
 #if DEBUG
                 // Verify the rows are sorted.
                 int prev = 0;
-                foreach (var row in this.rows)
+                foreach (T row in this.rows)
                 {
                     int next = this.added[row];
                     Debug.Assert(prev < next);

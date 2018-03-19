@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RefExprNullPropagation()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 using System;
 struct S : IDisposable
 {
@@ -115,7 +115,7 @@ Dispose
         [Fact]
         public void RefExprUnaryPlus()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 using System;
 class C
 {
@@ -261,7 +261,7 @@ class RefEnumerable
         [Fact]
         public void RefReassignDifferentTupleNames()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -284,7 +284,7 @@ class C
         [Fact]
         public void RefReassignRefExpressions()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -317,7 +317,7 @@ class C
         [Fact]
         public void RefReassignParamByVal()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -347,7 +347,7 @@ class C
         [Fact]
         public void RefReassignParamIn()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -392,7 +392,7 @@ class C
         [Fact]
         public void RefReassignParamInConversion()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -442,7 +442,7 @@ class C
         [Fact]
         public void RefReassignField()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 struct S
 {
@@ -531,7 +531,7 @@ class C
         [Fact]
         public void RefReassignFieldReadonly()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 struct S
 {
@@ -616,7 +616,7 @@ class C
         [Fact]
         public void RefReassignFieldRefReadonly()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 struct S
 {
@@ -670,7 +670,7 @@ class C
         [Fact]
         public void RefReadonlyStackSchedule()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 struct S
 {
@@ -693,7 +693,7 @@ class C
         [Fact]
         public void RefReassignCall()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 struct S
 {
@@ -777,7 +777,7 @@ class C
         [Fact]
         public void RefReassignTernary()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -806,7 +806,7 @@ class C
         [Fact]
         public void RefReassignTernaryParam()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -858,7 +858,7 @@ class C
         [Fact]
         public void RefReassignFor()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -886,7 +886,7 @@ class C
         [Fact]
         public void AssignInMethodCall()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -923,7 +923,7 @@ class C
         [Fact]
         public void CompoundRefAssignIsLValue()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -997,7 +997,7 @@ class C
         [Fact]
         public void CompoundRefAssign()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -1068,7 +1068,7 @@ class C
         [Fact]
         public void RefReassignIn()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1113,7 +1113,7 @@ class C
         [Fact]
         public void RefReassignOut()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1166,7 +1166,7 @@ class C
         [Fact]
         public void RefReassignRefParam()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1215,7 +1215,7 @@ class C
         [Fact]
         public void RefReassignRefReadonlyLocal()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1256,7 +1256,7 @@ class C
         [Fact]
         public void RefReassignLocal()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1351,7 +1351,7 @@ class C
         [Fact]
         public void RefReadonlyReassign()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1552,7 +1552,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -1623,7 +1623,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -1713,7 +1713,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       20 (0x14)
@@ -1775,7 +1775,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       10 (0xa)
@@ -1842,7 +1842,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       10 (0xa)
@@ -1924,7 +1924,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       21 (0x15)
@@ -2019,7 +2019,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -2095,7 +2095,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -2146,7 +2146,7 @@ class Program2
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size       17 (0x11)
@@ -2227,7 +2227,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       14 (0xe)
@@ -2298,7 +2298,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       14 (0xe)
@@ -2395,7 +2395,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       25 (0x19)
@@ -2505,7 +2505,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -2582,7 +2582,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -2688,7 +2688,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails);
             comp.VerifyIL("Program<T>.M(ref int, ref int, object)", @"
 {
   // Code size       28 (0x1c)
@@ -2973,7 +2973,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int rl = ref (new int[1])[0];
@@ -2997,17 +2997,17 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            VariableDeclaratorSyntax xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
             Assert.Equal("System.Int32 x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
 
-            var refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
-            var type = refVar.Type;
+            RefTypeSyntax refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            TypeSyntax type = refVar.Type;
             Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(type));
@@ -3030,20 +3030,20 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            VariableDeclaratorSyntax xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
             Assert.Equal("C x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
 
-            var refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
-            var type = refVar.Type;
+            RefTypeSyntax refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            TypeSyntax type = refVar.Type;
             Assert.Equal("C", model.GetTypeInfo(type).Type.ToTestDisplayString());
             Assert.Equal("C", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
-            var alias = model.GetAliasInfo(type);
+            IAliasSymbol alias = model.GetAliasInfo(type);
             Assert.Equal(SymbolKind.NamedType, alias.Target.Kind);
             Assert.Equal("C", alias.Target.ToDisplayString());
 
@@ -3064,17 +3064,17 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            VariableDeclaratorSyntax xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
             Assert.Equal("System.Int32 x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
 
-            var refInt = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
-            var type = refInt.Type;
+            RefTypeSyntax refInt = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            TypeSyntax type = refInt.Type;
             Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(type));
@@ -3106,7 +3106,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilation(source);
+            CSharpCompilation c = CreateCompilation(source);
 
             c.VerifyDiagnostics(
                 // (8,27): error CS1510: A ref or out value must be an assignable variable

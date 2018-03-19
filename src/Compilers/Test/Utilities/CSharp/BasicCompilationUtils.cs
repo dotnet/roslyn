@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 references = new[] { TestBase.MscorlibRef };
             }
-            var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = Instance.CompileAndVerifyCommon(compilation, verify: verify);
+            VisualBasicCompilation compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
+            CompilationVerifier verifier = Instance.CompileAndVerifyCommon(compilation, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 assemblyName = TestBase.GetUniqueName();
             }
-            var tree = VisualBasicSyntaxTree.ParseText(source);
+            SyntaxTree tree = VisualBasicSyntaxTree.ParseText(source);
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
             return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }

@@ -1360,14 +1360,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(SeparatedSyntaxList<TNode>);
             }
 
-            using (var enumerator = nodes.GetEnumerator())
+            using (IEnumerator<TNode> enumerator = nodes.GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
                     return default(SeparatedSyntaxList<TNode>);
                 }
 
-                var firstNode = enumerator.Current;
+                TNode firstNode = enumerator.Current;
 
                 if (!enumerator.MoveNext())
                 {
@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(firstNode);
 
-                var commaToken = Token(SyntaxKind.CommaToken);
+                SyntaxToken commaToken = Token(SyntaxKind.CommaToken);
 
                 do
                 {
@@ -1476,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0, n = list.Count; i < n; i++)
             {
-                var element = list[i];
+                SyntaxNodeOrToken element = list[i];
                 if (element.IsNode && !(element.AsNode() is TNode))
                 {
                     return false;
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0, n = list.Count; i < n; i++)
             {
-                var element = list[i];
+                SyntaxNodeOrToken element = list[i];
                 if (element.IsToken == ((i & 1) == 0))
                 {
                     return false;
@@ -1651,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var position = initialTokenPosition;
                 while (true)
                 {
-                    var token = lexer.Lex(InternalSyntax.LexerMode.Syntax);
+                    InternalSyntax.SyntaxToken token = lexer.Lex(InternalSyntax.LexerMode.Syntax);
                     yield return new SyntaxToken(parent: null, token: token, position: position, index: 0);
 
                     position += token.FullWidth;
@@ -1669,10 +1669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NameSyntax ParseName(string text, int offset = 0, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseName();
+                InternalSyntax.NameSyntax node = parser.ParseName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (NameSyntax)node.CreateRed();
             }
@@ -1683,10 +1683,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static TypeSyntax ParseTypeName(string text, int offset = 0, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseTypeName();
+                InternalSyntax.TypeSyntax node = parser.ParseTypeName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (TypeSyntax)node.CreateRed();
             }
@@ -1702,10 +1702,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static ExpressionSyntax ParseExpression(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseExpression();
+                InternalSyntax.ExpressionSyntax node = parser.ParseExpression();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ExpressionSyntax)node.CreateRed();
             }
@@ -1721,10 +1721,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static StatementSyntax ParseStatement(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseStatement();
+                InternalSyntax.StatementSyntax node = parser.ParseStatement();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (StatementSyntax)node.CreateRed();
             }
@@ -1742,10 +1742,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // note that we do not need a "consumeFullText" parameter, because parsing a compilation unit always must
             // consume input until the end-of-file
-            using (var lexer = MakeLexer(text, offset, options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseCompilationUnit();
+                InternalSyntax.CompilationUnitSyntax node = parser.ParseCompilationUnit();
                 // if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (CompilationUnitSyntax)node.CreateRed();
             }
@@ -1761,10 +1761,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static ParameterListSyntax ParseParameterList(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList();
+                InternalSyntax.ParameterListSyntax node = parser.ParseParenthesizedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }
@@ -1780,10 +1780,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static BracketedParameterListSyntax ParseBracketedParameterList(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseBracketedParameterList();
+                InternalSyntax.BracketedParameterListSyntax node = parser.ParseBracketedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (BracketedParameterListSyntax)node.CreateRed();
             }
@@ -1799,10 +1799,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static ArgumentListSyntax ParseArgumentList(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedArgumentList();
+                InternalSyntax.ArgumentListSyntax node = parser.ParseParenthesizedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ArgumentListSyntax)node.CreateRed();
             }
@@ -1818,10 +1818,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static BracketedArgumentListSyntax ParseBracketedArgumentList(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseBracketedArgumentList();
+                InternalSyntax.BracketedArgumentListSyntax node = parser.ParseBracketedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (BracketedArgumentListSyntax)node.CreateRed();
             }
@@ -1837,10 +1837,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static AttributeArgumentListSyntax ParseAttributeArgumentList(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
         {
-            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
-            using (var parser = MakeParser(lexer))
+            using (InternalSyntax.Lexer lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (InternalSyntax.LanguageParser parser = MakeParser(lexer))
             {
-                var node = parser.ParseAttributeArgumentList();
+                InternalSyntax.AttributeArgumentListSyntax node = parser.ParseAttributeArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (AttributeArgumentListSyntax)node.CreateRed();
             }
@@ -2171,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static ConditionalAccessExpressionSyntax FindConditionalAccessNodeForBinding(CSharpSyntaxNode node)
         {
-            var currentNode = node;
+            CSharpSyntaxNode currentNode = node;
 
             Debug.Assert(currentNode.Kind() == SyntaxKind.MemberBindingExpression ||
                          currentNode.Kind() == SyntaxKind.ElementBindingExpression);
@@ -2263,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            foreach (var error in compilation.EndOfFileToken.GetDiagnostics())
+            foreach (Diagnostic error in compilation.EndOfFileToken.GetDiagnostics())
             {
                 switch ((ErrorCode)error.Code)
                 {
@@ -2274,7 +2274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var lastNode = compilation.ChildNodes().LastOrDefault();
+            SyntaxNode lastNode = compilation.ChildNodes().LastOrDefault();
             if (lastNode == null)
             {
                 return true;
@@ -2295,12 +2295,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // should have a closing token (semicolon, closing brace or bracket) to be complete.
             if (!lastNode.IsKind(SyntaxKind.GlobalStatement))
             {
-                var closingToken = lastNode.GetLastToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                SyntaxToken closingToken = lastNode.GetLastToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
                 return !closingToken.IsMissing;
             }
 
             var globalStatement = (GlobalStatementSyntax)lastNode;
-            var token = lastNode.GetLastToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+            SyntaxToken token = lastNode.GetLastToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
 
             if (token.IsMissing)
             {
@@ -2319,7 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            foreach (var error in token.GetDiagnostics())
+            foreach (Diagnostic error in token.GetDiagnostics())
             {
                 switch ((ErrorCode)error.Code)
                 {
@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasUnterminatedMultiLineComment(SyntaxTriviaList triviaList)
         {
-            foreach (var trivia in triviaList)
+            foreach (SyntaxTrivia trivia in triviaList)
             {
                 if (trivia.ContainsDiagnostics && trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
                 {

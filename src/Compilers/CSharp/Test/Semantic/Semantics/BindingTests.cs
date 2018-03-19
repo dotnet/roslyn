@@ -713,7 +713,7 @@ delegate";
         [Fact]
         public void UseSiteErrorViaAliasTest01()
         {
-            var baseAssembly = CreateCompilation(
+            CSharpCompilation baseAssembly = CreateCompilation(
 @"
 namespace BaseAssembly {
     public class BaseClass {
@@ -721,7 +721,7 @@ namespace BaseAssembly {
 }
 ", assemblyName: "BaseAssembly1").VerifyDiagnostics();
 
-            var derivedAssembly = CreateCompilation(
+            CSharpCompilation derivedAssembly = CreateCompilation(
 @"
 namespace DerivedAssembly {
     public class DerivedClass: BaseAssembly.BaseClass {
@@ -730,7 +730,7 @@ namespace DerivedAssembly {
 }
 ", assemblyName: "DerivedAssembly1", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
 
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = DerivedAssembly.DerivedClass; 
 public class Test
@@ -752,7 +752,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest02()
         {
-            var baseAssembly = CreateCompilation(
+            CSharpCompilation baseAssembly = CreateCompilation(
 @"
 namespace BaseAssembly {
     public class BaseClass {
@@ -760,7 +760,7 @@ namespace BaseAssembly {
 }
 ", assemblyName: "BaseAssembly2").VerifyDiagnostics();
 
-            var derivedAssembly = CreateCompilation(
+            CSharpCompilation derivedAssembly = CreateCompilation(
 @"
 namespace DerivedAssembly {
     public class DerivedClass: BaseAssembly.BaseClass {
@@ -769,7 +769,7 @@ namespace DerivedAssembly {
 }
 ", assemblyName: "DerivedAssembly2", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
 
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = DerivedAssembly.DerivedClass; 
 public class Test
@@ -791,7 +791,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest03()
         {
-            var baseAssembly = CreateCompilation(
+            CSharpCompilation baseAssembly = CreateCompilation(
 @"
 namespace BaseAssembly {
     public class BaseClass {
@@ -799,7 +799,7 @@ namespace BaseAssembly {
 }
 ", assemblyName: "BaseAssembly3").VerifyDiagnostics();
 
-            var derivedAssembly = CreateCompilation(
+            CSharpCompilation derivedAssembly = CreateCompilation(
 @"
 namespace DerivedAssembly {
     public class DerivedClass: BaseAssembly.BaseClass {
@@ -808,7 +808,7 @@ namespace DerivedAssembly {
 }
 ", assemblyName: "DerivedAssembly3", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
 
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = DerivedAssembly.DerivedClass; 
 public class Test
@@ -843,7 +843,7 @@ public interface IInterfaceBase
 {
     void bar();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (3,7): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.bar()'
                 //     : IInterfaceBase
@@ -868,7 +868,7 @@ namespace test
     }
 }";
 
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (3,7): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase.bar()'
                 //     : test.IInterfaceBase
@@ -894,7 +894,7 @@ namespace test
         void bar();
     }
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (5,7): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase.bar()'
                 //     : a1.IInterfaceBase
@@ -926,7 +926,7 @@ namespace test
     }
 }";
 
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (5,7): error CS0535: 'ITT' does not implement interface member 'test.IInterfaceBase.xyz()'
                 //     : a1.IInterfaceBase, a1.IInterfaceBase2 
@@ -958,7 +958,7 @@ public interface IInterfaceBase2
         void abc();
 }";
 
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (3,7): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyz()'
                 //     : IInterfaceBase, IInterfaceBase2 
@@ -988,7 +988,7 @@ public interface IInterfaceBase2
     void abc();
 }
 ";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (3,23): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase2.abc()'
                 //     : IInterfaceBase, IInterfaceBase2 
@@ -1016,7 +1016,7 @@ public interface IInterfaceBase2
     void xyz();
 }
 ";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (3,7): error CS0535: 'ITT' does not implement interface member 'IInterfaceBase.xyz()'
                 //     : IInterfaceBase, 
@@ -1047,7 +1047,7 @@ interface IDerived : IInterfaceBase
 {
     void xyzd();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,19): error CS0535: 'ITT' does not implement interface member 'IDerived.xyzd()'
                 // public class ITT: IDerived
@@ -1075,7 +1075,7 @@ interface IDerived : IInterfaceBase
 {
     void xyzd();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,19): error CS0535: 'ITT' does not implement interface member 'IDerived.xyzd()'
                 // public class ITT: IDerived, IInterfaceBase
@@ -1103,7 +1103,7 @@ interface IInterfaceBase
     void xyz();
 }
 ";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,35): error CS0535: 'ITT' does not implement interface member 'IDerived.xyzd()'
                 // public class ITT: IInterfaceBase, IDerived 
@@ -1132,7 +1132,7 @@ interface IBase2
 }
 interface IDerived2: IBase, IBase2
 {}";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,19): error CS0535: 'ITT' does not implement interface member 'IBase.method1()'
                 // public class ITT: IDerived2 
@@ -1170,7 +1170,7 @@ public interface IDerived : IBase, IBase2
 {
     void method3();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,20): error CS0535: 'ITT' does not implement interface member 'IBase.method1()'
                 // public class ITT : IDerived
@@ -1211,7 +1211,7 @@ public interface IDerived : IBase2, IBase3
 {
     void method4();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,20): error CS0535: 'ITT' does not implement interface member 'IBase.method1()'
                 // public class ITT : IDerived
@@ -1261,7 +1261,7 @@ class foo : Iderived2, Iderived, Ibase, Ibase2
     { }
 }
  ";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (29,24): error CS0535: 'foo' does not implement interface member 'Iderived.method3()'
                 // class foo : Iderived2, Iderived, Ibase, Ibase2
@@ -1306,7 +1306,7 @@ public interface IBase3
 {
     void method3();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (15,28): error CS0535: 'Foo' does not implement interface member 'IBase3.method3()'
                 // public partial class Foo : IBase3
@@ -1349,7 +1349,7 @@ public interface IBase3
 {
     void method3();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,35): error CS0535: 'Foo' does not implement interface member 'IBase2.method2()'
                 // public partial class Foo : IBase, IBase2
@@ -1391,7 +1391,7 @@ public interface IBase3
 {
     void method3();
 }";
-            var testAssembly = CreateCompilation(scenarioCode);
+            CSharpCompilation testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
                 // (2,35): error CS0535: 'Foo' does not implement interface member 'IBase2.method2()'
                 // public partial class Foo : IBase, IBase2
@@ -1405,7 +1405,7 @@ public interface IBase3
         [Fact]
         public void UseSiteErrorViaAliasTest04()
         {
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1437,7 +1437,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest05()
         {
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1463,7 +1463,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest06()
         {
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1496,7 +1496,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest07()
         {
-            var testAssembly = CreateCompilation(
+            CSharpCompilation testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1916,7 +1916,7 @@ partial class C
 ";
             CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
+                MethodSymbol method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
             });
         }
@@ -1938,7 +1938,7 @@ partial class C
 ";
             CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
+                MethodSymbol method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
             });
         }
@@ -2013,7 +2013,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(sourceCode);
+            CSharpCompilation compilation = CreateCompilation(sourceCode);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             label: c = false;
@@ -2322,13 +2322,13 @@ class Program
         
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThisExpression)).Cast<ThisExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ThisExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThisExpression)).Cast<ThisExpressionSyntax>().Single();
 
-            var symbolInfo = model.GetSymbolInfo(node);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node);
 
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
@@ -2341,13 +2341,13 @@ class Program
 @"
     [System.Diagnostics.DebuggerDisplay(this)]
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThisExpression)).Cast<ThisExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ThisExpressionSyntax node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThisExpression)).Cast<ThisExpressionSyntax>().Single();
 
-            var symbolInfo = model.GetSymbolInfo(node);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node);
 
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
@@ -2557,15 +2557,15 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+            NamedTypeSymbol c = comp.GlobalNamespace.GetTypeMembers("C").Single();
             var t = (FieldSymbol)c.GetMembers("T").Single();
             var foo = (MethodSymbol)c.GetMembers("Foo").Single();
-            var x = foo.Parameters[0];
-            var a = x.GetAttributes()[0];
-            var i = a.ConstructorArguments.Single();
+            ParameterSymbol x = foo.Parameters[0];
+            CSharpAttributeData a = x.GetAttributes()[0];
+            TypedConstant i = a.ConstructorArguments.Single();
             Assert.Equal((int)i.Value, (int)t.ConstantValue);
         }
 
@@ -2588,14 +2588,14 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+            NamedTypeSymbol c = comp.GlobalNamespace.GetTypeMembers("C").Single();
             var t = (FieldSymbol)c.GetMembers("T").Single();
             var foo = (MethodSymbol)c.GetMembers("Foo").Single();
-            var a = foo.GetAttributes()[0];
-            var i = a.ConstructorArguments.Single();
+            CSharpAttributeData a = foo.GetAttributes()[0];
+            TypedConstant i = a.ConstructorArguments.Single();
             Assert.Equal((int)i.Value, (int)t.ConstantValue);
         }
 
@@ -2617,15 +2617,15 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+            NamedTypeSymbol c = comp.GlobalNamespace.GetTypeMembers("C").Single();
             var t = (FieldSymbol)c.GetMembers("T").Single();
             var foo = (MethodSymbol)c.GetMembers("Foo").Single();
-            var tt = foo.TypeParameters[0];
-            var a = tt.GetAttributes()[0];
-            var i = a.ConstructorArguments.Single();
+            TypeParameterSymbol tt = foo.TypeParameters[0];
+            CSharpAttributeData a = tt.GetAttributes()[0];
+            TypedConstant i = a.ConstructorArguments.Single();
             Assert.Equal((int)i.Value, (int)t.ConstantValue);
         }
 
@@ -2676,33 +2676,33 @@ class C
     }
 }";
 
-            var compilation = CreateCompilation(sourceText, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(sourceText, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var identifierNameM0 = tree
+            IdentifierNameSyntax identifierNameM0 = tree
                 .GetRoot()
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M0"));
 
             Assert.Equal("A.B<string>.M0", identifierNameM0.Parent.ToString());
-            var m0Symbol = model.GetSymbolInfo(identifierNameM0);
+            SymbolInfo m0Symbol = model.GetSymbolInfo(identifierNameM0);
 
             Assert.Equal("void NS.A.B<System.String>.M0()", m0Symbol.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, m0Symbol.CandidateReason);
 
-            var identifierNameM1 = tree
+            IdentifierNameSyntax identifierNameM1 = tree
                 .GetRoot()
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M1"));
 
             Assert.Equal("A.B<string>.M1", identifierNameM1.Parent.ToString());
-            var m1Symbol = model.GetSymbolInfo(identifierNameM1);
+            SymbolInfo m1Symbol = model.GetSymbolInfo(identifierNameM1);
 
             Assert.Equal("void NS.A.B<System.String>.M1()", m1Symbol.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, m1Symbol.CandidateReason);
@@ -2732,14 +2732,14 @@ class A
     private static void MyMethod(double a) { }
 }";
 
-            var compilation = CreateCompilation(sourceText, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(sourceText, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var identifiers = tree
+            IdentifierNameSyntax[] identifiers = tree
                 .GetRoot()
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
@@ -2787,33 +2787,33 @@ class A
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceText, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceText, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var identifierNameM0 = tree
+            IdentifierNameSyntax identifierNameM0 = tree
                 .GetRoot()
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M0"));
 
             Assert.Equal("b.M0", identifierNameM0.Parent.ToString());
-            var m0Symbol = model.GetSymbolInfo(identifierNameM0);
+            SymbolInfo m0Symbol = model.GetSymbolInfo(identifierNameM0);
 
             Assert.Equal("void NS.A.B<System.String>.M0<System.String>()", m0Symbol.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, m0Symbol.CandidateReason);
 
-            var identifierNameM1 = tree
+            IdentifierNameSyntax identifierNameM1 = tree
                 .GetRoot()
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .First(x => x.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && x.Identifier.ValueText.Equals("M1"));
 
             Assert.Equal("b.M1", identifierNameM1.Parent.ToString());
-            var m1Symbol = model.GetSymbolInfo(identifierNameM1);
+            SymbolInfo m1Symbol = model.GetSymbolInfo(identifierNameM1);
 
             Assert.Equal("void NS.A.B<System.String>.M1<System.String>()", m1Symbol.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, m1Symbol.CandidateReason);
@@ -2836,7 +2836,7 @@ public static class LazyToStringExtension
             .Select(x => x.GetValue(obj))
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(sourceText, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,42): error CS1002: ; expected
                 //             .Select(x => x.GetValue(obj))
@@ -2847,10 +2847,10 @@ public static class LazyToStringExtension
                 // (7,26): error CS0161: 'LazyToStringExtension.LazyToString<T>(T)': not all code paths return a value
                 //     public static string LazyToString<T>(this T obj) where T : class
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "LazyToString").WithArguments("LazyToStringExtension.LazyToString<T>(T)").WithLocation(7, 26));
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
-            var param = node.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SyntaxNode node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+            SyntaxNode param = node.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
             Assert.Equal("System.Reflection.PropertyInfo x", model.GetDeclaredSymbol(param).ToTestDisplayString());
         }
 
@@ -2868,7 +2868,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,40): error CS1001: Identifier expected
                 //         var x = new Action<int>(i => i.
@@ -2884,16 +2884,16 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
 ").WithLocation(7, 38)
             );
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SyntaxNode lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
 
-            var param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
-            var symbol1 = model.GetDeclaredSymbol(param);
+            SyntaxNode param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            ISymbol symbol1 = model.GetDeclaredSymbol(param);
             Assert.Equal("System.Int32 i", symbol1.ToTestDisplayString());
 
-            var id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
-            var symbol2 = model.GetSymbolInfo(id).Symbol;
+            SyntaxNode id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
+            ISymbol symbol2 = model.GetSymbolInfo(id).Symbol;
             Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
 
             Assert.Same(symbol1, symbol2);
@@ -2913,7 +2913,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,32): error CS1001: Identifier expected
                 //         Action<int> x = i => i.
@@ -2926,16 +2926,16 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
 ").WithLocation(7, 30)
             );
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SyntaxNode lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
 
-            var param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
-            var symbol1 = model.GetDeclaredSymbol(param);
+            SyntaxNode param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            ISymbol symbol1 = model.GetDeclaredSymbol(param);
             Assert.Equal("System.Int32 i", symbol1.ToTestDisplayString());
 
-            var id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
-            var symbol2 = model.GetSymbolInfo(id).Symbol;
+            SyntaxNode id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
+            ISymbol symbol2 = model.GetSymbolInfo(id).Symbol;
             Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
 
             Assert.Same(symbol1, symbol2);
@@ -2987,7 +2987,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -2995,28 +2995,28 @@ class C
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            SyntaxNode node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
             Assert.Equal("app.Use", node1.ToString());
-            var group1 = model.GetMemberGroup(node1);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
-            var symbolInfo1 = model.GetSymbolInfo(node1);
+            SymbolInfo symbolInfo1 = model.GetSymbolInfo(node1);
             Assert.Null(symbolInfo1.Symbol);
             Assert.Equal(1, symbolInfo1.CandidateSymbols.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols.Single().ToTestDisplayString());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
 
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+            SyntaxNode node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
 
             Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
 
-            var group = model.GetMemberGroup(node);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group = model.GetMemberGroup(node);
 
             Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
         }
@@ -3067,7 +3067,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3075,28 +3075,28 @@ class C
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(38, 38)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            SyntaxNode node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
             Assert.Equal("app.Use", node1.ToString());
-            var group1 = model.GetMemberGroup(node1);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[1].ToTestDisplayString());
 
-            var symbolInfo1 = model.GetSymbolInfo(node1);
+            SymbolInfo symbolInfo1 = model.GetSymbolInfo(node1);
             Assert.Null(symbolInfo1.Symbol);
             Assert.Equal(1, symbolInfo1.CandidateSymbols.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", symbolInfo1.CandidateSymbols.Single().ToTestDisplayString());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
 
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+            SyntaxNode node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
 
             Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
 
-            var group = model.GetMemberGroup(node);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group = model.GetMemberGroup(node);
 
             Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
         }
@@ -3140,7 +3140,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemCoreRef });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3148,29 +3148,29 @@ class C
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(31, 38)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            SyntaxNode node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
             Assert.Equal("app.Use", node1.ToString());
-            var group1 = model.GetMemberGroup(node1);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
-            var symbolInfo1 = model.GetSymbolInfo(node1);
+            SymbolInfo symbolInfo1 = model.GetSymbolInfo(node1);
             Assert.Null(symbolInfo1.Symbol);
             Assert.Equal(2, symbolInfo1.CandidateSymbols.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", symbolInfo1.CandidateSymbols[1].ToTestDisplayString());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
 
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+            SyntaxNode node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
 
             Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
 
-            var group = model.GetMemberGroup(node);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group = model.GetMemberGroup(node);
 
             Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
         }
@@ -3225,7 +3225,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3233,29 +3233,29 @@ class C
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AuthenticateAsync").WithArguments("authenticationScheme", "AuthenticationManager.AuthenticateAsync(string)").WithLocation(42, 38)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
+            SyntaxNode node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Use").Single().Parent;
             Assert.Equal("app.Use", node1.ToString());
-            var group1 = model.GetMemberGroup(node1);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group1 = model.GetMemberGroup(node1);
             Assert.Equal(2, group1.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", group1[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)",
                          group1[1].ToTestDisplayString());
 
-            var symbolInfo1 = model.GetSymbolInfo(node1);
+            SymbolInfo symbolInfo1 = model.GetSymbolInfo(node1);
             Assert.Null(symbolInfo1.Symbol);
             Assert.Equal(2, symbolInfo1.CandidateSymbols.Length);
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<RequestDelegate, RequestDelegate> middleware)", symbolInfo1.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("IApplicationBuilder IApplicationBuilder.Use(System.Func<HttpContext, System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> middleware)", symbolInfo1.CandidateSymbols[1].ToTestDisplayString());
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo1.CandidateReason);
 
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
+            SyntaxNode node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "AuthenticateAsync").Single().Parent;
 
             Assert.Equal("ctx.Authentication.AuthenticateAsync", node.ToString());
 
-            var group = model.GetMemberGroup(node);
+            System.Collections.Immutable.ImmutableArray<ISymbol> group = model.GetMemberGroup(node);
 
             Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
         }
@@ -3324,7 +3324,7 @@ static class Extension2
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source);
 
             comp.VerifyDiagnostics(
     // (16,9): error CS0103: The name 'MathMin' does not exist in the current context
@@ -3338,13 +3338,13 @@ static class Extension2
     Diagnostic(ErrorCode.ERR_NameNotInContext, "F2").WithArguments("F2").WithLocation(22, 13)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "MathMin").Single().Parent;
+            SyntaxNode node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "MathMin").Single().Parent;
             Assert.Equal("MathMin(0, 1)", node1.ToString());
 
-            var names = model.LookupNames(node1.SpanStart);
+            List<string> names = model.LookupNames(node1.SpanStart);
             Assert.False(names.Contains("MathMin"));
             Assert.True(names.Contains("MathMax"));
             Assert.True(names.Contains("F1"));
@@ -3359,7 +3359,7 @@ static class Extension2
             Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax2").IsEmpty);
             Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax3").IsEmpty);
 
-            var symbols = model.LookupSymbols(node1.SpanStart);
+            System.Collections.Immutable.ImmutableArray<ISymbol> symbols = model.LookupSymbols(node1.SpanStart);
             Assert.False(symbols.Where(s => s.Name == "MathMin").Any());
             Assert.True(symbols.Where(s => s.Name == "MathMax").Any());
             Assert.True(symbols.Where(s => s.Name == "F1").Any());
@@ -3393,7 +3393,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
     // (11,15): error CS1001: Identifier expected
@@ -3407,22 +3407,22 @@ class Program
     Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 9)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "E").Single().Parent;
+            SyntaxNode node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "E").Single().Parent;
             Assert.Equal("x.E1.E", node1.ToString());
             Assert.Equal(SyntaxKind.QualifiedName, node1.Kind());
 
-            var node2 = ((QualifiedNameSyntax)node1).Left;
+            NameSyntax node2 = ((QualifiedNameSyntax)node1).Left;
             Assert.Equal("x.E1", node2.ToString());
 
-            var symbolInfo2 = model.GetSymbolInfo(node2);
+            SymbolInfo symbolInfo2 = model.GetSymbolInfo(node2);
             Assert.Null(symbolInfo2.Symbol);
             Assert.Equal("event System.EventHandler Program.E1", symbolInfo2.CandidateSymbols.Single().ToTestDisplayString());
             Assert.Equal(CandidateReason.NotATypeOrNamespace, symbolInfo2.CandidateReason);
 
-            var symbolInfo1 = model.GetSymbolInfo(node1);
+            SymbolInfo symbolInfo1 = model.GetSymbolInfo(node1);
             Assert.Null(symbolInfo1.Symbol);
             Assert.True(symbolInfo1.CandidateSymbols.IsEmpty);
         }
@@ -3472,7 +3472,7 @@ public class Class1
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             compilation.VerifyDiagnostics(
                 // (13,27): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
@@ -3582,16 +3582,16 @@ static class E
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (10,17): error CS0120: An object reference is required for the non-static field, method, or property 'A.G(string)'
                 //             c.S(G);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("A.G(string)").WithLocation(10, 17));
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "G").First();
-            var info = model.GetSymbolInfo(node);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IdentifierNameSyntax node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "G").First();
+            SymbolInfo info = model.GetSymbolInfo(node);
             Assert.Equal("System.Object A.G(System.String s)", info.Symbol.ToTestDisplayString());
         }
     }

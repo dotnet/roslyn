@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // all other crefs only have type parameters.
             if (result.Kind == SymbolKind.ErrorType)
             {
-                var noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                TypeCrefSyntax noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
                 diagnostics.Add(ErrorCode.WRN_BadXMLRef, syntax.Location, noTrivia.ToFullString());
             }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // As in normal lookup (see CreateErrorIfLookupOnTypeParameter), you can't dot into a type parameter
                 // (though you can dot into an expression of type parameter type).
                 CrefSyntax crefSyntax = GetRootCrefSyntax(syntax);
-                var noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                MemberCrefSyntax noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
                 diagnostics.Add(ErrorCode.WRN_BadXMLRef, crefSyntax.Location, noTrivia.ToFullString());
 
                 ambiguityWinner = null;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.Any())
             {
                 CrefSyntax crefSyntax = GetRootCrefSyntax(syntax);
-                var noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                MemberCrefSyntax noTrivia = syntax.WithLeadingTrivia(null).WithTrailingTrivia(null);
                 diagnostics.Add(ErrorCode.WRN_BadXMLRef, crefSyntax.Location, noTrivia.ToFullString());
             }
 
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, DiagnosticBag diagnostics)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteDiagnostics);
+            ImmutableArray<Symbol> result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteDiagnostics);
             diagnostics.Add(syntax, useSiteDiagnostics);
             return result;
         }

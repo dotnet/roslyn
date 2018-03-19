@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters;
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, out typeParameters);
+            TypeMap newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, out typeParameters);
 
-            var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
+            TypeMap prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
             {
                 // There is a race with another thread who has already set the map
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_unbound)
             {
                 // Preserve order of members.
-                foreach (var t in OriginalDefinition.GetMembers())
+                foreach (Symbol t in OriginalDefinition.GetMembers())
                 {
                     if (t.Kind == SymbolKind.NamedType)
                     {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                foreach (var t in OriginalDefinition.GetMembers())
+                foreach (Symbol t in OriginalDefinition.GetMembers())
                 {
                     builder.Add(t.SymbolAsMember(this));
                 }
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_unbound)
             {
-                foreach (var t in OriginalDefinition.GetMembersUnordered())
+                foreach (Symbol t in OriginalDefinition.GetMembersUnordered())
                 {
                     if (t.Kind == SymbolKind.NamedType)
                     {
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                foreach (var t in OriginalDefinition.GetMembersUnordered())
+                foreach (Symbol t in OriginalDefinition.GetMembersUnordered())
                 {
                     builder.Add(t.SymbolAsMember(this));
                 }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_unbound) return StaticCast<Symbol>.From(GetTypeMembers(name));
 
             ImmutableArray<Symbol> result;
-            var cache = _lazyMembersByNameCache;
+            ConcurrentCache<string, ImmutableArray<Symbol>> cache = _lazyMembersByNameCache;
             if (cache != null && cache.TryGetValue(name, out result))
             {
                 return result;
@@ -264,24 +264,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> GetMembersWorker(string name)
         {
-            var originalMembers = OriginalDefinition.GetMembers(name);
+            ImmutableArray<Symbol> originalMembers = OriginalDefinition.GetMembers(name);
             if (originalMembers.IsDefaultOrEmpty)
             {
                 return originalMembers;
             }
 
             var builder = ArrayBuilder<Symbol>.GetInstance(originalMembers.Length);
-            foreach (var t in originalMembers)
+            foreach (Symbol t in originalMembers)
             {
                 builder.Add(t.SymbolAsMember(this));
             }
 
-            var substitutedMembers = builder.ToImmutableAndFree();
+            ImmutableArray<Symbol> substitutedMembers = builder.ToImmutableAndFree();
 
             // cache of size 8 seems reasonable here.
             // considering that substituted methods have about 10 reference fields,
             // reusing just one may make the cache profitable.
-            var cache = _lazyMembersByNameCache ??
+            ConcurrentCache<string, ImmutableArray<Symbol>> cache = _lazyMembersByNameCache ??
                         (_lazyMembersByNameCache = new ConcurrentCache<string, ImmutableArray<Symbol>>(8));
 
             cache.TryAdd(name, substitutedMembers);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_unbound) return GetMembers(name);
 
             var builder = ArrayBuilder<Symbol>.GetInstance();
-            foreach (var t in OriginalDefinition.GetEarlyAttributeDecodingMembers(name))
+            foreach (Symbol t in OriginalDefinition.GetEarlyAttributeDecodingMembers(name))
             {
                 builder.Add(t.SymbolAsMember(this));
             }

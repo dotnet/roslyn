@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (IsSubmissionClass)
             {
-                for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                for (CSharpCompilation submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
                 {
                     submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
                 }
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var imports = GetImports(basesBeingResolved);
+            Imports imports = GetImports(basesBeingResolved);
 
             // first lookup members of the namespace
             if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && _container != null)
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Submission imports are handled by AddMemberLookupSymbolsInfo (above).
             if (!IsSubmissionClass && ((options & LookupOptions.LabelsOnly) == 0))
             {
-                var imports = GetImports(basesBeingResolved: null);
+                Imports imports = GetImports(basesBeingResolved: null);
                 imports.AddLookupSymbolsInfo(result, options, originalBinder);
             }
         }

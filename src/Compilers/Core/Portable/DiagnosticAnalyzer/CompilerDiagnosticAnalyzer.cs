@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // DiagnosticAnalyzer.SupportedDiagnostics should be invoked only once per analyzer, 
                 // so we don't need to store the computed descriptors array into a field.
 
-                var messageProvider = this.MessageProvider;
-                var errorCodes = this.GetSupportedErrorCodes();
-                var builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>(errorCodes.Length);
+                CommonMessageProvider messageProvider = this.MessageProvider;
+                ImmutableArray<int> errorCodes = this.GetSupportedErrorCodes();
+                ImmutableArray<DiagnosticDescriptor>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>(errorCodes.Length);
                 foreach (var errorCode in errorCodes)
                 {
-                    var descriptor = DiagnosticInfo.GetDescriptor(errorCode, messageProvider);
+                    DiagnosticDescriptor descriptor = DiagnosticInfo.GetDescriptor(errorCode, messageProvider);
                     builder.Add(descriptor);
                 }
 

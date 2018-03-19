@@ -55,7 +55,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -99,7 +99,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -150,7 +150,7 @@ ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "");
@@ -178,7 +178,7 @@ IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation,
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: X) (Syntax: '{ }')
       Initializers(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
             CompileAndVerify(source, expectedOutput: "");
@@ -204,7 +204,7 @@ IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.Obje
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32) (Syntax: '{ }')
       Initializers(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -242,7 +242,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -371,7 +371,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -425,7 +425,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -518,7 +518,7 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -616,7 +616,7 @@ IObjectCreationOperation (Constructor: B<System.Int64>..ctor()) (OperationKind.O
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -725,7 +725,7 @@ IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (Operation
             Arguments(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""str"") (Syntax: '""str""')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
@@ -3334,12 +3334,12 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            SeparatedSyntaxList<ExpressionSyntax> nodes = (from node in tree.GetRoot().DescendantNodes()
                          where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
@@ -3382,12 +3382,12 @@ class X : Base
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            SeparatedSyntaxList<ExpressionSyntax> nodes = (from node in tree.GetRoot().DescendantNodes()
                          where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
@@ -3427,7 +3427,7 @@ class Y
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
@@ -3441,10 +3441,10 @@ class Y
     Diagnostic(ErrorCode.ERR_BadAccess, "Empty").WithArguments("X.Add(string)").WithLocation(17, 32)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            SeparatedSyntaxList<ExpressionSyntax> nodes = (from node in tree.GetRoot().DescendantNodes()
                          where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
@@ -3475,12 +3475,12 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            SeparatedSyntaxList<ExpressionSyntax> nodes = (from node in tree.GetRoot().DescendantNodes()
                          where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
@@ -3512,12 +3512,12 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            SeparatedSyntaxList<ExpressionSyntax> nodes = (from node in tree.GetRoot().DescendantNodes()
                          where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
@@ -3553,13 +3553,13 @@ class Test
     };
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var root = tree.GetRoot();
-            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            SyntaxNode root = tree.GetRoot();
+            ObjectCreationExpressionSyntax objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
             var listAssignment = (AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0];
 
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
@@ -3569,7 +3569,7 @@ class Test
 
             SymbolInfo symbolInfo;
 
-            foreach (var expression in listInitializer.Expressions)
+            foreach (ExpressionSyntax expression in listInitializer.Expressions)
             {
                 symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
                 Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
@@ -3603,13 +3603,13 @@ class Test2
     public Test P { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var root = tree.GetRoot();
-            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            SyntaxNode root = tree.GetRoot();
+            ObjectCreationExpressionSyntax objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
             var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
 
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
@@ -3619,7 +3619,7 @@ class Test2
 
             SymbolInfo symbolInfo;
 
-            foreach (var expression in listInitializer.Expressions)
+            foreach (ExpressionSyntax expression in listInitializer.Expressions)
             {
                 symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
                 Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
@@ -3647,13 +3647,13 @@ class C : System.Collections.Generic.List<C>
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var root = tree.GetRoot();
-            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            SyntaxNode root = tree.GetRoot();
+            ObjectCreationExpressionSyntax objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
             var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
 
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
@@ -3663,7 +3663,7 @@ class C : System.Collections.Generic.List<C>
 
             SymbolInfo symbolInfo;
 
-            foreach (var expression in listInitializer.Expressions)
+            foreach (ExpressionSyntax expression in listInitializer.Expressions)
             {
                 symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
                 Assert.Equal("void System.Collections.Generic.List<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
@@ -3727,12 +3727,12 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().Skip(1).Single().Expressions;
+            SeparatedSyntaxList<ExpressionSyntax> nodes = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().Skip(1).Single().Expressions;
 
             SymbolInfo symbolInfo;
 
@@ -3809,15 +3809,15 @@ class X
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().ToArray();
+            GenericNameSyntax[] nodes = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().ToArray();
             Assert.Equal(6, nodes.Length);
 
-            foreach (var name in nodes)
+            foreach (GenericNameSyntax name in nodes)
             {
                 Assert.Equal("List<string>", name.ToString());
                 Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());

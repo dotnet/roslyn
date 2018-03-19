@@ -55,7 +55,7 @@ class C
 }";
 
             // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref assignments
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
             comp.VerifyIL("C.M", @"
 {
   // Code size       59 (0x3b)
@@ -109,7 +109,7 @@ class C
         [Fact]
         public void CallsOnRefReadonlyCopyReceiver()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -231,7 +231,7 @@ class C
         [Fact]
         public void RefReadOnlyParamCopyReceiver()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -279,7 +279,7 @@ class C
         [Fact]
         public void CarryThroughLifetime()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 class C
 {
     static ref readonly int M(ref int p)
@@ -300,7 +300,7 @@ class C
         [Fact]
         public void TempForReadonly()
         {
-            var comp = CompileAndVerify(@"
+            CompilationVerifier comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -351,7 +351,7 @@ class C
         [Fact]
         public void RefReturnAssign()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void M()
@@ -376,7 +376,7 @@ class C
         [Fact]
         public void RefReturnAssign2()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void M()
@@ -412,7 +412,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M()", @"
 {
@@ -448,7 +448,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS1031: Type expected
                 //     static ref readonly ref int M(int x)
@@ -488,7 +488,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8331: Cannot assign to method 'Program.M()' because it is a readonly variable
                 //         M() = 1;
@@ -534,7 +534,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8331: Cannot assign to property 'Program.P' because it is a readonly variable
                 //         P = 1;
@@ -578,7 +578,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS8329: Cannot use method 'Program.M()' as a ref or out value because it is a readonly variable
                 //         ref var y = ref M();
@@ -634,7 +634,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a = & M();
@@ -692,7 +692,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (12,28): error CS8333: Cannot return method 'Program.M()' by writable reference because it is a readonly variable
                 //                 return ref M();
@@ -751,7 +751,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes);
+            CompilationVerifier comp = CompileAndVerifyWithMscorlib40(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes);
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -829,7 +829,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerifyWithMscorlib40(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -919,7 +919,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (11,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref M(ref local);
@@ -954,7 +954,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return ref this[local];
@@ -981,7 +981,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref this[42];
@@ -1011,7 +1011,7 @@ struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
@@ -1037,7 +1037,7 @@ struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref 42;
@@ -1061,7 +1061,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(42);
@@ -1088,7 +1088,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M();
@@ -1113,7 +1113,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(b);
@@ -1135,7 +1135,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M1()", @"
 {

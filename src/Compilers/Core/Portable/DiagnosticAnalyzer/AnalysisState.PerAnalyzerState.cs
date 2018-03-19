@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    foreach (var pendingEvent in _pendingEvents.Keys)
+                    foreach (CompilationEvent pendingEvent in _pendingEvents.Keys)
                     {
                         uniqueEvents.Add(pendingEvent);
                     }
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (symbolEvent != null)
                     {
                         var needsAnalysis = false;
-                        var symbol = symbolEvent.Symbol;
+                        ISymbol symbol = symbolEvent.Symbol;
                         if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent) && actionCounts.SymbolActionsCount > 0)
                         {
                             needsAnalysis = true;

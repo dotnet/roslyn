@@ -1460,11 +1460,11 @@ label1:
 }
 ";
 
-            var compilation = CreateCompilation(source, references: new[] { LinqAssemblyRef });
+            CSharpCompilation compilation = CreateCompilation(source, references: new[] { LinqAssemblyRef });
 
-            var tree = compilation.SyntaxTrees.Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
-            var symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
+            System.Collections.Immutable.ImmutableArray<ISymbol> symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
             Assert.True(symbols.IsEmpty);
         }
 
@@ -1489,10 +1489,10 @@ label1:
 }
 ";
 
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            System.Collections.Immutable.ImmutableArray<ISymbol> symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));
             AssertEx.SetEqual(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
         }
 
@@ -1602,7 +1602,7 @@ class Derived : Base<int>
         private static void TestLookupNames(string text, string[][] expectedNames)
         {
             int[] keyPositions;
-            var model = GetModelAndKeyPositions(text, out keyPositions);
+            SemanticModel model = GetModelAndKeyPositions(text, out keyPositions);
 
             // There should be one more list of expectedNames than there are backticks.
             // Number of key positions = number of backticks + 2 (start and end)
@@ -1652,9 +1652,9 @@ class Derived : Base<int>
             keyPositions = keyPositionBuilder.ToArrayAndFree();
             var text = textBuilder.ToString();
 
-            var parseOptions = TestOptions.RegularWithDocumentationComments;
-            var compilation = CreateCompilationWithMscorlib40(text, parseOptions: parseOptions);
-            var tree = compilation.SyntaxTrees[0];
+            CSharpParseOptions parseOptions = TestOptions.RegularWithDocumentationComments;
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(text, parseOptions: parseOptions);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }
 

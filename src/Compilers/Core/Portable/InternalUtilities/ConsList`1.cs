@@ -40,8 +40,8 @@ namespace Roslyn.Utilities
 
             public bool MoveNext()
             {
-                var currentTail = _tail;
-                var newTail = currentTail._tail;
+                ConsList<T> currentTail = _tail;
+                ConsList<T> newTail = currentTail._tail;
 
                 if (newTail != null)
                 {

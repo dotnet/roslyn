@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInteropAttributes01()
         {
-            var source = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -56,30 +56,30 @@ class C
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var assembly = m.ContainingSymbol;
+                Symbol assembly = m.ContainingSymbol;
 
                 // Assembly
-                var attrs = assembly.GetAttributes();
+                System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = assembly.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                var attrSym = attrs.First();
+                CSharpAttributeData attrSym = attrs.First();
                 Assert.Equal("ComCompatibleVersionAttribute", attrSym.AttributeClass.Name);
                 Assert.Equal(4, attrSym.CommonConstructorArguments.Length);
                 Assert.Equal(0, attrSym.CommonNamedArguments.Length);
                 attrSym.VerifyValue(0, TypedConstantKind.Primitive, 1);
 
                 // get expected attr symbol
-                var interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
+                NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
 
-                var guidSym = interopNS.GetTypeMember("GuidAttribute");
-                var ciSym = interopNS.GetTypeMember("ComImportAttribute");
-                var iTypeSym = interopNS.GetTypeMember("InterfaceTypeAttribute");
-                var itCtor = iTypeSym.Constructors.First();
-                var tLibSym = interopNS.GetTypeMember("TypeLibImportClassAttribute");
-                var tLTypeSym = interopNS.GetTypeMember("TypeLibTypeAttribute");
-                var bfmSym = interopNS.GetTypeMember("BestFitMappingAttribute");
+                NamedTypeSymbol guidSym = interopNS.GetTypeMember("GuidAttribute");
+                NamedTypeSymbol ciSym = interopNS.GetTypeMember("ComImportAttribute");
+                NamedTypeSymbol iTypeSym = interopNS.GetTypeMember("InterfaceTypeAttribute");
+                MethodSymbol itCtor = iTypeSym.Constructors.First();
+                NamedTypeSymbol tLibSym = interopNS.GetTypeMember("TypeLibImportClassAttribute");
+                NamedTypeSymbol tLTypeSym = interopNS.GetTypeMember("TypeLibTypeAttribute");
+                NamedTypeSymbol bfmSym = interopNS.GetTypeMember("BestFitMappingAttribute");
 
                 // IGoo
-                var igoo = m.GlobalNamespace.GetTypeMember("IGoo");
+                NamedTypeSymbol igoo = m.GlobalNamespace.GetTypeMember("IGoo");
                 Assert.Equal(6, igoo.GetAttributes().Length);
 
                 // get attr by NamedTypeSymbol
@@ -133,7 +133,7 @@ class C
         [Fact]
         public void TestInteropAttributes02()
         {
-            var source = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -171,26 +171,26 @@ class C
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var assembly = m.ContainingSymbol;
+                Symbol assembly = m.ContainingSymbol;
 
                 // get expected attr symbol
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
 
-                var comvSym = interopNS.GetTypeMember("ComVisibleAttribute");
-                var ufPtrSym = interopNS.GetTypeMember("UnmanagedFunctionPointerAttribute");
-                var comdSym = interopNS.GetTypeMember("ComDefaultInterfaceAttribute");
-                var pgidSym = interopNS.GetTypeMember("ProgIdAttribute");
-                var tidSym = interopNS.GetTypeMember("TypeIdentifierAttribute");
-                var dispSym = interopNS.GetTypeMember("DispIdAttribute");
-                var lcidSym = interopNS.GetTypeMember("LCIDConversionAttribute");
-                var comcSym = interopNS.GetTypeMember("ComConversionLossAttribute");
+                NamedTypeSymbol comvSym = interopNS.GetTypeMember("ComVisibleAttribute");
+                NamedTypeSymbol ufPtrSym = interopNS.GetTypeMember("UnmanagedFunctionPointerAttribute");
+                NamedTypeSymbol comdSym = interopNS.GetTypeMember("ComDefaultInterfaceAttribute");
+                NamedTypeSymbol pgidSym = interopNS.GetTypeMember("ProgIdAttribute");
+                NamedTypeSymbol tidSym = interopNS.GetTypeMember("TypeIdentifierAttribute");
+                NamedTypeSymbol dispSym = interopNS.GetTypeMember("DispIdAttribute");
+                NamedTypeSymbol lcidSym = interopNS.GetTypeMember("LCIDConversionAttribute");
+                NamedTypeSymbol comcSym = interopNS.GetTypeMember("ComConversionLossAttribute");
 
-                var globalNS = m.GlobalNamespace;
+                NamespaceSymbol globalNS = m.GlobalNamespace;
                 // delegate DGoo
-                var type1 = globalNS.GetTypeMember("DGoo");
+                NamedTypeSymbol type1 = globalNS.GetTypeMember("DGoo");
                 Assert.Equal(2, type1.GetAttributes().Length);
 
-                var attrSym = type1.GetAttribute(comvSym);
+                CSharpAttributeData attrSym = type1.GetAttribute(comvSym);
                 attrSym.VerifyValue(0, TypedConstantKind.Primitive, false);
 
                 attrSym = type1.GetAttribute(ufPtrSym);
@@ -203,7 +203,7 @@ class C
                 attrSym.VerifyNamedArgumentValue(3, "ThrowOnUnmappableChar", TypedConstantKind.Primitive, true);
 
                 // class CGoo
-                var type2 = globalNS.GetTypeMember("CGoo");
+                NamedTypeSymbol type2 = globalNS.GetTypeMember("CGoo");
                 Assert.Equal(2, type2.GetAttributes().Length);
 
                 attrSym = type2.GetAttribute(comdSym);
@@ -227,7 +227,7 @@ class C
                 if (sourceAssembly != null)
                 {
                     // Because this is a nopia local type it is only visible from the source assembly.
-                    var type3 = globalNS.GetTypeMember("EGoo");
+                    NamedTypeSymbol type3 = globalNS.GetTypeMember("EGoo");
                     Assert.Equal(2, type3.GetAttributes().Length);
 
                     attrSym = type3.GetAttribute(comvSym);
@@ -301,35 +301,35 @@ class C
             #region Verifier
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var assembly = m.ContainingSymbol;
+                Symbol assembly = m.ContainingSymbol;
 
                 // get expected attr symbol
                 NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(sysNS);
                 NamespaceSymbol compsrvNS = Get_System_Runtime_CompilerServices_NamespaceSymbol(sysNS);
 
-                var serSym = sysNS.GetTypeMember("SerializableAttribute");
-                var nosSym = sysNS.GetTypeMember("NonSerializedAttribute");
+                NamedTypeSymbol serSym = sysNS.GetTypeMember("SerializableAttribute");
+                NamedTypeSymbol nosSym = sysNS.GetTypeMember("NonSerializedAttribute");
 
-                var ciptSym = interopNS.GetTypeMember("ComImportAttribute");
-                var laySym = interopNS.GetTypeMember("StructLayoutAttribute");
-                var sigSym = interopNS.GetTypeMember("PreserveSigAttribute");
-                var offSym = interopNS.GetTypeMember("FieldOffsetAttribute");
-                var mshSym = interopNS.GetTypeMember("MarshalAsAttribute");
+                NamedTypeSymbol ciptSym = interopNS.GetTypeMember("ComImportAttribute");
+                NamedTypeSymbol laySym = interopNS.GetTypeMember("StructLayoutAttribute");
+                NamedTypeSymbol sigSym = interopNS.GetTypeMember("PreserveSigAttribute");
+                NamedTypeSymbol offSym = interopNS.GetTypeMember("FieldOffsetAttribute");
+                NamedTypeSymbol mshSym = interopNS.GetTypeMember("MarshalAsAttribute");
 
 
-                var optSym = interopNS.GetTypeMember("OptionalAttribute");
-                var inSym = interopNS.GetTypeMember("InAttribute");
-                var outSym = interopNS.GetTypeMember("OutAttribute");
+                NamedTypeSymbol optSym = interopNS.GetTypeMember("OptionalAttribute");
+                NamedTypeSymbol inSym = interopNS.GetTypeMember("InAttribute");
+                NamedTypeSymbol outSym = interopNS.GetTypeMember("OutAttribute");
                 // non pseudo
-                var dtcSym = compsrvNS.GetTypeMember("DateTimeConstantAttribute");
-                var dmcSym = compsrvNS.GetTypeMember("DecimalConstantAttribute");
-                var iscSym = compsrvNS.GetTypeMember("IDispatchConstantAttribute");
+                NamedTypeSymbol dtcSym = compsrvNS.GetTypeMember("DateTimeConstantAttribute");
+                NamedTypeSymbol dmcSym = compsrvNS.GetTypeMember("DecimalConstantAttribute");
+                NamedTypeSymbol iscSym = compsrvNS.GetTypeMember("IDispatchConstantAttribute");
 
-                var globalNS = m.GlobalNamespace;
+                NamespaceSymbol globalNS = m.GlobalNamespace;
                 // Interface IBar
-                var type1 = globalNS.GetTypeMember("IBar");
-                var attrSym = type1.GetAttribute(ciptSym);
+                NamedTypeSymbol type1 = globalNS.GetTypeMember("IBar");
+                CSharpAttributeData attrSym = type1.GetAttribute(ciptSym);
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
                 MethodSymbol method = default(MethodSymbol);
@@ -338,7 +338,7 @@ class C
                 if (sourceAssembly != null)
                 {
                     // Default attribute is in system.dll not mscorlib. Only do this check for source attributes.
-                    var defvSym = interopNS.GetTypeMember("DefaultParameterValueAttribute");
+                    NamedTypeSymbol defvSym = interopNS.GetTypeMember("DefaultParameterValueAttribute");
                     method = type1.GetMember<MethodSymbol>("Method1");
                     parm = method.Parameters[0];
                     attrSym = parm.GetAttribute(defvSym);
@@ -388,7 +388,7 @@ class C
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
                 // class CBar
-                var type2 = globalNS.GetTypeMember("CBar");
+                NamedTypeSymbol type2 = globalNS.GetTypeMember("CBar");
                 Assert.Equal(2, type2.GetAttributes().Length);
 
                 attrSym = type2.GetAttribute(serSym);
@@ -441,14 +441,14 @@ public class Bar
                 {
                     var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
                     var method = (MethodSymbol)bar.GetMember("Method");
-                    var parameters = method.GetParameters();
+                    System.Collections.Immutable.ImmutableArray<ParameterSymbol> parameters = method.GetParameters();
                     var theParameter = (PEParameterSymbol)parameters[0];
                     var peModule = (PEModuleSymbol)module;
 
                     Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags); // native compiler has None instead
 
                     // let's find the attribute in the PE metadata
-                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                    PEModule.AttributeInfo attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
                     Assert.True(attributeInfo.HasValue);
 
                     long attributeValue;
@@ -456,11 +456,11 @@ public class Bar
                     Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
 
                     // check .param has no value
-                    var constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
+                    ConstantValue constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
                     Assert.Equal(ConstantValue.Null, constantValue);
                 };
 
-            var comp = CompileAndVerify(source, symbolValidator: verifier);
+            CompilationVerifier comp = CompileAndVerify(source, symbolValidator: verifier);
             comp.VerifyDiagnostics();
         }
 
@@ -490,10 +490,10 @@ public class Consumer
 ";
             #endregion
 
-            var libComp = CreateCompilation(source1);
+            CSharpCompilation libComp = CreateCompilation(source1);
             var libCompRef = new CSharpCompilationReference(libComp);
 
-            var comp2 = CreateCompilation(source2, new[] { libCompRef });
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { libCompRef });
             comp2.VerifyDiagnostics(
                 // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
                 //         new Bar().Method();
@@ -501,8 +501,8 @@ public class Consumer
                 );
 
             // The native compiler also gives an error: error CS1501: No overload for method 'Method' takes 0 arguments
-            var libAssemblyRef = libComp.EmitToImageReference();
-            var comp3 = CreateCompilation(source2, new[] { libAssemblyRef });
+            MetadataReference libAssemblyRef = libComp.EmitToImageReference();
+            CSharpCompilation comp3 = CreateCompilation(source2, new[] { libAssemblyRef });
             comp3.VerifyDiagnostics(
                 // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
                 //         new Bar().Method();
@@ -536,7 +536,7 @@ public class Bar
             // .param [1] = nullref
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,60): error CS8017: The parameter has multiple distinct default values.
                 //     public DateTime M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { return x; }
@@ -568,7 +568,7 @@ public class Bar
             // .param [1] = nullref
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (01 00 2A 00 00 00 00 00 00 00 00 00 )
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,60): error CS8017: The parameter has multiple distinct default values.
                 //     public DateTime M1([DateTimeConstant(42)] DateTime x = default(DateTime)) { return x; }
@@ -603,7 +603,7 @@ public class C
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
 
             // using the native compiler, this code outputs 0
-            var comp = CompileAndVerify(source, expectedOutput: "0");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "0");
             comp.VerifyDiagnostics();
         }
 
@@ -634,7 +634,7 @@ public class C
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 2A 00 00 00 00 00 00 00 00 00 )
 
             // Using the native compiler, the code executes to output 0
-            var comp = CompileAndVerify(source, expectedOutput: "0");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "0");
             comp.VerifyDiagnostics();
         }
 
@@ -686,7 +686,7 @@ public class D
 }
 ";
 
-            var ilReference = CompileIL(ilsource);
+            MetadataReference ilReference = CompileIL(ilsource);
             CompileAndVerify(cssource, expectedOutput: "0", references: new[] { ilReference });
             // The native compiler would produce a working exe, but that exe would fail at runtime
         }
@@ -785,7 +785,7 @@ public class C
             {
                 var c = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
-                var ps = m.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> ps = m.GetParameters();
 
                 //EDMAURER the language doesn't believe the parameter is optional and 
                 //doesn't import the default parameter.
@@ -808,7 +808,7 @@ public class C
         [Fact]
         public void DPV_String()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class C
@@ -823,7 +823,7 @@ public class C
             {
                 var c = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
-                var ps = m.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> ps = m.GetParameters();
 
                 var theParameter = (PEParameterSymbol)ps[0];
                 Assert.Equal("default str", theParameter.ImportConstantValue().StringValue);
@@ -838,7 +838,7 @@ public class C
         [Fact]
         public void OptionalAttribute()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class C
@@ -853,7 +853,7 @@ public class C
             {
                 var c = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
-                var ps = m.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> ps = m.GetParameters();
 
                 Assert.False(ps[0].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => ps[0].ExplicitDefaultValue);
@@ -867,7 +867,7 @@ public class C
         [Fact]
         public void DPV_Optional_CallFromAnotherCompilation()
         {
-            var c1 = CreateCompilation(@"
+            CSharpCompilation c1 = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class C
@@ -889,7 +889,7 @@ public class C
 }
 ");
 
-            var c2 = CreateCompilation(@"
+            CSharpCompilation c2 = CreateCompilation(@"
 public class D 
 {
     public void M() 
@@ -911,7 +911,7 @@ public class D
         [Fact]
         public void CustomDefaultParameterValueAttribute1()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 namespace System.Runtime.InteropServices
@@ -941,7 +941,7 @@ public class C
             {
                 var c = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
-                var ps = m.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> ps = m.GetParameters();
 
                 // DPV is ignore if it has invalid signature
                 Assert.False(ps[0].HasExplicitDefaultValue);
@@ -955,7 +955,7 @@ public class C
         [Fact]
         public void CustomDefaultParameterValueAttribute2()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 namespace System.Runtime.InteropServices
@@ -985,7 +985,7 @@ public class C
             {
                 var c = (NamedTypeSymbol)module.GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
-                var ps = m.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> ps = m.GetParameters();
 
                 // DPV is ignore if it has invalid signature
                 Assert.False(ps[0].HasExplicitDefaultValue);
@@ -1014,18 +1014,18 @@ public class C
 }";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var paramDef in metadataReader.GetParameters())
+                foreach (ParameterHandle paramDef in metadataReader.GetParameters())
                 {
-                    var param = metadataReader.GetParameter(paramDef);
+                    Parameter param = metadataReader.GetParameter(paramDef);
                     Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, param.Attributes);
                 }
 
-                foreach (var handle in metadataReader.GetConstants())
+                foreach (ConstantHandle handle in metadataReader.GetConstants())
                 {
-                    var constant = metadataReader.GetConstant(handle);
-                    var paramRow = metadataReader.GetParameter((ParameterHandle)constant.Parent);
+                    Constant constant = metadataReader.GetConstant(handle);
+                    Parameter paramRow = metadataReader.GetParameter((ParameterHandle)constant.Parent);
                     string name = metadataReader.GetString(paramRow.Name);
 
                     byte[] expectedConstant;
@@ -1069,16 +1069,16 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var methodHandle in metadataReader.MethodDefinitions)
+                foreach (MethodDefinitionHandle methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var methodDef = metadataReader.GetMethodDefinition(methodHandle);
+                    MethodDefinition methodDef = metadataReader.GetMethodDefinition(methodHandle);
                     string methodName = metadataReader.GetString(methodDef.Name);
 
-                    foreach (var paramDef in methodDef.GetParameters())
+                    foreach (ParameterHandle paramDef in methodDef.GetParameters())
                     {
-                        var paramRow = metadataReader.GetParameter(paramDef);
+                        Parameter paramRow = metadataReader.GetParameter(paramDef);
                         string paramName = metadataReader.GetString(paramRow.Name);
 
                         ParameterAttributes expectedFlags;
@@ -1111,10 +1111,10 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
                     }
                 }
 
-                foreach (var handle in metadataReader.GetConstants())
+                foreach (ConstantHandle handle in metadataReader.GetConstants())
                 {
-                    var constant = metadataReader.GetConstant(handle);
-                    var paramRow = metadataReader.GetParameter((ParameterHandle)constant.Parent);
+                    Constant constant = metadataReader.GetConstant(handle);
+                    Parameter paramRow = metadataReader.GetParameter((ParameterHandle)constant.Parent);
                     string name = metadataReader.GetString(paramRow.Name);
 
                     byte[] expectedConstant;
@@ -1204,7 +1204,7 @@ class C
         [Fact]
         public void OptionalParameterInTheMiddle()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 using System;
 
@@ -1221,7 +1221,7 @@ public class X
         [Fact]
         public void OptionalAttributeParameter_Numeric()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 
 [AttributeUsage(AttributeTargets.Parameter)]
@@ -1245,7 +1245,7 @@ public class C
         [Fact]
         public void OptionalAttributeParameter_Enum()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 
 public enum E { A, B, C }
@@ -1305,9 +1305,9 @@ partial class C
 
             Action<ModuleSymbol> sourceValidator = (ModuleSymbol m) =>
             {
-                var typeC = m.GlobalNamespace.GetTypeMember("C");
+                NamedTypeSymbol typeC = m.GlobalNamespace.GetTypeMember("C");
 
-                var sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Goo");
+                SourceOrdinaryMethodSymbol sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Goo");
                 partialValidator(sourceMethod);
 
                 sourceMethod = typeC.GetMember<SourceOrdinaryMethodSymbol>("Goo2");
@@ -1777,7 +1777,7 @@ class Program
         Goo();
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
                 //         Goo();
@@ -1896,7 +1896,7 @@ public class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("C", "get_Item",
                     ".method public hidebysig specialname instance System.Decimal get_Item(" +
@@ -1922,7 +1922,7 @@ using System.Runtime.CompilerServices;
 
 public delegate void D([Optional, DecimalConstantAttribute(hi: 3, sign: 2, mid: 4, low: 5, scale: 1)]ref decimal a, decimal b = 2m);
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            CompilationVerifier comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("D", "BeginInvoke",
                     ".method public hidebysig newslot virtual instance System.IAsyncResult BeginInvoke(" +
@@ -1967,13 +1967,13 @@ class C
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 Assert.Equal(15, metadataReader.GetTableRowCount(TableIndex.Param));
 
-                foreach (var paramDef in metadataReader.GetParameters())
+                foreach (ParameterHandle paramDef in metadataReader.GetParameters())
                 {
-                    var row = metadataReader.GetParameter(paramDef);
+                    Parameter row = metadataReader.GetParameter(paramDef);
                     string name = metadataReader.GetString(row.Name);
                     ParameterAttributes expectedFlags;
 
@@ -2148,11 +2148,11 @@ public delegate int F([Out]int a, [In]int b, [In, Out]ref int c, [In]ref int d, 
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var paramDef in metadataReader.GetParameters())
+                foreach (ParameterHandle paramDef in metadataReader.GetParameters())
                 {
-                    var row = metadataReader.GetParameter(paramDef);
+                    Parameter row = metadataReader.GetParameter(paramDef);
                     string name = metadataReader.GetString(row.Name);
                     ParameterAttributes expectedFlags;
 
@@ -2203,11 +2203,11 @@ public class C
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var paramDef in metadataReader.GetParameters())
+                foreach (ParameterHandle paramDef in metadataReader.GetParameters())
                 {
-                    var row = metadataReader.GetParameter(paramDef);
+                    Parameter row = metadataReader.GetParameter(paramDef);
                     string name = metadataReader.GetString(row.Name);
                     ParameterAttributes expectedFlags;
 
@@ -2260,7 +2260,7 @@ class C
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 ParameterHandle[] ps = metadataReader.GetParameters().ToArray();
                 Assert.Equal(2, ps.Length);
@@ -2276,7 +2276,7 @@ class C
         [Fact]
         public void TestPseudoDllImport()
         {
-            var source = CreateCompilation(@"
+            CSharpCompilation source = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -2307,11 +2307,11 @@ class C
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 // get expected attr symbol
-                var type1 = m.GlobalNamespace.GetTypeMember("DllImportTest");
+                NamedTypeSymbol type1 = m.GlobalNamespace.GetTypeMember("DllImportTest");
 
                 MethodSymbol method = default(MethodSymbol);
                 method = type1.GetMember<MethodSymbol>("DllImportSub");
-                var attrSym = method.GetAttributes().First();
+                CSharpAttributeData attrSym = method.GetAttributes().First();
                 Assert.Equal("DllImportAttribute", attrSym.AttributeClass.Name);
                 attrSym.VerifyValue(0, TypedConstantKind.Primitive, "unmanaged.dll");
 
@@ -2469,14 +2469,14 @@ class Program
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
                 Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ImplMap));
 
-                foreach (var method in metadataReader.GetImportedMethods())
+                foreach (MethodDefinition method in metadataReader.GetImportedMethods())
                 {
-                    var import = method.GetImport();
+                    MethodImport import = method.GetImport();
                     string moduleName = metadataReader.GetString(metadataReader.GetModuleReference(import.Module).Name);
                     string methodName = metadataReader.GetString(method.Name);
                     switch (methodName)
@@ -2524,10 +2524,10 @@ public class C
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 // ModuleRef:
-                var moduleRefName = metadataReader.GetModuleReference(metadataReader.GetModuleReferences().Single()).Name;
+                StringHandle moduleRefName = metadataReader.GetModuleReference(metadataReader.GetModuleReferences().Single()).Name;
                 Assert.Equal("mscorlib", metadataReader.GetString(moduleRefName));
 
                 // FileRef:
@@ -2538,7 +2538,7 @@ public class C
                 // ImplMap:
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ImplMap));
 
-                var import = metadataReader.GetImportedMethods().Single().GetImport();
+                MethodImport import = metadataReader.GetImportedMethods().Single().GetImport();
                 Assert.Equal("bar", metadataReader.GetString(import.Name));
                 Assert.Equal(1, metadataReader.GetRowNumber(import.Module));
                 Assert.Equal(
@@ -2556,9 +2556,9 @@ public class C
             },
             symbolValidator: module =>
             {
-                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var m = c.GetMember<MethodSymbol>("M");
-                var info = m.GetDllImportData();
+                NamedTypeSymbol c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                MethodSymbol m = c.GetMember<MethodSymbol>("M");
+                DllImportData info = m.GetDllImportData();
 
                 Assert.Equal("mscorlib", info.ModuleName);
                 Assert.Equal("bar", info.EntryPointName);
@@ -2596,9 +2596,9 @@ public class C
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var m = c.GetMember<MethodSymbol>("M");
-                var info = m.GetDllImportData();
+                NamedTypeSymbol c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                MethodSymbol m = c.GetMember<MethodSymbol>("M");
+                DllImportData info = m.GetDllImportData();
 
                 Assert.Equal("mscorlib", info.ModuleName);
                 Assert.Equal(isFromSource ? null : "M", info.EntryPointName);
@@ -2609,7 +2609,7 @@ public class C
                 Assert.Equal(null, info.BestFitMapping);
                 Assert.Equal(null, info.ThrowOnUnmappableCharacter);
 
-                var n = c.GetMember<MethodSymbol>("N");
+                MethodSymbol n = c.GetMember<MethodSymbol>("N");
                 Assert.Null(n.GetDllImportData());
             };
 
@@ -2640,7 +2640,7 @@ public class C
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 // no backing fields should be generated -- all members are "extern" members:
                 Assert.Equal(0, metadataReader.FieldDefinitions.AsEnumerable().Count());
@@ -2649,7 +2649,7 @@ public class C
                 Assert.Equal(5, metadataReader.GetTableRowCount(TableIndex.ImplMap));
                 var visitedEntryPoints = new Dictionary<string, bool>();
 
-                foreach (var method in metadataReader.GetImportedMethods())
+                foreach (MethodDefinition method in metadataReader.GetImportedMethods())
                 {
                     string moduleName = metadataReader.GetString(metadataReader.GetModuleReference(method.GetImport().Module).Name);
                     string entryPointName = metadataReader.GetString(method.Name);
@@ -2760,11 +2760,11 @@ public class C
 
             CompileAndVerify(code, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
                 Assert.Equal(cases.Length, metadataReader.GetTableRowCount(TableIndex.ImplMap));
 
                 int j = 0;
-                foreach (var method in metadataReader.GetImportedMethods())
+                foreach (MethodDefinition method in metadataReader.GetImportedMethods())
                 {
                     Assert.Equal(cases[j].expected, method.GetImport().Attributes);
                     j++;
@@ -2905,11 +2905,11 @@ abstract class C
 ";
             Action<PEAssembly> validator = (assembly) =>
             {
-                var peReader = assembly.GetMetadataReader();
-                foreach (var methodHandle in peReader.MethodDefinitions)
+                MetadataReader peReader = assembly.GetMetadataReader();
+                foreach (MethodDefinitionHandle methodHandle in peReader.MethodDefinitions)
                 {
-                    var methodDef = peReader.GetMethodDefinition(methodHandle);
-                    var actualFlags = methodDef.ImplAttributes;
+                    MethodDefinition methodDef = peReader.GetMethodDefinition(methodHandle);
+                    MethodImplAttributes actualFlags = methodDef.ImplAttributes;
                     MethodImplAttributes expectedFlags;
 
                     string methodName = peReader.GetString(methodDef.Name);
@@ -2943,7 +2943,7 @@ abstract class C
         [Fact]
         public void TestMethodImplAttribute_UnverifiableMD()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 
 class C
@@ -2975,15 +2975,15 @@ class C<T>
 ");
             compilation.VerifyDiagnostics();
 
-            var image = compilation.EmitToStream();
+            System.IO.MemoryStream image = compilation.EmitToStream();
 
             using (var metadata = ModuleMetadata.CreateFromStream(image))
             {
-                var metadataReader = metadata.MetadataReader;
-                foreach (var methodHandle in metadataReader.MethodDefinitions)
+                MetadataReader metadataReader = metadata.MetadataReader;
+                foreach (MethodDefinitionHandle methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var methodDef = metadataReader.GetMethodDefinition(methodHandle);
-                    var actualFlags = methodDef.ImplAttributes;
+                    MethodDefinition methodDef = metadataReader.GetMethodDefinition(methodHandle);
+                    MethodImplAttributes actualFlags = methodDef.ImplAttributes;
                     MethodImplAttributes expectedFlags;
 
                     string methodName = metadataReader.GetString(methodDef.Name);
@@ -3114,11 +3114,11 @@ abstract class C
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var peReader = assembly.GetMetadataReader();
-                foreach (var methodHandle in peReader.MethodDefinitions)
+                MetadataReader peReader = assembly.GetMetadataReader();
+                foreach (MethodDefinitionHandle methodHandle in peReader.MethodDefinitions)
                 {
-                    var row = peReader.GetMethodDefinition(methodHandle);
-                    var actualFlags = row.ImplAttributes;
+                    MethodDefinition row = peReader.GetMethodDefinition(methodHandle);
+                    MethodImplAttributes actualFlags = row.ImplAttributes;
                     MethodImplAttributes expectedFlags;
                     var name = peReader.GetString(row.Name);
 
@@ -3167,9 +3167,9 @@ abstract class C
                 }
 
                 // no custom attributes applied on methods:
-                foreach (var ca in peReader.CustomAttributes)
+                foreach (CustomAttributeHandle ca in peReader.CustomAttributes)
                 {
-                    var ctor = peReader.GetCustomAttribute(ca).Constructor;
+                    EntityHandle ctor = peReader.GetCustomAttribute(ca).Constructor;
                     Assert.NotEqual(ctor.Kind, HandleKind.MethodDefinition);
                 }
             });
@@ -3260,7 +3260,7 @@ abstract class C
             // Ref.Emit doesn't implement custom attributes yet
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ImplMap));
@@ -3268,7 +3268,7 @@ abstract class C
                 // the attribute is emitted:
                 Assert.False(MetadataValidation.FindCustomAttribute(metadataReader, "DefaultCharSetAttribute").IsNil);
 
-                var import = metadataReader.GetImportedMethods().Single().GetImport();
+                MethodImport import = metadataReader.GetImportedMethods().Single().GetImport();
                 Assert.Equal(MethodImportAttributes.CharSetAnsi, import.Attributes & MethodImportAttributes.CharSetMask);
             });
         }
@@ -3292,7 +3292,7 @@ abstract class C
             // Ref.Emit doesn't implement custom attributes yet
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
                 Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ImplMap));
@@ -3300,12 +3300,12 @@ abstract class C
                 // the attribute is emitted:
                 Assert.False(MetadataValidation.FindCustomAttribute(metadataReader, "DefaultCharSetAttribute").IsNil);
 
-                var import = metadataReader.GetImportedMethods().Single().GetImport();
+                MethodImport import = metadataReader.GetImportedMethods().Single().GetImport();
                 Assert.Equal(MethodImportAttributes.None, import.Attributes & MethodImportAttributes.CharSetMask);
 
-                foreach (var typeHandle in metadataReader.TypeDefinitions)
+                foreach (TypeDefinitionHandle typeHandle in metadataReader.TypeDefinitions)
                 {
-                    var def = metadataReader.GetTypeDefinition(typeHandle);
+                    TypeDefinition def = metadataReader.GetTypeDefinition(typeHandle);
                     var name = metadataReader.GetString(def.Name);
                     switch (name)
                     {
@@ -3384,13 +3384,13 @@ delegate void D();
             // Ref.Emit doesn't implement custom attributes yet
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var typeHandle in metadataReader.TypeDefinitions)
+                foreach (TypeDefinitionHandle typeHandle in metadataReader.TypeDefinitions)
                 {
-                    var row = metadataReader.GetTypeDefinition(typeHandle);
+                    TypeDefinition row = metadataReader.GetTypeDefinition(typeHandle);
                     var name = metadataReader.GetString(row.Name);
-                    var actual = row.Attributes & TypeAttributes.StringFormatMask;
+                    TypeAttributes actual = row.Attributes & TypeAttributes.StringFormatMask;
 
                     if (name == "<Module>" ||
                         name.StartsWith("__StaticArrayInitTypeSize=", StringComparison.Ordinal) ||
@@ -3511,11 +3511,11 @@ public class MainClass
             Action<ModuleSymbol> sourceValidator = (ModuleSymbol m) =>
             {
                 MethodImplAttributes expectedMethodImplAttributes = MethodImplAttributes.Managed | MethodImplAttributes.Runtime | MethodImplAttributes.InternalCall;
-                var typeA = m.GlobalNamespace.GetTypeMember("A");
+                NamedTypeSymbol typeA = m.GlobalNamespace.GetTypeMember("A");
                 Assert.True(typeA.IsComImport);
                 Assert.Equal(2, typeA.GetAttributes().Length);
 
-                var ctorA = typeA.InstanceConstructors.First();
+                MethodSymbol ctorA = typeA.InstanceConstructors.First();
                 Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes);
                 Assert.True(((Cci.IMethodDefinition)ctorA).IsExternal);
 
@@ -3525,11 +3525,11 @@ public class MainClass
 
             Action<ModuleSymbol> metadataValidator = (ModuleSymbol m) =>
             {
-                var typeA = m.GlobalNamespace.GetTypeMember("A");
+                NamedTypeSymbol typeA = m.GlobalNamespace.GetTypeMember("A");
                 Assert.True(typeA.IsComImport);
                 Assert.Equal(1, typeA.GetAttributes().Length);
 
-                var ctorA = typeA.InstanceConstructors.First();
+                MethodSymbol ctorA = typeA.InstanceConstructors.First();
                 Assert.False(ctorA.IsExtern);
 
                 var methodGoo = (MethodSymbol)typeA.GetMember("Goo");
@@ -3587,13 +3587,13 @@ public class MainClass
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol m) =>
             {
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
-                var guidType = interopNS.GetTypeMember("GuidAttribute");
-                var comImportType = interopNS.GetTypeMember("ComImportAttribute");
-                var coClassType = interopNS.GetTypeMember("CoClassAttribute");
+                NamedTypeSymbol guidType = interopNS.GetTypeMember("GuidAttribute");
+                NamedTypeSymbol comImportType = interopNS.GetTypeMember("ComImportAttribute");
+                NamedTypeSymbol coClassType = interopNS.GetTypeMember("CoClassAttribute");
 
-                var worksheetInterface = m.GlobalNamespace.GetTypeMember("IWorksheet");
+                NamedTypeSymbol worksheetInterface = m.GlobalNamespace.GetTypeMember("IWorksheet");
 
-                var attrs = worksheetInterface.GetAttributes().AsEnumerable();
+                IEnumerable<CSharpAttributeData> attrs = worksheetInterface.GetAttributes().AsEnumerable();
 
                 Assert.True(worksheetInterface.IsComImport, "Must be ComImport");
                 if (isFromSource)
@@ -3657,7 +3657,7 @@ public interface IWorksheet
     int M1();
 }
 ";
-            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_FromMetadata");
+            CSharpCompilation compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_FromMetadata");
 
             var source2 = @"
 using System;
@@ -3718,13 +3718,13 @@ public class MainClass
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol m) =>
             {
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
-                var guidType = interopNS.GetTypeMember("GuidAttribute");
-                var comImportType = interopNS.GetTypeMember("ComImportAttribute");
-                var coClassType = interopNS.GetTypeMember("CoClassAttribute");
+                NamedTypeSymbol guidType = interopNS.GetTypeMember("GuidAttribute");
+                NamedTypeSymbol comImportType = interopNS.GetTypeMember("ComImportAttribute");
+                NamedTypeSymbol coClassType = interopNS.GetTypeMember("CoClassAttribute");
 
-                var worksheetInterface = m.GlobalNamespace.GetTypeMember("IWorksheet");
+                NamedTypeSymbol worksheetInterface = m.GlobalNamespace.GetTypeMember("IWorksheet");
 
-                var attrs = worksheetInterface.GetAttributes().AsEnumerable();
+                IEnumerable<CSharpAttributeData> attrs = worksheetInterface.GetAttributes().AsEnumerable();
 
                 Assert.True(worksheetInterface.IsComImport, "Must be ComImport");
                 if (isFromSource)
@@ -3774,7 +3774,7 @@ public interface IWorksheet<T>
 {
 }
 ";
-            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_GenericTypeCoClass");
+            CSharpCompilation compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_GenericTypeCoClass");
 
             var source2 = @"
 using System;
@@ -3851,7 +3851,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleInterface");
+            CSharpCompilation compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleInterface");
 
             var source2 = @"
 public class MainClass
@@ -3929,7 +3929,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleCoClass");
+            CSharpCompilation compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleCoClass");
 
             var source2 = @"
 public class MainClass
@@ -4007,7 +4007,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_CoClass_Without_ComImport");
+            CSharpCompilation compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_CoClass_Without_ComImport");
 
             var source2 = @"
 public class MainClass
@@ -4025,7 +4025,7 @@ public class MainClass
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
 
-            var assemblyRef = compDll.EmitToImageReference(expectedWarnings: new[]
+            MetadataReference assemblyRef = compDll.EmitToImageReference(expectedWarnings: new[]
             {
                 // (11,6): warning CS0684: 'IWorksheet' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'
                 //     [CoClass(typeof(WorksheetClass))]
@@ -4093,7 +4093,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_StructTypeInCoClassAttribute");
+            CSharpCompilation compDll = CreateCompilationWithMscorlib40AndSystemCore(source, assemblyName: "NewOnInterface_StructTypeInCoClassAttribute");
 
             var source2 = @"
 public class MainClass
@@ -4213,7 +4213,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics();
         }
@@ -4245,7 +4245,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
@@ -4285,7 +4285,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1613: The managed coclass wrapper class 'YorksheetClass' for interface 'IWorksheet' cannot be found (are you missing an assembly reference?)
@@ -4325,7 +4325,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1639: The managed coclass wrapper class signature 'WorksheetClass<>' for interface 'IWorksheet' is not a valid class name signature
@@ -4542,17 +4542,17 @@ struct S { }
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var ca in metadataReader.CustomAttributes)
+                foreach (CustomAttributeHandle ca in metadataReader.CustomAttributes)
                 {
                     var name = MetadataValidation.GetAttributeName(metadataReader, ca);
                     Assert.NotEqual("SpecialNameAttribute", name);
                 }
 
-                foreach (var typeDef in metadataReader.TypeDefinitions)
+                foreach (TypeDefinitionHandle typeDef in metadataReader.TypeDefinitions)
                 {
-                    var row = metadataReader.GetTypeDefinition(typeDef);
+                    TypeDefinition row = metadataReader.GetTypeDefinition(typeDef);
                     var name = metadataReader.GetString(row.Name);
                     switch (name)
                     {
@@ -4571,17 +4571,17 @@ struct S { }
                     }
                 }
 
-                foreach (var methodHandle in metadataReader.MethodDefinitions)
+                foreach (MethodDefinitionHandle methodHandle in metadataReader.MethodDefinitions)
                 {
-                    var flags = metadataReader.GetMethodDefinition(methodHandle).Attributes;
+                    MethodAttributes flags = metadataReader.GetMethodDefinition(methodHandle).Attributes;
                     Assert.Equal(MethodAttributes.SpecialName, flags & MethodAttributes.SpecialName);
                 }
 
-                foreach (var fieldDef in metadataReader.FieldDefinitions)
+                foreach (FieldDefinitionHandle fieldDef in metadataReader.FieldDefinitions)
                 {
-                    var field = metadataReader.GetFieldDefinition(fieldDef);
+                    FieldDefinition field = metadataReader.GetFieldDefinition(fieldDef);
                     var name = metadataReader.GetString(field.Name);
-                    var flags = field.Attributes;
+                    FieldAttributes flags = field.Attributes;
                     switch (name)
                     {
                         case "e":
@@ -4600,15 +4600,15 @@ struct S { }
                     }
                 }
 
-                foreach (var propertyDef in metadataReader.PropertyDefinitions)
+                foreach (PropertyDefinitionHandle propertyDef in metadataReader.PropertyDefinitions)
                 {
-                    var flags = metadataReader.GetPropertyDefinition(propertyDef).Attributes;
+                    PropertyAttributes flags = metadataReader.GetPropertyDefinition(propertyDef).Attributes;
                     Assert.Equal(PropertyAttributes.SpecialName, flags & PropertyAttributes.SpecialName);
                 }
 
-                foreach (var eventDef in metadataReader.EventDefinitions)
+                foreach (EventDefinitionHandle eventDef in metadataReader.EventDefinitions)
                 {
-                    var flags = metadataReader.GetEventDefinition(eventDef).Attributes;
+                    EventAttributes flags = metadataReader.GetEventDefinition(eventDef).Attributes;
                     Assert.Equal(EventAttributes.SpecialName, flags & EventAttributes.SpecialName);
                 }
             });
@@ -4651,17 +4651,17 @@ delegate void D();
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var ca in metadataReader.CustomAttributes)
+                foreach (CustomAttributeHandle ca in metadataReader.CustomAttributes)
                 {
                     var name = MetadataValidation.GetAttributeName(metadataReader, ca);
                     Assert.NotEqual("SpecialNameAttribute", name);
                 }
 
-                foreach (var typeDef in metadataReader.TypeDefinitions)
+                foreach (TypeDefinitionHandle typeDef in metadataReader.TypeDefinitions)
                 {
-                    var row = metadataReader.GetTypeDefinition(typeDef);
+                    TypeDefinition row = metadataReader.GetTypeDefinition(typeDef);
                     var name = metadataReader.GetString(row.Name);
                     switch (name)
                     {
@@ -4681,11 +4681,11 @@ delegate void D();
                     }
                 }
 
-                foreach (var fieldDef in metadataReader.FieldDefinitions)
+                foreach (FieldDefinitionHandle fieldDef in metadataReader.FieldDefinitions)
                 {
-                    var field = metadataReader.GetFieldDefinition(fieldDef);
+                    FieldDefinition field = metadataReader.GetFieldDefinition(fieldDef);
                     var name = metadataReader.GetString(field.Name);
-                    var flags = field.Attributes;
+                    FieldAttributes flags = field.Attributes;
                     switch (name)
                     {
                         case "e":
@@ -4716,13 +4716,13 @@ public class C
 public class BobAttribute : Attribute
 {
 }";
-            var lib_comp = CreateCompilation(lib_cs);
+            CSharpCompilation lib_comp = CreateCompilation(lib_cs);
             verify(lib_comp, isSerializablePresent: true);
 
-            var client1 = CreateCompilation("", references: new[] { lib_comp.ToMetadataReference() });
+            CSharpCompilation client1 = CreateCompilation("", references: new[] { lib_comp.ToMetadataReference() });
             verify(client1, isSerializablePresent: true);
 
-            var client2 = CreateCompilation("", references: new[] { lib_comp.EmitToImageReference() });
+            CSharpCompilation client2 = CreateCompilation("", references: new[] { lib_comp.EmitToImageReference() });
             verify(client2, isSerializablePresent: false);
 
             void verify(CSharpCompilation comp, bool isSerializablePresent)
@@ -4795,58 +4795,58 @@ public class ValueTupleS
 public class ExtendedError : ExtendedErrorBase { }
 public class Unbound : Constructed<> { }
 ";
-            var lib = CreateCompilationWithMscorlib46(missing, assemblyName: "missing");
+            CSharpCompilation lib = CreateCompilationWithMscorlib46(missing, assemblyName: "missing");
             lib.VerifyDiagnostics();
-            var comp = CreateCompilationWithMscorlib46(source, references: new[] { lib.EmitToImageReference() });
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, references: new[] { lib.EmitToImageReference() });
             comp.VerifyDiagnostics();
-            var comp2 = CreateCompilationWithMscorlib46(errors, references: new[] { comp.EmitToImageReference() });
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib46(errors, references: new[] { comp.EmitToImageReference() });
 
-            var substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType();
+            NamedTypeSymbol substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType();
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNested);
             Assert.False(((INamedTypeSymbol)substitutedNested).IsSerializable);
 
-            var substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType();
+            NamedTypeSymbol substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType();
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
             Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
 
-            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
+            TypeSymbol valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
             Assert.IsType<TupleTypeSymbol>(valueTupleS);
             Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
 
-            var constructed = comp.GetTypeByMetadataName("Constructed").BaseType();
+            NamedTypeSymbol constructed = comp.GetTypeByMetadataName("Constructed").BaseType();
             Assert.IsType<ConstructedNamedTypeSymbol>(constructed);
             Assert.False(((INamedTypeSymbol)constructed).IsSerializable);
 
-            var constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType();
+            NamedTypeSymbol constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType();
             Assert.IsType<ConstructedNamedTypeSymbol>(constructedS);
             Assert.True(((INamedTypeSymbol)constructedS).IsSerializable);
 
-            var extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType();
+            NamedTypeSymbol extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType();
             Assert.IsType<ExtendedErrorTypeSymbol>(extendedError);
             Assert.False(((INamedTypeSymbol)extendedError).IsSerializable);
 
-            var topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType();
+            NamedTypeSymbol topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType();
             Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(topLevel);
             Assert.False(((INamedTypeSymbol)topLevel).IsSerializable);
 
-            var nested = comp2.GetTypeByMetadataName("MissingNested").BaseType();
+            NamedTypeSymbol nested = comp2.GetTypeByMetadataName("MissingNested").BaseType();
             Assert.IsType<MissingMetadataTypeSymbol.Nested>(nested);
             Assert.False(((INamedTypeSymbol)nested).IsSerializable);
 
-            var constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType();
+            NamedTypeSymbol constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType();
             Assert.IsType<ConstructedErrorTypeSymbol>(constructedError);
             Assert.False(((INamedTypeSymbol)constructedError).IsSerializable);
 
-            var nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom;
+            NamedTypeSymbol nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom;
             Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
             Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
 
-            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
+            TypeSymbol unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
             Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
 
-            var script = CreateCompilation("", parseOptions: TestOptions.Script);
-            var scriptClass = script.GetTypeByMetadataName("Script");
+            CSharpCompilation script = CreateCompilation("", parseOptions: TestOptions.Script);
+            NamedTypeSymbol scriptClass = script.GetTypeByMetadataName("Script");
             Assert.IsType<ImplicitNamedTypeSymbol>(scriptClass);
             Assert.False(((INamedTypeSymbol)scriptClass).IsSerializable);
         }
@@ -4887,10 +4887,10 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            var comp = CompileAndVerify(
+            CompilationVerifier comp = CompileAndVerify(
                 compilation,
                 expectedSignatures: new[]
                 {
@@ -4899,15 +4899,15 @@ namespace AttributeTest
                 },
                 symbolValidator: module =>
                 {
-                    var @namespace = module.GlobalNamespace.GetNestedNamespace("AttributeTest");
-                    var type = @namespace.GetTypeMember("MyClass");
+                    NamespaceSymbol @namespace = module.GlobalNamespace.GetNestedNamespace("AttributeTest");
+                    NamedTypeSymbol type = @namespace.GetTypeMember("MyClass");
 
-                    var useParamsMethod = type.GetMethod("UseParams");
-                    var paramsParameter = useParamsMethod.Parameters[0];
+                    MethodSymbol useParamsMethod = type.GetMethod("UseParams");
+                    ParameterSymbol paramsParameter = useParamsMethod.Parameters[0];
                     VerifyParamArrayAttribute(paramsParameter);
 
-                    var noParamsMethod = type.GetMethod("NoParams");
-                    var noParamsParameter = noParamsMethod.Parameters[0];
+                    MethodSymbol noParamsMethod = type.GetMethod("NoParams");
+                    ParameterSymbol noParamsParameter = noParamsMethod.Parameters[0];
                     Assert.Empty(noParamsParameter.GetAttributes());
                 });
         }
@@ -4932,10 +4932,10 @@ namespace System
         }
     }
 }";
-            var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateCompilationWithMscorlib40(syntaxTree);
+            SyntaxTree syntaxTree = Parse(source, filename: "test.cs");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(syntaxTree);
 
-            var comp = compilation.VerifyDiagnostics(
+            CSharpCompilation comp = compilation.VerifyDiagnostics(
                 // test.cs(4,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
                 //     [AttributeUsage(AttributeTargets.Class)]
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "AttributeUsage").WithArguments("test.cs", "System.AttributeUsageAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.AttributeUsageAttribute").WithLocation(4, 6),
@@ -4970,19 +4970,19 @@ namespace System
         }
     }
 }";
-            var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
+            SyntaxTree syntaxTree = Parse(source, filename: "test.cs");
+            CSharpCompilation compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("System");
-                var attrType = ns.GetTypeMember("AttributeUsageAttribute");
+                NamedTypeSymbol attrType = ns.GetTypeMember("AttributeUsageAttribute");
 
-                var attrs = attrType.GetAttributes(attrType);
+                IEnumerable<CSharpAttributeData> attrs = attrType.GetAttributes(attrType);
                 Assert.Equal(2, attrs.Count());
 
                 // Verify attributes
-                var attrSym = attrs.First();
+                CSharpAttributeData attrSym = attrs.First();
                 Assert.Equal(1, attrSym.CommonConstructorArguments.Length);
                 attrSym.VerifyValue(0, TypedConstantKind.Enum, (int)AttributeTargets.Class);
                 Assert.Equal(1, attrSym.CommonNamedArguments.Length);
@@ -4995,7 +4995,7 @@ namespace System
                 attrSym.VerifyNamedArgumentValue(0, "AllowMultiple", TypedConstantKind.Primitive, false);
 
                 // Verify AttributeUsage
-                var attributeUsage = attrType.GetAttributeUsageInfo();
+                AttributeUsageInfo attributeUsage = attrType.GetAttributeUsageInfo();
                 Assert.Equal(AttributeTargets.Class, attributeUsage.ValidTargets);
                 Assert.Equal(true, attributeUsage.AllowMultiple);
                 Assert.Equal(true, attributeUsage.Inherited);
@@ -5099,11 +5099,11 @@ public class Child2: Child
 ";
             #endregion
 
-            var opt = TestOptions.ReleaseDll;
-            var comp1 = CreateCompilation(text1, options: opt);
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
+            CSharpCompilation comp1 = CreateCompilation(text1, options: opt);
             var compref1 = new CSharpCompilationReference(comp1);
-            var comp2 = CreateCompilation(text2, references: new[] { compref1 }, options: opt, assemblyName: "Child");
-            var comp3 = CreateCompilation(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
+            CSharpCompilation comp2 = CreateCompilation(text2, references: new[] { compref1 }, options: opt, assemblyName: "Child");
+            CSharpCompilation comp3 = CreateCompilation(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             // OK
             comp3.VerifyDiagnostics();
 
@@ -5485,7 +5485,7 @@ class A
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails, targetFramework: TargetFramework.Mscorlib40);
+            CompilationVerifier verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails, targetFramework: TargetFramework.Mscorlib40);
         }
 
         #endregion
@@ -5975,7 +5975,7 @@ public class TestClass
     public Action event1;
 }
 ";
-            var peReference = MetadataReference.CreateFromStream(CreateCompilation(peSource).EmitToStream());
+            PortableExecutableReference peReference = MetadataReference.CreateFromStream(CreateCompilation(peSource).EmitToStream());
 
             var source = @"
 public class Test
@@ -6354,7 +6354,7 @@ public class C {
     public void Goo() {} 
 }
 ";
-            var other = CreateCompilation(s);
+            CSharpCompilation other = CreateCompilation(s);
 
             s = @"
 public class A
@@ -6769,7 +6769,7 @@ class D
     [Deprecated(null, DeprecationType.Deprecate, 0)] object Q { get { return new B(); } }
     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
 }";
-            var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
+            CSharpCompilation comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
                 // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
@@ -6826,7 +6826,7 @@ class D
     }
     static void M(object o) { }
 }";
-            var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
+            CSharpCompilation comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
                 // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
@@ -7727,11 +7727,11 @@ public class C : B
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
             // actually trigger evaluation.
@@ -7776,11 +7776,11 @@ public class NumAttribute : Attribute
     public NumAttribute(int x) { }
 }
 ";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
             // actually trigger evaluation.
@@ -7828,15 +7828,15 @@ class C : ReadWriteControlDesigner
     }
 }
 ";
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilation(source2, new[] { comp1.EmitToImageReference() });
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { comp1.EmitToImageReference() });
 
-            var tree = comp2.SyntaxTrees.Single();
-            var model = comp2.GetSemanticModel(tree);
+            SyntaxTree tree = comp2.SyntaxTrees.Single();
+            SemanticModel model = comp2.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last(n => n.Identifier.ValueText == "OnBehaviorAttached");
+            IdentifierNameSyntax syntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last(n => n.Identifier.ValueText == "OnBehaviorAttached");
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
             // actually trigger evaluation.
@@ -7917,12 +7917,12 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             Action<ModuleSymbol> validator = module =>
             {
-                var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
-                var param = method.Parameters.Single();
+                MethodSymbol method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+                ParameterSymbol param = method.Parameters.Single();
 
                 Assert.True(param.IsParams);
                 Assert.False(param.IsOptional);
@@ -7958,7 +7958,7 @@ public class Class4
 {
 }
 ";
-            var compilation1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
@@ -8005,9 +8005,9 @@ class Class6
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
-            var expected = new[] {
+            DiagnosticDescription[] expected = new[] {
                 // (25,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Deprecated("P1.get is deprecated.", DeprecationType.Remove, 1)]
                 Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(25, 10),
@@ -8057,7 +8057,7 @@ class C
         G();
     }
 }";
-            var compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (12,9): warning CS0618: 'C.F()' is obsolete: 'Deprecated'
                 //         F();
@@ -8112,7 +8112,7 @@ public class Test
         }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH1), Parse(source1) });
+            CSharpCompilation compilation1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH1), Parse(source1) });
 
             var source2 = @"
 namespace ConsoleApplication74
@@ -8127,7 +8127,7 @@ namespace ConsoleApplication74
     }
 }
 ";
-            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
+            CSharpCompilation compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
 
             compilation2.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -8138,7 +8138,7 @@ namespace ConsoleApplication74
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
 
-            var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             compilation3.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -8195,7 +8195,7 @@ public class Test
         }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH2), Parse(source1) });
+            CSharpCompilation compilation1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH2), Parse(source1) });
 
             var source2 = @"
 namespace ConsoleApplication74
@@ -8210,7 +8210,7 @@ namespace ConsoleApplication74
     }
 }
 ";
-            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
+            CSharpCompilation compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
 
             compilation2.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -8221,7 +8221,7 @@ namespace ConsoleApplication74
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
 
-            var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             compilation3.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Goo()' is obsolete: 'hello'
@@ -8319,9 +8319,9 @@ public sealed class ConcreteGoo5 : IGoo1
     }
 }
 ";
-            var compilation1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
 
-            var expected = new[] {
+            DiagnosticDescription[] expected = new[] {
                 // (12,9): warning CS0618: 'IGoo1.Goo()' is obsolete: 'IGoo1.Goo has been deprecated'
                 //         a.Goo(); // IGoo1
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "a.Goo()").WithArguments("IGoo1.Goo()", "IGoo1.Goo has been deprecated").WithLocation(12, 9),
@@ -8356,7 +8356,7 @@ public interface IExceptionalInterface
     }
 }
 ";
-            var compilation1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             //compilation1.VerifyDiagnostics();
 
@@ -8372,9 +8372,9 @@ class Test
         }
     }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
-            var expected = new[] {
+            DiagnosticDescription[] expected = new[] {
                 // (8,9): error CS0619: 'IExceptionalInterface.ExceptionalProp.set' is obsolete: 'Changed my mind; don't put this prop.'
                 //         i.ExceptionalProp = "goo";
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "i.ExceptionalProp").WithArguments("IExceptionalInterface.ExceptionalProp.set", "Changed my mind; don't put this prop.").WithLocation(8, 9),
@@ -8431,10 +8431,10 @@ public class C
 }
 ";
 
-            var ilReference = CompileIL(ilsource);
-            var cscomp = CreateEmptyCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
+            MetadataReference ilReference = CompileIL(ilsource);
+            CSharpCompilation cscomp = CreateEmptyCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
 
-            var expected = new[] {
+            DiagnosticDescription[] expected = new[] {
                 // (12,29): error CS0648: 'Scenario1' is a type not supported by the language
                 //     static void DoSomething(Scenario1 p)
                 Diagnostic(ErrorCode.ERR_BogusType, "Scenario1").WithArguments("Scenario1").WithLocation(12, 29),
@@ -8539,10 +8539,10 @@ public class C
 }
 ";
 
-            var ilReference = CompileIL(ilsource);
-            var cscomp = CreateEmptyCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
+            MetadataReference ilReference = CompileIL(ilsource);
+            CSharpCompilation cscomp = CreateEmptyCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
 
-            var expected = new[] {
+            DiagnosticDescription[] expected = new[] {
                 // (9,11): error CS0570: 'RequiredAttr.ReqAttrUsage.sc1_field' is not supported by the language
                 //         r.sc1_field = null;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "sc1_field").WithArguments("RequiredAttr.ReqAttrUsage.sc1_field").WithLocation(9, 11),
@@ -8561,7 +8561,7 @@ public class C
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
         public void TestAttributePropagationForAsyncAndIterators_01()
         {
-            var source = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation source = CreateCompilationWithMscorlib45(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8616,7 +8616,7 @@ class MyAttribute : System.Attribute
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var program = m.GlobalNamespace.GetTypeMember("Program");
+                NamedTypeSymbol program = m.GlobalNamespace.GetTypeMember("Program");
 
                 Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("test1").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
@@ -8677,7 +8677,7 @@ class MyAttribute : System.Attribute
         [Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")]
         public void TestAttributePropagationForAsyncAndIterators_02()
         {
-            var source = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation source = CreateCompilationWithMscorlib45(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8737,8 +8737,8 @@ class MyAttribute : System.Attribute
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var program1 = m.GlobalNamespace.GetTypeMember("Program1");
-                var program2 = m.GlobalNamespace.GetTypeMember("Program2");
+                NamedTypeSymbol program1 = m.GlobalNamespace.GetTypeMember("Program1");
+                NamedTypeSymbol program2 = m.GlobalNamespace.GetTypeMember("Program2");
 
                 Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("test1").

@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
 
         internal override ImmutableArray<int> GetSupportedErrorCodes()
         {
-            var errorCodes = Enum.GetValues(typeof(ErrorCode));
-            var builder = ImmutableArray.CreateBuilder<int>(errorCodes.Length);
+            Array errorCodes = Enum.GetValues(typeof(ErrorCode));
+            ImmutableArray<int>.Builder builder = ImmutableArray.CreateBuilder<int>(errorCodes.Length);
             foreach (int errorCode in errorCodes)
             {
                 switch (errorCode)

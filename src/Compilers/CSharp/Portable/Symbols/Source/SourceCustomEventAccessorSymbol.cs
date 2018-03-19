@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var syntax = GetSyntax();
+                AccessorDeclarationSyntax syntax = GetSyntax();
                 var hasBody = syntax.Body != null;
                 var hasExpressionBody = syntax.ExpressionBody != null;
                 return !hasBody && hasExpressionBody;

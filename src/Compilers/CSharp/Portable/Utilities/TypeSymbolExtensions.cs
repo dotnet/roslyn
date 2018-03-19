@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var nextType = type.GetDeclaredBaseType(basesBeingResolved);
+            NamedTypeSymbol nextType = type.GetDeclaredBaseType(basesBeingResolved);
 
             // types with no declared bases inherit object's members
             if ((object)nextType == null)
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetDefaultBaseOrNull(type, compilation);
             }
 
-            var origType = type.OriginalDefinition;
+            NamedTypeSymbol origType = type.OriginalDefinition;
             if (nextType.KnownToHaveNoDeclaredBaseCycles)
             {
                 origType.SetKnownToHaveNoDeclaredBaseCycles();
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (visited != null)
             {
-                foreach (var v in visited)
+                foreach (NamedTypeSymbol v in visited)
                 {
                     v.SetKnownToHaveNoDeclaredBaseCycles();
                 }

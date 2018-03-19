@@ -227,12 +227,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenValueType = false;
             if (this.HasUnmanagedTypeConstraint)
             {
-                var typeRef = moduleBeingBuilt.GetSpecialType(
+                Cci.INamedTypeReference typeRef = moduleBeingBuilt.GetSpecialType(
                     SpecialType.System_ValueType,                  
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     diagnostics: context.Diagnostics);
 
-                var modifier = CSharpCustomModifier.CreateRequired(
+                CustomModifier modifier = CSharpCustomModifier.CreateRequired(
                     moduleBeingBuilt.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType));
 
                 // emit "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 seenValueType = true;
             }
 
-            foreach (var type in this.ConstraintTypesNoUseSiteDiagnostics)
+            foreach (TypeSymbol type in this.ConstraintTypesNoUseSiteDiagnostics)
             {
                 switch (type.SpecialType)
                 {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         seenValueType = true;
                         break;
                 }
-                var typeRef = moduleBeingBuilt.Translate(type,
+                Cci.ITypeReference typeRef = moduleBeingBuilt.Translate(type,
                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                             diagnostics: context.Diagnostics);
 
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.HasValueTypeConstraint && !seenValueType)
             {
                 // Add System.ValueType constraint to comply with Dev11 output
-                var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
+                Cci.INamedTypeReference typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
                                                                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                                 diagnostics: context.Diagnostics);
 

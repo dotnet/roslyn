@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
             bodyBuilder.Add(CacheThisIfNeeded());
 
-            var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
+            LocalSymbol exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
             bodyBuilder.Add(
                 F.Try(
                     F.Block(ImmutableArray<LocalSymbol>.Empty,
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Label(_exprReturnLabel));
 
             // this.state = finishedState
-            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+            BoundExpressionStatement stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
             var block = body.Syntax as BlockSyntax;
             if (block == null)
             {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Label(_exitLabel));
             bodyBuilder.Add(F.Return());
 
-            var newStatements = bodyBuilder.ToImmutableAndFree();
+            ImmutableArray<BoundStatement> newStatements = bodyBuilder.ToImmutableAndFree();
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
-            var newBody =
+            BoundStatement newBody =
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
@@ -277,9 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
             Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression));
             TypeSymbol awaiterType = node.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
-            var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
+            LocalSymbol awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
 
-            var awaitIfIncomplete = F.Block(
+            BoundBlock awaitIfIncomplete = F.Block(
                     // temp $awaiterTemp = <expr>.GetAwaiter();
                     F.Assignment(
                         F.Local(awaiterTemp),
@@ -437,11 +437,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  }
             //  free $criticalNotifyCompletedTemp
 
-            var criticalNotifyCompletedTemp = F.SynthesizedLocal(
+            LocalSymbol criticalNotifyCompletedTemp = F.SynthesizedLocal(
                 F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 null);
 
-            var notifyCompletionTemp = F.SynthesizedLocal(
+            LocalSymbol notifyCompletionTemp = F.SynthesizedLocal(
                 F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion),
                 null);
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 ref useSiteDiagnostics).IsImplicit;
 
-            var onCompleted = (useUnsafeOnCompleted ?
+            MethodSymbol onCompleted = (useUnsafeOnCompleted ?
                 _asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted :
                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
             if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)

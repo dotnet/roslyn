@@ -345,8 +345,8 @@ namespace Microsoft.CodeAnalysis
             this TSyntax node,
             SyntaxTriviaList trivia) where TSyntax : SyntaxNode
         {
-            var first = node.GetFirstToken(includeZeroWidth: true);
-            var newFirst = first.WithLeadingTrivia(trivia);
+            SyntaxToken first = node.GetFirstToken(includeZeroWidth: true);
+            SyntaxToken newFirst = first.WithLeadingTrivia(trivia);
             return node.ReplaceToken(first, newFirst);
         }
 
@@ -357,8 +357,8 @@ namespace Microsoft.CodeAnalysis
             this TSyntax node,
             IEnumerable<SyntaxTrivia> trivia) where TSyntax : SyntaxNode
         {
-            var first = node.GetFirstToken(includeZeroWidth: true);
-            var newFirst = first.WithLeadingTrivia(trivia);
+            SyntaxToken first = node.GetFirstToken(includeZeroWidth: true);
+            SyntaxToken newFirst = first.WithLeadingTrivia(trivia);
             return node.ReplaceToken(first, newFirst);
         }
 
@@ -389,8 +389,8 @@ namespace Microsoft.CodeAnalysis
             this TSyntax node,
             SyntaxTriviaList trivia) where TSyntax : SyntaxNode
         {
-            var last = node.GetLastToken(includeZeroWidth: true);
-            var newLast = last.WithTrailingTrivia(trivia);
+            SyntaxToken last = node.GetLastToken(includeZeroWidth: true);
+            SyntaxToken newLast = last.WithTrailingTrivia(trivia);
             return node.ReplaceToken(last, newLast);
         }
 
@@ -401,8 +401,8 @@ namespace Microsoft.CodeAnalysis
             this TSyntax node,
             IEnumerable<SyntaxTrivia> trivia) where TSyntax : SyntaxNode
         {
-            var last = node.GetLastToken(includeZeroWidth: true);
-            var newLast = last.WithTrailingTrivia(trivia);
+            SyntaxToken last = node.GetLastToken(includeZeroWidth: true);
+            SyntaxToken newLast = last.WithTrailingTrivia(trivia);
             return node.ReplaceToken(last, newLast);
         }
 

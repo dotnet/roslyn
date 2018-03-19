@@ -754,7 +754,7 @@ class ADerived2: A
             TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
             TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
             TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
-            var semanticModel = c.GetSemanticModel(c.SyntaxTrees[0]);
+            SemanticModel semanticModel = c.GetSemanticModel(c.SyntaxTrees[0]);
 
             Assert.True(Symbol.IsSymbolAccessible(classA, classB));
             Assert.True(Symbol.IsSymbolAccessible(pubField, classB));
@@ -827,7 +827,7 @@ public class A
         [Fact]
         public void AccessCheckCrossAssemblyParameterProtectedMethodMD()
         {
-            var other = CreateCompilation(@"
+            System.Collections.Immutable.ImmutableArray<byte> other = CreateCompilation(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""AccessCheckCrossAssemblyParameterProtectedMethod2"")]
 internal class C {}",
                     assemblyName: "AccessCheckCrossAssemblyParameterProtectedMethod1").EmitToArray();
@@ -847,16 +847,16 @@ public class A
         [Fact]
         public void InternalInaccessibleProperty()
         {
-            var assembly1Compilation = CreateCSharpCompilation("Assembly1",
+            CSharpCompilation assembly1Compilation = CreateCSharpCompilation("Assembly1",
 @"public class InstancePropertyContainer
 {
     internal protected int PropIntProProSet { get { return 5; } protected set { } }
 }",
                 compilationOptions: TestOptions.ReleaseDll);
-            var assembly1Verifier = CompileAndVerify(assembly1Compilation);
+            CompilationVerifier assembly1Verifier = CompileAndVerify(assembly1Compilation);
             assembly1Verifier.VerifyDiagnostics();
 
-            var assembly2Compilation = CreateCSharpCompilation("Assembly2",
+            CSharpCompilation assembly2Compilation = CreateCSharpCompilation("Assembly2",
 @"public class SubInstancePropertyContainer
 {
     public static void RunTest()
@@ -886,10 +886,10 @@ internal class A
     public virtual void M() { }
     public virtual object P { get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: "A");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1);
-            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilation1);
+            PortableExecutableReference reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
 // Override none.
@@ -912,10 +912,10 @@ internal abstract class B3 : A
 {
     public override object P { set { } }
 }";
-            var compilation2 = CreateCompilation(source2, assemblyName: "B", references: new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2);
-            var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            PortableExecutableReference reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"class C
 {
@@ -934,7 +934,7 @@ internal abstract class B3 : A
         b3.P = o;
     }
 }";
-            var compilation3 = CreateCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
+            CSharpCompilation compilation3 = CreateCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics(
                 // (6,12): error CS0122: 'A.M()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("A.M()").WithLocation(6, 12),
@@ -959,10 +959,10 @@ public abstract class A
     internal abstract void M();
     internal abstract object P { get; }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: "A");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1);
-            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilation1);
+            PortableExecutableReference reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
 public abstract class B : A
@@ -970,10 +970,10 @@ public abstract class B : A
     internal override abstract void M();
     internal override abstract object P { get; }
 }";
-            var compilation2 = CreateCompilation(source2, assemblyName: "B", references: new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2);
-            var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            PortableExecutableReference reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"class C
 {
@@ -983,7 +983,7 @@ public abstract class B : A
         return b.P;
     }
 }";
-            var compilation3 = CreateCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
+            CSharpCompilation compilation3 = CreateCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics();
         }
 
@@ -997,9 +997,9 @@ internal class A
 {
 }
 ";
-            var compilationA = CreateCompilation(sourceA, assemblyName: "A");
-            var compilationVerifier = CompileAndVerify(compilationA);
-            var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CSharpCompilation compilationA = CreateCompilation(sourceA, assemblyName: "A");
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilationA);
+            PortableExecutableReference referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             // Dev11 compiler doesn't allow this code, Roslyn does.
             var sourceB = @"
@@ -1009,9 +1009,9 @@ public class B
     internal A M() { return null; }
 }
 ";
-            var compilationB = CreateCompilation(sourceB, assemblyName: "B", references: new[] { referenceA });
+            CSharpCompilation compilationB = CreateCompilation(sourceB, assemblyName: "B", references: new[] { referenceA });
             compilationVerifier = CompileAndVerify(compilationB);
-            var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            PortableExecutableReference referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceC = @"
 class C
@@ -1022,7 +1022,7 @@ class C
     }
 }
 ";
-            var compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB });
+            CSharpCompilation compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB });
             compilationC.VerifyDiagnostics(
                 // (5,9): error CS0122: 'B.M()' is inaccessible due to its protection level
                 //         b.M();
@@ -1039,9 +1039,9 @@ internal class A
 {
 }
 ";
-            var compilationA = CreateCompilation(sourceA, assemblyName: "A");
-            var compilationVerifier = CompileAndVerify(compilationA);
-            var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CSharpCompilation compilationA = CreateCompilation(sourceA, assemblyName: "A");
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilationA);
+            PortableExecutableReference referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceB = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -1050,9 +1050,9 @@ public class B
     internal A M(int a) { return null; }
 }
 ";
-            var compilationB = CreateCompilation(sourceB, assemblyName: "B", references: new[] { referenceA });
+            CSharpCompilation compilationB = CreateCompilation(sourceB, assemblyName: "B", references: new[] { referenceA });
             compilationVerifier = CompileAndVerify(compilationB);
-            var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            PortableExecutableReference referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceC = @"
 class C
@@ -1063,7 +1063,7 @@ class C
     }
 }
 ";
-            var compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB, SystemCoreRef });
+            CSharpCompilation compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB, SystemCoreRef });
             compilationC.VerifyDiagnostics(
                 // (6,9): error CS0122: 'B.M(int)' is inaccessible due to its protection level
                 //         b.M(d);

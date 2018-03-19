@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<CSharpAttributeData> builder = null;
 
                 // Inherit some attributes from the kickoff method
-                var kickoffMethod = StateMachineType.KickoffMethod;
-                foreach (var attribute in kickoffMethod.GetAttributes())
+                MethodSymbol kickoffMethod = StateMachineType.KickoffMethod;
+                foreach (CSharpAttributeData attribute in kickoffMethod.GetAttributes())
                 {
                     if (attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerHiddenAttribute) ||
                         attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerNonUserCodeAttribute) ||
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
 
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);

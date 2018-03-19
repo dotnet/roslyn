@@ -133,7 +133,7 @@ IEventReferenceOperation: event System.EventHandler C.Event (Static) (OperationK
   Instance Receiver: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

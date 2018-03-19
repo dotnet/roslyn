@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // CONSIDER: We know that no-one will ask for NotOverriddenAbstractMembers again
             // (since this class is concrete), so we could just call the construction method
             // directly to avoid storing the result.
-            foreach (var abstractMember in this.AbstractMembers)
+            foreach (Symbol abstractMember in this.AbstractMembers)
             {
                 // Dev10 reports failure to implement properties/events in terms of the accessors
                 if (abstractMember.Kind == SymbolKind.Method)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // InterfacesAndTheirBaseInterfaces are cached and used in multiple places.
             ImmutableHashSet<NamedTypeSymbol> interfacesAndTheirBases = this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
 
-            foreach (var @interface in this.AllInterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol @interface in this.AllInterfacesNoUseSiteDiagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 bool? hasImportedBaseTypeDeclaringInterface = null;
 
-                foreach (var interfaceMember in @interface.GetMembersUnordered())
+                foreach (Symbol interfaceMember in @interface.GetMembersUnordered())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                     }
 
-                    var implementingMemberAndDiagnostics = this.FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember);
-                    var implementingMember = implementingMemberAndDiagnostics.Symbol;
-                    var synthesizedImplementation = this.SynthesizeInterfaceMemberImplementation(implementingMemberAndDiagnostics, interfaceMember);
+                    SymbolAndDiagnostics implementingMemberAndDiagnostics = this.FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember);
+                    Symbol implementingMember = implementingMemberAndDiagnostics.Symbol;
+                    SynthesizedExplicitImplementationForwardingMethod synthesizedImplementation = this.SynthesizeInterfaceMemberImplementation(implementingMemberAndDiagnostics, interfaceMember);
 
                     bool wasImplementingMemberFound = (object)implementingMember != null;
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Dev10: If a whole property is missing, report the property.  If the property is present, but an accessor
                     // is missing, report just the accessor.
 
-                    var associatedPropertyOrEvent = interfaceMemberKind == SymbolKind.Method ? ((MethodSymbol)interfaceMember).AssociatedSymbol : null;
+                    Symbol associatedPropertyOrEvent = interfaceMemberKind == SymbolKind.Method ? ((MethodSymbol)interfaceMember).AssociatedSymbol : null;
                     if ((object)associatedPropertyOrEvent == null ||
                         ReportAccessorOfInterfacePropertyOrEvent(associatedPropertyOrEvent) ||
                         (wasImplementingMemberFound && !implementingMember.IsAccessor()))
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<DiagnosticInfo> unuseddiagnostics = null;
 
             NamedTypeSymbol directInterface = null;
-            foreach (var iface in this.InterfacesNoUseSiteDiagnostics())
+            foreach (NamedTypeSymbol iface in this.InterfacesNoUseSiteDiagnostics())
             {
                 if (iface == implementedInterface)
                 {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(this.TypeKind);
             }
 
-            foreach (var member in this.GetMembersUnordered())
+            foreach (Symbol member in this.GetMembersUnordered())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -412,8 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     case SymbolKind.Property:
                         var property = (PropertySymbol)member;
-                        var getMethod = property.GetMethod;
-                        var setMethod = property.SetMethod;
+                        MethodSymbol getMethod = property.GetMethod;
+                        MethodSymbol setMethod = property.SetMethod;
 
                         // Handle the accessors here, instead of in the loop, so that we can ensure that
                         // they're checked *after* the corresponding property.
@@ -453,8 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     case SymbolKind.Event:
                         var @event = (EventSymbol)member;
-                        var addMethod = @event.AddMethod;
-                        var removeMethod = @event.RemoveMethod;
+                        MethodSymbol addMethod = @event.AddMethod;
+                        MethodSymbol removeMethod = @event.RemoveMethod;
 
                         // Handle the accessors here, instead of in the loop, so that we can ensure that
                         // they're checked *after* the corresponding event.
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol currType = this.BaseTypeNoUseSiteDiagnostics;
             while ((object)currType != null)
             {
-                foreach (var hiddenMember in currType.GetMembers(symbol.Name))
+                foreach (Symbol hiddenMember in currType.GetMembers(symbol.Name))
                 {
                     if (hiddenMember.Kind == SymbolKind.Method && !((MethodSymbol)hiddenMember).CanBeHiddenByMemberKind(symbol.Kind))
                     {
@@ -579,14 +579,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(overridingMemberIsMethod ^ overridingMemberIsProperty ^ overridingMemberIsEvent);
 
-            var overridingMemberLocation = overridingMember.Locations[0];
+            Location overridingMemberLocation = overridingMember.Locations[0];
 
-            var overriddenMembers = overriddenOrHiddenMembers.OverriddenMembers;
+            ImmutableArray<Symbol> overriddenMembers = overriddenOrHiddenMembers.OverriddenMembers;
             Debug.Assert(!overriddenMembers.IsDefault);
 
             if (overriddenMembers.Length == 0)
             {
-                var hiddenMembers = overriddenOrHiddenMembers.HiddenMembers;
+                ImmutableArray<Symbol> hiddenMembers = overriddenOrHiddenMembers.HiddenMembers;
                 Debug.Assert(!hiddenMembers.IsDefault);
 
                 if (hiddenMembers.Any())
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var overriddenMember = overriddenMembers[0];
+                    Symbol overriddenMember = overriddenMembers[0];
 
                     //otherwise, it would have been excluded during lookup
                     HashSet<DiagnosticInfo> useSiteDiagnosticsNotUsed = null;
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
                         // but to the least-overridden member.
-                        var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
+                        Symbol leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
 
                         overridingMember.ForceCompleteObsoleteAttribute();
                         leastOverriddenMember.ForceCompleteObsoleteAttribute();
@@ -814,12 +814,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no 
             // way of communicating to CLR which method is the overridden one. We only run into this problem when the 
             // parameters are generic.
-            var runtimeOverriddenMembers = overriddenOrHiddenMembers.RuntimeOverriddenMembers;
+            ImmutableArray<Symbol> runtimeOverriddenMembers = overriddenOrHiddenMembers.RuntimeOverriddenMembers;
             Debug.Assert(!runtimeOverriddenMembers.IsDefault);
             if (runtimeOverriddenMembers.Length > 1 && overridingMember.Kind == SymbolKind.Method) // The runtime doesn't define overriding for properties or events.
             {
                 // CONSIDER: Dev10 doesn't seem to report this warning for indexers.
-                var ambiguousMethod = runtimeOverriddenMembers[0];
+                Symbol ambiguousMethod = runtimeOverriddenMembers[0];
                 diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.Locations[0], ambiguousMethod, overridingMember);
                 suppressAccessors = true;
             }
@@ -833,13 +833,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             suppressAccessors = false;
 
-            var hidingMemberLocation = hidingMember.Locations[0];
+            Location hidingMemberLocation = hidingMember.Locations[0];
 
             Debug.Assert(overriddenOrHiddenMembers != null);
             Debug.Assert(!overriddenOrHiddenMembers.OverriddenMembers.Any()); //since hidingMethod.IsOverride is false
             Debug.Assert(!overriddenOrHiddenMembers.RuntimeOverriddenMembers.Any()); //since hidingMethod.IsOverride is false
 
-            var hiddenMembers = overriddenOrHiddenMembers.HiddenMembers;
+            ImmutableArray<Symbol> hiddenMembers = overriddenOrHiddenMembers.HiddenMembers;
             Debug.Assert(!hiddenMembers.IsDefault);
 
             if (hiddenMembers.Length == 0)
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //if we went into the loop, the pseudo-abstract nature of interfaces would throw off the other checks
                 if (!hidingMember.ContainingType.IsInterface)
                 {
-                    foreach (var hiddenMember in hiddenMembers)
+                    foreach (Symbol hiddenMember in hiddenMembers)
                     {
                         diagnosticAdded |= AddHidingAbstractDiagnostic(hidingMember, hidingMemberLocation, hiddenMember, diagnostics, ref suppressAccessors);
 
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         switch (hidingMember.Kind)
                         {
                             case SymbolKind.Method:
-                                var associatedPropertyOrEvent = ((MethodSymbol)hidingMember).AssociatedSymbol;
+                                Symbol associatedPropertyOrEvent = ((MethodSymbol)hidingMember).AssociatedSymbol;
                                 if ((object)associatedPropertyOrEvent != null)
                                 {
                                     //Dev10 reports that the property/event is doing the hiding, rather than the method
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start)
                         {
                             // Mention interfaces in order of their appearance in the base list, for consistency.
-                            var temp = interface1;
+                            NamedTypeSymbol temp = interface1;
                             interface1 = interface2;
                             interface2 = temp;
                         }

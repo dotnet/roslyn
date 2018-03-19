@@ -27,7 +27,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -50,7 +50,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -80,7 +80,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -125,7 +125,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -163,10 +163,10 @@ public class C
         return null;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"eval";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.Main",
 @"{
   // Code size       36 (0x24)
@@ -235,9 +235,9 @@ class IdentityAccessor<T>
         return Guid.Empty;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
-            var compVerifier = CompileAndVerify(compilation);
+            CompilationVerifier compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
 @"{
   // Code size       61 (0x3d)
@@ -303,14 +303,14 @@ class Program
         System.Console.WriteLine(null != (x as Derived));
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
 True
 True
 True";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Program.Main",
 @"{
   // Code size       94 (0x5e)

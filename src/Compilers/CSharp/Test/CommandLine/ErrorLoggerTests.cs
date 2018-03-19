@@ -33,7 +33,7 @@ class C
     }
 }";
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-            var errorLogDir = Temp.CreateDirectory();
+            TempDirectory errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
@@ -70,7 +70,7 @@ public class C
     private int x;
 }";
             var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var errorLogDir = Temp.CreateDirectory();
+            TempDirectory errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
@@ -166,7 +166,7 @@ public class C
 #pragma warning restore CS0169
 }";
             var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var errorLogDir = Temp.CreateDirectory();
+            TempDirectory errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
@@ -263,7 +263,7 @@ public class C
 {
 }";
             var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var outputDir = Temp.CreateDirectory();
+            TempDirectory outputDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 

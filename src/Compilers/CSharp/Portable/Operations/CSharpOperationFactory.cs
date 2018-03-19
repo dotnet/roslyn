@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {
             var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
-            var children = boundNodeWithChildren.Children;
+            ImmutableArray<BoundNode> children = boundNodeWithChildren.Children;
             if (children.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IOperation>.Empty;
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                     else
                     {
-                        var accessor = property.GetOwnOrInheritedSetMethod();
+                        MethodSymbol accessor = property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
                             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() =>
@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var local = (LocalSymbol)locals.Single();
                 // We use iteration variable type syntax as the underlying syntax node as there is no variable declarator syntax in the syntax tree.
-                var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
+                SyntaxNode declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
                 loopControlVariable = new Lazy<IOperation>(() => new VariableDeclarator(local, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: declaratorSyntax, type: null, constantValue: default, isImplicit: false));
             }
             else
@@ -1606,8 +1606,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundLocalDeclarationOperation(BoundLocalDeclaration boundLocalDeclaration)
         {
-            var node = boundLocalDeclaration.Syntax;
-            var kind = node.Kind();
+            SyntaxNode node = boundLocalDeclaration.Syntax;
+            SyntaxKind kind = node.Kind();
 
             SyntaxNode varStatement;
             SyntaxNode varDeclaration;
@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default;
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
-                var tupleSyntax = declarationExpressionSyntax.Designation;
+                VariableDesignationSyntax tupleSyntax = declarationExpressionSyntax.Designation;
                 Lazy<IOperation> tupleExpression = new Lazy<IOperation>(() => new LazyTupleExpression(elements, _semanticModel, tupleSyntax, type, naturalType, constantValue, isImplicit));
                 return new LazyDeclarationExpression(tupleExpression, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
             }

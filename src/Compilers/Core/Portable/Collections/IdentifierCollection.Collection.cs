@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
 
             public void CopyTo(string[] array, int arrayIndex)
             {
-                using (var enumerator = this.GetEnumerator())
+                using (IEnumerator<string> enumerator = this.GetEnumerator())
                 {
                     while (arrayIndex < array.Length && enumerator.MoveNext())
                     {

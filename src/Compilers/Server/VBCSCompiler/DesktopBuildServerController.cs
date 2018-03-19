@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected override IClientConnectionHost CreateClientConnectionHost(string pipeName)
         {
-            var compilerServerHost = CreateCompilerServerHost();
+            ICompilerServerHost compilerServerHost = CreateCompilerServerHost();
             return CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
         }
 

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
-            var originalArguments = GetCommandLineArgs(arguments);
+            IEnumerable<string> originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 

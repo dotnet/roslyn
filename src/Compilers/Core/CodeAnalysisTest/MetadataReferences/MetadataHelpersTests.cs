@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             genericParamsConfigBuilder.Add(GenerateTypeNameConfigs(typeParamStackDepth + 1));
                         }
 
-                        foreach (var genericParamsConfig in genericParamsConfigBuilder.ToImmutableAndFree())
+                        foreach (TypeNameConfig[] genericParamsConfig in genericParamsConfigBuilder.ToImmutableAndFree())
                         {
                             builder.Add(new TypeNameConfig(nestingLevel, genericParamsConfig, pointerCount, arrayKind, assemblyQualified: true));
                             builder.Add(new TypeNameConfig(nestingLevel, genericParamsConfig, pointerCount, arrayKind, assemblyQualified: false));
@@ -241,10 +241,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             else
             {
-                var decodedTypeArguments = decodedName.TypeArguments;
+                MetadataHelpers.AssemblyQualifiedTypeName[] decodedTypeArguments = decodedName.TypeArguments;
                 for (int i = 0; i < decodedTypeArguments.Length; i++)
                 {
-                    var expectedTypeArgument = expectedTypeArguments[i];
+                    MetadataHelpers.AssemblyQualifiedTypeName expectedTypeArgument = expectedTypeArguments[i];
                     VerifyDecodedTypeName(decodedTypeArguments[i], expectedTypeArgument.TopLevelType, expectedTypeArgument.AssemblyName,
                         expectedTypeArgument.NestedTypes, expectedTypeArgument.TypeArguments, expectedTypeArgument.PointerCount, expectedTypeArgument.ArrayRanks);
                 }
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             for (int i = 0; i < namesToDecode.Length; i++)
             {
-                var expectedDecodedName = expectedDecodedNames[i];
+                MetadataHelpers.AssemblyQualifiedTypeName expectedDecodedName = expectedDecodedNames[i];
                 DecodeTypeNameAndVerify(namesToDecode[i], expectedDecodedName.TopLevelType, expectedDecodedName.AssemblyName,
                     expectedDecodedName.NestedTypes, expectedDecodedName.TypeArguments, expectedDecodedName.PointerCount, expectedDecodedName.ArrayRanks);
             }
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We don't expect duplicate keys in nestedNamespaces at this point.
             Assert.False(nestedNamespaces.GroupBy(pair => pair.Key).Where(g => g.Count() > 1).Any());
 
-            var array = nestedNamespaces.ToArray();
+            KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>[] array = nestedNamespaces.ToArray();
             Assert.Equal(3, array.Length);
             Assert.Equal("", array[0].Key);
             Assert.Equal(2, array[0].Value.Count());
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 StringComparer.Ordinal,
                 out nestedTypes, out nestedNamespaces);
 
-            var nestedNS = nestedNamespaces.Single();
+            KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>> nestedNS = nestedNamespaces.Single();
 
             Assert.Equal("", nestedNS.Key);
             Assert.Equal(2, nestedNS.Value.Count());

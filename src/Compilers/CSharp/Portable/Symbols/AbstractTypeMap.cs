@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
-                var oldArgument = hasModifiers ? new TypeWithModifiers(oldTypeArguments[i], previous.GetTypeArgumentCustomModifiers(i)) : new TypeWithModifiers(oldTypeArguments[i]);
-                var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
+                TypeWithModifiers oldArgument = hasModifiers ? new TypeWithModifiers(oldTypeArguments[i], previous.GetTypeArgumentCustomModifiers(i)) : new TypeWithModifiers(oldTypeArguments[i]);
+                TypeWithModifiers newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
                 if (!changed && oldArgument != newArgument)
                 {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make it a tuple if it became compatible with one.
             if ((object)result.Type != null && !previous.IsTupleCompatible())
             {
-                var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(result.Type);
+                TypeSymbol possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(result.Type);
                 if ((object)result.Type != possiblyTuple)
                 {
                     result = new TypeWithModifiers(possiblyTuple, result.CustomModifiers);
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < customModifiers.Length; i++)
             {
                 var modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
-                var substituted = SubstituteNamedType(modifier);
+                NamedTypeSymbol substituted = SubstituteNamedType(modifier);
 
                 if (modifier != substituted)
                 {
@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < original.Length; i++)
             {
-                var t = original[i];
-                var substituted = SubstituteType(t).Type;
+                TypeSymbol t = original[i];
+                TypeSymbol substituted = SubstituteType(t).Type;
                 if (!Object.ReferenceEquals(substituted, t))
                 {
                     if (result == null)
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (original.Length == 1)
             {
-                var type = original[0];
+                TypeSymbol type = original[0];
                 if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                 {
                     result.Add(SubstituteType(type).Type);
@@ -343,11 +343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var set = new HashSet<TypeSymbol>();
-                foreach (var type in original)
+                foreach (TypeSymbol type in original)
                 {
                     if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
-                        var substituted = SubstituteType(type).Type;
+                        TypeSymbol substituted = SubstituteType(type).Type;
                         if (set.Add(substituted))
                         {
                             result.Add(substituted);
@@ -371,8 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < original.Length; i++)
             {
-                var t = original[i];
-                var substituted = SubstituteNamedType(t);
+                NamedTypeSymbol t = original[i];
+                NamedTypeSymbol substituted = SubstituteNamedType(t);
                 if (!Object.ReferenceEquals(substituted, t))
                 {
                     if (result == null)

@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var pool = PooledStringBuilder.GetInstance();
-            var builder = pool.Builder;
+            StringBuilder builder = pool.Builder;
             var i = 0;
             while (i < arg.Length)
             {
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis
         {
             bool inQuotes = false;
 
-            var result = Split(str,
+            IEnumerable<string> result = Split(str,
                 (c =>
                 {
                     if (c == '\"')
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis
             int wildcard = path.IndexOfAny(s_wildcards);
             if (wildcard != -1)
             {
-                foreach (var file in ExpandFileNamePattern(path, baseDirectory, SearchOption.TopDirectoryOnly, errors))
+                foreach (CommandLineSourceFile file in ExpandFileNamePattern(path, baseDirectory, SearchOption.TopDirectoryOnly, errors))
                 {
                     yield return file;
                 }
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (string path in ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)))
             {
-                foreach (var file in ParseFileArgument(path, baseDirectory, errors))
+                foreach (CommandLineSourceFile file in ParseFileArgument(path, baseDirectory, errors))
                 {
                     yield return file;
                 }
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableDictionary<string, string> ParseFeatures(List<string> features)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            ImmutableDictionary<string, string>.Builder builder = ImmutableDictionary.CreateBuilder<string, string>();
             CompilerOptionParseUtilities.ParseFeatures(builder, features);
             return builder.ToImmutable();
         }

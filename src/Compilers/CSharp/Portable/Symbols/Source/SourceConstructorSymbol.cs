@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstructorDeclarationSyntax syntax,
             DiagnosticBag diagnostics)
         {
-            var methodKind = syntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? MethodKind.StaticConstructor : MethodKind.Constructor;
+            MethodKind methodKind = syntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? MethodKind.StaticConstructor : MethodKind.Constructor;
             return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, diagnostics);
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType, syntax.GetReference(), ImmutableArray.Create(location))
         {
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
+            DeclarationModifiers declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
             if (syntax.Identifier.ValueText != containingType.Name)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            CSDiagnosticInfo info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = GetSyntax();
-            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
+            ConstructorDeclarationSyntax syntax = GetSyntax();
+            BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
             ParameterListSyntax parameterList = syntax.ParameterList;
 
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
             // we might still be constructing the member list of the containing type.  However, getting the binder
             // for the parameters should be safe.
-            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
+            Binder bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
-            var location = this.Locations[0];
+            Location location = this.Locations[0];
             if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0))
             {
                 diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
-            var defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
+            DeclarationModifiers defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers =
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            DeclarationModifiers mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // lambdas in ctor initializer:
             int ctorInitializerLength;
-            var ctorInitializer = ctorSyntax.Initializer;
+            ConstructorInitializerSyntax ctorInitializer = ctorSyntax.Initializer;
             if (tree == ctorInitializer?.SyntaxTree)
             {
                 span = ctorInitializer.Span;

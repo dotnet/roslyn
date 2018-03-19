@@ -74,7 +74,7 @@ public class Program
     }
 }
 ";
-            var compilationVerifier = CompileAndVerify(source, expectedOutput: @"");
+            CompilationVerifier compilationVerifier = CompileAndVerify(source, expectedOutput: @"");
         }
 
         [Fact]
@@ -109,7 +109,7 @@ class Program
     }
 }
 ";
-            var compilationVerifier = CompileAndVerify(source, expectedOutput: @"Goo<T>(J<T> x)
+            CompilationVerifier compilationVerifier = CompileAndVerify(source, expectedOutput: @"Goo<T>(J<T> x)
 ");
         }
 
@@ -168,7 +168,7 @@ public class Test
     {
     }
 }";
-            var compilation = CompileAndVerify(text);
+            CompilationVerifier compilation = CompileAndVerify(text);
             compilation.VerifyIL("Test.M",
 @"{
   // Code size       13 (0xd)
@@ -275,10 +275,10 @@ null
 ";
 
             // When the method with the attribute is in source.
-            var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
+            CompilationVerifier verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -373,10 +373,10 @@ null
 ";
 
             // When the method with the attribute is in source.
-            var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
+            CompilationVerifier verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -398,7 +398,7 @@ public class Program
     {
     }
 }";
-            var compilation = CompileAndVerify(text);
+            CompilationVerifier compilation = CompileAndVerify(text);
             compilation.VerifyIL("Program.Test(decimal)",
 @"
 {
@@ -444,7 +444,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(text);
+            CompilationVerifier compilation = CompileAndVerify(text);
             compilation.VerifyIL("Program.Test2(float)",
 @"
 {
@@ -492,7 +492,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(text);
+            CompilationVerifier compilation = CompileAndVerify(text);
             compilation.VerifyIL("Program.Test2(float)",
 @"
 {
@@ -536,7 +536,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CompileAndVerify(text, expectedOutput: "Value is: 1");
+            CompilationVerifier compilation = CompileAndVerify(text, expectedOutput: "Value is: 1");
             compilation.VerifyIL("Class1.Main()",
 @"
 {
@@ -595,7 +595,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CompileAndVerify(text, expectedOutput: "Value is: 1");
+            CompilationVerifier compilation = CompileAndVerify(text, expectedOutput: "Value is: 1");
             compilation.VerifyIL("Class1.Main()",
 @"
 {
@@ -643,7 +643,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CompileAndVerify(text, expectedOutput: "Value is: 1");
+            CompilationVerifier compilation = CompileAndVerify(text, expectedOutput: "Value is: 1");
             compilation.VerifyIL("Class1.Main()",
 @"
 {
@@ -705,7 +705,7 @@ class G<T>
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "TrueTrue");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "TrueTrue");
             compilation.VerifyIL("Program.Goo<T>(G<T>.E, G<int>.E)",
 @"
 {
@@ -771,7 +771,7 @@ class C
 }
 ";
 
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Main()",
 @"
 {
@@ -863,7 +863,7 @@ class C
 }
 ";
 
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Main()", @"
 {
   // Code size       32 (0x20)
@@ -898,7 +898,7 @@ class C
     }
 }";
 
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Test()", @"
 {
   // Code size       31 (0x1f)
@@ -933,7 +933,7 @@ class C
     }
 }";
 
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Test()", @"
 {
   // Code size       32 (0x20)
@@ -970,7 +970,7 @@ class C
     }
 }";
 
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Test()", @"
 {
   // Code size       24 (0x18)
@@ -1007,7 +1007,7 @@ class C
 }
 ";
 
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Main()",
 @"
 {
@@ -1065,7 +1065,7 @@ public interface IAaa
 
 ";
 
-            var compilation = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
             CompileAndVerify(compilation);
         }
 
@@ -1113,7 +1113,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyIL("Program.M",
 @"{
   // Code size       28 (0x1c)
@@ -1154,7 +1154,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyIL("Program.M",
 @"{
   // Code size       43 (0x2b)

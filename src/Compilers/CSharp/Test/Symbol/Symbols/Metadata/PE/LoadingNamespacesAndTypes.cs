@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
             XElement dumpXML = LoadChildNamespace1(assembly.Modules[0].GlobalNamespace);
 
             var baseLine = XElement.Load(new MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes));
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test2()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
             XElement dumpXML = LoadChildNamespace2(assembly.Modules[0].GlobalNamespace);
 
             var baseLine = XElement.Load(new MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes));
@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             XElement elem = new XElement((n.Name.Length == 0 ? "Global" : n.Name));
 
-            var childrenTypes = n.GetTypeMembers().OrderBy((t) => t, new NameAndArityComparer());
+            IOrderedEnumerable<NamedTypeSymbol> childrenTypes = n.GetTypeMembers().OrderBy((t) => t, new NameAndArityComparer());
 
             elem.Add(from t in childrenTypes select LoadChildType(t));
 
-            var childrenNS = n.GetMembers().
+            IOrderedEnumerable<NamespaceSymbol> childrenNS = n.GetMembers().
                                 Select((m) => (m as NamespaceSymbol)).
                                 Where((m) => m != null).
                                 OrderBy((child) => child.Name, StringComparer.OrdinalIgnoreCase);
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             XElement elem = new XElement((n.Name.Length == 0 ? "Global" : n.Name));
 
-            var children = n.GetMembers();
+            System.Collections.Immutable.ImmutableArray<Symbol> children = n.GetMembers();
             n = null;
 
             var types = new List<NamedTypeSymbol>();
             var namespaces = new List<NamespaceSymbol>();
 
-            foreach (var c in children)
+            foreach (Symbol c in children)
             {
                 NamedTypeSymbol t = c as NamedTypeSymbol;
 
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 }
             }
 
-            var childrenTypes = types.OrderBy(t => t, new NameAndArityComparer());
+            IOrderedEnumerable<NamedTypeSymbol> childrenTypes = types.OrderBy(t => t, new NameAndArityComparer());
 
             elem.Add(from t in childrenTypes select LoadChildType(t));
 
-            var childrenNS = namespaces.OrderBy((child) => child.Name, StringComparer.OrdinalIgnoreCase);
+            IOrderedEnumerable<NamespaceSymbol> childrenNS = namespaces.OrderBy((child) => child.Name, StringComparer.OrdinalIgnoreCase);
 
             elem.Add(from c in childrenNS select LoadChildNamespace2(c));
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 elem.Add(new XAttribute("arity", t.Arity));
             }
 
-            var childrenTypes = t.GetTypeMembers().OrderBy((c) => c, new NameAndArityComparer());
+            IOrderedEnumerable<NamedTypeSymbol> childrenTypes = t.GetTypeMembers().OrderBy((c) => c, new NameAndArityComparer());
 
             elem.Add(from c in childrenTypes select LoadChildType(c));
 
@@ -117,15 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test3()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
-            var module0 = assembly.Modules[0];
-            var globalNS = module0.GlobalNamespace;
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            ModuleSymbol module0 = assembly.Modules[0];
+            NamespaceSymbol globalNS = module0.GlobalNamespace;
 
             Assert.Same(globalNS.ContainingAssembly, assembly);
             Assert.Same(globalNS.ContainingSymbol, module0);
             Assert.True(globalNS.IsGlobalNamespace);
 
-            var extent = globalNS.Extent;
+            NamespaceExtent extent = globalNS.Extent;
 
             Assert.Equal(extent.Kind, NamespaceKind.Module);
             Assert.Same(extent.Module, module0);
@@ -162,16 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test4()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
             TestGetMembersOfName(assembly.Modules[0]);
 
-            var assembly2 = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase);
+            AssemblySymbol assembly2 = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase);
             TypeAndNamespaceDifferByCase(assembly2.Modules[0]);
         }
 
         private void TypeAndNamespaceDifferByCase(ModuleSymbol module0)
         {
-            var someName = module0.GlobalNamespace.GetMembers("SomenamE");
+            System.Collections.Immutable.ImmutableArray<Symbol> someName = module0.GlobalNamespace.GetMembers("SomenamE");
             Assert.Equal(someName.Length, 0);
 
             someName = module0.GlobalNamespace.GetMembers("somEnamE");
@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(someName.Length, 1);
             Assert.NotNull((someName[0] as NamespaceSymbol));
 
-            var someName1_1 = module0.GlobalNamespace.GetTypeMembers("somEnamE1").OrderBy((t) => t.Name).ToArray();
-            var someName1_2 = module0.GlobalNamespace.GetTypeMembers("SomeName1").OrderBy((t) => t.Name).ToArray();
+            NamedTypeSymbol[] someName1_1 = module0.GlobalNamespace.GetTypeMembers("somEnamE1").OrderBy((t) => t.Name).ToArray();
+            NamedTypeSymbol[] someName1_2 = module0.GlobalNamespace.GetTypeMembers("SomeName1").OrderBy((t) => t.Name).ToArray();
 
             Assert.Equal(1, someName1_1.Length);
             Assert.Equal("somEnamE1", someName1_1[0].Name);
@@ -191,24 +191,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("SomeName1", someName1_2[0].Name);
             Assert.NotEqual(someName1_1[0], someName1_2[0]);
 
-            var someName2_1 = module0.GlobalNamespace.GetMembers("somEnamE2").OfType<NamespaceSymbol>().OrderBy((t) => t.Name).ToArray();
-            var someName2_2 = module0.GlobalNamespace.GetMembers("SomeName2").OfType<NamespaceSymbol>().OrderBy((t) => t.Name).ToArray();
+            NamespaceSymbol[] someName2_1 = module0.GlobalNamespace.GetMembers("somEnamE2").OfType<NamespaceSymbol>().OrderBy((t) => t.Name).ToArray();
+            NamespaceSymbol[] someName2_2 = module0.GlobalNamespace.GetMembers("SomeName2").OfType<NamespaceSymbol>().OrderBy((t) => t.Name).ToArray();
             Assert.Equal(1, someName2_1.Length);
             Assert.Equal("somEnamE2", someName2_1[0].Name);
             Assert.Equal(1, someName2_2.Length);
             Assert.Equal("SomeName2", someName2_2[0].Name);
             Assert.NotEqual(someName2_1[0], someName2_2[0]);
 
-            var otherName_1 = someName2_1[0].GetTypeMembers("OtherName");
-            var otherName_2 = someName2_2[0].GetTypeMembers("OtherName");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> otherName_1 = someName2_1[0].GetTypeMembers("OtherName");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> otherName_2 = someName2_2[0].GetTypeMembers("OtherName");
 
             Assert.Equal(1, otherName_1.Length);
             Assert.Equal(1, otherName_2.Length);
             Assert.NotEqual(otherName_1[0], otherName_2[0]);
 
-            var nestingClass = module0.GlobalNamespace.GetTypeMembers("NestingClass").Single();
-            var someName3_1 = nestingClass.GetTypeMembers("SomeName3").OrderBy((t) => t.Name).ToArray();
-            var someName3_2 = nestingClass.GetTypeMembers("somEnamE3").OrderBy((t) => t.Name).ToArray();
+            NamedTypeSymbol nestingClass = module0.GlobalNamespace.GetTypeMembers("NestingClass").Single();
+            NamedTypeSymbol[] someName3_1 = nestingClass.GetTypeMembers("SomeName3").OrderBy((t) => t.Name).ToArray();
+            NamedTypeSymbol[] someName3_2 = nestingClass.GetTypeMembers("somEnamE3").OrderBy((t) => t.Name).ToArray();
 
             Assert.Equal(1, someName3_1.Length);
             Assert.Equal(1, someName3_2.Length);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private void TestGetMembersOfName(ModuleSymbol module0)
         {
-            var sys = module0.GlobalNamespace.GetMembers("SYSTEM");
+            System.Collections.Immutable.ImmutableArray<Symbol> sys = module0.GlobalNamespace.GetMembers("SYSTEM");
             Assert.Equal(sys.Length, 0);
 
             sys = module0.GlobalNamespace.GetMembers("System");
@@ -234,8 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(system.GetTypeMembers("ActionThatDoesntExist").Length, 0);
 
             Assert.Equal(system.GetTypeMembers("Action", 20).Length, 0);
-            var actionOf0 = system.GetTypeMembers("Action", 0).Single();
-            var actionOf4 = system.GetTypeMembers("Action", 4).Single();
+            NamedTypeSymbol actionOf0 = system.GetTypeMembers("Action", 0).Single();
+            NamedTypeSymbol actionOf4 = system.GetTypeMembers("Action", 4).Single();
             Assert.Equal("Action", actionOf0.Name);
             Assert.Equal("Action", actionOf4.Name);
             Assert.Equal(actionOf0.Arity, 0);
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(system.GetTypeMembers("ActionThatDoesntExist", 1).Length, 0);
 
-            var collectionsArray = ((NamespaceSymbol)sys[0]).GetMembers("CollectionS");
+            System.Collections.Immutable.ImmutableArray<Symbol> collectionsArray = ((NamespaceSymbol)sys[0]).GetMembers("CollectionS");
             Assert.Equal(collectionsArray.Length, 0);
 
             collectionsArray = ((NamespaceSymbol)sys[0]).GetMembers("Collections");
@@ -254,15 +254,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(0, collections.GetAttributes().Length);
 
-            var enumerable = collections.GetMembers("IEnumerable");
+            System.Collections.Immutable.ImmutableArray<Symbol> enumerable = collections.GetMembers("IEnumerable");
             Assert.Equal(enumerable.Length, 1);
             Assert.Equal("System.Collections.IEnumerable", ((NamedTypeSymbol)enumerable[0]).ToTestDisplayString());
 
-            var generic = collections.GetMembers("Generic");
+            System.Collections.Immutable.ImmutableArray<Symbol> generic = collections.GetMembers("Generic");
             Assert.Equal(generic.Length, 1);
             Assert.NotNull((generic[0] as NamespaceSymbol));
 
-            var dictionaryArray = ((NamespaceSymbol)generic[0]).GetMembers("Dictionary");
+            System.Collections.Immutable.ImmutableArray<Symbol> dictionaryArray = ((NamespaceSymbol)generic[0]).GetMembers("Dictionary");
             Assert.Equal(dictionaryArray.Length, 1);
 
             var dictionary = (NamedTypeSymbol)dictionaryArray[0];
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(dictionary.GetTypeMembers("ValueCollectionThatDoesntExist").Length, 0);
             Assert.Equal(dictionary.GetTypeMembers("ValueCollectioN").Length, 0);
 
-            var valueCollection = dictionary.GetTypeMembers("ValueCollection");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> valueCollection = dictionary.GetTypeMembers("ValueCollection");
             Assert.Equal(valueCollection.Length, 1);
             Assert.Equal("ValueCollection", ((NamedTypeSymbol)valueCollection[0]).Name);
             Assert.Equal(((NamedTypeSymbol)valueCollection[0]).Arity, 0);
@@ -304,8 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
             CompileWithCustomILSource(string.Empty, ilSource, comp =>
             {
-                var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-                var constructor = structType.InstanceConstructors.Single();
+                NamedTypeSymbol structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+                MethodSymbol constructor = structType.InstanceConstructors.Single();
                 Assert.False(constructor.IsImplicitlyDeclared);
             });
         }
@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
             CompileWithCustomILSource(string.Empty, ilSource, comp =>
             {
-                var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-                var constructor = structType.InstanceConstructors.Single();
+                NamedTypeSymbol structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+                MethodSymbol constructor = structType.InstanceConstructors.Single();
                 Assert.True(constructor.IsImplicitlyDeclared);
             });
         }
@@ -348,8 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
             CompileWithCustomILSource(string.Empty, ilSource, comp =>
             {
-                var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-                var constructors = structType.InstanceConstructors;
+                NamedTypeSymbol structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+                System.Collections.Immutable.ImmutableArray<MethodSymbol> constructors = structType.InstanceConstructors;
                 Assert.Equal(2, constructors.Length);
 
                 int withParameterIndex = constructors[0].Parameters.Any() ? 0 : 1;
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void TestAssemblyNameWithSpace1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.WithSpaces);
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.WithSpaces);
             Assert.NotNull(assembly);
             Assert.Equal("With Spaces", assembly.Name);
             Assert.Equal("With Spaces", assembly.MetadataName);
@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.WithSpaces
                 });
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var assembly = type.ContainingAssembly;
+            NamedTypeSymbol type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssemblySymbol assembly = type.ContainingAssembly;
 
             Assert.Equal("With Spaces", assembly.Name);
             Assert.Equal("With Spaces", assembly.MetadataName);
@@ -397,8 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.WithSpacesModule
                 });
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var module = type.ContainingModule;
+            NamedTypeSymbol type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            ModuleSymbol module = type.ContainingModule;
 
             // ilasm seems to tack on the file extension; all we really care about is the space
             Assert.Equal("With Spaces.netmodule", module.Name);

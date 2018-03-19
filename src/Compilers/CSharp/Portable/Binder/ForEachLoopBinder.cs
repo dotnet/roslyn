@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleExpression:
                     {
                         var tuple = (TupleExpressionSyntax)declaration;
-                        foreach (var arg in tuple.Arguments)
+                        foreach (ArgumentSyntax arg in tuple.Arguments)
                         {
                             CollectLocalsFromDeconstruction(arg.Expression, kind, locals, deconstructionStatement, enclosingBinderOpt);
                         }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tuple = (ParenthesizedVariableDesignationSyntax)designation;
-                        foreach (var d in tuple.Variables)
+                        foreach (VariableDesignationSyntax d in tuple.Variables)
                         {
                             CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement, enclosingBinderOpt);
                         }
@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var node = (ForEachVariableStatementSyntax)_syntax;
                         iterationVariableType = inferredType ?? CreateErrorType("var");
 
-                        var variables = node.Variable;
+                        ExpressionSyntax variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
+                            BoundDeconstructValuePlaceholder valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hasErrors |= hasNameConflicts;
 
-            var foreachKeyword = _syntax.ForEachKeyword;
+            SyntaxToken foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, builder.GetEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
 
-            var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
+            TypeSymbol getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
             // we never convert struct enumerators to object - it is done only for null-checks.
             builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
                                                 Conversion.Identity :
@@ -1060,10 +1060,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 implementedIEnumerable = null;
 
-                var implementedNonGeneric = this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+                NamedTypeSymbol implementedNonGeneric = this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                 if ((object)implementedNonGeneric != null)
                 {
-                    var conversion = this.Conversions.ClassifyImplicitConversionFromType(type, implementedNonGeneric, ref useSiteDiagnostics);
+                    Conversion conversion = this.Conversions.ClassifyImplicitConversionFromType(type, implementedNonGeneric, ref useSiteDiagnostics);
                     if (conversion.IsImplicit)
                     {
                         implementedIEnumerable = implementedNonGeneric;

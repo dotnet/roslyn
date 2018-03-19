@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // base constructor call:
             Debug.Assert((object)constructor.ContainingType.BaseTypeNoUseSiteDiagnostics == null || constructor.ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
-            var objectType = constructor.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
+            NamedTypeSymbol objectType = constructor.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
 
             BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
 
@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var submissionArrayReference = new BoundParameter(syntax, submissionConstructor.Parameters[0]) { WasCompilerGenerated = true };
 
-            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+            NamedTypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var thisReference = new BoundThisReference(syntax, submissionConstructor.ContainingType) { WasCompilerGenerated = true };
 
             var slotIndex = compilation.GetSubmissionSlotIndex();
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true })
             { WasCompilerGenerated = true });
 
-            var hostObjectField = synthesizedFields.GetHostObjectField();
+            FieldSymbol hostObjectField = synthesizedFields.GetHostObjectField();
             if ((object)hostObjectField != null)
             {
                 // <host_object> = (<host_object_type>)<submission_array>[0]
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     { WasCompilerGenerated = true });
             }
 
-            foreach (var field in synthesizedFields.FieldSymbols)
+            foreach (FieldSymbol field in synthesizedFields.FieldSymbols)
             {
                 var targetScriptType = (ImplicitNamedTypeSymbol)field.Type;
                 var targetSubmissionIndex = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex();
@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression thisReference = null;
             if (!accessor.IsStatic)
             {
-                var thisSymbol = accessor.ThisParameter;
+                ParameterSymbol thisSymbol = accessor.ThisParameter;
                 thisReference = new BoundThisReference(syntax, thisSymbol.Type) { WasCompilerGenerated = true };
             }
 
-            var field = property.BackingField;
+            SynthesizedBackingFieldSymbol field = property.BackingField;
             var fieldAccess = new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             BoundStatement statement;
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(accessor.MethodKind == MethodKind.PropertySet);
-                var parameter = accessor.Parameters[0];
+                ParameterSymbol parameter = accessor.Parameters[0];
                 statement = new BoundExpressionStatement(
                     accessor.SyntaxNode,
                     new BoundAssignmentOperator(
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundBlock ConstructDestructorBody(MethodSymbol method, BoundBlock block)
         {
-            var syntax = block.Syntax;
+            SyntaxNode syntax = block.Syntax;
 
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
             Debug.Assert(syntax.Kind() == SyntaxKind.Block || syntax.Kind() == SyntaxKind.ArrowExpressionClause);

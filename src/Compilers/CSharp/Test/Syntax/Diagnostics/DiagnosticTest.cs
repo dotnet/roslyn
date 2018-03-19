@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Resources()
         {
-            var excludedErrorCodes = new[]
+            ErrorCode[] excludedErrorCodes = new[]
             {
                 ErrorCode.Void,
                 ErrorCode.Unknown,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NoDuplicates()
         {
-            var values = Enum.GetValues(typeof(ErrorCode));
+            Array values = Enum.GetValues(typeof(ErrorCode));
             var set = new HashSet<ErrorCode>();
             foreach (ErrorCode value in values)
             {
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 End namespace
 ";
 
-            var comp = CreateCompilation(text);
-            var actualErrors = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(text);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = comp.GetDiagnostics();
             Assert.InRange(actualErrors.Count(), 1, int.MaxValue);
         }
 
@@ -133,7 +133,7 @@ public class A
     }
 }";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 6, Column = 27 });
 
             text = @"
@@ -1703,9 +1703,9 @@ public class C
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
             CreateCompilation(text, options: commonoption).VerifyDiagnostics();
 
-            var nodes = ParseWithRoundTripCheck(text).GetRoot().DescendantNodes(descendIntoTrivia: true);
-            var defineName = nodes.OfType<Syntax.DefineDirectiveTriviaSyntax>().Single().Name;
-            var errorCodeName = nodes.OfType<Syntax.PragmaWarningDirectiveTriviaSyntax>().First()
+            IEnumerable<SyntaxNode> nodes = ParseWithRoundTripCheck(text).GetRoot().DescendantNodes(descendIntoTrivia: true);
+            SyntaxToken defineName = nodes.OfType<Syntax.DefineDirectiveTriviaSyntax>().Single().Name;
+            SyntaxToken errorCodeName = nodes.OfType<Syntax.PragmaWarningDirectiveTriviaSyntax>().First()
                                      .ErrorCodes.OfType<Syntax.IdentifierNameSyntax>().First().Identifier;
 
             // Lexing / parsing of identifiers inside #pragma warning directives is identical
@@ -2079,7 +2079,7 @@ public class Test
         return 1;
     }
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
@@ -2098,7 +2098,7 @@ public class Test
         (Console).WriteLine();
     }
 }";
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
 
             // (8,10): error CS0119: 'Console' is a type, which is not valid in the given context
             AssertEx.Equal(CreateCompilation(tree).GetDiagnostics(), CreateCompilation(tree).GetDiagnostics());
@@ -2191,7 +2191,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
@@ -2231,7 +2231,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (6,13): warning CS0219: The variable 'y' is assigned but its value is never used
@@ -2262,7 +2262,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
@@ -2307,7 +2307,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (5,18): error CS0103: The name 'dynamic' does not exist in the current context
@@ -2341,7 +2341,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -2362,7 +2362,7 @@ class Program
     static void dynamic() {}
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
                 // (5,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
@@ -2481,13 +2481,13 @@ class Program
         [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keyfile()
         {
-            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+            TempFile snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
             var snkPath = snk.Path;
 
             const string source = "";
-            var options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
+            CSharpCompilationOptions options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
 
-            var ca = CreateCompilation(source, options: options);
+            CSharpCompilation ca = CreateCompilation(source, options: options);
 
             ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
@@ -2500,7 +2500,7 @@ class Program
         {
             const string source = "";
 
-            var ca = CreateCompilation(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyContainer("bogus"));
+            CSharpCompilation ca = CreateCompilation(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyContainer("bogus"));
 
             ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 // error CS7028: Error signing output with public key from container 'bogus' -- Assembly signing not supported.
@@ -2529,7 +2529,7 @@ class Program
         public void PathMapKeepsCrossPlatformRoot(string expectedFrom, string expectedTo, string sourceFrom, string sourceTo)
         {
             var pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}";
-            var parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { pathmapArg, "a.cs" }, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+            CSharpCommandLineArguments parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { pathmapArg, "a.cs" }, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
             parsedArgs.Errors.Verify();
             var expected = new KeyValuePair<string, string>(expectedFrom, expectedTo);
             Assert.Equal(expected, parsedArgs.PathMap[0]);
@@ -2540,7 +2540,7 @@ class Program
         {
             CSharpCommandLineArguments parse(params string[] args)
             {
-                var parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                CSharpCommandLineArguments parsedArgs = CSharpCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), null);
                 parsedArgs.Errors.Verify();
                 return parsedArgs;
             }
@@ -2548,7 +2548,7 @@ class Program
             var sep = PathUtilities.DirectorySeparatorChar;
             Assert.Equal(new KeyValuePair<string, string>("C:\\temp/goo" + sep, "/temp\\goo" + sep), parse("/pathmap:C:\\temp/goo=/temp\\goo", "a.cs").PathMap[0]);
             Assert.Equal(new KeyValuePair<string, string>("noslash" + sep, "withoutslash" + sep), parse("/pathmap:noslash=withoutslash", "a.cs").PathMap[0]);
-            var doublemap = parse("/pathmap:/temp=/goo,/temp/=/bar", "a.cs").PathMap;
+            System.Collections.Immutable.ImmutableArray<KeyValuePair<string, string>> doublemap = parse("/pathmap:/temp=/goo,/temp/=/bar", "a.cs").PathMap;
             Assert.Equal(new KeyValuePair<string, string>("/temp/", "/goo/"), doublemap[0]);
             Assert.Equal(new KeyValuePair<string, string>("/temp/", "/bar/"), doublemap[1]);
         }

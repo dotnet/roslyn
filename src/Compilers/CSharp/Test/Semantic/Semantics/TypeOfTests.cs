@@ -22,15 +22,15 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var node = (ObjectCreationExpressionSyntax) tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
-            var identifierName = node.Type;
+            TypeSyntax identifierName = node.Type;
 
-            var symbolInfo = model.GetSymbolInfo(node);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(node);
             Assert.Equal("C..ctor(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
-            var typeInfo = model.GetTypeInfo(node);
+            TypeInfo typeInfo = model.GetTypeInfo(node);
             Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
 
         }

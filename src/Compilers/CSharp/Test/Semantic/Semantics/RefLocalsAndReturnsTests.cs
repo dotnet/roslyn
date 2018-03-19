@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void RefFor72()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(int x)
@@ -32,7 +32,7 @@ class C
         [Fact]
         public void RefForEach72()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -50,7 +50,7 @@ class C
         [Fact]
         public void RefReturnRefExpression()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     readonly int _ro = 42;
@@ -78,7 +78,7 @@ class C
         [Fact]
         public void ReadonlyFieldRefReassign()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     readonly int _ro = 42;
@@ -117,7 +117,7 @@ class C
         [Fact]
         public void RefForeachErrorRecovery()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -136,7 +136,7 @@ class C
         [Fact]
         public void RefForToReadonly()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(in int x)
@@ -153,7 +153,7 @@ class C
         [Fact]
         public void RefForOutOfScope()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     ref int M()
@@ -178,7 +178,7 @@ class C
         [Fact]
         public void RefForeachReadonly()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -230,7 +230,7 @@ class RefEnumerable
         [Fact]
         public void RefReassignIdentityConversion()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -257,7 +257,7 @@ class C
         [Fact]
         public void RefReassign71()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 class C
 {
     static int _f = 0;
@@ -286,7 +286,7 @@ class C
         [Fact]
         public void RefReassignSpanLifetime()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -313,7 +313,7 @@ class C
         [Fact]
         public void RefReassignReferenceLocalToParam()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(ref string s)
@@ -331,7 +331,7 @@ class C
         [Fact]
         public void RefAssignReferencePropertyToParam()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     string s2 => string.Empty;
@@ -350,7 +350,7 @@ class C
         [Fact]
         public void RefAssignReferenceFileToParam()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     string _s2 = string.Empty;
@@ -366,7 +366,7 @@ class C
         [Fact]
         public void RefAssignStaticField()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(ref string s)
@@ -383,7 +383,7 @@ class C
         [Fact]
         public void RefReassignForEach()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class E
 {
@@ -416,7 +416,7 @@ class C
         [Fact]
         public void RefReassignNarrowLifetime()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     int _x = 0;
@@ -436,7 +436,7 @@ class C
         [Fact]
         public void RefReassignRangeVar()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 using System.Linq;
 class C
@@ -464,7 +464,7 @@ class C
         [Fact]
         public void RefReassignOutDefiniteAssignment()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     static int y = 0;
@@ -483,7 +483,7 @@ class C
         [Fact]
         public void RefReassignOutDefiniteAssignment2()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(out int x)
@@ -505,7 +505,7 @@ class C
         [Fact]
         public void RefReassignParamEscape()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(ref int x)
@@ -529,7 +529,7 @@ class C
         [Fact]
         public void RefReassignThisStruct()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 struct S
 {
     int _f;
@@ -579,7 +579,7 @@ struct S
         [Fact]
         public void RefReassignThisClass()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -596,7 +596,7 @@ class C
         [Fact]
         public void RefReassignField()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     int _f = 0;
@@ -614,7 +614,7 @@ class C
         [Fact]
         public void RefReassignOperatorResult()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -632,7 +632,7 @@ class C
         [Fact]
         public void RefReassignToValue()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -651,7 +651,7 @@ class C
         [Fact]
         public void RefReassignWithReadonly()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -671,7 +671,7 @@ class C
         [Fact]
         public void RefReassignToRefReturn()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -691,7 +691,7 @@ class C
         [Fact]
         public void RefReassignToProperty()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -714,7 +714,7 @@ class C
         [Fact]
         public void RefReadonlyOnlyIn72()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 class C
 {
     void M()
@@ -723,7 +723,7 @@ class C
         ref readonly int y = ref x;
     }
 }", options: TestOptions.Regular7_1);
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (7,13): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //         ref readonly int y = ref x;
@@ -733,7 +733,7 @@ class C
         [Fact]
         public void CovariantConversionRefReadonly()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -751,7 +751,7 @@ class C
         [Fact]
         public void ImplicitNumericRefReadonlyConversion()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -769,7 +769,7 @@ class C
         [Fact]
         public void RefReadonlyLocalToLiteral()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -786,7 +786,7 @@ class C
         [Fact]
         public void RefReadonlyNoCaptureInLambda()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -808,7 +808,7 @@ class C
         [Fact]
         public void RefReadonlyInLambda()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -827,7 +827,7 @@ class C
         [Fact]
         public void RefReadonlyNoCaptureInLocalFunction()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -849,7 +849,7 @@ class C
         [Fact]
         public void RefReadonlyInLocalFunction()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -868,7 +868,7 @@ class C
         [Fact]
         public void RefReadonlyInAsync()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System.Threading.Tasks;
 class C
 {
@@ -888,7 +888,7 @@ class C
         [Fact]
         public void RefReadonlyInIterator()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System.Collections.Generic;
 class C
 {
@@ -908,7 +908,7 @@ class C
         [Fact]
         public void RefReadonlyLocalNotWritable()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 struct S
 {
     public int X;
@@ -943,7 +943,7 @@ class C
         [Fact]
         public void StripReadonlyInReturn()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     ref int M(ref int p)
@@ -961,7 +961,7 @@ class C
         [Fact]
         public void MixingRefParams()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -997,7 +997,7 @@ class C
         [Fact]
         public void AssignRefReadonlyToRefParam()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1037,7 +1037,7 @@ class C
         [Fact]
         public void AssignRefReadonlyLocalToRefLocal()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -1077,7 +1077,7 @@ class Test
         ref int x;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (6,17): error CS8174: A declaration of a by-reference variable must have an initializer
     //         ref int x;
@@ -1101,7 +1101,7 @@ class Test
         var y = x;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (7,17): error CS8172: Cannot initialize a by-reference variable with a value
     //         ref int x = a;
@@ -1122,7 +1122,7 @@ class Test
         var y = ref x;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (8,13): error CS8171: Cannot initialize a by-value variable with a reference
     //         var y = ref x;
@@ -1166,7 +1166,7 @@ class Test
     }
 
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (6,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref 2 + 2;
@@ -1207,7 +1207,7 @@ class Test
     void VoidMethod(){}
     int P1 {get{return 1;} set{}}
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (9,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d1 = () => ref 2 + 2;
@@ -1280,7 +1280,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (18,24): error CS8168: Cannot return local 'l' by reference because it is not a ref local
     //             return ref l;
@@ -1334,7 +1334,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,30): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
                 //             ref char r = ref ro;
@@ -1376,7 +1376,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilation(text, references: new[] { MscorlibRef, SystemCoreRef, LinqAssemblyRef });
+            CSharpCompilation comp = CreateCompilation(text, references: new[] { MscorlibRef, SystemCoreRef, LinqAssemblyRef });
             comp.VerifyDiagnostics(
                 // (16,34): error CS8159: Cannot return the range variable 'ch' by reference
                 //             select(D1)(() => ref ch);
@@ -1427,7 +1427,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilation(text, references: new[] { MscorlibRef, SystemCoreRef });
+            CSharpCompilation comp = CreateCompilation(text, references: new[] { MscorlibRef, SystemCoreRef });
             comp.VerifyDiagnostics(
     // (14,26): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
     //         ref char r = ref M;
@@ -1544,7 +1544,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (33,33): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
                 //             ref char temp = ref s1;
@@ -1643,7 +1643,7 @@ public class Test
         }
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this;
@@ -1751,7 +1751,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (18,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;
@@ -1835,7 +1835,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (19,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
                 //             return ref r;   //1
@@ -1889,8 +1889,8 @@ public class Test
         }
     }
 }";
-            var options = TestOptions.Regular;
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
+            CSharpParseOptions options = TestOptions.Regular;
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
                 // (14,13): error CS8149: By-reference returns may only be used in methods that return by reference
                 //             return ref b;
@@ -1931,8 +1931,8 @@ public class Test
         char Moo3(ref char a, ref char b) => r;
     }
 }";
-            var options = TestOptions.Regular;
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
+            CSharpParseOptions options = TestOptions.Regular;
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
                 // (9,50): error CS8149: By-reference returns may only be used in methods that return by reference
                 //         char Goo1(ref char a, ref char b) => ref b;

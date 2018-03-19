@@ -344,10 +344,10 @@ class {1} {{ }}
 partial class Partial {{ }}
 ";
 
-            var trees = AllModes.Select(mode =>
+            IEnumerable<SyntaxTree> trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, xml, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateCompilation(trees.ToArray(), assemblyName: "Test");
+            CSharpCompilation comp = CreateCompilation(trees.ToArray(), assemblyName: "Test");
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
@@ -361,7 +361,7 @@ partial class Partial {{ }}
 
         private void TestIncluded(string xml, string xpath, string expectedTextTemplate, Func<string, DiagnosticDescription[]> makeExpectedDiagnostics, bool fallbackToErrorCodeOnlyForNonEnglish = false)
         {
-            var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(xml);
+            TempFile xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(xml);
             var xmlFilePath = xmlFile.Path;
 
             string includeElement = string.Format(@"<include file='{0}' path='{1}' />", xmlFilePath, xpath);
@@ -373,10 +373,10 @@ class {1} {{ }}
 partial class Partial {{ }}
 ";
 
-            var trees = AllModes.Select(mode =>
+            IEnumerable<SyntaxTree> trees = AllModes.Select(mode =>
                 Parse(string.Format(sourceTemplate, includeElement, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
                 trees.ToArray(),
                 options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
@@ -397,7 +397,7 @@ partial class Partial {{ }}
         {
             get
             {
-                var modes = Enumerable.Range((int)DocumentationMode.None, DocumentationMode.Diagnose - DocumentationMode.None + 1).Select(i => (DocumentationMode)i);
+                IEnumerable<DocumentationMode> modes = Enumerable.Range((int)DocumentationMode.None, DocumentationMode.Diagnose - DocumentationMode.None + 1).Select(i => (DocumentationMode)i);
                 AssertEx.All(modes, mode => mode.IsValid());
                 return modes;
             }

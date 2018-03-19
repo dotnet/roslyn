@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Declarations
 class X : object {}
 class Y {}
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("X", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
             Assert.Equal(SymbolKind.NamedType, x.BaseType().Kind);
-            var y = global.GetTypeMembers("Y", 0).Single();
+            NamedTypeSymbol y = global.GetTypeMembers("Y", 0).Single();
             Assert.Equal(SymbolKind.NamedType, y.BaseType().Kind);
             Assert.Equal(x.BaseType(), y.BaseType());
             Assert.Equal("Object", y.BaseType().Name);
@@ -36,9 +36,9 @@ class Y {}
 @"
 struct X {}
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("X", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
             Assert.Equal(SymbolKind.NamedType, x.BaseType().Kind);
             Assert.Equal("ValueType", x.BaseType().Name);
         }
@@ -52,13 +52,13 @@ interface X {}
 class Y {}
 class Z {}
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var x = global.GetTypeMembers("X", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol x = global.GetTypeMembers("X", 0).Single();
             Assert.Null(x.BaseType());
-            var y = global.GetTypeMembers("Y", 0).Single();
+            NamedTypeSymbol y = global.GetTypeMembers("Y", 0).Single();
             Assert.Equal(SymbolKind.NamedType, y.BaseType().Kind);
-            var z = global.GetTypeMembers("Z", 0).Single();
+            NamedTypeSymbol z = global.GetTypeMembers("Z", 0).Single();
             Assert.Equal(SymbolKind.NamedType, z.BaseType().Kind);
             Assert.Equal(z.BaseType(), y.BaseType());
             Assert.Equal("Object", y.BaseType().Name);
@@ -73,10 +73,10 @@ namespace System {
   class A : Object {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
-            var a = system.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol a = system.GetTypeMembers("A", 0).Single();
             Assert.Equal(SymbolKind.NamedType, a.BaseType().Kind);
             Assert.Equal("Object", a.BaseType().Name);
         }
@@ -129,32 +129,32 @@ namespace NS
     struct Name5 {}
 }
 ";
-            var compilation = CreateCompilation(new string[] { text1, text2, text3 });
+            CSharpCompilation compilation = CreateCompilation(new string[] { text1, text2, text3 });
 
             var ns = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("NS").Single();
 
-            var members1 = ns.GetMembers("Name1");
-            var types1 = ns.GetTypeMembers("Name1");
+            System.Collections.Immutable.ImmutableArray<Symbol> members1 = ns.GetMembers("Name1");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> types1 = ns.GetTypeMembers("Name1");
             Assert.Equal(1, members1.Length);
             Assert.True(types1.IsEmpty);
 
-            var members2 = ns.GetMembers("Name2");
-            var types2 = ns.GetTypeMembers("Name2");
+            System.Collections.Immutable.ImmutableArray<Symbol> members2 = ns.GetMembers("Name2");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> types2 = ns.GetTypeMembers("Name2");
             Assert.Equal(1, members2.Length);
             Assert.Equal(1, types2.Length);
 
-            var members3 = ns.GetMembers("Name3");
-            var types3 = ns.GetTypeMembers("Name3");
+            System.Collections.Immutable.ImmutableArray<Symbol> members3 = ns.GetMembers("Name3");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> types3 = ns.GetTypeMembers("Name3");
             Assert.Equal(1, members3.Length);
             Assert.True(types1.IsEmpty);
 
-            var members4 = ns.GetMembers("Name4");
-            var types4 = ns.GetTypeMembers("Name4");
+            System.Collections.Immutable.ImmutableArray<Symbol> members4 = ns.GetMembers("Name4");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> types4 = ns.GetTypeMembers("Name4");
             Assert.Equal(2, members4.Length);
             Assert.Equal(2, types4.Length);
 
-            var members5 = ns.GetMembers("Name5");
-            var types5 = ns.GetTypeMembers("Name5");
+            System.Collections.Immutable.ImmutableArray<Symbol> members5 = ns.GetMembers("Name5");
+            System.Collections.Immutable.ImmutableArray<NamedTypeSymbol> types5 = ns.GetTypeMembers("Name5");
             Assert.Equal(3, members5.Length);
             Assert.Equal(2, types5.Length);
 
@@ -180,12 +180,12 @@ namespace NS
         public int CompareTo(object o) { return 0; }
     }
 ";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
-            var srcSym = compilation.GlobalNamespace.GetTypeMembers("BaseTypeSpecifierClass").Single();
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            NamedTypeSymbol srcSym = compilation.GlobalNamespace.GetTypeMembers("BaseTypeSpecifierClass").Single();
 
-            var ref2 = TestReferences.SymbolsTests.InheritIComparable;
+            PortableExecutableReference ref2 = TestReferences.SymbolsTests.InheritIComparable;
             var comp2 = CSharpCompilation.Create("Compilation2", references: new MetadataReference[] { ref2, MscorlibRef });
-            var metaSym = comp2.GlobalNamespace.GetTypeMembers("BaseTypeSpecifierClass").First();
+            NamedTypeSymbol metaSym = comp2.GlobalNamespace.GetTypeMembers("BaseTypeSpecifierClass").First();
             Assert.Equal(srcSym.Interfaces()[0], metaSym.Interfaces()[0]);
         }
 
@@ -196,12 +196,12 @@ namespace NS
             var text = @"
     class FooAttribute : System.Attribute {}
 ";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
-            var srcSym = compilation.GlobalNamespace.GetTypeMembers("FooAttribute").Single();
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            NamedTypeSymbol srcSym = compilation.GlobalNamespace.GetTypeMembers("FooAttribute").Single();
 
-            var ref2 = TestReferences.SymbolsTests.InheritIComparable;
+            PortableExecutableReference ref2 = TestReferences.SymbolsTests.InheritIComparable;
             var comp2 = CSharpCompilation.Create("Compilation2", references: new MetadataReference[] { ref2, MscorlibRef });
-            var metaSym = comp2.GlobalNamespace.GetTypeMembers("FooAttribute").First();
+            NamedTypeSymbol metaSym = comp2.GlobalNamespace.GetTypeMembers("FooAttribute").First();
             Assert.Equal(srcSym.BaseType(), metaSym.BaseType());
         }
 
@@ -223,14 +223,14 @@ class Test : I1
     }
 }
 ";
-            var compilation = CreateCompilation(text);
-            var classC = compilation.GlobalNamespace.GetTypeMembers("Test").Single();
-            var srcSym = classC.GetMembers("I1.Method").Single();
+            CSharpCompilation compilation = CreateCompilation(text);
+            NamedTypeSymbol classC = compilation.GlobalNamespace.GetTypeMembers("Test").Single();
+            Symbol srcSym = classC.GetMembers("I1.Method").Single();
 
-            var ref2 = TestReferences.SymbolsTests.InheritIComparable;
+            PortableExecutableReference ref2 = TestReferences.SymbolsTests.InheritIComparable;
             var comp2 = CSharpCompilation.Create("Compilation2", references: new MetadataReference[] { ref2, MscorlibRef });
-            var metaType = comp2.GlobalNamespace.GetTypeMembers("Test").Single();
-            var metaSym = metaType.GetMembers("I1.Method").First();
+            NamedTypeSymbol metaType = comp2.GlobalNamespace.GetTypeMembers("Test").Single();
+            Symbol metaSym = metaType.GetMembers("I1.Method").First();
             Assert.Equal(srcSym.DeclaredAccessibility, metaSym.DeclaredAccessibility);
         }
 
@@ -242,10 +242,10 @@ class Box<T> {}
 class A : Box<" + keyword + @"> {}
 class B : Box<System." + systemTypeName + @"> {}
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var b = global.GetTypeMembers("B", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol b = global.GetTypeMembers("B", 0).Single();
             var key = a.BaseType().TypeArguments()[0] as NamedTypeSymbol;
             var nam = b.BaseType().TypeArguments()[0] as NamedTypeSymbol;
             Assert.Equal(SymbolKind.NamedType, key.Kind);
@@ -261,18 +261,18 @@ class B : Box<System." + systemTypeName + @"> {}
         [Fact]
         public void MissingReturnType()
         {
-            var comp1 = CreateCompilation(@"public class C { }",
+            CSharpCompilation comp1 = CreateCompilation(@"public class C { }",
                 assemblyName: "C");
 
-            var C = MetadataReference.CreateFromImage(comp1.EmitToArray());
+            PortableExecutableReference C = MetadataReference.CreateFromImage(comp1.EmitToArray());
 
-            var comp2 = CreateCompilation(@"public class B { public static C GetC() { return new C(); } }",
+            CSharpCompilation comp2 = CreateCompilation(@"public class B { public static C GetC() { return new C(); } }",
                 assemblyName: "B",
                 references: new[] { C });
 
-            var B = MetadataReference.CreateFromImage(comp2.EmitToArray());
+            PortableExecutableReference B = MetadataReference.CreateFromImage(comp2.EmitToArray());
 
-            var comp3 = CreateCompilation(@"public class A { public static void Main() { object o = B.GetC(); } }",
+            CSharpCompilation comp3 = CreateCompilation(@"public class A { public static void Main() { object o = B.GetC(); } }",
                 assemblyName: "A",
                 references: new[] { B });
 

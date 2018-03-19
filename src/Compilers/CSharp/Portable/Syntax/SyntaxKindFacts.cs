@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetKeywordKinds()
         {
-            foreach (var reserved in GetReservedKeywordKinds())
+            foreach (SyntaxKind reserved in GetReservedKeywordKinds())
             {
                 yield return reserved;
             }
 
-            foreach (var contextual in GetContextualKeywordKinds())
+            foreach (SyntaxKind contextual in GetContextualKeywordKinds())
             {
                 yield return contextual;
             }

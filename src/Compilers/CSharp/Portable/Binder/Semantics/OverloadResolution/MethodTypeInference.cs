@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 sb.AppendFormat("Method type parameter {0}: ", _methodTypeParameters[i].Name);
 
-                var fixedType = _fixedResults[i];
+                TypeSymbol fixedType = _fixedResults[i];
 
                 if ((object)fixedType == null)
                 {
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: For each of the method arguments Ei:
             for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
-                var argument = _arguments[arg];
+                BoundExpression argument = _arguments[arg];
 
                 bool isExactInference = GetRefKind(arg) != RefKind.None;
 
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, no inference is made for this argument
 
-            var source = argument.Type;
+            TypeSymbol source = argument.Type;
 
             if (argument.Kind == BoundKind.UnboundLambda)
             {
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var destination = (NamedTypeSymbol)target;
-            var sourceArguments = argument.Arguments;
+            ImmutableArray<BoundExpression> sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            ImmutableArray<TypeSymbol> destTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             // NOTE: we are losing tuple element names when recursing into argument expressions.
@@ -628,8 +628,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < sourceArguments.Length; i++)
             {
-                var sourceArgument = sourceArguments[i];
-                var destType = destTypes[i];
+                BoundExpression sourceArgument = sourceArguments[i];
+                TypeSymbol destType = destTypes[i];
                 MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
             }
 
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializeDependencies();
             while (true)
             {
-                var res = DoSecondPhase(binder, ref useSiteDiagnostics);
+                InferenceResult res = DoSecondPhase(binder, ref useSiteDiagnostics);
                 Debug.Assert(res != InferenceResult.NoProgress);
                 if (res == InferenceResult.InferenceFailed)
                 {
@@ -747,8 +747,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
-                var formalType = _formalParameterTypes[arg];
-                var argument = _arguments[arg];
+                TypeSymbol formalType = _formalParameterTypes[arg];
+                BoundExpression argument = _arguments[arg];
 
                 MakeOutputTypeInferences(binder, argument, formalType, ref useSiteDiagnostics);
             }
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var destination = (NamedTypeSymbol)formalType;
 
             Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
-            var sourceArguments = argument.Arguments;
+            ImmutableArray<BoundExpression> sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
@@ -792,13 +792,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            ImmutableArray<TypeSymbol> destTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)
             {
-                var sourceArgument = sourceArguments[i];
-                var destType = destTypes[i];
+                BoundExpression sourceArgument = sourceArguments[i];
+                TypeSymbol destType = destTypes[i];
                 MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
             }
         }
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fixed, and then fix them all at once.
 
             bool[] needsFixing = new bool[_methodTypeParameters.Length];
-            var result = InferenceResult.NoProgress;
+            InferenceResult result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 if (IsUnfixed(param) && HasBound(param) && !DependsOnAny(param))
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and then fix them.
 
             var needsFixing = new bool[_methodTypeParameters.Length];
-            var result = InferenceResult.NoProgress;
+            InferenceResult result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 if (IsUnfixed(param) && HasBound(param) && AnyDependsOn(param))
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: type or expression tree type then all the parameter types of T are
             // SPEC: input types of E with type T.
 
-            var delegateType = formalParameterType.GetDelegateType();
+            NamedTypeSymbol delegateType = formalParameterType.GetDelegateType();
             if ((object)delegateType == null)
             {
                 return false; // No input types.
@@ -898,13 +898,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // No input types.
             }
 
-            var delegateParameters = delegateType.DelegateParameters();
+            ImmutableArray<ParameterSymbol> delegateParameters = delegateType.DelegateParameters();
             if (delegateParameters.IsDefaultOrEmpty)
             {
                 return false;
             }
 
-            foreach (var delegateParameter in delegateParameters)
+            foreach (ParameterSymbol delegateParameter in delegateParameters)
             {
                 if (delegateParameter.Type.ContainsTypeParameter(typeParameter))
                 {
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: type or expression tree type then the return type of T is an output type
             // SPEC: of E with type T.
 
-            var delegateType = formalParameterType.GetDelegateType();
+            NamedTypeSymbol delegateType = formalParameterType.GetDelegateType();
             if ((object)delegateType == null)
             {
                 return false;
@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateReturnType = delegateInvoke.ReturnType;
+            TypeSymbol delegateReturnType = delegateInvoke.ReturnType;
             if ((object)delegateReturnType == null)
             {
                 return false;
@@ -1007,8 +1007,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int iArg = 0, length = this.NumberArgumentsToProcess; iArg < length; iArg++)
             {
-                var formalParameterType = _formalParameterTypes[iArg];
-                var argument = _arguments[iArg];
+                TypeSymbol formalParameterType = _formalParameterTypes[iArg];
+                BoundExpression argument = _arguments[iArg];
                 if (DoesInputTypeContain(argument, formalParameterType, _methodTypeParameters[jParam]) &&
                     DoesOutputTypeContain(argument, formalParameterType, _methodTypeParameters[iParam]))
                 {
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
-            var sourceType = expression.Type;
+            TypeSymbol sourceType = expression.Type;
             if ((object)sourceType != null)
             {
                 LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   T is a delegate type or expression tree with return type Tb
             // SPEC:   then a lower bound inference is made from U to Tb.
 
-            var delegateType = target.GetDelegateType();
+            NamedTypeSymbol delegateType = target.GetDelegateType();
             if ((object)delegateType == null)
             {
                 return false;
@@ -1281,13 +1281,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this will be checked earlier.
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types.");
-            var returnType = delegateType.DelegateInvokeMethod.ReturnType;
+            TypeSymbol returnType = delegateType.DelegateInvokeMethod.ReturnType;
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
 
-            var inferredReturnType = InferReturnType(source, delegateType, ref useSiteDiagnostics);
+            TypeSymbol inferredReturnType = InferReturnType(source, delegateType, ref useSiteDiagnostics);
             if ((object)inferredReturnType == null)
             {
                 return false;
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateType = target.GetDelegateType();
+            NamedTypeSymbol delegateType = target.GetDelegateType();
             if ((object)delegateType == null)
             {
                 return false;
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // this part of the code is only called if the targetType has an unfixed type argument in the output 
             // type, which is not the case for invalid delegate invoke methods.
-            var delegateInvokeMethod = delegateType.DelegateInvokeMethod;
+            MethodSymbol delegateInvokeMethod = delegateType.DelegateInvokeMethod;
             Debug.Assert((object)delegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
 
@@ -1332,13 +1332,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // At this point we are in the second phase; we know that all the input types are fixed.
 
-            var fixedDelegateParameters = GetFixedDelegate(delegateType).DelegateParameters();
+            ImmutableArray<ParameterSymbol> fixedDelegateParameters = GetFixedDelegate(delegateType).DelegateParameters();
             if (fixedDelegateParameters.IsDefault)
             {
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
+            TypeSymbol returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1358,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedArguments = AnalyzedArguments.GetInstance();
             Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
-            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+            MethodGroupResolution resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
                 isMethodGroupConversion: true, returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null);
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The resolution could be empty (e.g. if there are no methods in the BoundMethodGroup).
             if (!resolution.IsEmpty)
             {
-                var result = resolution.OverloadResolutionResult;
+                OverloadResolutionResult<MethodSymbol> result = resolution.OverloadResolutionResult;
                 if (result.Succeeded)
                 {
                     type = result.BestResult.Member.ReturnType;
@@ -1408,13 +1408,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var delegateType = target.GetDelegateType();
+            NamedTypeSymbol delegateType = target.GetDelegateType();
             if ((object)delegateType == null)
             {
                 return;
             }
 
-            var delegateParameters = delegateType.DelegateParameters();
+            ImmutableArray<ParameterSymbol> delegateParameters = delegateType.DelegateParameters();
             if (delegateParameters.IsDefault)
             {
                 return;
@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var arraySource = (ArrayTypeSymbol)source;
-            var elementSource = arraySource.ElementType;
+            TypeSymbol elementSource = arraySource.ElementType;
             TypeSymbol elementTarget = GetMatchingElementType(arraySource, target, ref useSiteDiagnostics);
             if ((object)elementTarget == null)
             {
@@ -2023,9 +2023,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int arg = 0; arg < sourceTypeArguments.Count; ++arg)
             {
-                var typeParameter = typeParameters[arg];
-                var sourceTypeArgument = sourceTypeArguments[arg];
-                var targetTypeArgument = targetTypeArguments[arg];
+                TypeParameterSymbol typeParameter = typeParameters[arg];
+                TypeSymbol sourceTypeArgument = sourceTypeArguments[arg];
+                TypeSymbol targetTypeArgument = targetTypeArguments[arg];
 
                 if (sourceTypeArgument.IsReferenceType && typeParameter.Variance == VarianceKind.Out)
                 {
@@ -2138,8 +2138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             var arrayTarget = (ArrayTypeSymbol)target;
-            var elementTarget = arrayTarget.ElementType;
-            var elementSource = GetMatchingElementType(arrayTarget, source, ref useSiteDiagnostics);
+            TypeSymbol elementTarget = arrayTarget.ElementType;
+            TypeSymbol elementSource = GetMatchingElementType(arrayTarget, source, ref useSiteDiagnostics);
             if ((object)elementSource == null)
             {
                 return false;
@@ -2231,7 +2231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   inherits directly or indirectly from C<V1...Vk> then an exact 
             // SPEC:   inference is made from each Ui to the corresponding Vi.
 
-            var targetBase = target.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            NamedTypeSymbol targetBase = target.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)targetBase != null)
             {
                 if (targetBase.OriginalDefinition == source.OriginalDefinition)
@@ -2310,9 +2310,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int arg = 0; arg < sourceTypeArguments.Count; ++arg)
             {
-                var typeParameter = typeParameters[arg];
-                var sourceTypeArgument = sourceTypeArguments[arg];
-                var targetTypeArgument = targetTypeArguments[arg];
+                TypeParameterSymbol typeParameter = typeParameters[arg];
+                TypeSymbol sourceTypeArgument = sourceTypeArguments[arg];
+                TypeSymbol targetTypeArgument = targetTypeArguments[arg];
 
                 if (sourceTypeArgument.IsReferenceType && typeParameter.Variance == VarianceKind.Out)
                 {
@@ -2353,9 +2353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization: if we have two or more exact bounds, fixing is impossible.
 
-            var exact = _exactBounds[iParam];
-            var lower = _lowerBounds[iParam];
-            var upper = _upperBounds[iParam];
+            HashSet<TypeSymbol> exact = _exactBounds[iParam];
+            HashSet<TypeSymbol> lower = _lowerBounds[iParam];
+            HashSet<TypeSymbol> upper = _upperBounds[iParam];
 
             var candidates = new Dictionary<TypeSymbol, TypeSymbol>(EqualsIgnoringDynamicAndTupleNamesComparer.Instance);
 
@@ -2366,14 +2366,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (lower != null)
                 {
-                    foreach (var lowerBound in lower)
+                    foreach (TypeSymbol lowerBound in lower)
                     {
                         AddOrMerge(candidates, lowerBound);
                     }
                 }
                 if (upper != null)
                 {
-                    foreach (var upperBound in upper)
+                    foreach (TypeSymbol upperBound in upper)
                     {
                         AddOrMerge(candidates, upperBound);
                     }
@@ -2381,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                foreach (var exactBound in exact)
+                foreach (TypeSymbol exactBound in exact)
                 {
                     AddOrMerge(candidates, exactBound);
                 }
@@ -2405,10 +2405,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lower != null)
             {
-                foreach (var bound in lower)
+                foreach (TypeSymbol bound in lower)
                 {
                     // Make a copy; don't modify the collection as we're iterating it.
-                    foreach (var candidate in initialCandidates)
+                    foreach (TypeSymbol candidate in initialCandidates)
                     {
                         if (!bound.Equals(candidate))
                         {
@@ -2430,9 +2430,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (upper != null)
             {
-                foreach (var bound in upper)
+                foreach (TypeSymbol bound in upper)
                 {
-                    foreach (var candidate in initialCandidates)
+                    foreach (TypeSymbol candidate in initialCandidates)
                     {
                         if (!bound.Equals(candidate))
                         {
@@ -2453,9 +2453,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   which there is an implicit conversion from all the other candidate
             // SPEC:   types, then the parameter is fixed to V.
             TypeSymbol best = null;
-            foreach (var candidate in candidates.Keys)
+            foreach (TypeSymbol candidate in candidates.Keys)
             {
-                foreach (var candidate2 in candidates.Keys)
+                foreach (TypeSymbol candidate2 in candidates.Keys)
                 {
                     if (!candidate.Equals(candidate2) && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
                     {
@@ -2612,7 +2612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // will fail, or we will infer a nonapplicable method. Either way, there
                 // is no change to the semantics of overload resolution.
 
-                var originalDelegateParameters = target.DelegateParameters();
+                ImmutableArray<ParameterSymbol> originalDelegateParameters = target.DelegateParameters();
                 if (originalDelegateParameters.IsDefault)
                 {
                     return null;
@@ -2624,8 +2624,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var fixedDelegate = GetFixedDelegate(target);
-            var fixedDelegateParameters = fixedDelegate.DelegateParameters();
+            NamedTypeSymbol fixedDelegate = GetFixedDelegate(target);
+            ImmutableArray<ParameterSymbol> fixedDelegateParameters = fixedDelegate.DelegateParameters();
             // Optimization:
             // Similarly, if we have an entirely fixed delegate and an explicitly typed
             // anonymous function, then the parameter types had better be identical.
@@ -2662,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(target.IsInterface);
             NamedTypeSymbol matchingInterface = null;
-            foreach (var currentInterface in interfaces)
+            foreach (NamedTypeSymbol currentInterface in interfaces)
             {
                 if (currentInterface.OriginalDefinition == target.OriginalDefinition)
                 {
@@ -2722,7 +2722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!method.ParameterTypes[0].IsDynamic());
 
-            var constructedFromMethod = method.ConstructedFrom;
+            MethodSymbol constructedFromMethod = method.ConstructedFrom;
 
             var inferrer = new MethodTypeInferrer(
                 conversions,

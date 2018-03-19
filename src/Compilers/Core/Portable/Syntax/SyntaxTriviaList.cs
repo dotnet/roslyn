@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         {
             for (int i = 0, n = this.Count; i < n; i++)
             {
-                var trivia = this[i];
+                SyntaxTrivia trivia = this[i];
                 if (trivia == triviaInList)
                 {
                     return i;
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var builder = GetBuilder();
+            SyntaxTriviaListBuilder builder = GetBuilder();
             try
             {
                 for (int i = 0; i < index; i++)
@@ -479,12 +479,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             // get first one without creating any red node
-            var first = this[offset];
+            SyntaxTrivia first = this[offset];
             array[arrayOffset] = first;
 
             // calculate trivia position from the first ourselves from now on
             var position = first.Position;
-            var current = first;
+            SyntaxTrivia current = first;
 
             for (int i = 1; i < count; i++)
             {

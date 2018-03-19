@@ -19,21 +19,21 @@ namespace Roslyn.Utilities
 
             try
             {
-                var type = Type.GetType(cultureInfoTypeNameGlobalization) ?? typeof(object).GetTypeInfo().Assembly.GetType(cultureInfoTypeName);
+                Type type = Type.GetType(cultureInfoTypeNameGlobalization) ?? typeof(object).GetTypeInfo().Assembly.GetType(cultureInfoTypeName);
                 if ((object)type == null)
                 {
                     setter = null;
                     return false;
                 }
 
-                var currentUICultureSetter = type.GetTypeInfo().GetDeclaredProperty(currentUICultureName)?.SetMethod;
+                MethodInfo currentUICultureSetter = type.GetTypeInfo().GetDeclaredProperty(currentUICultureName)?.SetMethod;
                 if ((object)currentUICultureSetter == null || !currentUICultureSetter.IsStatic || currentUICultureSetter.ContainsGenericParameters || currentUICultureSetter.ReturnType != typeof(void))
                 {
                     setter = null;
                     return false;
                 }
 
-                var parameters = currentUICultureSetter.GetParameters();
+                ParameterInfo[] parameters = currentUICultureSetter.GetParameters();
                 if (parameters.Length != 1 || parameters[0].ParameterType != typeof(CultureInfo))
                 {
                     setter = null;
@@ -57,29 +57,29 @@ namespace Roslyn.Utilities
 
             try
             {
-                var type = typeof(object).GetTypeInfo().Assembly.GetType(threadTypeName);
+                Type type = typeof(object).GetTypeInfo().Assembly.GetType(threadTypeName);
                 if ((object)type == null)
                 {
                     setter = null;
                     return false;
                 }
 
-                var typeInfo = type.GetTypeInfo();
-                var currentThreadGetter = typeInfo.GetDeclaredProperty(currentThreadName)?.GetMethod;
+                TypeInfo typeInfo = type.GetTypeInfo();
+                MethodInfo currentThreadGetter = typeInfo.GetDeclaredProperty(currentThreadName)?.GetMethod;
                 if ((object)currentThreadGetter == null || !currentThreadGetter.IsStatic || currentThreadGetter.ContainsGenericParameters || currentThreadGetter.ReturnType != type || currentThreadGetter.GetParameters().Length != 0)
                 {
                     setter = null;
                     return false;
                 }
 
-                var currentUICultureSetter = typeInfo.GetDeclaredProperty(currentUICultureName)?.SetMethod;
+                MethodInfo currentUICultureSetter = typeInfo.GetDeclaredProperty(currentUICultureName)?.SetMethod;
                 if ((object)currentUICultureSetter == null || currentUICultureSetter.IsStatic || currentUICultureSetter.ContainsGenericParameters || currentUICultureSetter.ReturnType != typeof(void))
                 {
                     setter = null;
                     return false;
                 }
 
-                var parameters = currentUICultureSetter.GetParameters();
+                ParameterInfo[] parameters = currentUICultureSetter.GetParameters();
                 if (parameters.Length != 1 || parameters[0].ParameterType != typeof(CultureInfo))
                 {
                     setter = null;
@@ -115,10 +115,10 @@ namespace Roslyn.Utilities
                 return action;
             }
 
-            var savedCulture = CultureInfo.CurrentUICulture;
+            CultureInfo savedCulture = CultureInfo.CurrentUICulture;
             return () =>
             {
-                var currentCulture = CultureInfo.CurrentUICulture;
+                CultureInfo currentCulture = CultureInfo.CurrentUICulture;
                 if (currentCulture != savedCulture)
                 {
                     s_setCurrentUICulture(savedCulture);
@@ -145,10 +145,10 @@ namespace Roslyn.Utilities
                 return action;
             }
 
-            var savedCulture = CultureInfo.CurrentUICulture;
+            CultureInfo savedCulture = CultureInfo.CurrentUICulture;
             return param =>
             {
-                var currentCulture = CultureInfo.CurrentUICulture;
+                CultureInfo currentCulture = CultureInfo.CurrentUICulture;
                 if (currentCulture != savedCulture)
                 {
                     s_setCurrentUICulture(savedCulture);
@@ -175,10 +175,10 @@ namespace Roslyn.Utilities
                 return func;
             }
 
-            var savedCulture = CultureInfo.CurrentUICulture;
+            CultureInfo savedCulture = CultureInfo.CurrentUICulture;
             return () =>
             {
-                var currentCulture = CultureInfo.CurrentUICulture;
+                CultureInfo currentCulture = CultureInfo.CurrentUICulture;
                 if (currentCulture != savedCulture)
                 {
                     s_setCurrentUICulture(savedCulture);

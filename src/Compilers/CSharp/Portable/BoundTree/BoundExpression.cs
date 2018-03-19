@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal string TryGetIndexedPropertyName()
         {
-            foreach (var indexer in ApplicableIndexers)
+            foreach (PropertySymbol indexer in ApplicableIndexers)
             {
                 if (!indexer.IsIndexer && indexer.IsIndexedProperty)
                 {
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal void VisitAllElements<T>(Action<BoundExpression, T> action, T args)
         {
-            foreach (var argument in this.Arguments)
+            foreach (BoundExpression argument in this.Arguments)
             {
                 if (argument.Kind == BoundKind.TupleLiteral)
                 {

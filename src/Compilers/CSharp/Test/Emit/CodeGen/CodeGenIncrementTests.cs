@@ -432,7 +432,7 @@ class C
 }
 ";
 
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.Main", @"
 {
   // Code size      754 (0x2f2)

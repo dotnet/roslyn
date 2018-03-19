@@ -43,7 +43,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,18): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -66,31 +66,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -123,7 +123,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -156,7 +156,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,18): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -179,31 +179,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -237,7 +237,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -261,17 +261,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -318,7 +318,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,15): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -341,30 +341,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(30, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -372,7 +372,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -414,7 +414,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(30, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -454,7 +454,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,15): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -477,30 +477,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[0], x5Ref[2]);
@@ -508,7 +508,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -548,7 +548,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(16, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -576,18 +576,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -618,18 +618,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -664,7 +664,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -699,31 +699,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -756,7 +756,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -789,7 +789,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -824,32 +824,32 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
                 Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl)).Type.ToTestDisplayString());
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -883,7 +883,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -916,7 +916,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,18): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -942,31 +942,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -999,7 +999,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1032,7 +1032,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,18): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -1058,31 +1058,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -1116,7 +1116,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1145,18 +1145,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -1189,7 +1189,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -1215,31 +1215,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -1272,7 +1272,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1305,7 +1305,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -1331,32 +1331,32 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
                 Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl)).Type.ToTestDisplayString());
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -1390,7 +1390,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1432,7 +1432,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,19): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -1455,30 +1455,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(25, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -1486,7 +1486,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -1525,7 +1525,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(25, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1566,7 +1566,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,19): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -1589,30 +1589,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(25, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -1620,7 +1620,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -1680,7 +1680,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(25, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1710,18 +1710,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -1763,7 +1763,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -1789,35 +1789,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyNotAPatternLocal(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyNotAPatternLocal(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0]);
@@ -1827,7 +1827,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -1866,7 +1866,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -1906,7 +1906,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -1932,35 +1932,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyNotAPatternLocal(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyNotAPatternLocal(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0]);
@@ -1970,7 +1970,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -2010,7 +2010,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -2032,15 +2032,15 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2082,7 +2082,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -2108,35 +2108,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyNotAPatternLocal(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyNotAPatternLocal(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref[0]);
@@ -2146,7 +2146,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -2185,7 +2185,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -2226,7 +2226,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,9): error CS0103: The name 'x1' does not exist in the current context
@@ -2252,35 +2252,35 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyNotInScope(model, x1Ref[0]);
                 VerifyNotInScope(model, x1Ref[1]);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyNotAPatternLocal(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyNotAPatternLocal(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyNotInScope(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref[0]);
@@ -2290,7 +2290,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -2330,7 +2330,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -2359,18 +2359,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 3").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
@@ -2411,7 +2411,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -2434,30 +2434,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -2465,7 +2465,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -2504,7 +2504,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -2544,7 +2544,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -2567,30 +2567,30 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
@@ -2598,7 +2598,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -2638,7 +2638,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -2666,18 +2666,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -2712,18 +2712,18 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 11
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax[] x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
@@ -2762,7 +2762,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -2816,41 +2816,41 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl, x5Ref[1]);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForDeclarationField(model, x6Decl, x6Ref[1]);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -2889,7 +2889,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -2922,7 +2922,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,21): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -2957,31 +2957,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -3014,7 +3014,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -3047,7 +3047,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (6,21): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -3082,31 +3082,31 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -3140,7 +3140,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(16, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -3164,7 +3164,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
@@ -3180,11 +3180,11 @@ class H
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -3221,7 +3221,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,20): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -3259,36 +3259,36 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -3318,34 +3318,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
@@ -3384,7 +3384,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,20): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -3422,36 +3422,36 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(20, 25)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForDeclarationField(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -3481,34 +3481,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
@@ -3531,7 +3531,7 @@ void Test()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
@@ -3547,11 +3547,11 @@ void Test()
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -3588,7 +3588,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -3639,41 +3639,41 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -3712,7 +3712,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -3749,7 +3749,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -3800,41 +3800,41 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").ToArray();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax[] x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -3874,7 +3874,7 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(19, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
             }
         }
@@ -3896,7 +3896,7 @@ void Test()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
@@ -3913,11 +3913,11 @@ void Test()
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(3, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -3957,7 +3957,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,20): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -3992,39 +3992,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -4057,39 +4057,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationPattern(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -4130,7 +4130,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,20): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -4165,39 +4165,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -4230,39 +4230,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationPattern(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -4283,17 +4283,17 @@ void Test()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4327,7 +4327,7 @@ static object InitB()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"InitA 0
@@ -4335,11 +4335,11 @@ InitB 1
 1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4363,7 +4363,7 @@ class H
     public static bool Dummy(params object[] x) {return true;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -4374,11 +4374,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4402,7 +4402,7 @@ class H
     public static bool Dummy(params object[] x) {return true;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -4413,11 +4413,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4438,22 +4438,22 @@ bool Test()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0 0
 1 0
 1 2").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForDeclarationField(model, x2Decl, x2Ref);
         }
 
@@ -4489,7 +4489,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,29): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -4518,35 +4518,35 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -4576,34 +4576,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
             }
@@ -4641,7 +4641,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,29): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -4670,35 +4670,35 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -4728,34 +4728,34 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 29)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
             }
@@ -4776,17 +4776,17 @@ void Test()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4820,7 +4820,7 @@ static object InitB()
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"InitA 0
@@ -4828,11 +4828,11 @@ InitB 1
 1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4856,7 +4856,7 @@ class H
     public static bool Dummy(params object[] x) {return true;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -4867,11 +4867,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4895,7 +4895,7 @@ class H
     public static bool Dummy(params object[] x) {return true;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -4906,11 +4906,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -4950,7 +4950,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,42): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -4985,39 +4985,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -5050,39 +5050,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationPattern(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -5123,7 +5123,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (7,42): error CS0102: The type 'Script' already contains a definition for 'x2'
@@ -5158,39 +5158,39 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
                 VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x5Decl, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -5223,39 +5223,39 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(23, 33)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl);
                 VerifyModelNotSupported(model, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl);
                 VerifyModelNotSupported(model, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyModelNotSupported(model, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax[] x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
                 VerifyModelForDeclarationPattern(model, x4Decl[0]);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
                 VerifyModelNotSupported(model, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").Single();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax x5Decl = GetPatternDeclarations(tree, "x5").Single();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 VerifyModelForDeclarationPattern(model, x5Decl);
                 VerifyModelNotSupported(model, x5Ref);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").Single();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax x6Ref = GetReferences(tree, "x6").Single();
                 VerifyModelForDeclarationPattern(model, x6Decl);
                 VerifyModelNotSupported(model, x6Ref);
             }
@@ -5281,17 +5281,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -5330,7 +5330,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"InitA 0
@@ -5338,11 +5338,11 @@ InitB 1
 1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(4, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -5366,7 +5366,7 @@ class H
     public static System.Action Dummy(params object[] x) {return null;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -5377,11 +5377,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -5405,7 +5405,7 @@ class H
     public static System.Action Dummy(params object[] x) {return null;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.VerifyDiagnostics(
                 // (4,16): error CS0120: An object reference is required for the non-static field, method, or property 'x1'
@@ -5416,11 +5416,11 @@ class H
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x1").WithArguments("x1").WithLocation(8, 13)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
         }
@@ -5446,22 +5446,22 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"0 0
 1 0
 1 2").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationField(model, x1Decl, x1Ref);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").Single();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForDeclarationField(model, x2Decl, x2Ref);
         }
 
@@ -5485,7 +5485,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -5499,11 +5499,11 @@ class H
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 // the following would fail due to https://github.com/dotnet/roslyn/issues/13569
@@ -5511,7 +5511,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -5535,11 +5535,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -5566,7 +5566,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -5583,18 +5583,18 @@ class H
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelForDeclarationField(model, x1Decl, x1Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -5618,11 +5618,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -5649,7 +5649,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
@@ -5663,11 +5663,11 @@ class H
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 // the following would fail due to https://github.com/dotnet/roslyn/issues/13569
@@ -5675,7 +5675,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -5699,11 +5699,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -5730,7 +5730,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                                                                   parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -5748,11 +5748,11 @@ class H
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[2]").WithLocation(3, 12)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 // the following would fail due to https://github.com/dotnet/roslyn/issues/13569
@@ -5760,7 +5760,7 @@ class H
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -5787,11 +5787,11 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
                 VerifyModelNotSupported(model, x1Decl, x1Ref);
@@ -5811,7 +5811,7 @@ class H
     public static void Dummy(params object[] x) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,17): error CS0610: Field or property cannot be of type 'ArgIterator'
@@ -5819,10 +5819,10 @@ class H
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 17)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
             VerifyModelForDeclarationField(model, x1Decl);
         }
 
@@ -5840,7 +5840,7 @@ class H
 
 static class StaticType{}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             compilation.GetDeclarationDiagnostics().Verify(
                 // (2,28): error CS0723: Cannot declare a variable of static type 'StaticType'
@@ -5848,10 +5848,10 @@ static class StaticType{}
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x1").WithArguments("StaticType").WithLocation(2, 28)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
             VerifyModelForDeclarationField(model, x1Decl);
         }
 
@@ -5868,13 +5868,13 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
             Assert.Null(model.GetAliasInfo(x1.Type));
         }
@@ -5894,12 +5894,12 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
             Assert.Equal("var=System.Int32", model.GetAliasInfo(x1.Type).ToTestDisplayString());
         }
@@ -5919,12 +5919,12 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1.Type).ToTestDisplayString());
         }
@@ -5942,12 +5942,12 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
             Assert.Null(model.GetAliasInfo(x1.Type));
         }
@@ -6036,7 +6036,7 @@ catch (System.Exception x15)
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (20,13): error CS0841: Cannot use local variable 'x6' before it is declared
                 // catch when (x6 && 123 is var x6)
@@ -6061,58 +6061,58 @@ catch (System.Exception x15)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(75, 32)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclaration(tree, "x1");
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclaration(tree, "x1");
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-                var x4Decl = GetPatternDeclaration(tree, "x4");
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                SingleVariableDesignationSyntax x4Decl = GetPatternDeclaration(tree, "x4");
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAPatternLocal(model, x4Ref[0]);
                 VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetPatternDeclaration(tree, "x6");
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclaration(tree, "x6");
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
 
-                var x7Decl = GetPatternDeclaration(tree, "x7");
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                SingleVariableDesignationSyntax x7Decl = GetPatternDeclaration(tree, "x7");
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
                 VerifyNotAPatternLocal(model, x7Ref[1]);
 
-                var x8Decl = GetPatternDeclaration(tree, "x8");
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                SingleVariableDesignationSyntax x8Decl = GetPatternDeclaration(tree, "x8");
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                SingleVariableDesignationSyntax[] x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAPatternLocal(model, y10Ref[1]);
 
-                var x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                SingleVariableDesignationSyntax[] x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
 
-                var x15Decl = GetPatternDeclaration(tree, "x15");
-                var x15Ref = GetReferences(tree, "x15").ToArray();
+                SingleVariableDesignationSyntax x15Decl = GetPatternDeclaration(tree, "x15");
+                IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
                 Assert.Equal(2, x15Ref.Length);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x15Decl);
                 VerifyNotAPatternLocal(model, x15Ref[0]);
@@ -6120,7 +6120,7 @@ catch (System.Exception x15)
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -6174,12 +6174,12 @@ catch (System.Exception x15)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Dummy").WithArguments("Dummy").WithLocation(55, 5)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
                 Assert.Equal(1, GetPatternDeclarations(tree).Count());
-                var x9Decl = GetPatternDeclaration(tree, "x9");
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                SingleVariableDesignationSyntax x9Decl = GetPatternDeclaration(tree, "x9");
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(4, x9Ref.Length);
                 VerifyNotInScope(model, x9Ref[0]);
                 Assert.Equal(SymbolKind.Parameter, model.GetSymbolInfo(x9Ref[1]).Symbol.Kind);
@@ -6210,16 +6210,16 @@ static bool Dummy(object y, object z)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
@@ -6250,7 +6250,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'x3' does not exist in the current context
@@ -6258,26 +6258,26 @@ class H
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(15, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(1, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").Single();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax x2Ref = GetReferences(tree, "x2").Single();
                 VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl);
                 VerifyNotInScope(model, x3Ref);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -6293,7 +6293,7 @@ class H
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("<invalid-global-code>", "x2").WithLocation(9, 22)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -6316,17 +6316,17 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1").VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
@@ -6426,7 +6426,7 @@ for (
 ";
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (74,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //     var y12 = 12;
@@ -6460,59 +6460,59 @@ for (
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(74, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(2, x2Ref.Length);
                 VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                SingleVariableDesignationSyntax x4Decl = GetPatternDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAPatternLocal(model, x4Ref[0]);
                 VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
 
-                var x7Decl = GetPatternDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                SingleVariableDesignationSyntax x7Decl = GetPatternDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
                 VerifyNotAPatternLocal(model, x7Ref[1]);
 
-                var x8Decl = GetPatternDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                SingleVariableDesignationSyntax x8Decl = GetPatternDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                SingleVariableDesignationSyntax[] x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAPatternLocal(model, y10Ref[1]);
 
-                var y12Ref = GetReferences(tree, "y12").Single();
+                IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
                 VerifyNotInScope(model, y12Ref);
 
-                var x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                SingleVariableDesignationSyntax[] x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
@@ -6520,7 +6520,7 @@ for (
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -6557,7 +6557,7 @@ for (
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x14").WithArguments("<invalid-global-code>", "x14").WithLocation(84, 13)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -6585,7 +6585,7 @@ static bool Dummy(bool x, object y, object z)
     return x;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -6595,21 +6595,21 @@ static bool Dummy(bool x, object y, object z)
 200
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x0Decl = GetPatternDeclarations(tree, "x0").Single();
-            var x0Ref = GetReferences(tree, "x0").ToArray();
+            SingleVariableDesignationSyntax x0Decl = GetPatternDeclarations(tree, "x0").Single();
+            IdentifierNameSyntax[] x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
             VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-            var x2Ref = GetReferences(tree, "x2").ToArray();
+            SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
         }
@@ -6688,7 +6688,7 @@ foreach (var x15 in
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (52,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //     var y12 = 12;
@@ -6722,73 +6722,73 @@ foreach (var x15 in
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(52, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(2, x2Ref.Length);
                 VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                SingleVariableDesignationSyntax x4Decl = GetPatternDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAPatternLocal(model, x4Ref[0]);
                 VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
 
-                var x7Decl = GetPatternDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                SingleVariableDesignationSyntax x7Decl = GetPatternDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
                 VerifyNotAPatternLocal(model, x7Ref[1]);
 
-                var x8Decl = GetPatternDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                SingleVariableDesignationSyntax x8Decl = GetPatternDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                SingleVariableDesignationSyntax[] x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAPatternLocal(model, y10Ref[1]);
 
-                var y12Ref = GetReferences(tree, "y12").Single();
+                IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
                 VerifyNotInScope(model, y12Ref);
 
-                var x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                SingleVariableDesignationSyntax[] x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
 
-                var x15Decl = GetPatternDeclarations(tree, "x15").Single();
-                var x15Ref = GetReferences(tree, "x15").ToArray();
+                SingleVariableDesignationSyntax x15Decl = GetPatternDeclarations(tree, "x15").Single();
+                IdentifierNameSyntax[] x15Ref = GetReferences(tree, "x15").ToArray();
                 Assert.Equal(2, x15Ref.Length);
                 VerifyModelForDeclarationPattern(model, x15Decl, x15Ref[0]);
                 VerifyNotAPatternLocal(model, x15Ref[1]);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -6814,7 +6814,7 @@ foreach (var x15 in
                 Diagnostic(ErrorCode.ERR_DuplicateParamName, "x14").WithArguments("x14").WithLocation(58, 34)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -6838,16 +6838,16 @@ static System.Collections.IEnumerable Dummy(object y, object z)
     return ""a"";
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
@@ -6897,7 +6897,7 @@ var x12 = 11;
 Dummy(x12);
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (6,39): error CS0841: Cannot use local variable 'x4' before it is declared
                 // Dummy((System.Func<bool, bool>) (o => x4 && o is var x4));
@@ -6919,32 +6919,32 @@ Dummy(x12);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 7)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x3Decl = GetPatternDeclarations(tree, "x3").Single();
-                var x3Ref = GetReferences(tree, "x3").Single();
+                SingleVariableDesignationSyntax x3Decl = GetPatternDeclarations(tree, "x3").Single();
+                IdentifierNameSyntax x3Ref = GetReferences(tree, "x3").Single();
                 VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").Single();
+                SingleVariableDesignationSyntax x4Decl = GetPatternDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax x4Ref = GetReferences(tree, "x4").Single();
                 VerifyModelForDeclarationPattern(model, x4Decl, x4Ref);
 
-                var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
-                var x5Ref = GetReferences(tree, "x5").Single();
+                SingleVariableDesignationSyntax[] x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+                IdentifierNameSyntax x5Ref = GetReferences(tree, "x5").Single();
                 Assert.Equal(2, x5Decl.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref);
                 VerifyModelForDeclarationPatternDuplicateInSameScope(model, x5Decl[1]);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax[] x6Decl = GetPatternDeclarations(tree, "x6").ToArray();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Decl.Length);
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForDeclarationPattern(model, x6Decl[0], x6Ref[0]);
                 VerifyModelForDeclarationPattern(model, x6Decl[1], x6Ref[1]);
 
-                var x7Decl = GetPatternDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                SingleVariableDesignationSyntax x7Decl = GetPatternDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(5, x7Ref.Length);
                 VerifyNotInScope(model, x7Ref[0]);
                 VerifyNotInScope(model, x7Ref[1]);
@@ -6952,34 +6952,34 @@ Dummy(x12);
                 VerifyNotInScope(model, x7Ref[3]);
                 VerifyNotInScope(model, x7Ref[4]);
 
-                var x8Decl = GetPatternDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                SingleVariableDesignationSyntax x8Decl = GetPatternDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(2, x8Ref.Length);
                 VerifyModelForDeclarationField(model, x8Decl, x8Ref);
 
-                var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                SingleVariableDesignationSyntax[] x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(2, x9Ref.Length);
                 VerifyModelForDeclarationField(model, x9Decl[0], x9Ref[1]);
                 VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[0]);
 
-                var x10Decl = GetPatternDeclarations(tree, "x10").ToArray();
-                var x10Ref = GetReferences(tree, "x10").ToArray();
+                SingleVariableDesignationSyntax[] x10Decl = GetPatternDeclarations(tree, "x10").ToArray();
+                IdentifierNameSyntax[] x10Ref = GetReferences(tree, "x10").ToArray();
                 Assert.Equal(2, x10Decl.Length);
                 Assert.Equal(2, x10Ref.Length);
                 VerifyModelForDeclarationPattern(model, x10Decl[0], x10Ref[0]);
                 VerifyModelForDeclarationField(model, x10Decl[1], x10Ref[1]);
 
-                var x11Decl = GetPatternDeclarations(tree, "x11").Single();
-                var x11Ref = GetReferences(tree, "x11").ToArray();
+                SingleVariableDesignationSyntax x11Decl = GetPatternDeclarations(tree, "x11").Single();
+                IdentifierNameSyntax[] x11Ref = GetReferences(tree, "x11").ToArray();
                 Assert.Equal(3, x11Ref.Length);
                 VerifyNotAPatternLocal(model, x11Ref[0]);
                 VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
                 VerifyNotAPatternLocal(model, x11Ref[2]);
 
-                var x12Decl = GetPatternDeclarations(tree, "x12").Single();
-                var x12Ref = GetReferences(tree, "x12").ToArray();
+                SingleVariableDesignationSyntax x12Decl = GetPatternDeclarations(tree, "x12").Single();
+                IdentifierNameSyntax[] x12Ref = GetReferences(tree, "x12").ToArray();
                 Assert.Equal(3, x12Ref.Length);
                 VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
                 VerifyNotAPatternLocal(model, x12Ref[1]);
@@ -6987,7 +6987,7 @@ Dummy(x12);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -7019,7 +7019,7 @@ Dummy(x12);
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x10").WithArguments("<invalid-global-code>", "x10").WithLocation(28, 26)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -7040,15 +7040,15 @@ static bool Dummy(int x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
@@ -7065,15 +7065,15 @@ static bool Dummy(int x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").Single();
+            SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            IdentifierNameSyntax x1Ref = GetReferences(tree, "x1").Single();
             VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
@@ -7174,7 +7174,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
             select x1 + y11;
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (14,21): error CS0103: The name 'z2' does not exist in the current context
                 //                     z2;
@@ -7268,168 +7268,168 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var y1Decl = GetPatternDeclarations(tree, "y1").Single();
-                var y1Ref = GetReferences(tree, "y1").ToArray();
+                SingleVariableDesignationSyntax y1Decl = GetPatternDeclarations(tree, "y1").Single();
+                IdentifierNameSyntax[] y1Ref = GetReferences(tree, "y1").ToArray();
                 Assert.Equal(4, y1Ref.Length);
                 VerifyModelForDeclarationField(model, y1Decl, y1Ref);
 
-                var y2Decl = GetPatternDeclarations(tree, "y2").Single();
-                var y2Ref = GetReferences(tree, "y2").ToArray();
+                SingleVariableDesignationSyntax y2Decl = GetPatternDeclarations(tree, "y2").Single();
+                IdentifierNameSyntax[] y2Ref = GetReferences(tree, "y2").ToArray();
                 Assert.Equal(3, y2Ref.Length);
                 VerifyModelForDeclarationField(model, y2Decl, y2Ref);
 
-                var z2Decl = GetPatternDeclarations(tree, "z2").Single();
-                var z2Ref = GetReferences(tree, "z2").ToArray();
+                SingleVariableDesignationSyntax z2Decl = GetPatternDeclarations(tree, "z2").Single();
+                IdentifierNameSyntax[] z2Ref = GetReferences(tree, "z2").ToArray();
                 Assert.Equal(4, z2Ref.Length);
                 VerifyModelForDeclarationPattern(model, z2Decl, z2Ref[0], z2Ref[1]);
                 VerifyNotInScope(model, z2Ref[2]);
                 VerifyNotInScope(model, z2Ref[3]);
 
-                var y3Decl = GetPatternDeclarations(tree, "y3").Single();
-                var y3Ref = GetReferences(tree, "y3").ToArray();
+                SingleVariableDesignationSyntax y3Decl = GetPatternDeclarations(tree, "y3").Single();
+                IdentifierNameSyntax[] y3Ref = GetReferences(tree, "y3").ToArray();
                 Assert.Equal(3, y3Ref.Length);
                 VerifyModelForDeclarationField(model, y3Decl, y3Ref);
 
-                var z3Decl = GetPatternDeclarations(tree, "z3").Single();
-                var z3Ref = GetReferences(tree, "z3").ToArray();
+                SingleVariableDesignationSyntax z3Decl = GetPatternDeclarations(tree, "z3").Single();
+                IdentifierNameSyntax[] z3Ref = GetReferences(tree, "z3").ToArray();
                 Assert.Equal(3, z3Ref.Length);
                 VerifyModelForDeclarationPattern(model, z3Decl, z3Ref[0]);
                 VerifyNotInScope(model, z3Ref[1]);
                 VerifyNotInScope(model, z3Ref[2]);
 
-                var y4Decl = GetPatternDeclarations(tree, "y4").Single();
-                var y4Ref = GetReferences(tree, "y4").ToArray();
+                SingleVariableDesignationSyntax y4Decl = GetPatternDeclarations(tree, "y4").Single();
+                IdentifierNameSyntax[] y4Ref = GetReferences(tree, "y4").ToArray();
                 Assert.Equal(5, y4Ref.Length);
                 VerifyModelForDeclarationField(model, y4Decl, y4Ref);
 
-                var z4Decl = GetPatternDeclarations(tree, "z4").Single();
-                var z4Ref = GetReferences(tree, "z4").ToArray();
+                SingleVariableDesignationSyntax z4Decl = GetPatternDeclarations(tree, "z4").Single();
+                IdentifierNameSyntax[] z4Ref = GetReferences(tree, "z4").ToArray();
                 Assert.Equal(6, z4Ref.Length);
                 VerifyModelForDeclarationField(model, z4Decl, z4Ref);
 
-                var u4Decl = GetPatternDeclarations(tree, "u4").Single();
-                var u4Ref = GetReferences(tree, "u4").ToArray();
+                SingleVariableDesignationSyntax u4Decl = GetPatternDeclarations(tree, "u4").Single();
+                IdentifierNameSyntax[] u4Ref = GetReferences(tree, "u4").ToArray();
                 Assert.Equal(4, u4Ref.Length);
                 VerifyModelForDeclarationPattern(model, u4Decl, u4Ref[0]);
                 VerifyNotInScope(model, u4Ref[1]);
                 VerifyNotInScope(model, u4Ref[2]);
                 VerifyNotInScope(model, u4Ref[3]);
 
-                var v4Decl = GetPatternDeclarations(tree, "v4").Single();
-                var v4Ref = GetReferences(tree, "v4").ToArray();
+                SingleVariableDesignationSyntax v4Decl = GetPatternDeclarations(tree, "v4").Single();
+                IdentifierNameSyntax[] v4Ref = GetReferences(tree, "v4").ToArray();
                 Assert.Equal(4, v4Ref.Length);
                 VerifyNotInScope(model, v4Ref[0]);
                 VerifyModelForDeclarationPattern(model, v4Decl, v4Ref[1]);
                 VerifyNotInScope(model, v4Ref[2]);
                 VerifyNotInScope(model, v4Ref[3]);
 
-                var y5Decl = GetPatternDeclarations(tree, "y5").Single();
-                var y5Ref = GetReferences(tree, "y5").ToArray();
+                SingleVariableDesignationSyntax y5Decl = GetPatternDeclarations(tree, "y5").Single();
+                IdentifierNameSyntax[] y5Ref = GetReferences(tree, "y5").ToArray();
                 Assert.Equal(5, y5Ref.Length);
                 VerifyModelForDeclarationField(model, y5Decl, y5Ref);
 
-                var z5Decl = GetPatternDeclarations(tree, "z5").Single();
-                var z5Ref = GetReferences(tree, "z5").ToArray();
+                SingleVariableDesignationSyntax z5Decl = GetPatternDeclarations(tree, "z5").Single();
+                IdentifierNameSyntax[] z5Ref = GetReferences(tree, "z5").ToArray();
                 Assert.Equal(6, z5Ref.Length);
                 VerifyModelForDeclarationField(model, z5Decl, z5Ref);
 
-                var u5Decl = GetPatternDeclarations(tree, "u5").Single();
-                var u5Ref = GetReferences(tree, "u5").ToArray();
+                SingleVariableDesignationSyntax u5Decl = GetPatternDeclarations(tree, "u5").Single();
+                IdentifierNameSyntax[] u5Ref = GetReferences(tree, "u5").ToArray();
                 Assert.Equal(4, u5Ref.Length);
                 VerifyModelForDeclarationPattern(model, u5Decl, u5Ref[0]);
                 VerifyNotInScope(model, u5Ref[1]);
                 VerifyNotInScope(model, u5Ref[2]);
                 VerifyNotInScope(model, u5Ref[3]);
 
-                var v5Decl = GetPatternDeclarations(tree, "v5").Single();
-                var v5Ref = GetReferences(tree, "v5").ToArray();
+                SingleVariableDesignationSyntax v5Decl = GetPatternDeclarations(tree, "v5").Single();
+                IdentifierNameSyntax[] v5Ref = GetReferences(tree, "v5").ToArray();
                 Assert.Equal(4, v5Ref.Length);
                 VerifyNotInScope(model, v5Ref[0]);
                 VerifyModelForDeclarationPattern(model, v5Decl, v5Ref[1]);
                 VerifyNotInScope(model, v5Ref[2]);
                 VerifyNotInScope(model, v5Ref[3]);
 
-                var y6Decl = GetPatternDeclarations(tree, "y6").Single();
-                var y6Ref = GetReferences(tree, "y6").ToArray();
+                SingleVariableDesignationSyntax y6Decl = GetPatternDeclarations(tree, "y6").Single();
+                IdentifierNameSyntax[] y6Ref = GetReferences(tree, "y6").ToArray();
                 Assert.Equal(3, y6Ref.Length);
                 VerifyModelForDeclarationField(model, y6Decl, y6Ref);
 
-                var z6Decl = GetPatternDeclarations(tree, "z6").Single();
-                var z6Ref = GetReferences(tree, "z6").ToArray();
+                SingleVariableDesignationSyntax z6Decl = GetPatternDeclarations(tree, "z6").Single();
+                IdentifierNameSyntax[] z6Ref = GetReferences(tree, "z6").ToArray();
                 Assert.Equal(3, z6Ref.Length);
                 VerifyModelForDeclarationPattern(model, z6Decl, z6Ref[0]);
                 VerifyNotInScope(model, z6Ref[1]);
                 VerifyNotInScope(model, z6Ref[2]);
 
-                var y7Decl = GetPatternDeclarations(tree, "y7").Single();
-                var y7Ref = GetReferences(tree, "y7").ToArray();
+                SingleVariableDesignationSyntax y7Decl = GetPatternDeclarations(tree, "y7").Single();
+                IdentifierNameSyntax[] y7Ref = GetReferences(tree, "y7").ToArray();
                 Assert.Equal(4, y7Ref.Length);
                 VerifyModelForDeclarationField(model, y7Decl, y7Ref);
 
-                var z7Decl = GetPatternDeclarations(tree, "z7").Single();
-                var z7Ref = GetReferences(tree, "z7").ToArray();
+                SingleVariableDesignationSyntax z7Decl = GetPatternDeclarations(tree, "z7").Single();
+                IdentifierNameSyntax[] z7Ref = GetReferences(tree, "z7").ToArray();
                 Assert.Equal(4, z7Ref.Length);
                 VerifyModelForDeclarationPattern(model, z7Decl, z7Ref[0]);
                 VerifyNotInScope(model, z7Ref[1]);
                 VerifyNotInScope(model, z7Ref[2]);
                 VerifyNotInScope(model, z7Ref[3]);
 
-                var u7Decl = GetPatternDeclarations(tree, "u7").Single();
-                var u7Ref = GetReferences(tree, "u7").ToArray();
+                SingleVariableDesignationSyntax u7Decl = GetPatternDeclarations(tree, "u7").Single();
+                IdentifierNameSyntax[] u7Ref = GetReferences(tree, "u7").ToArray();
                 Assert.Equal(4, u7Ref.Length);
                 VerifyNotInScope(model, u7Ref[0]);
                 VerifyModelForDeclarationPattern(model, u7Decl, u7Ref[1]);
                 VerifyNotInScope(model, u7Ref[2]);
                 VerifyNotInScope(model, u7Ref[3]);
 
-                var y8Decl = GetPatternDeclarations(tree, "y8").Single();
-                var y8Ref = GetReferences(tree, "y8").ToArray();
+                SingleVariableDesignationSyntax y8Decl = GetPatternDeclarations(tree, "y8").Single();
+                IdentifierNameSyntax[] y8Ref = GetReferences(tree, "y8").ToArray();
                 Assert.Equal(2, y8Ref.Length);
                 VerifyModelForDeclarationField(model, y8Decl, y8Ref);
 
-                var z8Decl = GetPatternDeclarations(tree, "z8").Single();
-                var z8Ref = GetReferences(tree, "z8").ToArray();
+                SingleVariableDesignationSyntax z8Decl = GetPatternDeclarations(tree, "z8").Single();
+                IdentifierNameSyntax[] z8Ref = GetReferences(tree, "z8").ToArray();
                 Assert.Equal(2, z8Ref.Length);
                 VerifyModelForDeclarationPattern(model, z8Decl, z8Ref[0]);
                 VerifyNotInScope(model, z8Ref[1]);
 
-                var y9Decl = GetPatternDeclarations(tree, "y9").Single();
-                var y9Ref = GetReferences(tree, "y9").ToArray();
+                SingleVariableDesignationSyntax y9Decl = GetPatternDeclarations(tree, "y9").Single();
+                IdentifierNameSyntax[] y9Ref = GetReferences(tree, "y9").ToArray();
                 Assert.Equal(3, y9Ref.Length);
                 VerifyModelForDeclarationField(model, y9Decl, y9Ref);
 
-                var z9Decl = GetPatternDeclarations(tree, "z9").Single();
-                var z9Ref = GetReferences(tree, "z9").ToArray();
+                SingleVariableDesignationSyntax z9Decl = GetPatternDeclarations(tree, "z9").Single();
+                IdentifierNameSyntax[] z9Ref = GetReferences(tree, "z9").ToArray();
                 Assert.Equal(3, z9Ref.Length);
                 VerifyModelForDeclarationPattern(model, z9Decl, z9Ref[0]);
                 VerifyNotInScope(model, z9Ref[1]);
                 VerifyNotInScope(model, z9Ref[2]);
 
-                var u9Decl = GetPatternDeclarations(tree, "u9").Single();
-                var u9Ref = GetReferences(tree, "u9").ToArray();
+                SingleVariableDesignationSyntax u9Decl = GetPatternDeclarations(tree, "u9").Single();
+                IdentifierNameSyntax[] u9Ref = GetReferences(tree, "u9").ToArray();
                 Assert.Equal(3, u9Ref.Length);
                 VerifyNotInScope(model, u9Ref[0]);
                 VerifyModelForDeclarationPattern(model, u9Decl, u9Ref[1]);
                 VerifyNotInScope(model, u9Ref[2]);
 
-                var y10Decl = GetPatternDeclarations(tree, "y10").Single();
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                SingleVariableDesignationSyntax y10Decl = GetPatternDeclarations(tree, "y10").Single();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyModelForDeclarationField(model, y10Decl, y10Ref[0]);
                 VerifyNotAPatternField(model, y10Ref[1]);
 
-                var y11Decl = GetPatternDeclarations(tree, "y11").Single();
-                var y11Ref = GetReferences(tree, "y11").ToArray();
+                SingleVariableDesignationSyntax y11Decl = GetPatternDeclarations(tree, "y11").Single();
+                IdentifierNameSyntax[] y11Ref = GetReferences(tree, "y11").ToArray();
                 Assert.Equal(2, y11Ref.Length);
                 VerifyModelForDeclarationField(model, y11Decl, y11Ref[0]);
                 VerifyNotAPatternField(model, y11Ref[1]);
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -7464,7 +7464,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(90, 17)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 AssertNoGlobalStatements(tree);
             }
         }
@@ -7487,17 +7487,17 @@ static bool Print(object x)
     return true;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var yDecl = GetPatternDeclarations(tree, "y1").Single();
-            var yRef = GetReferences(tree, "y1").Single();
+            SingleVariableDesignationSyntax yDecl = GetPatternDeclarations(tree, "y1").Single();
+            IdentifierNameSyntax yRef = GetReferences(tree, "y1").Single();
             VerifyModelForDeclarationField(model, yDecl, yRef);
         }
 
@@ -7569,7 +7569,7 @@ using (Dummy(1 is var x14,
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
                 compilation.VerifyDiagnostics(
                 // (52,5): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //     var y12 = 12;
@@ -7600,63 +7600,63 @@ using (Dummy(1 is var x14,
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(52, 9)
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
+                SemanticModel model = compilation.GetSemanticModel(tree);
 
-                var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-                var x1Ref = GetReferences(tree, "x1").ToArray();
+                SingleVariableDesignationSyntax x1Decl = GetPatternDeclarations(tree, "x1").Single();
+                IdentifierNameSyntax[] x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
-                var x2Decl = GetPatternDeclarations(tree, "x2").Single();
-                var x2Ref = GetReferences(tree, "x2").ToArray();
+                SingleVariableDesignationSyntax x2Decl = GetPatternDeclarations(tree, "x2").Single();
+                IdentifierNameSyntax[] x2Ref = GetReferences(tree, "x2").ToArray();
                 Assert.Equal(2, x2Ref.Length);
                 VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
 
-                var x4Decl = GetPatternDeclarations(tree, "x4").Single();
-                var x4Ref = GetReferences(tree, "x4").ToArray();
+                SingleVariableDesignationSyntax x4Decl = GetPatternDeclarations(tree, "x4").Single();
+                IdentifierNameSyntax[] x4Ref = GetReferences(tree, "x4").ToArray();
                 Assert.Equal(3, x4Ref.Length);
                 VerifyNotAPatternLocal(model, x4Ref[0]);
                 VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
 
-                var x6Decl = GetPatternDeclarations(tree, "x6").Single();
-                var x6Ref = GetReferences(tree, "x6").ToArray();
+                SingleVariableDesignationSyntax x6Decl = GetPatternDeclarations(tree, "x6").Single();
+                IdentifierNameSyntax[] x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(2, x6Ref.Length);
                 VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
 
-                var x7Decl = GetPatternDeclarations(tree, "x7").Single();
-                var x7Ref = GetReferences(tree, "x7").ToArray();
+                SingleVariableDesignationSyntax x7Decl = GetPatternDeclarations(tree, "x7").Single();
+                IdentifierNameSyntax[] x7Ref = GetReferences(tree, "x7").ToArray();
                 Assert.Equal(2, x7Ref.Length);
                 VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
                 VerifyNotAPatternLocal(model, x7Ref[1]);
 
-                var x8Decl = GetPatternDeclarations(tree, "x8").Single();
-                var x8Ref = GetReferences(tree, "x8").ToArray();
+                SingleVariableDesignationSyntax x8Decl = GetPatternDeclarations(tree, "x8").Single();
+                IdentifierNameSyntax[] x8Ref = GetReferences(tree, "x8").ToArray();
                 Assert.Equal(3, x8Ref.Length);
                 VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
                 VerifyNotInScope(model, x8Ref[2]);
 
-                var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
-                var x9Ref = GetReferences(tree, "x9").ToArray();
+                SingleVariableDesignationSyntax[] x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
+                IdentifierNameSyntax[] x9Ref = GetReferences(tree, "x9").ToArray();
                 Assert.Equal(2, x9Decl.Length);
                 Assert.Equal(4, x9Ref.Length);
                 VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
                 VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
-                var x10Decl = GetPatternDeclarations(tree, "x10").Single();
-                var x10Ref = GetReferences(tree, "x10").Single();
+                SingleVariableDesignationSyntax x10Decl = GetPatternDeclarations(tree, "x10").Single();
+                IdentifierNameSyntax x10Ref = GetReferences(tree, "x10").Single();
                 VerifyModelForDeclarationPattern(model, x10Decl, x10Ref);
 
-                var y10Ref = GetReferences(tree, "y10").ToArray();
+                IdentifierNameSyntax[] y10Ref = GetReferences(tree, "y10").ToArray();
                 Assert.Equal(2, y10Ref.Length);
                 VerifyNotInScope(model, y10Ref[0]);
                 VerifyNotAPatternLocal(model, y10Ref[1]);
 
-                var y12Ref = GetReferences(tree, "y12").Single();
+                IdentifierNameSyntax y12Ref = GetReferences(tree, "y12").Single();
                 VerifyNotInScope(model, y12Ref);
 
-                var x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
-                var x14Ref = GetReferences(tree, "x14").ToArray();
+                SingleVariableDesignationSyntax[] x14Decl = GetPatternDeclarations(tree, "x14").ToArray();
+                IdentifierNameSyntax[] x14Ref = GetReferences(tree, "x14").ToArray();
                 Assert.Equal(2, x14Decl.Length);
                 Assert.Equal(2, x14Ref.Length);
                 VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
@@ -7664,7 +7664,7 @@ using (Dummy(1 is var x14,
             }
 
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
                 int[] exclude = new int[] { (int)ErrorCode.ERR_EOFExpected,
                                         (int)ErrorCode.ERR_CloseParenExpected,
                                         (int)ErrorCode.ERR_SemicolonExpected,
@@ -7684,7 +7684,7 @@ using (Dummy(1 is var x14,
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     );
 
-                var tree = compilation.SyntaxTrees.Single();
+                SyntaxTree tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetPatternDeclarations(tree));
                 AssertNoGlobalStatements(tree);
             }
@@ -7731,7 +7731,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b

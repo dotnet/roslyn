@@ -64,12 +64,12 @@ class TestClass
                 var compilation1 = CSharpCompilation.Create("C1", new[] { Parse(source) }, new[] { OldMsCorLib }, TestOptions.ReleaseDll);
                 c1 = new CSharpCompilationReference(compilation1);
 
-                var c1Assembly = compilation1.Assembly;
+                AssemblySymbol c1Assembly = compilation1.Assembly;
 
                 var compilation2 = CSharpCompilation.Create("C2", references: new MetadataReference[] { NewMsCorLib, c1 });
                 c2 = new CSharpCompilationReference(compilation2);
 
-                var c1AsmRef = compilation2.GetReferencedAssemblySymbol(c1);
+                AssemblySymbol c1AsmRef = compilation2.GetReferencedAssemblySymbol(c1);
                 Assert.NotSame(c1Assembly, c1AsmRef);
 
                 c1MscorLibAssemblyRef = compilation1.GetReferencedAssemblySymbol(OldMsCorLib);
@@ -136,7 +136,7 @@ class TestClass
             {
                 Assert.Equal(1, attributes.Count());
 
-                var attribute = attributes.First();
+                CSharpAttributeData attribute = attributes.First();
                 Assert.IsType<RetargetingAttributeData>(attribute);
 
                 Assert.Same(newMsCorLib_debuggerTypeProxyAttributeType, attribute.AttributeClass);
@@ -172,7 +172,7 @@ class TestClass
         public void Test01_AssemblyAttribute()
         {
             Test01 test = new Test01();
-            var c1AsmRef = test.c2.Compilation.GetReferencedAssemblySymbol(test.c1);
+            AssemblySymbol c1AsmRef = test.c2.Compilation.GetReferencedAssemblySymbol(test.c1);
             Assert.IsType<RetargetingAssemblySymbol>(c1AsmRef);
             test.TestAttributeRetargeting(c1AsmRef);
         }
@@ -181,8 +181,8 @@ class TestClass
         public void Test01_ModuleAttribute()
         {
             Test01 test = new Test01();
-            var c1AsmRef = test.c2.Compilation.GetReferencedAssemblySymbol(test.c1);
-            var c1ModuleSym = c1AsmRef.Modules[0];
+            AssemblySymbol c1AsmRef = test.c2.Compilation.GetReferencedAssemblySymbol(test.c1);
+            ModuleSymbol c1ModuleSym = c1AsmRef.Modules[0];
             Assert.IsType<RetargetingModuleSymbol>(c1ModuleSym);
             test.TestAttributeRetargeting(c1ModuleSym);
         }
@@ -191,7 +191,7 @@ class TestClass
         public void Test01_NamedTypeAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             Assert.IsType<RetargetingNamedTypeSymbol>(testClass);
             test.TestAttributeRetargeting(testClass);
         }
@@ -200,7 +200,7 @@ class TestClass
         public void Test01_FieldAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             FieldSymbol testField = testClass.GetMembers("testField").OfType<FieldSymbol>().Single();
             Assert.IsType<RetargetingFieldSymbol>(testField);
             test.TestAttributeRetargeting(testField);
@@ -210,7 +210,7 @@ class TestClass
         public void Test01_PropertyAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             PropertySymbol testProperty = testClass.GetMembers("TestProperty").OfType<PropertySymbol>().Single();
             Assert.IsType<RetargetingPropertySymbol>(testProperty);
             test.TestAttributeRetargeting(testProperty);
@@ -224,7 +224,7 @@ class TestClass
         public void Test01_MethodAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             MethodSymbol testMethod = testClass.GetMembers("TestMethod").OfType<MethodSymbol>().Single();
             Assert.IsType<RetargetingMethodSymbol>(testMethod);
             test.TestAttributeRetargeting(testMethod);
@@ -234,7 +234,7 @@ class TestClass
         public void Test01_TypeParameterAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             MethodSymbol testMethod = testClass.GetMembers("TestMethod").OfType<MethodSymbol>().Single();
             Assert.IsType<RetargetingMethodSymbol>(testMethod);
             TypeParameterSymbol testTypeParameter = testMethod.TypeParameters[0];
@@ -246,7 +246,7 @@ class TestClass
         public void Test01_ParameterAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             MethodSymbol testMethod = testClass.GetMembers("TestMethod").OfType<MethodSymbol>().Single();
             Assert.IsType<RetargetingMethodSymbol>(testMethod);
             ParameterSymbol testParameter = testMethod.Parameters[0];
@@ -258,7 +258,7 @@ class TestClass
         public void Test01_ReturnTypeAttribute()
         {
             Test01 test = new Test01();
-            var testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
+            NamedTypeSymbol testClass = test.c2.Compilation.GlobalNamespace.GetTypeMembers("TestClass").Single();
             MethodSymbol testMethod = testClass.GetMembers("TestMethod").OfType<MethodSymbol>().Single();
             Assert.IsType<RetargetingMethodSymbol>(testMethod);
             test.TestAttributeRetargeting_ReturnTypeAttributes(testMethod);
@@ -290,14 +290,14 @@ public class C
             var source2 = @"
 ";
 
-            var c1 = CreateEmptyCompilation(source1, new[] { OldMsCorLib });
-            var c2 = CreateEmptyCompilation(source2, new MetadataReference[] { NewMsCorLib, new CSharpCompilationReference(c1) });
+            CSharpCompilation c1 = CreateEmptyCompilation(source1, new[] { OldMsCorLib });
+            CSharpCompilation c2 = CreateEmptyCompilation(source2, new MetadataReference[] { NewMsCorLib, new CSharpCompilationReference(c1) });
 
-            var c = c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol c = c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.IsType<RetargetingNamedTypeSymbol>(c);
 
-            var attr = c.GetAttributes().Single();
-            var args = attr.ConstructorArguments.ToArray();
+            CSharpAttributeData attr = c.GetAttributes().Single();
+            TypedConstant[] args = attr.ConstructorArguments.ToArray();
 
             Assert.True(args[0].IsNull);
             Assert.Equal("object[]", args[0].Type.ToDisplayString());

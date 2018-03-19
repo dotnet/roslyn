@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public DefineState IsDefined(string id)
         {
-            for (var current = _directives; current != null && current.Any(); current = current.Tail)
+            for (ConsList<Directive> current = _directives; current != null && current.Any(); current = current.Tail)
             {
                 switch (current.Head.Kind)
                 {
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // true if any previous section of the closest #if has its branch taken
         public bool PreviousBranchTaken()
         {
-            for (var current = _directives; current != null && current.Any(); current = current.Tail)
+            for (ConsList<Directive> current = _directives; current != null && current.Any(); current = current.Tail)
             {
                 if (current.Head.BranchTaken)
                 {
@@ -201,19 +201,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool HasUnfinishedIf()
         {
-            var prev = GetPreviousIfElifElseOrRegion(_directives);
+            ConsList<Directive> prev = GetPreviousIfElifElseOrRegion(_directives);
             return prev != null && prev.Any() && prev.Head.Kind != SyntaxKind.RegionDirectiveTrivia;
         }
 
         public bool HasPreviousIfOrElif()
         {
-            var prev = GetPreviousIfElifElseOrRegion(_directives);
+            ConsList<Directive> prev = GetPreviousIfElifElseOrRegion(_directives);
             return prev != null && prev.Any() && (prev.Head.Kind == SyntaxKind.IfDirectiveTrivia || prev.Head.Kind == SyntaxKind.ElifDirectiveTrivia);
         }
 
         public bool HasUnfinishedRegion()
         {
-            var prev = GetPreviousIfElifElseOrRegion(_directives);
+            ConsList<Directive> prev = GetPreviousIfElifElseOrRegion(_directives);
             return prev != null && prev.Any() && prev.Head.Kind == SyntaxKind.RegionDirectiveTrivia;
         }
 
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (directive.Kind)
             {
                 case SyntaxKind.EndIfDirectiveTrivia:
-                    var prevIf = GetPreviousIf(_directives);
+                    ConsList<Directive> prevIf = GetPreviousIf(_directives);
                     if (prevIf == null || !prevIf.Any())
                     {
                         goto default; // no matching if directive !! leave directive alone
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     bool tmp;
                     return new DirectiveStack(CompleteIf(_directives, out tmp));
                 case SyntaxKind.EndRegionDirectiveTrivia:
-                    var prevRegion = GetPreviousRegion(_directives);
+                    ConsList<Directive> prevRegion = GetPreviousRegion(_directives);
                     if (prevRegion == null || !prevRegion.Any())
                     {
                         goto default; // no matching region directive !! leave directive alone
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return stack.Tail;
             }
 
-            var newStack = CompleteIf(stack.Tail, out include);
+            ConsList<Directive> newStack = CompleteIf(stack.Tail, out include);
             switch (stack.Head.Kind)
             {
                 case SyntaxKind.ElifDirectiveTrivia:
@@ -295,14 +295,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return stack.Tail;
             }
 
-            var newStack = CompleteRegion(stack.Tail);
+            ConsList<Directive> newStack = CompleteRegion(stack.Tail);
             newStack = new ConsList<Directive>(stack.Head, newStack);
             return newStack;
         }
 
         private static ConsList<Directive> GetPreviousIf(ConsList<Directive> directives)
         {
-            var current = directives;
+            ConsList<Directive> current = directives;
             while (current != null && current.Any())
             {
                 switch (current.Head.Kind)
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static ConsList<Directive> GetPreviousIfElifElseOrRegion(ConsList<Directive> directives)
         {
-            var current = directives;
+            ConsList<Directive> current = directives;
             while (current != null && current.Any())
             {
                 switch (current.Head.Kind)
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static ConsList<Directive> GetPreviousRegion(ConsList<Directive> directives)
         {
-            var current = directives;
+            ConsList<Directive> current = directives;
             while (current != null && current.Any() && current.Head.Kind != SyntaxKind.RegionDirectiveTrivia)
             {
                 current = current.Tail;
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private string GetDebuggerDisplay()
         {
             var sb = new StringBuilder();
-            for (var current = _directives; current != null && current.Any(); current = current.Tail)
+            for (ConsList<Directive> current = _directives; current != null && current.Any(); current = current.Tail)
             {
                 if (sb.Length > 0)
                 {
@@ -366,8 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool IncrementallyEquivalent(DirectiveStack other)
         {
-            var mine = SkipInsignificantDirectives(_directives);
-            var theirs = SkipInsignificantDirectives(other._directives);
+            ConsList<Directive> mine = SkipInsignificantDirectives(_directives);
+            ConsList<Directive> theirs = SkipInsignificantDirectives(other._directives);
             bool mineHasAny = mine != null && mine.Any();
             bool theirsHasAny = theirs != null && theirs.Any();
             while (mineHasAny && theirsHasAny)

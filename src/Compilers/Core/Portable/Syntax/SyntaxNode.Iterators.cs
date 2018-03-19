@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                         // PERF: Push before yield return so that "value" is 'dead' after the yield
                         // and therefore doesn't need to be stored in the iterator state machine. This
                         // saves a field.
-                        var nodeValue = value.AsNode();
+                        SyntaxNode nodeValue = value.AsNode();
                         if (nodeValue != null)
                         {
                             stack.PushChildren(nodeValue, descendIntoChildren);
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 else if (value.IsToken)
                                 {
-                                    var token = value.AsToken();
+                                    SyntaxToken token = value.AsToken();
 
                                     // only look through trivia if this node has structured trivia
                                     if (token.HasStructuredTrivia)
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 if (trivia.HasStructure && IsInSpan(ref span, trivia.FullSpan))
                                 {
-                                    var structureNode = trivia.GetStructure();
+                                    SyntaxNode structureNode = trivia.GetStructure();
 
                                     // parent nodes come before children (prefix document order)
 
@@ -524,15 +524,15 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (value.IsNode)
                         {
-                            var nodeValue = value.AsNode();
+                            SyntaxNode nodeValue = value.AsNode();
 
                             stack.PushChildren(nodeValue, descendIntoChildren);
                         }
                         else if (value.IsToken)
                         {
-                            var token = value.AsToken();
+                            SyntaxToken token = value.AsToken();
 
-                            foreach (var trivia in token.LeadingTrivia)
+                            foreach (SyntaxTrivia trivia in token.LeadingTrivia)
                             {
                                 if (IsInSpan(ref span, trivia.FullSpan))
                                 {
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis
                                 }
                             }
 
-                            foreach (var trivia in token.TrailingTrivia)
+                            foreach (SyntaxTrivia trivia in token.TrailingTrivia)
                             {
                                 if (IsInSpan(ref span, trivia.FullSpan))
                                 {
@@ -567,12 +567,12 @@ namespace Microsoft.CodeAnalysis
                             {
                                 if (value.IsNode)
                                 {
-                                    var nodeValue = value.AsNode();
+                                    SyntaxNode nodeValue = value.AsNode();
                                     stack.PushChildren(nodeValue, descendIntoChildren);
                                 }
                                 else if (value.IsToken)
                                 {
-                                    var token = value.AsToken();
+                                    SyntaxToken token = value.AsToken();
 
                                     if (token.HasTrailingTrivia)
                                     {
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis
                                 // saves a field.
                                 if (trivia.HasStructure)
                                 {
-                                    var structureNode = trivia.GetStructure();
+                                    SyntaxNode structureNode = trivia.GetStructure();
                                     stack.PushChildren(structureNode, descendIntoChildren);
                                 }
 

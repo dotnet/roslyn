@@ -60,7 +60,7 @@ namespace Microsoft.Cci
 
         internal void SerializeMethodDynamicAnalysisData(IMethodBody bodyOpt)
         {
-            var data = bodyOpt?.DynamicAnalysisData;
+            DynamicAnalysisMethodBodyData data = bodyOpt?.DynamicAnalysisData;
 
             if (data == null)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.Cci
 
             for (int i = 0; i < spans.Length; i++)
             {
-                var currentDocument = spans[i].Document;
+                DebugSourceDocument currentDocument = spans[i].Document;
                 if (previousDocument != currentDocument)
                 {
                     writer.WriteInt16(0);
@@ -211,7 +211,7 @@ namespace Microsoft.Cci
                 documentRowId = _documentTable.Count + 1;
                 index.Add(document, documentRowId);
 
-                var sourceInfo = document.GetSourceInfo();
+                DebugSourceInfo sourceInfo = document.GetSourceInfo();
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
@@ -307,10 +307,10 @@ namespace Microsoft.Cci
             // since the order of entries in _blobs dictionary depends on the hash of the array values, 
             // which is not correlated to the heap index. If we observe such issue we should order 
             // the entries by heap position before running this loop.
-            foreach (var entry in _blobs)
+            foreach (KeyValuePair<ImmutableArray<byte>, BlobHandle> entry in _blobs)
             {
                 int heapOffset = MetadataTokens.GetHeapOffset(entry.Value);
-                var blob = entry.Key;
+                ImmutableArray<byte> blob = entry.Key;
 
                 writer.Offset = heapOffset;
                 writer.WriteCompressedInteger(blob.Length);
@@ -341,7 +341,7 @@ namespace Microsoft.Cci
 
         private void SerializeDocumentTable(BlobBuilder writer, Sizes sizes)
         {
-            foreach (var row in _documentTable)
+            foreach (DocumentRow row in _documentTable)
             {
                 writer.WriteReference(MetadataTokens.GetHeapOffset(row.Name), isSmall: (sizes.BlobIndexSize == 2));
                 writer.WriteReference(MetadataTokens.GetHeapOffset(row.HashAlgorithm), isSmall: (sizes.GuidIndexSize == 2));
@@ -351,7 +351,7 @@ namespace Microsoft.Cci
 
         private void SerializeMethodTable(BlobBuilder writer, Sizes sizes)
         {
-            foreach (var row in _methodTable)
+            foreach (MethodRow row in _methodTable)
             {
                 writer.WriteReference(MetadataTokens.GetHeapOffset(row.Spans), isSmall: (sizes.BlobIndexSize == 2));
             }

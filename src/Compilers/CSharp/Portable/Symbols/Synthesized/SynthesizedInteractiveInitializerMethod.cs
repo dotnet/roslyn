@@ -241,9 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out TypeSymbol resultType,
             out TypeSymbol returnType)
         {
-            var submissionReturnTypeOpt = compilation.ScriptCompilationInfo?.ReturnTypeOpt;
-            var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
+            Type submissionReturnTypeOpt = compilation.ScriptCompilationInfo?.ReturnTypeOpt;
+            NamedTypeSymbol taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            DiagnosticInfo useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
             if (useSiteDiagnostic != null)
             {
                 diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);

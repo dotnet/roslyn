@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                var initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
+                BoundExpression initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 return initializerOpt?.Type;
             }
 
@@ -537,11 +537,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsConst && _constantTuple == null)
                 {
-                    var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    var initValueNodeLocation = _initializer.Value.Location;
+                    ConstantValue value = Microsoft.CodeAnalysis.ConstantValue.Bad;
+                    Location initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
-                    var type = this.Type;
+                    TypeSymbol type = this.Type;
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);

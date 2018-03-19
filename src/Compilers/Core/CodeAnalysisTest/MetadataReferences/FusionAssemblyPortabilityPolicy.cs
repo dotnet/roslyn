@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // May throw CLR exception
             CreateAssemblyConfigCookie(appConfigPath, out asmConfigCookie);
 
-            var hash = CryptographicHashProvider.ComputeSha1(File.ReadAllBytes(appConfigPath));
+            ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSha1(File.ReadAllBytes(appConfigPath));
             return new FusionAssemblyPortabilityPolicy(asmConfigCookie, hash);
         }
 

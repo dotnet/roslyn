@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Diagnostics are generated in a separate pass when we emit.
         internal ImmutableArray<Symbol> BindXmlNameAttribute(XmlNameAttributeSyntax syntax, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var identifier = syntax.Identifier;
+            IdentifierNameSyntax identifier = syntax.Identifier;
 
             if (identifier.IsMissing)
             {

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var collection = nodes as ICollection<TNode>;
-            var builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
+            SyntaxListBuilder<TNode> builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
 
             foreach (TNode node in nodes)
             {
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxList<TNode>);
             }
 
-            var newGreen = creator.CreateList(items.Select(n => n.Green));
+            GreenNode newGreen = creator.CreateList(items.Select(n => n.Green));
             return new SyntaxList<TNode>(newGreen.CreateRed());
         }
 
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis
         public int IndexOf(TNode node)
         {
             var index = 0;
-            foreach (var child in this)
+            foreach (TNode child in this)
             {
                 if (object.Equals(child, node))
                 {
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis
         public int IndexOf(Func<TNode, bool> predicate)
         {
             var index = 0;
-            foreach (var child in this)
+            foreach (TNode child in this)
             {
                 if (predicate(child))
                 {
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
         internal int IndexOf(int rawKind)
         {
             var index = 0;
-            foreach (var child in this)
+            foreach (TNode child in this)
             {
                 if (child.RawKind == rawKind)
                 {

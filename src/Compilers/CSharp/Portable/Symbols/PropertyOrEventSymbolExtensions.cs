@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbolsForExplicitlyImplementedAccessors = new HashSet<T>();
-            foreach (var implementedAccessor in implementedAccessors)
+            foreach (MethodSymbol implementedAccessor in implementedAccessors)
             {
                 var associatedProperty = implementedAccessor.AssociatedSymbol as T;
                 if ((object)associatedProperty != null)
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static Accessibility GetDeclaredAccessibilityFromAccessors(Accessibility accessibility1, Accessibility accessibility2)
         {
-            var minAccessibility = (accessibility1 > accessibility2) ? accessibility2 : accessibility1;
-            var maxAccessibility = (accessibility1 > accessibility2) ? accessibility1 : accessibility2;
+            Accessibility minAccessibility = (accessibility1 > accessibility2) ? accessibility2 : accessibility1;
+            Accessibility maxAccessibility = (accessibility1 > accessibility2) ? accessibility1 : accessibility2;
 
             return ((minAccessibility == Accessibility.Protected) && (maxAccessibility == Accessibility.Internal))
                 ? Accessibility.ProtectedOrInternal

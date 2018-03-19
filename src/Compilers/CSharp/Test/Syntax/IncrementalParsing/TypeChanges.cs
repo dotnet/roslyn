@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "construct", "~construct");
+                SyntaxTree newTree = oldTree.WithReplace(16, "construct", "~construct");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 Assert.IsType(typeof(DestructorDeclarationSyntax), classType.Members[0]);
             });
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "M", "construct");
+                SyntaxTree newTree = oldTree.WithReplace(16, "M", "construct");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 Assert.IsType(typeof(ConstructorDeclarationSyntax), classType.Members[0]);
             });
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "construct", "M");
+                SyntaxTree newTree = oldTree.WithReplace(16, "construct", "M");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 Assert.IsType(typeof(ConstructorDeclarationSyntax), classType.Members[0]);
             });
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "~construct", "construct");
+                SyntaxTree newTree = oldTree.WithReplace(16, "~construct", "construct");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 Assert.IsType(typeof(ConstructorDeclarationSyntax), classType.Members[0]);
             });
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "get", "set");
+                SyntaxTree newTree = oldTree.WithReplace(16, "get", "set");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as PropertyDeclarationSyntax;
                 Assert.Equal(SyntaxKind.SetAccessorDeclaration, propertyType.AccessorList.Accessors[0].Kind());
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "set", "get");
+                SyntaxTree newTree = oldTree.WithReplace(16, "set", "get");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as PropertyDeclarationSyntax;
                 Assert.Equal(propertyType.AccessorList.Accessors[0].Kind(), SyntaxKind.GetAccessorDeclaration);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "add", "remove");
+                SyntaxTree newTree = oldTree.WithReplace(16, "add", "remove");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as EventDeclarationSyntax;
                 Assert.Equal(propertyType.AccessorList.Accessors[0].Kind(), SyntaxKind.RemoveAccessorDeclaration);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithReplace(16, "remove", "add");
+                SyntaxTree newTree = oldTree.WithReplace(16, "remove", "add");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as EventDeclarationSyntax;
                 Assert.Equal(propertyType.AccessorList.Accessors[0].Kind(), SyntaxKind.AddAccessorDeclaration);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
         private static void ParseAndValidate(string text, Action<SyntaxTree> validator, CSharpParseOptions options = null)
         {
-            var oldTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(text);
             validator(oldTree);
         }
         #endregion

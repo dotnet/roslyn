@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                var result = walker.Analyze(ref badRegion);
+                HashSet<PrefixUnaryExpressionSyntax> result = walker.Analyze(ref badRegion);
                 Debug.Assert(!badRegion);
                 return result;
             }

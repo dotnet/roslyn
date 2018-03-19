@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             StringBuilder builder = pooled.Builder;
 
             bool first = true;
-            foreach (var symbol in _symbols)
+            foreach (ISymbol symbol in _symbols)
             {
                 if (first)
                 {

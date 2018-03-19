@@ -148,16 +148,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             get
             {
-                var result = _returnTemp;
+                LocalDefinition result = _returnTemp;
                 if (result == null)
                 {
                     Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
-                    var slotConstraints = _method.RefKind == RefKind.None
+                    LocalSlotConstraints slotConstraints = _method.RefKind == RefKind.None
                         ? LocalSlotConstraints.None
                         : LocalSlotConstraints.ByRef;
 
 
-                    var bodySyntax = _methodBodySyntaxOpt;
+                    SyntaxNode bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // release in reverse order to keep same temps on top of the temp stack if possible
                 for(int i = _expressionTemps.Count - 1; i >= 0; i--)
                 {
-                    var temp = _expressionTemps[i];
+                    LocalDefinition temp = _expressionTemps[i];
                     FreeTemp(temp);
                 }
 

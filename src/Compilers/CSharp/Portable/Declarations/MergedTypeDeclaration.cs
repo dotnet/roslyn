@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
-            foreach (var decl in _declarations)
+            foreach (SingleTypeDeclaration decl in _declarations)
             {
                 if (!decl.HasAnyAttributes)
                 {
                     continue;
                 }
 
-                var syntaxRef = decl.SyntaxReference;
-                var typeDecl = syntaxRef.GetSyntax();
+                SyntaxReference syntaxRef = decl.SyntaxReference;
+                SyntaxNode typeDecl = syntaxRef.GetSyntax();
                 SyntaxList<AttributeListSyntax> attributesSyntaxList;
                 switch (typeDecl.Kind())
                 {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                foreach (var decl in this.Declarations)
+                foreach (SingleTypeDeclaration decl in this.Declarations)
                 {
                     if (decl.AnyMemberHasExtensionMethodSyntax)
                         return true;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                foreach (var decl in this.Declarations)
+                foreach (SingleTypeDeclaration decl in this.Declarations)
                 {
                     if (decl.AnyMemberHasAttributes)
                         return true;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var builder = ArrayBuilder<SourceLocation>.GetInstance();
-                    foreach (var decl in Declarations)
+                    foreach (SingleTypeDeclaration decl in Declarations)
                     {
                         SourceLocation loc = decl.NameLocation;
                         if (loc != null)
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<SingleTypeDeclaration> nestedTypes = null;
 
-            foreach (var decl in this.Declarations)
+            foreach (SingleTypeDeclaration decl in this.Declarations)
             {
-                foreach (var child in decl.Children)
+                foreach (SingleTypeDeclaration child in decl.Children)
                 {
                     var asType = child as SingleTypeDeclaration;
                     if (asType != null)
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var typesGrouped = nestedTypes.ToDictionary(t => t.Identity);
                 nestedTypes.Free();
 
-                foreach (var typeGroup in typesGrouped.Values)
+                foreach (ImmutableArray<SingleTypeDeclaration> typeGroup in typesGrouped.Values)
                 {
                     children.Add(new MergedTypeDeclaration(typeGroup));
                 }
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
+                    ICollection<string> names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 

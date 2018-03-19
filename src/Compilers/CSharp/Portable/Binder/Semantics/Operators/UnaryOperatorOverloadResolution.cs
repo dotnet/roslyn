@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            var candidates = result.Results;
+            ArrayBuilder<UnaryOperatorAnalysisResult> candidates = result.Results;
             // Try to find a single best candidate
             int bestIndex = GetTheBestCandidateIndex(operand, candidates, ref useSiteDiagnostics);
             if (bestIndex != -1)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var better = BetterOperator(candidates[i].Signature, candidates[j].Signature, operand, ref useSiteDiagnostics);
+                    BetterResult better = BetterOperator(candidates[i].Signature, candidates[j].Signature, operand, ref useSiteDiagnostics);
                     if (better == BetterResult.Left)
                     {
                         candidates[j] = candidates[j].Worse();
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
+                    BetterResult better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
                     if (better == BetterResult.Right)
                     {
                         // The current best is worse
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
+                BetterResult better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
                 if (better != BetterResult.Left)
                 {
                     // The current best is not better
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             GetEnumOperations(kind, operand, operators);
 
-            var pointerOperator = GetPointerOperation(kind, operand);
+            UnaryOperatorSignature? pointerOperator = GetPointerOperation(kind, operand);
             if (pointerOperator != null)
             {
                 operators.Add(pointerOperator.Value);
@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CandidateOperators(ArrayBuilder<UnaryOperatorSignature> operators, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool anyApplicable = false;
-            foreach (var op in operators)
+            foreach (UnaryOperatorSignature op in operators)
             {
-                var conversion = Conversions.ClassifyConversionFromExpression(operand, op.OperandType, ref useSiteDiagnostics);
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(operand, op.OperandType, ref useSiteDiagnostics);
                 if (conversion.IsImplicit)
                 {
                     anyApplicable = true;
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operand != null);
 
-            var enumType = operand.Type;
+            TypeSymbol enumType = operand.Type;
             if ((object)enumType == null)
             {
                 return;
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var nullableEnum = MakeNullable(enumType);
+            NamedTypeSymbol nullableEnum = MakeNullable(enumType);
 
             switch (kind)
             {

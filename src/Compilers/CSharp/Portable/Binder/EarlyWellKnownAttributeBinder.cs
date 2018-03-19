@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, out bool generatedDiagnostics)
         {
             var dummyDiagnosticBag = DiagnosticBag.GetInstance();
-            var boundAttribute = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
+            CSharpAttributeData boundAttribute = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
             generatedDiagnostics = !dummyDiagnosticBag.IsEmptyWithoutResolution;
             dummyDiagnosticBag.Free();
             return boundAttribute;
@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (objectCreation.Initializer == null)
                         {
                             var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics);
+                            TypeSymbol type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics);
                             unusedDiagnostics.Free();
 
-                            var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);
+                            TypedConstantKind kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);
                             switch (kind)
                             {
                                 case TypedConstantKind.Primitive:

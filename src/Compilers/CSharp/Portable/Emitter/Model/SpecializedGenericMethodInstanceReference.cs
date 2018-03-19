@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            foreach (var arg in UnderlyingMethod.TypeArguments)
+            foreach (TypeSymbol arg in UnderlyingMethod.TypeArguments)
             {
                 yield return moduleBeingBuilt.Translate(arg, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
             }

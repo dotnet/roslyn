@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var code = @"class C { void m() {
                  " + topLevelStatement + @";
                 }}";
-            var oldTree = SyntaxFactory.ParseSyntaxTree(topLevel ? topLevelStatement : code, options: options);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(topLevel ? topLevelStatement : code, options: options);
 
             // Make the change to the node
-            var newTree = oldTree.WithReplaceFirst(oldName, newName);
-            var treeNode = topLevel ? GetGlobalExpressionNode(newTree) : GetExpressionNode(newTree);
+            SyntaxTree newTree = oldTree.WithReplaceFirst(oldName, newName);
+            PrefixUnaryExpressionSyntax treeNode = topLevel ? GetGlobalExpressionNode(newTree) : GetExpressionNode(newTree);
             Assert.Equal(treeNode.Kind(), newSyntaxKind);
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         {
             var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var method = classType.Members[0] as MethodDeclarationSyntax;
-            var block = method.Body;
+            BlockSyntax block = method.Body;
             var statement = block.Statements[0] as ExpressionStatementSyntax;
             var expression = statement.Expression as PrefixUnaryExpressionSyntax;
             return expression;

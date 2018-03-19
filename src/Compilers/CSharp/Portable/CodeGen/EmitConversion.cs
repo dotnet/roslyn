@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
             }
 
-            var operand = conversion.Operand;
+            BoundExpression operand = conversion.Operand;
 
             if (conversion.ConversionKind.IsUserDefinedConversion())
             {
@@ -112,11 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return; //no-op since they all have the same runtime representation
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:
-                    var fromType = conversion.Operand.Type;
-                    var fromPredefTypeKind = fromType.PrimitiveTypeCode;
+                    TypeSymbol fromType = conversion.Operand.Type;
+                    Cci.PrimitiveTypeCode fromPredefTypeKind = fromType.PrimitiveTypeCode;
 
-                    var toType = conversion.Type;
-                    var toPredefTypeKind = toType.PrimitiveTypeCode;
+                    TypeSymbol toType = conversion.Type;
+                    Cci.PrimitiveTypeCode toPredefTypeKind = toType.PrimitiveTypeCode;
 
 #if DEBUG
                     switch (fromPredefTypeKind)
@@ -185,12 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitNumericConversion(BoundConversion conversion)
         {
-            var fromType = conversion.Operand.Type;
-            var fromPredefTypeKind = fromType.PrimitiveTypeCode;
+            TypeSymbol fromType = conversion.Operand.Type;
+            Cci.PrimitiveTypeCode fromPredefTypeKind = fromType.PrimitiveTypeCode;
             Debug.Assert(fromPredefTypeKind.IsNumeric());
 
-            var toType = conversion.Type;
-            var toPredefTypeKind = toType.PrimitiveTypeCode;
+            TypeSymbol toType = conversion.Type;
+            Cci.PrimitiveTypeCode toPredefTypeKind = toType.PrimitiveTypeCode;
             Debug.Assert(toPredefTypeKind.IsNumeric());
 
             _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //
             // if target type is verifiably a reference type, we can leave the value as-is otherwise
             // we need to unbox to targetType to keep verifier happy.
-            var resultType = conversion.Type;
+            TypeSymbol resultType = conversion.Type;
             if (!resultType.IsVerifierReference())
             {
                 _builder.EmitOpCode(ILOpCode.Unbox_any);
@@ -261,22 +261,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // implicit or explicit nullable conversions.
             Debug.Assert(!conversion.Type.IsNullableType());
 
-            var fromType = conversion.Operand.Type;
+            TypeSymbol fromType = conversion.Operand.Type;
             if (fromType.IsEnumType())
             {
                 fromType = ((NamedTypeSymbol)fromType).EnumUnderlyingType;
             }
 
-            var fromPredefTypeKind = fromType.PrimitiveTypeCode;
+            Cci.PrimitiveTypeCode fromPredefTypeKind = fromType.PrimitiveTypeCode;
             Debug.Assert(fromPredefTypeKind.IsNumeric());
 
-            var toType = conversion.Type;
+            TypeSymbol toType = conversion.Type;
             if (toType.IsEnumType())
             {
                 toType = ((NamedTypeSymbol)toType).EnumUnderlyingType;
             }
 
-            var toPredefTypeKind = toType.PrimitiveTypeCode;
+            Cci.PrimitiveTypeCode toPredefTypeKind = toType.PrimitiveTypeCode;
             Debug.Assert(toPredefTypeKind.IsNumeric());
 
             _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
@@ -333,20 +333,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // call delegate constructor
             _builder.EmitOpCode(ILOpCode.Newobj, -1); // pop 2 args and push delegate object
 
-            var ctor = DelegateConstructor(node.Syntax, delegateType);
+            MethodSymbol ctor = DelegateConstructor(node.Syntax, delegateType);
             if ((object)ctor != null) EmitSymbolToken(ctor, node.Syntax, null);
         }
 
         private MethodSymbol DelegateConstructor(SyntaxNode syntax, TypeSymbol delegateType)
         {
-            foreach (var possibleCtor in delegateType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
+            foreach (Symbol possibleCtor in delegateType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
             {
                 var m = possibleCtor as MethodSymbol;
                 if ((object)m == null) continue;
-                var parameters = m.Parameters;
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> parameters = m.Parameters;
                 if (parameters.Length != 2) continue;
                 if (parameters[0].Type.SpecialType != SpecialType.System_Object) continue;
-                var p1t = parameters[1].Type.SpecialType;
+                SpecialType p1t = parameters[1].Type.SpecialType;
                 if (p1t == SpecialType.System_IntPtr || p1t == SpecialType.System_UIntPtr)
                 {
                     return m;

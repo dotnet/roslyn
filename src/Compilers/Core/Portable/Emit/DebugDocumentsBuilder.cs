@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return path;
             }
 
-            var key = (path, basePath);
+            (string path, string basePath) key = (path, basePath);
             string normalizedPath;
             if (!_normalizedPathsCache.TryGetValue(key, out normalizedPath))
             {

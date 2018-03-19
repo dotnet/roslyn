@@ -108,16 +108,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ImmutableArray<T> SubstituteExplicitInterfaceImplementations<T>(ImmutableArray<T> unsubstitutedExplicitInterfaceImplementations, TypeMap map) where T : Symbol
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            foreach (var unsubstitutedPropertyImplemented in unsubstitutedExplicitInterfaceImplementations)
+            foreach (T unsubstitutedPropertyImplemented in unsubstitutedExplicitInterfaceImplementations)
             {
-                var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
+                NamedTypeSymbol unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
                 Debug.Assert((object)unsubstitutedInterfaceType != null);
-                var explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
+                NamedTypeSymbol explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
                 Debug.Assert((object)explicitInterfaceType != null);
                 var name = unsubstitutedPropertyImplemented.Name; //should already be unqualified
 
                 T substitutedMemberImplemented = null;
-                foreach (var candidateMember in explicitInterfaceType.GetMembers(name))
+                foreach (Symbol candidateMember in explicitInterfaceType.GetMembers(name))
                 {
                     if (candidateMember.OriginalDefinition == unsubstitutedPropertyImplemented.OriginalDefinition)
                     {
@@ -174,9 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var memberLocation = implementingMember.Locations[0];
-            var containingType = implementingMember.ContainingType;
-            var containingTypeKind = containingType.TypeKind;
+            Location memberLocation = implementingMember.Locations[0];
+            NamedTypeSymbol containingType = implementingMember.ContainingType;
+            TypeKind containingTypeKind = containingType.TypeKind;
 
             if (containingTypeKind != TypeKind.Class && containingTypeKind != TypeKind.Struct)
             {
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!explicitInterfaceType.IsInterfaceType())
             {
                 //we'd like to highlight just the type part of the name
-                var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
+                NameSyntax explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
                 diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, location, explicitInterfaceType);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(explicitInterfaceNamedType))
             {
                 //we'd like to highlight just the type part of the name
-                var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
+                NameSyntax explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
                 diagnostics.Add(ErrorCode.ERR_ClassDoesntImplementInterface, location, implementingMember, explicitInterfaceNamedType);

@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static RefKind GetRefKind(this TypeSyntax syntax)
         {
-            syntax.SkipRef(out var refKind);
+            syntax.SkipRef(out RefKind refKind);
             return refKind;
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression.Kind() == SyntaxKind.InvocationExpression)
             {
                 var invocation = (InvocationExpressionSyntax)expression;
-                var invocationTarget = invocation.Expression;
+                ExpressionSyntax invocationTarget = invocation.Expression;
 
                 return invocationTarget.Kind() == SyntaxKind.IdentifierName &&
                     ((IdentifierNameSyntax)invocationTarget).IsVar;

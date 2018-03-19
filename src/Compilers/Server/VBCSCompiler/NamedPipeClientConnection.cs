@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
         {
-            var pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
+            NamedPipeServerStream pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
             return new NamedPipeClientConnection(_compilerServerHost, _loggingIdentifier++.ToString(), pipeStream);
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             if (PlatformInformation.IsWindows)
             {
-                var serverIdentity = GetIdentity(impersonating: false);
+                (string name, bool admin) serverIdentity = GetIdentity(impersonating: false);
 
                 (string name, bool admin) clientIdentity = default;
                 pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });

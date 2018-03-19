@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
-                var scopeTree = ScopeTreeBuilder.Build(
+                Scope scopeTree = ScopeTreeBuilder.Build(
                     node,
                     method,
                     methodsConvertedToDelegates,
@@ -144,14 +144,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         capturedEnvs.AddAll(closure.CapturedEnvironments);
 
                         // Find the nearest captured class environment, if one exists
-                        var curScope = scope;
+                        Scope curScope = scope;
                         while (curScope != null)
                         {
                             if (capturedEnvs.RemoveAll(curScope.DeclaredEnvironments))
                             {
                                 // Right now we only create one environment per scope
                                 Debug.Assert(curScope.DeclaredEnvironments.Count == 1);
-                                var env = curScope.DeclaredEnvironments[0];
+                                ClosureEnvironment env = curScope.DeclaredEnvironments[0];
                                 if (!env.IsStruct)
                                 {
                                     closure.ContainingEnvironmentOpt = env;
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Now we need to walk up the scopes to find environment captures
-                        var oldEnv = curScope?.DeclaredEnvironments[0];
+                        ClosureEnvironment oldEnv = curScope?.DeclaredEnvironments[0];
                         while (curScope != null)
                         {
                             if (capturedEnvs.Count == 0)
@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             }
 
-                            var envs = curScope.DeclaredEnvironments.Where(e => !e.IsStruct);
+                            IEnumerable<ClosureEnvironment> envs = curScope.DeclaredEnvironments.Where(e => !e.IsStruct);
                             if (!envs.IsEmpty())
                             {
                                 // Right now we only create one environment per scope
                                 Debug.Assert(envs.IsSingle());
-                                var env = envs.First();
+                                ClosureEnvironment env = envs.First();
                                 Debug.Assert(!oldEnv.IsStruct);
                                 oldEnv.CapturesParent = true;
                                 oldEnv = env;
@@ -205,13 +205,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void InlineThisOnlyEnvironments()
             {
                 // First make sure 'this' even exists
-                if (!_topLevelMethod.TryGetThisParameter(out var thisParam) ||
+                if (!_topLevelMethod.TryGetThisParameter(out ParameterSymbol thisParam) ||
                     thisParam == null)
                 {
                     return;
                 }
 
-                var topLevelEnvs = ScopeTree.DeclaredEnvironments;
+                ArrayBuilder<ClosureEnvironment> topLevelEnvs = ScopeTree.DeclaredEnvironments;
 
                 // If it does exist, 'this' is always in the top-level environment
                 if (topLevelEnvs.Count == 0)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(topLevelEnvs.Count == 1);
-                var env = topLevelEnvs[0];
+                ClosureEnvironment env = topLevelEnvs[0];
 
                 // The environment must contain only 'this' to be inlined
                 if (env.CapturedVariables.Count > 1 || 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Currently all variables declared in the same scope are added
                     // to the same closure environment
-                    var variablesInEnvironment = scope.DeclaredVariables;
+                    SetWithInsertionOrder<Symbol> variablesInEnvironment = scope.DeclaredVariables;
 
                     // Don't create empty environments
                     if (variablesInEnvironment.Count == 0)
@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
                     scope.DeclaredEnvironments.Add(env);
 
-                    _topLevelMethod.TryGetThisParameter(out var thisParam);
-                    foreach (var closure in closures)
+                    _topLevelMethod.TryGetThisParameter(out ParameterSymbol thisParam);
+                    foreach (Closure closure in closures)
                     {
                         closure.CapturedEnvironments.Add(env);
                         if (thisParam != null && env.CapturedVariables.Contains(thisParam))
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var currentScope = startingScope;
+                Scope currentScope = startingScope;
                 while (currentScope != null)
                 {
                     switch (variable.Kind)
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case SymbolKind.Method:
-                            foreach (var closure in currentScope.Closures)
+                            foreach (Closure closure in currentScope.Closures)
                             {
                                 if (closure.OriginalMethodSymbol == variable)
                                 {
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static Scope GetScopeParent(Scope treeRoot, BoundNode scopeNode)
             {
-                var correspondingScope = GetScopeWithMatchingBoundNode(treeRoot, scopeNode);
+                Scope correspondingScope = GetScopeWithMatchingBoundNode(treeRoot, scopeNode);
                 return correspondingScope.Parent;
             }
 
@@ -434,9 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return currentScope;
                     }
 
-                    foreach (var nestedScope in currentScope.NestedScopes)
+                    foreach (Scope nestedScope in currentScope.NestedScopes)
                     {
-                        var found = Helper(nestedScope);
+                        Scope found = Helper(nestedScope);
                         if (found != null)
                         {
                             return found;
@@ -455,10 +455,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </returns>
             public static (Closure, Scope) GetVisibleClosure(Scope startingScope, MethodSymbol closureSymbol)
             {
-                var currentScope = startingScope;
+                Scope currentScope = startingScope;
                 while (currentScope != null)
                 {
-                    foreach (var closure in currentScope.Closures)
+                    foreach (Closure closure in currentScope.Closures)
                     {
                         if (closure.OriginalMethodSymbol == closureSymbol)
                         {
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Closure Helper(Scope scope)
                 {
-                    foreach (var closure in scope.Closures)
+                    foreach (Closure closure in scope.Closures)
                     {
                         if (closure.OriginalMethodSymbol == closureSymbol)
                         {
@@ -487,9 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    foreach (var nestedScope in scope.NestedScopes)
+                    foreach (Scope nestedScope in scope.NestedScopes)
                     {
-                        var found = Helper(nestedScope);
+                        Closure found = Helper(nestedScope);
                         if (found != null)
                         {
                             return found;

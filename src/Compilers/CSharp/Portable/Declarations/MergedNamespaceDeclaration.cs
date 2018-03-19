@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var builder = ArrayBuilder<Location>.GetInstance();
-                    foreach (var decl in _declarations)
+                    foreach (SingleNamespaceDeclaration decl in _declarations)
                     {
                         SourceLocation loc = decl.NameLocation;
                         if (loc != null)
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allNamespacesHaveSameName = true;
             bool allTypesHaveSameIdentity = true;
 
-            foreach (var decl in _declarations)
+            foreach (SingleNamespaceDeclaration decl in _declarations)
             {
-                foreach (var child in decl.Children)
+                foreach (SingleNamespaceOrTypeDeclaration child in decl.Children)
                 {
                     // it is either a type (more likely)
                     var asType = child as SingleTypeDeclaration;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var namespaceGroups = namespaces.ToDictionary(n => n.Name, StringOrdinalComparer.Instance);
                     namespaces.Free();
 
-                    foreach (var namespaceGroup in namespaceGroups.Values)
+                    foreach (ImmutableArray<SingleNamespaceDeclaration> namespaceGroup in namespaceGroups.Values)
                     {
                         children.Add(MergedNamespaceDeclaration.Create(namespaceGroup));
                     }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeGroups = types.ToDictionary(t => t.Identity);
                     types.Free();
 
-                    foreach (var typeGroup in typeGroups.Values)
+                    foreach (ImmutableArray<SingleTypeDeclaration> typeGroup in typeGroups.Values)
                     {
                         children.Add(new MergedTypeDeclaration(typeGroup));
                     }

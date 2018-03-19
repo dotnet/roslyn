@@ -34,7 +34,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"AB
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"AB
 A
 A
 AA
@@ -101,7 +101,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"AB
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"AB
 A
 A
 AA
@@ -158,7 +158,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"qqqqqqqq"
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"qqqqqqqq"
 );
 
             comp.VerifyDiagnostics();
@@ -197,7 +197,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"FABF
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"FABF
 OABO
 FABFOABO
 OAFABOFA");
@@ -298,7 +298,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"FFABFF");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"FFABFF");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
@@ -352,7 +352,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"O
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"O
 F");
 
             comp.VerifyDiagnostics();
@@ -392,7 +392,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"O
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"O
 F");
 
             comp.VerifyDiagnostics();
@@ -434,7 +434,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"Start
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"Start
 
 
 A
@@ -482,7 +482,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -526,7 +526,7 @@ public class Test
 }
 
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"A0
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"A0
 A0A0
 0B
 0
@@ -639,7 +639,7 @@ public class Test
 }
 
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"A
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"A
 AA
 B
 
@@ -713,7 +713,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"abcdefbye");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"abcdefbye");
 
             comp.VerifyDiagnostics();
 
@@ -755,7 +755,7 @@ class Repro
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "\"\"");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "\"\"");
 
             comp.VerifyIL("Repro.Bug", @"
 {
@@ -792,7 +792,7 @@ class Repro
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "\"\"");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "\"\"");
 
             comp.VerifyIL("Repro.Bug", @"
 {
@@ -880,7 +880,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a1
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"a1
 2b
 c3
 4d

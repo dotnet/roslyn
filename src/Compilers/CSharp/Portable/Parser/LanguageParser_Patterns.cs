@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private CSharpSyntaxNode ParseTypeOrPatternForIsOperator()
         {
-            var tk = this.CurrentToken.Kind;
+            SyntaxKind tk = this.CurrentToken.Kind;
             Precedence precedence = GetPrecedence(SyntaxKind.IsPatternExpression);
 
             switch (tk)
@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (tk == SyntaxKind.IdentifierToken &&
                   (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
             {
-                var resetPoint = this.GetResetPoint();
+                ResetPoint resetPoint = this.GetResetPoint();
                 try
                 {
                     TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
 
                     if (!type.IsMissing && this.IsTrueIdentifier())
                     {
-                        var designation = ParseSimpleDesignation();
+                        VariableDesignationSyntax designation = ParseSimpleDesignation();
                         return _syntaxFactory.DeclarationPattern(type, designation);
                     }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var resetPoint = this.GetResetPoint();
+            ResetPoint resetPoint = this.GetResetPoint();
             try
             {
                 bool typeIsVar = IsVarType();
@@ -225,14 +225,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // It is used for parsing patterns in the switch cases. It never returns constant pattern!
         private CSharpSyntaxNode ParseExpressionOrPatternForCase()
         {
-            var tk = this.CurrentToken.Kind;
+            SyntaxKind tk = this.CurrentToken.Kind;
             CSharpSyntaxNode node = null;
 
             // If it is a nameof, skip the 'if' and parse as an expression. 
             if ((SyntaxFacts.IsPredefinedType(tk) || tk == SyntaxKind.IdentifierToken) &&
                   this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword)
             {
-                var resetPoint = this.GetResetPoint();
+                ResetPoint resetPoint = this.GetResetPoint();
                 try
                 {
                     TypeSyntax type = this.ParseType(ParseTypeMode.AfterCase);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // X.Y.Z id
                         if (this.IsTrueIdentifier() && this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
                         {
-                            var designation = ParseSimpleDesignation();
+                            VariableDesignationSyntax designation = ParseSimpleDesignation();
                             node = _syntaxFactory.DeclarationPattern(type, designation);
                         }
                     }

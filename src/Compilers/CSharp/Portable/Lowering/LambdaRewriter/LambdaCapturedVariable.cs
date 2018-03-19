@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
-                    var typeArguments = frame.TypeArgumentsNoUseSiteDiagnostics;
+                    ImmutableArray<TypeSymbol> typeArguments = frame.TypeArgumentsNoUseSiteDiagnostics;
                     if (typeArguments.Length > lambdaFrame.Arity)
                     {
                         typeArguments = ImmutableArray.Create(typeArguments, 0, lambdaFrame.Arity);

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static bool HasParamsParameter(this Symbol member)
         {
-            var @params = member.GetParameters();
+            ImmutableArray<ParameterSymbol> @params = member.GetParameters();
             return !@params.IsEmpty && @params.Last().IsParams;
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsIndexedPropertyAccessor(this MethodSymbol methodSymbol)
         {
-            var propertyOrEvent = methodSymbol.AssociatedSymbol;
+            Symbol propertyOrEvent = methodSymbol.AssociatedSymbol;
             return ((object)propertyOrEvent != null) && propertyOrEvent.IsIndexedProperty();
         }
 
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             NamespaceOrTypeSymbol minAritySymbol = null;
             int minArity = Int32.MaxValue;
-            foreach (var symbol in symbols)
+            foreach (NamespaceOrTypeSymbol symbol in symbols)
             {
                 int arity = GetMemberArity(symbol);
                 if (arity < minArity)

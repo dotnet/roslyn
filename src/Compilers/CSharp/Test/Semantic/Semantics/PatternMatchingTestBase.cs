@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool isShadowed,
             params IdentifierNameSyntax[] references)
         {
-            var symbol = model.GetDeclaredSymbol(designation);
+            ISymbol symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
             Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
 
-            var other = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single();
+            ISymbol other = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single();
             if (isShadowed)
             {
                 Assert.NotEqual(symbol, other);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
 
             var local = ((SourceLocalSymbol)symbol);
-            var type = local.Type;
+            TypeSymbol type = local.Type;
             if (type.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             AssertTypeInfo(model, decl.Type, type);
 
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: designation.Identifier.ValueText).Single());
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected static void VerifyModelForDeclarationPatternDuplicateInSameScope(SemanticModel model, SingleVariableDesignationSyntax designation)
         {
-            var symbol = model.GetDeclaredSymbol(designation);
+            ISymbol symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
             Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var type = ((LocalSymbol)symbol).Type;
+            TypeSymbol type = ((LocalSymbol)symbol).Type;
             var decl = (DeclarationPatternSyntax)designation.Parent;
             if (!decl.Type.IsVar || !type.IsErrorType())
             {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
         {
-            var symbol = model.GetSymbolInfo(reference).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(reference).Symbol;
 
             Assert.NotEqual(SymbolKind.Field, symbol.Kind);
 
@@ -148,14 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected static void VerifyNotAPatternLocal(SemanticModel model, IdentifierNameSyntax reference)
         {
-            var symbol = model.GetSymbolInfo(reference).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(reference).Symbol;
 
             if (symbol.Kind == SymbolKind.Local)
             {
                 Assert.NotEqual(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             }
 
-            var other = model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single();
+            ISymbol other = model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single();
             Assert.Same(symbol, other);
             Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
@@ -189,14 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool duplicate,
             params IdentifierNameSyntax[] references)
         {
-            var symbol = model.GetDeclaredSymbol(designation);
+            ISymbol symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
             Assert.Equal(SymbolKind.Field, symbol.Kind);
             Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
 
-            var symbols = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText);
-            var names = model.LookupNames(designation.SpanStart);
+            System.Collections.Immutable.ImmutableArray<ISymbol> symbols = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText);
+            List<string> names = model.LookupNames(designation.SpanStart);
 
             if (duplicate)
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             DeclarationPatternSyntax decl = (DeclarationPatternSyntax)designation.Parent;
             var local = (FieldSymbol)symbol;
-            var typeSyntax = decl.Type;
+            TypeSyntax typeSyntax = decl.Type;
 
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             AssertTypeInfo(model, decl.Type, local.Type);
 
-            var declarator = designation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+            VariableDeclaratorSyntax declarator = designation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(designation)).GetValueOrDefault();
 
@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(model.GetSymbolInfo(designation).Symbol);
             Assert.Null(model.GetSymbolInfo(designation).Symbol);
 
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
-                var referenceInfo = model.GetSymbolInfo(reference);
+                SymbolInfo referenceInfo = model.GetSymbolInfo(reference);
                 symbols = model.LookupSymbols(reference.SpanStart, name: designation.Identifier.ValueText);
 
                 if (duplicate)
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             if (!inFieldDeclaratorArgumentlist)
             {
-                var dataFlowParent = designation.FirstAncestorOrSelf<ExpressionSyntax>();
+                ExpressionSyntax dataFlowParent = designation.FirstAncestorOrSelf<ExpressionSyntax>();
 
                 if (model.IsSpeculativeSemanticModel)
                 {
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 else
                 {
-                    var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
+                    DataFlowAnalysis dataFlow = model.AnalyzeDataFlow(dataFlowParent);
 
                     if (dataFlow.Succeeded)
                     {
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected static void AssertContainedInDeclaratorArguments(params SingleVariableDesignationSyntax[] decls)
         {
-            foreach (var decl in decls)
+            foreach (SingleVariableDesignationSyntax decl in decls)
             {
                 AssertContainedInDeclaratorArguments(decl);
             }
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected static void VerifyModelNotSupported(SemanticModel model, params IdentifierNameSyntax[] references)
         {
-            foreach (var reference in references)
+            foreach (IdentifierNameSyntax reference in references)
             {
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
                 Assert.False(model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Any());

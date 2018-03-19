@@ -20,20 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void MissingCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.SymbolsTests.CorLibrary.NoMsCorLibRef });
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.SymbolsTests.CorLibrary.NoMsCorLibRef });
 
-            var noMsCorLibRef = assemblies[0];
+            AssemblySymbol noMsCorLibRef = assemblies[0];
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
-                var t = noMsCorLibRef.GetSpecialType((SpecialType)i);
+                NamedTypeSymbol t = noMsCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
                 Assert.Equal(TypeKind.Error, t.TypeKind);
                 Assert.NotNull(t.ContainingAssembly);
                 Assert.Equal("<Missing Core Assembly>", t.ContainingAssembly.Identity.Name);
             }
 
-            var p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
+            TypeSymbol p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
                 GetMembers("M1").OfType<MethodSymbol>().Single().
                 Parameters[0].Type;
 
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
-                var t = msCorLibRef.GetSpecialType((SpecialType)i);
+                NamedTypeSymbol t = msCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
             }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             while (namespaces.Count > 0)
             {
-                foreach (var m in namespaces.Dequeue().GetMembers())
+                foreach (Symbol m in namespaces.Dequeue().GetMembers())
                 {
                     NamespaceSymbol ns = m as NamespaceSymbol;
 
@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void FakeCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.SymbolsTests.CorLibrary.FakeMsCorLib.dll });
+            AssemblySymbol[] assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.SymbolsTests.CorLibrary.FakeMsCorLib.dll });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
                 Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
-                var t = msCorLibRef.GetSpecialType((SpecialType)i);
+                NamedTypeSymbol t = msCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
 
                 if (t.SpecialType == SpecialType.System_Object)
@@ -145,7 +145,7 @@ namespace System
                 if (i != (int)SpecialType.System_Object)
                 {
                     Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
-                    var t = c1.GetSpecialType((SpecialType)i);
+                    NamedTypeSymbol t = c1.GetSpecialType((SpecialType)i);
                     Assert.Equal((SpecialType)i, t.SpecialType);
 
                     Assert.Equal(TypeKind.Error, t.TypeKind);
@@ -153,7 +153,7 @@ namespace System
                 }
             }
 
-            var system_object = msCorLibRef.Modules[0].GlobalNamespace.GetMembers("System").
+            NamedTypeSymbol system_object = msCorLibRef.Modules[0].GlobalNamespace.GetMembers("System").
                 Select(m => (NamespaceSymbol)m).Single().GetTypeMembers("Object").Single();
 
             Assert.Equal(SpecialType.System_Object, system_object.SpecialType);

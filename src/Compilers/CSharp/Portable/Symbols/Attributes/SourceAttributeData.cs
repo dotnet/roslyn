@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return -1;
             }
 
-            var ctor = this.AttributeConstructor;
+            MethodSymbol ctor = this.AttributeConstructor;
 
             // Ensure that the attribute data really has a constructor before comparing the signature.
             if ((object)ctor == null)

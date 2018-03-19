@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(memberIndex == _members.Length);
 
                 //  fill nameToSymbols map
-                foreach (var symbol in _members)
+                foreach (Symbol symbol in _members)
                 {
                     _nameToSymbols.Add(symbol.Name, symbol);
                 }
@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
-                var symbols = _nameToSymbols[name];
+                MultiDictionary<string, Symbol>.ValueSet symbols = _nameToSymbols[name];
                 var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Count);
-                foreach (var symbol in symbols)
+                foreach (Symbol symbol in symbols)
                 {
                     builder.Add(symbol);
                 }

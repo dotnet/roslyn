@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_Errors()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             var stream = new FileStream(appConfig.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             // not XML:
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_LeadingWhitespace()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
 
             // whitespace in front of header:
             appConfig.WriteAllText(
@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_LinkedConfiguration()
         {
-            var appConfig1 = Temp.CreateFile();
-            var appConfig2 = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig1 = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig2 = Temp.CreateFile();
 
             appConfig1.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_NoValues()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
 
             // ok, but no configuration:
             appConfig.WriteAllText(
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_Values_MissingNamespace()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_Values1()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
 
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_Values2()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
 
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_Values4()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_DuplicateSupportPortability1()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_DuplicateSupportPortability2()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_UnknownAttributes2()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_InterleavingElements()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void LoadFromFile_EmptyElement()
         {
-            var appConfig = Temp.CreateFile();
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile();
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Fusion_Dispose()
         {
-            var appConfig = Temp.CreateFile().WriteAllText(correctAppConfigText);
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile().WriteAllText(correctAppConfigText);
 
             var policy = FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig.Path);
             Assert.NotEqual(IntPtr.Zero, policy.ConfigCookie);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Fusion_TestEquals()
         {
-            var appConfig = Temp.CreateFile().WriteAllText(correctAppConfigText);
+            CodeAnalysis.Test.Utilities.TempFile appConfig = Temp.CreateFile().WriteAllText(correctAppConfigText);
 
             var policy1 = FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig.Path);
             var policy2 = FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig.Path);
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             policy2 = FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig.Path);
             Assert.NotEqual(policy1, policy2);
 
-            var appConfig2 = Temp.CreateFile().WriteAllText(correctAppConfigText);
+            CodeAnalysis.Test.Utilities.TempFile appConfig2 = Temp.CreateFile().WriteAllText(correctAppConfigText);
 
             policy2 = FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig2.Path);
             Assert.Equal(policy1, policy2);

@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
         {
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var symbols = model.LookupSymbols(0, null, symbolName);
+            System.Collections.Immutable.ImmutableArray<ISymbol> symbols = model.LookupSymbols(0, null, symbolName);
 
             Assert.Equal(expectedSymbolCount, symbols.Length);
         }

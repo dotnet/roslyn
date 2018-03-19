@@ -20,19 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             // Verify type equivalence between PIA type in external assembly and local assembly
 
-            var localConsumer = CreateCompilation(assemblyName: "Dummy", source: (string[])null,
+            CSharpCompilation localConsumer = CreateCompilation(assemblyName: "Dummy", source: (string[])null,
                          references: new MetadataReference[] {
                                                                 TestReferences.SymbolsTests.NoPia.Pia1,
                                                                 TestReferences.SymbolsTests.NoPia.LocalTypes1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
             Assert.Equal(1, localConsumerRefsAsm.First(arg => arg.Name == "LocalTypes1").Modules.FirstOrDefault().GetReferencedAssemblies().Length);
             Assert.Equal(1, localConsumerRefsAsm.First(arg => arg.Name == "LocalTypes1").Modules.FirstOrDefault().GetReferencedAssemblySymbols().Length);
             Assert.Equal(localConsumerRefsAsm.First(arg => arg.Name == "mscorlib"), localConsumerRefsAsm.First(arg => arg.Name == "LocalTypes1").Modules.FirstOrDefault().GetReferencedAssemblySymbols().ElementAt(0));
 
-            var canonicalType1 = localConsumerRefsAsm.First(arg => arg.Name == "Pia1").GlobalNamespace.GetTypeMembers("I1").Single();
-            var canonicalType2 = localConsumerRefsAsm.First(arg => arg.Name == "Pia1").GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single();
+            NamedTypeSymbol canonicalType1 = localConsumerRefsAsm.First(arg => arg.Name == "Pia1").GlobalNamespace.GetTypeMembers("I1").Single();
+            NamedTypeSymbol canonicalType2 = localConsumerRefsAsm.First(arg => arg.Name == "Pia1").GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single();
 
             NamedTypeSymbol classLocalType = localConsumerRefsAsm.First(arg => arg.Name == "LocalTypes1").GlobalNamespace.GetTypeMembers("LocalTypes1").Single();
             MethodSymbol methodSymbol = classLocalType.GetMembers("Test1").OfType<MethodSymbol>().Single();
@@ -66,20 +66,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     }
 }";
 
-            var localType1 = CreateEmptyCompilation(assemblyName: "Dummy1", source: new string[] { localTypeSource1 },
+            CSharpCompilation localType1 = CreateEmptyCompilation(assemblyName: "Dummy1", source: new string[] { localTypeSource1 },
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true)
                 });
 
-            var localType2 = CreateEmptyCompilation(assemblyName: "Dummy2", source: new string[] { localTypeSource2 },
+            CSharpCompilation localType2 = CreateEmptyCompilation(assemblyName: "Dummy2", source: new string[] { localTypeSource2 },
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPia,
                     new CSharpCompilationReference(localType1)
                 });
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy3", source: CSharpTestSource.None,
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy3", source: CSharpTestSource.None,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                     new CSharpCompilationReference(localType1)
                 });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
             Assert.Equal(2, localConsumerRefsAsm.First(arg => arg.Name == "Dummy2").Modules.FirstOrDefault().GetReferencedAssemblies().Length);
             Assert.Equal(2, localConsumerRefsAsm.First(arg => arg.Name == "Dummy2").Modules.FirstOrDefault().GetReferencedAssemblySymbols().Length);
 
@@ -116,18 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 }
 ";
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                                                                 references: new MetadataReference[] {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1,
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
 
             Assert.Equal(3, localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").Modules.FirstOrDefault().GetReferencedAssemblies().Length);
             Assert.Equal(3, localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").Modules.FirstOrDefault().GetReferencedAssemblySymbols().Length);
 
-            var canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("FooStruct").Single();
+            NamedTypeSymbol canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("FooStruct").Single();
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("TypeSubstitution").Single();
             FieldSymbol localFieldSymbol = classLocalType.GetMembers("myOwnVar").OfType<FieldSymbol>().Single();
@@ -179,15 +179,15 @@ static class TypeSubstitution
     }
 }";
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
-            var canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.ChildNamespace("InheritanceConflict");
-            var canonicalTypeInter = canonicalType.GetTypeMembers("IBase").Single();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            NamespaceSymbol canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.ChildNamespace("InheritanceConflict");
+            NamedTypeSymbol canonicalTypeInter = canonicalType.GetTypeMembers("IBase").Single();
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("TypeSubstitution").Single();
             FieldSymbol localFieldSymbol = classLocalType.GetMembers("myOwnRef").OfType<FieldSymbol>().Single();
@@ -217,14 +217,14 @@ static class TypeSubstitution
     }
 }";
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
-            var canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("FooEnum").Single();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            NamedTypeSymbol canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("FooEnum").Single();
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("TypeSubstitution").Single();
             FieldSymbol localFieldSymbol = classLocalType.GetMembers("myLocalType").OfType<FieldSymbol>().Single();
@@ -252,21 +252,21 @@ static class TypeSubstitution
     ISubFuncProp myLocalType = ExternalAsm1.Scen4;
 }";
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
-            var canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").Single();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            NamedTypeSymbol canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").Single();
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("TypeSubstitution").Single();
             FieldSymbol localFieldSymbol = classLocalType.GetMembers("myLocalType").OfType<FieldSymbol>().Single();
 
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("ExternalAsm1").Single();
-            var methodSymbol = classRefLocalType.GetMembers("Scen4").OfType<PropertySymbol>().Single();
-            var missing = methodSymbol.Type;
+            PropertySymbol methodSymbol = classRefLocalType.GetMembers("Scen4").OfType<PropertySymbol>().Single();
+            TypeSymbol missing = methodSymbol.Type;
 
             Assert.Equal(canonicalType.ToTestDisplayString(), missing.Name);
             Assert.Same(canonicalType, localFieldSymbol.Type);
@@ -283,22 +283,22 @@ static class TypeSubstitution
     GeneralEventScenario.EventHandler myLocalType = ExternalAsm1.Scen5;
 }";
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: new string[] { localTypeSource },
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
 
-            var canonicalType = localConsumerRefsAsm[0].GlobalNamespace.ChildNamespace("GeneralEventScenario");
-            var canonicalTypeInter = canonicalType.GetTypeMembers("EventHandler").Single();
+            NamespaceSymbol canonicalType = localConsumerRefsAsm[0].GlobalNamespace.ChildNamespace("GeneralEventScenario");
+            NamedTypeSymbol canonicalTypeInter = canonicalType.GetTypeMembers("EventHandler").Single();
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("TypeSubstitution").Single();
             FieldSymbol localFieldSymbol = classLocalType.GetMembers("myLocalType").OfType<FieldSymbol>().Single();
 
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("ExternalAsm1").Single();
-            var methodSymbol = classRefLocalType.GetMembers("Scen5").OfType<PropertySymbol>().Single();
+            PropertySymbol methodSymbol = classRefLocalType.GetMembers("Scen5").OfType<PropertySymbol>().Single();
             var missing = (NamedTypeSymbol)methodSymbol.Type;
 
             Assert.Equal(SymbolKind.ErrorType, missing.Kind);
@@ -311,18 +311,18 @@ static class TypeSubstitution
         {
             //Check type substitution when a class implement a PIA interface
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
-            var canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").Single();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            NamedTypeSymbol canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").Single();
 
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("SubFuncProp").Single();
             MethodSymbol methodSymbol = classRefLocalType.GetMembers("Foo").OfType<MethodSymbol>().Single();
-            var interfaceType = classRefLocalType.GetDeclaredInterfaces(null).First();
+            NamedTypeSymbol interfaceType = classRefLocalType.GetDeclaredInterfaces(null).First();
 
             Assert.Same(canonicalType, interfaceType);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(interfaceType);
@@ -333,14 +333,14 @@ static class TypeSubstitution
         {
             //Check type substitution for a method of a class that implement PIA interface
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
-            var canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").Single();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            NamedTypeSymbol canonicalType = localConsumerRefsAsm.First(arg => arg.Name == "GeneralPia").GlobalNamespace.GetTypeMembers("ISubFuncProp").Single();
 
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("SubFuncProp").Single();
             MethodSymbol methodSymbol = classRefLocalType.GetMembers("Foo").OfType<MethodSymbol>().Single();
@@ -353,14 +353,14 @@ static class TypeSubstitution
         {
             //NoPiaAmbiguousCanonicalTypeSymbol for the corresponding interface type. 
 
-            var localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
+            CSharpCompilation localConsumer = CreateEmptyCompilation(assemblyName: "Dummy", source: CSharpTestSource.None,
                          references: new List<MetadataReference>()  {
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPia,
                                                                        TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,
                                                                        TestReferences.SymbolsTests.NoPia.ExternalAsm1
                                                                      });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
 
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("ExternalAsm1").Single();
             MethodSymbol refMethodSymbol = classRefLocalType.GetMembers("Scen2").OfType<MethodSymbol>().Single();
@@ -416,23 +416,23 @@ public class InterfaceImpl
     }
 }";
 
-            var localType1 = CreateCompilation(assemblyName: "Dummy1", source: localTypeSource1, references: null);
+            CSharpCompilation localType1 = CreateCompilation(assemblyName: "Dummy1", source: localTypeSource1, references: null);
 
-            var localType2 = CreateCompilation(assemblyName: "Dummy2", source: localTypeSource2,
+            CSharpCompilation localType2 = CreateCompilation(assemblyName: "Dummy2", source: localTypeSource2,
             references: new List<MetadataReference>() { new CSharpCompilationReference(localType1, embedInteropTypes: true) });
 
             Assert.True(localType2.Assembly.GetNoPiaResolutionAssemblies().First(arg => arg.Name == "Dummy1").IsLinked);
 
-            var localConsumer = CreateCompilation(source: "", assemblyName: "Dummy3",
+            CSharpCompilation localConsumer = CreateCompilation(source: "", assemblyName: "Dummy3",
                      references: new List<MetadataReference>() {
                                                                       new CSharpCompilationReference(localType2),
                                                                       new CSharpCompilationReference(localType1)
                                                                     });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
 
-            var importedType = localConsumerRefsAsm.First(arg => arg.Name == "Dummy2").GlobalNamespace.GetTypeMembers("IdentifyingAttributes").Single();
-            var methodSymbol = importedType.GetMembers("Foo").OfType<MethodSymbol>().Single();
+            NamedTypeSymbol importedType = localConsumerRefsAsm.First(arg => arg.Name == "Dummy2").GlobalNamespace.GetTypeMembers("IdentifyingAttributes").Single();
+            MethodSymbol methodSymbol = importedType.GetMembers("Foo").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.NamedType, methodSymbol.ReturnType.Kind);
             Assert.IsAssignableFrom<SourceNamedTypeSymbol>(methodSymbol.ReturnType);
@@ -461,18 +461,18 @@ public interface I1
 {
 }";
 
-            var localType = CreateCompilation(assemblyName: "Dummy1", source: localTypeSource, references: null);
+            CSharpCompilation localType = CreateCompilation(assemblyName: "Dummy1", source: localTypeSource, references: null);
 
-            var localConsumer = CreateCompilation(assemblyName: "Dummy2", source: "",
+            CSharpCompilation localConsumer = CreateCompilation(assemblyName: "Dummy2", source: "",
                     references: new List<MetadataReference>()  {
                                                                       TestReferences.SymbolsTests.NoPia.Pia1,
                                                                       new CSharpCompilationReference(localType)
                                                                });
 
-            var localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
-            var importedTypeComp2 = localConsumerRefsAsm.First(arg => arg.Name == "Dummy1").GlobalNamespace.GetTypeMembers("LocalTypes1").Single();
-            var embeddedType = importedTypeComp2.GetMembers("Test1").OfType<MethodSymbol>().Single();
-            var importedTypeAsm = localConsumerRefsAsm.First(arg => arg.Name == "Pia1").GlobalNamespace.GetTypeMembers("I1").Single();
+            ImmutableArray<AssemblySymbol> localConsumerRefsAsm = localConsumer.Assembly.GetNoPiaResolutionAssemblies();
+            NamedTypeSymbol importedTypeComp2 = localConsumerRefsAsm.First(arg => arg.Name == "Dummy1").GlobalNamespace.GetTypeMembers("LocalTypes1").Single();
+            MethodSymbol embeddedType = importedTypeComp2.GetMembers("Test1").OfType<MethodSymbol>().Single();
+            NamedTypeSymbol importedTypeAsm = localConsumerRefsAsm.First(arg => arg.Name == "Pia1").GlobalNamespace.GetTypeMembers("I1").Single();
 
             Assert.Same(embeddedType.ReturnType, importedTypeAsm);
             Assert.Equal(SymbolKind.NamedType, embeddedType.ReturnType.Kind);

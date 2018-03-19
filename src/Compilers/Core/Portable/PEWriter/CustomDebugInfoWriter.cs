@@ -102,7 +102,7 @@ namespace Microsoft.Cci
 
                 if (emitEncInfo)
                 {
-                    var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
+                    EditAndContinueMethodDebugInformation encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
                     SerializeCustomDebugInformation(ref encoder, encMethodInfo);
                 }
             }
@@ -142,9 +142,9 @@ namespace Microsoft.Cci
         {
             ArrayBuilder<T> builder = null;
 
-            foreach (var currentScope in methodBody.LocalScopes)
+            foreach (LocalScope currentScope in methodBody.LocalScopes)
             {
-                foreach (var local in currentScope.Variables)
+                foreach (ILocalDefinition local in currentScope.Variables)
                 {
                     Debug.Assert(local.SlotIndex >= 0);
                     if (filter(local))
@@ -157,7 +157,7 @@ namespace Microsoft.Cci
                     }
                 }
 
-                foreach (var localConstant in currentScope.Constants)
+                foreach (ILocalDefinition localConstant in currentScope.Constants)
                 {
                     Debug.Assert(localConstant.SlotIndex < 0);
                     if (filter(localConstant))
@@ -183,7 +183,7 @@ namespace Microsoft.Cci
 
             byte[] GetDynamicFlags(ILocalDefinition local)
             {
-                var dynamicTransformFlags = local.DynamicTransformFlags;
+                System.Collections.Immutable.ImmutableArray<bool> dynamicTransformFlags = local.DynamicTransformFlags;
                 var flags = new byte[CustomDebugInfoEncoder.DynamicAttributeSize];
                 for (int k = 0; k < dynamicTransformFlags.Length; k++)
                 {
@@ -196,11 +196,11 @@ namespace Microsoft.Cci
                 return flags;
             }
 
-            var dynamicLocals = GetLocalInfoToSerialize(
+            ArrayBuilder<(string Name, byte[], int Length, int)> dynamicLocals = GetLocalInfoToSerialize(
                 methodBody,
                 local =>
                 {
-                    var dynamicTransformFlags = local.DynamicTransformFlags;
+                    System.Collections.Immutable.ImmutableArray<bool> dynamicTransformFlags = local.DynamicTransformFlags;
                     return !dynamicTransformFlags.IsEmpty &&
                         dynamicTransformFlags.Length <= CustomDebugInfoEncoder.DynamicAttributeSize &&
                         local.Name.Length < CustomDebugInfoEncoder.IdentifierSize;
@@ -218,7 +218,7 @@ namespace Microsoft.Cci
 
         private static void SerializeTupleElementNames(ref CustomDebugInfoEncoder encoder, IMethodBody methodBody)
         {
-            var locals = GetLocalInfoToSerialize(
+            ArrayBuilder<(string Name, int SlotIndex, int StartOffset, int EndOffset, System.Collections.Immutable.ImmutableArray<string> TupleElementNames)> locals = GetLocalInfoToSerialize(
                 methodBody,
                 local => !local.TupleElementNames.IsEmpty,
                 (scope, local) => (local.Name, local.SlotIndex, scope.StartOffset, scope.EndOffset, local.TupleElementNames));
@@ -280,7 +280,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            var previousScopes = _previousMethodBodyWithUsingInfo.ImportScope;
+            IImportScope previousScopes = _previousMethodBodyWithUsingInfo.ImportScope;
 
             // methods share the same import scope (common case for methods declared in the same file)
             if (methodBody.ImportScope == previousScopes)
@@ -291,8 +291,8 @@ namespace Microsoft.Cci
             // If methods are in different files they don't share the same scopes,
             // but the imports might be the same nevertheless.
             // Note: not comparing project-level imports since those are the same for all method bodies.
-            var s1 = methodBody.ImportScope;
-            var s2 = previousScopes;
+            IImportScope s1 = methodBody.ImportScope;
+            IImportScope s2 = previousScopes;
             while (s1 != null && s2 != null)
             {
                 if (!s1.GetUsedNamespaces().SequenceEqual(s2.GetUsedNamespaces()))

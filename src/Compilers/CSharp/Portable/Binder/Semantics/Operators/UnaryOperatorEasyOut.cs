@@ -142,20 +142,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return UnaryOperatorKind.Error;
                 }
                 int kindIndex = kind.OperatorIndex();
-                var result = (kindIndex >= s_opkind.Length) ? UnaryOperatorKind.Error : s_opkind[kindIndex][index.Value];
+                UnaryOperatorKind result = (kindIndex >= s_opkind.Length) ? UnaryOperatorKind.Error : s_opkind[kindIndex][index.Value];
                 return result == UnaryOperatorKind.Error ? result : result | kind;
             }
         }
 
         private void UnaryOperatorEasyOut(UnaryOperatorKind kind, BoundExpression operand, UnaryOperatorOverloadResolutionResult result)
         {
-            var operandType = operand.Type;
+            TypeSymbol operandType = operand.Type;
             if ((object)operandType == null)
             {
                 return;
             }
 
-            var easyOut = UnopEasyOut.OpKind(kind, operandType);
+            UnaryOperatorKind easyOut = UnopEasyOut.OpKind(kind, operandType);
 
             if (easyOut == UnaryOperatorKind.Error)
             {

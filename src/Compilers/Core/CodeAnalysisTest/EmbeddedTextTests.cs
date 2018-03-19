@@ -87,7 +87,7 @@ class Program
         public void FromStream_Empty()
         {
             var text = EmbeddedText.FromStream("pathToEmpty", new MemoryStream(new byte[0]), SourceHashAlgorithm.Sha1);
-            var checksum = SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1);
+            System.Collections.Immutable.ImmutableArray<byte> checksum = SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1);
 
             Assert.Equal("pathToEmpty", text.FilePath);
             Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
@@ -100,7 +100,7 @@ class Program
         {
             var source = SourceText.From("", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), SourceHashAlgorithm.Sha1);
             var text = EmbeddedText.FromSource("pathToEmpty", source);
-            var checksum = SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1);
+            System.Collections.Immutable.ImmutableArray<byte> checksum = SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1);
 
             Assert.Equal("pathToEmpty", text.FilePath);
             Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
@@ -112,7 +112,7 @@ class Program
         public void FromBytes_Small()
         {
             var bytes = Encoding.UTF8.GetBytes(SmallSource);
-            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha1);
+            System.Collections.Immutable.ImmutableArray<byte> checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha1);
             var text = EmbeddedText.FromBytes("pathToSmall", new ArraySegment<byte>(bytes, 0, bytes.Length));
 
             Assert.Equal("pathToSmall", text.FilePath);
@@ -127,7 +127,7 @@ class Program
         {
             var bytes = Encoding.UTF8.GetBytes(SmallSource);
             var paddedBytes = new byte[] { 0 }.Concat(bytes).Concat(new byte[] { 0 }).ToArray();
-            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha1);
+            System.Collections.Immutable.ImmutableArray<byte> checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha1);
             var text = EmbeddedText.FromBytes("pathToSmall", new ArraySegment<byte>(paddedBytes, 1, bytes.Length));
 
             Assert.Equal("pathToSmall", text.FilePath);
@@ -154,7 +154,7 @@ class Program
         public void FromBytes_Large()
         {
             var bytes = Encoding.Unicode.GetBytes(LargeSource);
-            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha256);
+            System.Collections.Immutable.ImmutableArray<byte> checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha256);
             var text = EmbeddedText.FromBytes("pathToLarge", new ArraySegment<byte>(bytes, 0, bytes.Length), SourceHashAlgorithm.Sha256);
 
             Assert.Equal("pathToLarge", text.FilePath);
@@ -169,7 +169,7 @@ class Program
         {
             var bytes = Encoding.Unicode.GetBytes(LargeSource);
             var paddedBytes = new byte[] { 0 }.Concat(bytes).Concat(new byte[] { 0 }).ToArray();
-            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha256);
+            System.Collections.Immutable.ImmutableArray<byte> checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha256);
             var text = EmbeddedText.FromBytes("pathToLarge", new ArraySegment<byte>(paddedBytes, 1, bytes.Length), SourceHashAlgorithm.Sha256);
 
             Assert.Equal("pathToLarge", text.FilePath);
@@ -230,7 +230,7 @@ class Program
 
             foreach (bool useStream in new[] { true, false })
             {
-                var source = useStream ?
+                SourceText source = useStream ?
                     SourceText.From(new MemoryStream(bytes), Encoding.ASCII, SourceHashAlgorithm.Sha1, canBeEmbedded: true) :
                     SourceText.From(bytes, bytes.Length, Encoding.ASCII, SourceHashAlgorithm.Sha1, canBeEmbedded: true);
 
@@ -247,7 +247,7 @@ class Program
         [Fact]
         public void FromBytes_EncodingFallbackCase()
         {
-            var source = EncodedStringText.Create(new MemoryStream(new byte[] { 0xA9, 0x0D, 0x0A }), canBeEmbedded: true);
+            SourceText source = EncodedStringText.Create(new MemoryStream(new byte[] { 0xA9, 0x0D, 0x0A }), canBeEmbedded: true);
             var text = EmbeddedText.FromSource("pathToLarge", source);
 
             Assert.Equal("pathToLarge", text.FilePath);

@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (Symbol m in this.GetMembers())
             {
                 if (m.Kind == SymbolKind.Event)
                 {
@@ -325,17 +325,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            foreach (var member in this.GetMembers())
+            foreach (Symbol member in this.GetMembers())
             {
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
                     Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
 
-                    var explicitImplementations = method.ExplicitInterfaceImplementations;
+                    ImmutableArray<MethodSymbol> explicitImplementations = method.ExplicitInterfaceImplementations;
                     if (explicitImplementations.Length != 0)
                     {
-                        foreach (var implemented in method.ExplicitInterfaceImplementations)
+                        foreach (MethodSymbol implemented in method.ExplicitInterfaceImplementations)
                         {
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
@@ -370,17 +370,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);
+            IEnumerable<IMethodDefinition> syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);
             if (syntheticMethods != null)
             {
-                foreach (var m in syntheticMethods)
+                foreach (IMethodDefinition m in syntheticMethods)
                 {
                     var method = m as MethodSymbol;
                     if ((object)method != null)
                     {
                         Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
 
-                        foreach (var implemented in method.ExplicitInterfaceImplementations)
+                        foreach (MethodSymbol implemented in method.ExplicitInterfaceImplementations)
                         {
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // All fields in a struct should be emitted
             bool isStruct = this.IsStructType();
 
-            foreach (var f in GetFieldsToEmit())
+            foreach (FieldSymbol f in GetFieldsToEmit())
             {
                 if (isStruct || f.ShouldInclude(context))
                 {
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (generated != null)
             {
-                foreach (var f in generated)
+                foreach (IFieldDefinition f in generated)
                 {
                     if (isStruct || f.ShouldInclude(context))
                     {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                foreach (var t in this.TypeParameters)
+                foreach (TypeParameterSymbol t in this.TypeParameters)
                 {
                     yield return t;
                 }
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (NamedTypeSymbol @interface in this.GetInterfacesToEmit())
             {
-                var typeRef = moduleBeingBuilt.Translate(
+                INamedTypeReference typeRef = moduleBeingBuilt.Translate(
                     @interface,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     diagnostics: context.Diagnostics,
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //apply the beforefieldinit attribute unless there is an explicitly specified static constructor
-                foreach (var member in GetMembers(WellKnownMemberNames.StaticConstructorName))
+                foreach (Symbol member in GetMembers(WellKnownMemberNames.StaticConstructorName))
                 {
                     if (!member.IsImplicitlyDeclared)
                     {
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var method in this.GetMethodsToEmit())
+            foreach (MethodSymbol method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
                 if (method.ShouldInclude(context))
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (generated != null)
             {
-                foreach (var m in generated)
+                foreach (IMethodDefinition m in generated)
                 {
                     if (m.ShouldInclude(context))
                     {
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (Symbol m in this.GetMembers())
             {
                 if (m.Kind == SymbolKind.Method)
                 {
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (generated != null)
             {
-                foreach (var t in generated)
+                foreach (INestedTypeDefinition t in generated)
                 {
                     yield return t;
                 }
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (Symbol m in this.GetMembers())
             {
                 if (m.Kind == SymbolKind.Property)
                 {
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                var layout = this.Layout;
+                TypeLayout layout = this.Layout;
                 return (ushort)layout.Alignment;
             }
         }
@@ -925,15 +925,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
             bool hasModifiers = this.HasTypeArgumentsCustomModifiers;
-            var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> arguments = this.TypeArgumentsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                ITypeReference arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
                 if (hasModifiers)
                 {
-                    var modifiers = this.GetTypeArgumentCustomModifiers(i);
+                    ImmutableArray<CustomModifier> modifiers = this.GetTypeArgumentCustomModifiers(i);
 
                     if (!modifiers.IsDefaultOrEmpty)
                     {
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)
         {
             Debug.Assert(((Cci.ITypeReference)this).AsSpecializedNestedTypeReference != null);
-            var result = GenericTypeImpl(context).AsNestedTypeReference;
+            INestedTypeReference result = GenericTypeImpl(context).AsNestedTypeReference;
 
             Debug.Assert(result != null);
             return result;

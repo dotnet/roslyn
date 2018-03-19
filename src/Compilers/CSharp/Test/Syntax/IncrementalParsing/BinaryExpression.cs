@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                             int x = y + 2;
                             } 
                     }";
-            var oldTree = SyntaxFactory.ParseSyntaxTree(text);
-            var newTree = oldTree.WithReplaceFirst("+", "*");
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("+", "*");
             var type = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var method = type.Members[0] as MethodDeclarationSyntax;
-            var block = method.Body;
+            BlockSyntax block = method.Body;
             var statement = block.Statements[0] as LocalDeclarationStatementSyntax;
             var expression = statement.Declaration.Variables[0].Initializer.Value as BinaryExpressionSyntax;
             Assert.Equal(expression.Kind(), SyntaxKind.MultiplyExpression);
@@ -184,11 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var code = @"class C { void m() {
                  " + topLevelStatement + @";
                 }}";
-            var oldTree = SyntaxFactory.ParseSyntaxTree(topLevel ? topLevelStatement : code, options: options);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(topLevel ? topLevelStatement : code, options: options);
 
             // Make the change to the node
-            var newTree = oldTree.WithReplaceFirst(oldName, newName);
-            var treeNode = topLevel ? GetGlobalExpressionNode(newTree) : GetExpressionNode(newTree);
+            SyntaxTree newTree = oldTree.WithReplaceFirst(oldName, newName);
+            ExpressionSyntax treeNode = topLevel ? GetGlobalExpressionNode(newTree) : GetExpressionNode(newTree);
             Assert.Equal(treeNode.Kind(), newSyntaxKind);
         }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         {
             TypeDeclarationSyntax classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             MethodDeclarationSyntax method = classType.Members[0] as MethodDeclarationSyntax;
-            var block = method.Body;
+            BlockSyntax block = method.Body;
             var statement = block.Statements[0] as ExpressionStatementSyntax;
             return statement.Expression;
         }

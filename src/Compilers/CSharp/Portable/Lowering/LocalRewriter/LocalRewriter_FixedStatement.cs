@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  type: fixedInitializer.ElementPointerType);
 
             // (int*)&pinnedTemp
-            var pointerValue = factory.Convert(
+            BoundExpression pointerValue = factory.Convert(
                 localType,
                 addr,
                 fixedInitializer.ElementPointerTypeConversion);
@@ -322,12 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement stringTempInit = factory.Assignment(factory.Local(pinnedTemp), initializerExpr);
 
             // (char*)pinnedTemp;
-            var addr = factory.Convert(
+            BoundExpression addr = factory.Convert(
                  fixedInitializer.ElementPointerType,
                  factory.Local(pinnedTemp),
                  Conversion.PinnedObjectToPointer);
 
-            var convertedStringTemp = factory.Convert(
+            BoundExpression convertedStringTemp = factory.Convert(
                 localType,
                 addr,
                 fixedInitializer.ElementPointerTypeConversion);

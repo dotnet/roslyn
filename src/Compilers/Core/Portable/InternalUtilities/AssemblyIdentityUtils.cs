@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 using (var peReader = new PEReader(stream))
                 {
-                    var metadataReader = peReader.GetMetadataReader();
+                    MetadataReader metadataReader = peReader.GetMetadataReader();
 
                     AssemblyDefinition assemblyDefinition = metadataReader.GetAssemblyDefinition();
 

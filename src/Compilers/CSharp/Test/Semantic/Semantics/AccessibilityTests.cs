@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         static AccessibilityTests()
         {
-            var t = Parse(@"
+            SyntaxTree t = Parse(@"
 using System;
 class C1
 {

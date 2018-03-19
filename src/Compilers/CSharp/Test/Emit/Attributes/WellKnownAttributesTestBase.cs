@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal NamespaceSymbol Get_System_Runtime_InteropServices_NamespaceSymbol(NamespaceSymbol systemNamespace)
         {
-            var runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
+            NamespaceSymbol runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
             return runtimeNS.GetMember<NamespaceSymbol>("InteropServices");
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal NamespaceSymbol Get_System_Runtime_CompilerServices_NamespaceSymbol(NamespaceSymbol systemNamespace)
         {
-            var runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
+            NamespaceSymbol runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
             return runtimeNS.GetMember<NamespaceSymbol>("CompilerServices");
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal NamespaceSymbol Get_System_NamespaceSymbol(ModuleSymbol m)
         {
-            var assembly = m.ContainingSymbol;
+            Symbol assembly = m.ContainingSymbol;
             SourceAssemblySymbol sourceAssembly = assembly as SourceAssemblySymbol;
             if (sourceAssembly != null)
             {
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(expected, parameter.IsParams);
 
             var peParameter = (PEParameterSymbol)parameter;
-            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
-            var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
+            IEnumerable<CSharpAttributeData> paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
 
             if (expected)
             {

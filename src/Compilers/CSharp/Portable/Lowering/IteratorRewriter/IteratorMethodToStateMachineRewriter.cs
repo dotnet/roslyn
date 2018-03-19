@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    this.Dispose();
                 // }
 
-                var faultBlock = F.Block(F.ExpressionStatement(F.Call(F.This(), disposeMethod)));
+                BoundBlock faultBlock = F.Block(F.ExpressionStatement(F.Call(F.This(), disposeMethod)));
                 newBody = F.Fault((BoundBlock)newBody, faultBlock);
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the body for Dispose().
             ///////////////////////////////////
             F.CurrentMethod = disposeMethod;
-            var rootFrame = _currentFinallyFrame;
+            IteratorFinallyFrame rootFrame = _currentFinallyFrame;
 
             if (rootFrame.knownStates == null)
             {
@@ -152,10 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var stateLocal = F.SynthesizedLocal(stateField.Type);
-                var state = F.Local(stateLocal);
+                LocalSymbol stateLocal = F.SynthesizedLocal(stateField.Type);
+                BoundLocal state = F.Local(stateLocal);
 
-                var disposeBody = F.Block(
+                BoundBlock disposeBody = F.Block(
                                     ImmutableArray.Create<LocalSymbol>(stateLocal),
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body = null;
             if (frame.knownStates != null)
             {
-                var breakLabel = F.GenerateLabel("break");
-                var sections = from ft in frame.knownStates
+                GeneratedLabelSymbol breakLabel = F.GenerateLabel("break");
+                IEnumerable<BoundSwitchSection> sections = from ft in frame.knownStates
                                group ft.Key by ft.Value into g
                                select F.SwitchSection(
                                     new List<int>(g),
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!frame.IsRoot())
             {
-                var tryBlock = body != null ? F.Block(body) : F.Block();
+                BoundBlock tryBlock = body != null ? F.Block(body) : F.Block();
                 body = F.Try(
                     tryBlock,
                     ImmutableArray<BoundCatchBlock>.Empty,
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _methodValue = F.SynthesizedLocal(result.Type);
                 }
 
-                var gotoExit = F.Goto(_exitLabel);
+                BoundGotoStatement gotoExit = F.Goto(_exitLabel);
 
                 if (finished)
                 {
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression caseExpressionOpt = (BoundExpression)this.Visit(node.CaseExpressionOpt);
             BoundLabel labelExpressionOpt = (BoundLabel)this.Visit(node.LabelExpressionOpt);
-            var proxyLabel = _currentFinallyFrame.ProxyLabelIfNeeded(node.Label);
+            LabelSymbol proxyLabel = _currentFinallyFrame.ProxyLabelIfNeeded(node.Label);
             Debug.Assert(node.Label == proxyLabel || !(F.CurrentMethod is IteratorFinallyMethodSymbol), "should not be proxying branches in finally");
             return node.Update(proxyLabel, caseExpressionOpt, labelExpressionOpt);
         }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!ContainsYields(node))
             {
                 _tryNestingLevel++;
-                var result = node.Update(
+                BoundTryStatement result = node.Update(
                                     (BoundBlock)Visit(node.TryBlock),
                                     VisitList(node.CatchBlocks),
                                     (BoundBlock)Visit(node.FinallyBlockOpt),
@@ -367,15 +367,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.FinallyBlockOpt != null, "try with yields must have finally");
 
             // rewrite TryBlock in a new frame.
-            var frame = PushFrame(node);
+            IteratorFinallyFrame frame = PushFrame(node);
             _tryNestingLevel++;
             var rewrittenBody = (BoundStatement)this.Visit(node.TryBlock);
 
             Debug.Assert(!frame.IsRoot());
             Debug.Assert(frame.parent.knownStates.ContainsValue(frame), "parent must be aware about states in the child frame");
 
-            var finallyMethod = frame.handler;
-            var origMethod = F.CurrentMethod;
+            IteratorFinallyMethodSymbol finallyMethod = frame.handler;
+            MethodSymbol origMethod = F.CurrentMethod;
 
             // rewrite finally block into a Finally method.
             F.CurrentMethod = finallyMethod;
@@ -419,14 +419,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // handle proxy labels if have any
             if (frame.proxyLabels != null)
             {
-                var dropThrough = F.GenerateLabel("dropThrough");
+                GeneratedLabelSymbol dropThrough = F.GenerateLabel("dropThrough");
                 bodyStatements.Add(F.Goto(dropThrough));
-                var parent = frame.parent;
+                IteratorFinallyFrame parent = frame.parent;
 
-                foreach (var p in frame.proxyLabels)
+                foreach (KeyValuePair<LabelSymbol, LabelSymbol> p in frame.proxyLabels)
                 {
-                    var proxy = p.Value;
-                    var destination = p.Key;
+                    LabelSymbol proxy = p.Value;
+                    LabelSymbol destination = p.Key;
 
                     // branch lands here
                     bodyStatements.Add(F.Label(proxy));
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyStatements.Add(F.ExpressionStatement(F.Call(F.This(), finallyMethod)));
 
                     // let the parent forward the branch appropriately
-                    var parentProxy = parent.ProxyLabelIfNeeded(destination);
+                    LabelSymbol parentProxy = parent.ProxyLabelIfNeeded(destination);
                     bodyStatements.Add(F.Goto(parentProxy));
                 }
 
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var state = _nextFinalizeState--;
 
-            var finallyMethod = MakeSynthesizedFinally(state);
+            IteratorFinallyMethodSymbol finallyMethod = MakeSynthesizedFinally(state);
             var newFrame = new IteratorFinallyFrame(_currentFinallyFrame, state, finallyMethod, _yieldsInTryAnalysis.Labels(statement));
             newFrame.AddState(state);
 
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void PopFrame()
         {
-            var result = _currentFinallyFrame;
+            IteratorFinallyFrame result = _currentFinallyFrame;
             _currentFinallyFrame = result.parent;
         }
 

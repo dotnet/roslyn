@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestFieldLikeEvent()
         {
-            var eventSymbol = _widgetClass.GetMember<EventSymbol>("E");
+            EventSymbol eventSymbol = _widgetClass.GetMember<EventSymbol>("E");
             Assert.Equal("E:Acme.Widget.E", eventSymbol.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.add_E(System.Action)", eventSymbol.AddMethod.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.remove_E(System.Action)", eventSymbol.RemoveMethod.GetDocumentationCommentId());
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCustomEvent()
         {
-            var eventSymbol = _widgetClass.GetMember<EventSymbol>("F");
+            EventSymbol eventSymbol = _widgetClass.GetMember<EventSymbol>("F");
             Assert.Equal("E:Acme.Widget.F", eventSymbol.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.add_F(System.Action)", eventSymbol.AddMethod.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.remove_F(System.Action)", eventSymbol.RemoveMethod.GetDocumentationCommentId());

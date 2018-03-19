@@ -32,32 +32,32 @@ class C
         M(3, a: 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "First 1 2. Second 3 4.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "First 1 2. Second 3 4.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.First();
-            var model = verifier.Compilation.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var firstInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(2);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.First();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax firstInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(2);
             Assert.Equal("M(a: 1, 2)", firstInvocation.ToString());
             Assert.Equal("void C.M(System.Int32 a, System.Int32 b)",
                 model.GetSymbolInfo(firstInvocation).Symbol.ToTestDisplayString());
 
-            var firstNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(0);
+            NameColonSyntax firstNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(0);
             Assert.Equal("a: 1", firstNamedArgA.Parent.ToString());
-            var firstASymbol = model.GetSymbolInfo(firstNamedArgA.Name);
+            SymbolInfo firstASymbol = model.GetSymbolInfo(firstNamedArgA.Name);
             Assert.Equal(SymbolKind.Parameter, firstASymbol.Symbol.Kind);
             Assert.Equal("a", firstASymbol.Symbol.Name);
             Assert.Equal("void C.M(System.Int32 a, System.Int32 b)", firstASymbol.Symbol.ContainingSymbol.ToTestDisplayString());
 
-            var secondInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(3);
+            InvocationExpressionSyntax secondInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(3);
             Assert.Equal("M(3, a: 4)", secondInvocation.ToString());
             Assert.Equal("void C.M(System.Int64 b, System.Int64 a)",
                 model.GetSymbolInfo(secondInvocation).Symbol.ToTestDisplayString());
 
-            var secondNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(1);
+            NameColonSyntax secondNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(1);
             Assert.Equal("a: 4", secondNamedArgA.Parent.ToString());
-            var secondASymbol = model.GetSymbolInfo(secondNamedArgA.Name);
+            SymbolInfo secondASymbol = model.GetSymbolInfo(secondNamedArgA.Name);
             Assert.Equal(SymbolKind.Parameter, secondASymbol.Symbol.Kind);
             Assert.Equal("a", secondASymbol.Symbol.Name);
             Assert.Equal("void C.M(System.Int64 b, System.Int64 a)", secondASymbol.Symbol.ContainingSymbol.ToTestDisplayString());
@@ -78,10 +78,10 @@ class C
         new C(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (10,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         new C(a: 1, 2);
@@ -106,7 +106,7 @@ class C
         new C();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
         }
 
@@ -130,7 +130,7 @@ class Derived : C
         new Derived();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
         }
 
@@ -153,10 +153,10 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
+            CompilationVerifier verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.M(a: 1, 2);
@@ -186,10 +186,10 @@ class C
         c.e(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (16,26): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.e.Invoke(a: 1, 2);
@@ -217,10 +217,10 @@ class C
         }
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         local(a: 1, 2);
@@ -253,10 +253,10 @@ class C
         c[a: 3, 4] = 5;
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (19,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         _ = c[a: 1, 2];
@@ -292,7 +292,7 @@ class C
         void local(int a, int b) { }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (16,23): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 //         var c = new C(b: 1, 2);
@@ -326,12 +326,12 @@ class D
         C.M(a: 1, 2);
     }
 }";
-            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular7);
+            CSharpCompilation lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular7);
 
-            var verifier1 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.ToMetadataReference() });
+            CompilationVerifier verifier1 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.ToMetadataReference() });
             verifier1.VerifyDiagnostics();
 
-            var verifier2 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.EmitToImageReference() });
+            CompilationVerifier verifier2 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.EmitToImageReference() });
             verifier2.VerifyDiagnostics();
         }
 
@@ -350,17 +350,17 @@ class C
         M(1, first: 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,14): error CS1744: Named argument 'first' specifies a parameter for which a positional argument has already been given
                 //         M(1, first: 2);
                 Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "first").WithArguments("first").WithLocation(10, 14)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(1, first: 2)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
@@ -380,13 +380,13 @@ class C
         C.M(a: 1, ""hi"");
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 hi.", parseOptions: TestOptions.Regular7_2);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 hi.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.First();
-            var model = verifier.Compilation.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.First();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal(@"C.M(a: 1, ""hi"")", invocation.ToString());
             Assert.Equal("void C.M<System.Int32, System.String>(System.Int32 a, System.String b)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         }
@@ -406,17 +406,17 @@ class C
         M(c: 1, 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: 1, 2);
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "c").WithArguments("c").WithLocation(10, 11)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(c: 1, 2)", invocation.ToString());
             SymbolInfo symbol = model.GetSymbolInfo(invocation);
             AssertEx.Equal(new[] { "void C.M(System.Int32 a, System.Int32 b, [System.Int32 c = 1])" },
@@ -438,17 +438,17 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         M(x: 1, 2);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(9, 9)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(x: 1, 2)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
@@ -467,17 +467,17 @@ class C
         M(1, x: 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,14): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
                 //         M(1, x: 2);
                 Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(9, 14)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(1, x: 2)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
@@ -499,7 +499,7 @@ class C
         M(x: 3, new[] { ""4"", ""5"" });
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.");
             comp.VerifyDiagnostics();
         }
 
@@ -517,17 +517,17 @@ class C
         M(x: 1, x: 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2);
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(9, 17)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(x: 1, x: 2)", invocation.ToString());
             Assert.Equal("void C.M(params System.Int32[] x)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         }
@@ -546,7 +546,7 @@ class C
         M(x: 1, x: 2, 3);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2, 3);
@@ -559,10 +559,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "x").WithArguments("x").WithLocation(9, 17)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(x: 1, x: 2, 3)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
@@ -581,17 +581,17 @@ class C
         M(y: 1, 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS8321: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, 2);
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "y").WithArguments("y").WithLocation(9, 11)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(y: 1, 2)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
@@ -610,7 +610,7 @@ class C
         M(x: 1, y: 2, 3);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1501: No overload for method 'M' takes 3 arguments
                 //         M(x: 1, y: 2, 3);
@@ -632,7 +632,7 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     static void M(params int[] x, int y)
@@ -642,10 +642,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params int[]").WithLocation(9, 14)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(x: 1, 2)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
@@ -665,14 +665,14 @@ class C
         M(y: 1, x: 2);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "x=2 y[0]=1 y.Length=1");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(y: 1, x: 2)", invocation.ToString());
             Assert.Equal("void C.M(System.Int32 x, params System.Int32[] y)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         }
@@ -693,17 +693,17 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: valueC, valueB);
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "c").WithArguments("c").WithLocation(11, 11)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var firstInvocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax firstInvocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(c: valueC, valueB)", firstInvocation.ToString());
             Assert.Null(model.GetSymbolInfo(firstInvocation).Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(firstInvocation).CandidateReason);
@@ -731,13 +731,13 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.First();
-            var model = verifier.Compilation.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.First();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(c: valueC, valueB)", invocation.ToString());
             Assert.Equal("void C.M([System.Int64 c = 1], [System.Int64 b = 2])",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -763,13 +763,13 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
-            var tree = verifier.Compilation.SyntaxTrees.First();
-            var model = verifier.Compilation.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            SyntaxTree tree = verifier.Compilation.SyntaxTrees.First();
+            SemanticModel model = verifier.Compilation.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            InvocationExpressionSyntax invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(c: valueC, valueB)", invocation.ToString());
             Assert.Equal("void C.M([System.Int32 c = 1], [System.Int32 b = 2])",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -790,7 +790,7 @@ class C
         M(a: 1, 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "42");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics();
         }
 
@@ -807,14 +807,14 @@ class C
         d.M(1, 2);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,19): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
                 //         d.M(a: 1, 2);
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "2").WithLocation(7, 19)
                 );
 
-            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            CSharpCompilation comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp2.VerifyDiagnostics(
                 // (7,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         d.M(a: 1, 2);
@@ -835,7 +835,7 @@ class C
         void local(int x, params object[] y) { }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
                 //         local(x: 1, d); 
@@ -866,7 +866,7 @@ class C
         c[a: 1, d] = d;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -884,7 +884,7 @@ class C
         M(b: 2, 3, 4);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS8321: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 //         M(b: 2, 3, 4);
@@ -907,7 +907,7 @@ class C
         M(1, b: 2, 3, 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2");
             verifier.VerifyDiagnostics();
         }
 
@@ -930,7 +930,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,38): error CS1016: Named attribute argument expected
                 // [MyAttribute(condition: true, P = 1, 42)]
@@ -940,10 +940,10 @@ public class C
                 Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "condition").WithArguments("condition").WithLocation(13, 18)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<AttributeSyntax>().ElementAt(1);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            AttributeSyntax invocation = nodes.OfType<AttributeSyntax>().ElementAt(1);
             Assert.Equal("MyAttribute(condition: true, 42)", invocation.ToString());
             Assert.Equal("MyAttribute..ctor(System.Boolean condition, System.Int32 other)",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
@@ -968,7 +968,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (11,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 // [MyAttribute(condition: true, 42)]
@@ -1003,7 +1003,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,14): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 // [MyAttribute(c:3, 2)]
@@ -1031,7 +1031,7 @@ class C
         M(x: 1, x: 2, __arglist());
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2, __arglist());
@@ -1053,7 +1053,7 @@ class C
         M(__arglist(x: 1, x: 2, __arglist()));
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(__arglist(x: 1, x: 2, __arglist()));
@@ -1095,7 +1095,7 @@ class C
         return result;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.");
             comp.VerifyDiagnostics();
         }
 
@@ -1110,7 +1110,7 @@ class C
         M(y: 1, x: 2, __arglist(3));
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,11): error CS8322: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, x: 2, __arglist(3));
@@ -1126,7 +1126,7 @@ class C
 {
     C() : this(x: 1, x: 2, 3) { }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,22): error CS1740: Named argument 'x' cannot be specified multiple times
                 //     C() : this(x: 1, x: 2, 3) { }
@@ -1148,7 +1148,7 @@ class C
         new C(x: 1, x: 2, 3);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         new C(x: 1, x: 2, 3);
@@ -1172,7 +1172,7 @@ class C
         System.Console.Write(c[x: 1, x: 2, 3]);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,38): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         System.Console.Write(c[x: 1, x: 2, 3]);

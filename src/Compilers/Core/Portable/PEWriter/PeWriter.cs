@@ -85,10 +85,10 @@ namespace Microsoft.Cci
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
+            MetadataWriter mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
                 emitTestCoverageData, getPortablePdbStreamOpt != null, cancellationToken);
 
-            var properties = context.Module.SerializationProperties;
+            ModulePropertiesForSerialization properties = context.Module.SerializationProperties;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -156,7 +156,7 @@ namespace Microsoft.Cci
             nativePdbWriterOpt = null;
 
             ushort portablePdbVersion = 0;
-            var metadataRootBuilder = mdWriter.GetRootBuilder();
+            MetadataRootBuilder metadataRootBuilder = mdWriter.GetRootBuilder();
 
             Machine SRMVisibleMachine = properties.Machine;
 
@@ -189,7 +189,7 @@ namespace Microsoft.Cci
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
             // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
-            var peIdProvider = isDeterministic ?
+            Func<IEnumerable<Blob>, BlobContentId> peIdProvider = isDeterministic ?
                 new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
                 null;
                 
@@ -204,12 +204,12 @@ namespace Microsoft.Cci
                 // The algorithm must be specified for deterministic builds (checked earlier).
                 Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);
 
-                var portablePdbIdProvider = (context.Module.PdbChecksumAlgorithm.Name != null) ?
+                Func<IEnumerable<Blob>, BlobContentId> portablePdbIdProvider = (context.Module.PdbChecksumAlgorithm.Name != null) ?
                     new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
                     null;
 
                 var portablePdbBlob = new BlobBuilder();
-                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
+                PortablePdbBuilder portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
@@ -269,8 +269,8 @@ namespace Microsoft.Cci
                 debugDirectoryBuilder = null;
             }
 
-            var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
-            var corFlags = properties.CorFlags;
+            StrongNameProvider strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
+            CorFlags corFlags = properties.CorFlags;
 
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
@@ -287,7 +287,7 @@ namespace Microsoft.Cci
                 metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
-            var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
+            BlobContentId peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
             // Remove this code when  https://github.com/dotnet/roslyn/issues/25185 is fixed
             if (SRMVisibleMachine != properties.Machine)
@@ -442,13 +442,13 @@ namespace Microsoft.Cci
             // processing a .RES file, we process them like the native linker would, copy the relevant sections from
             // the .OBJ into our output and apply some fixups.
 
-            var nativeResourceSectionOpt = module.Win32ResourceSection;
+            ResourceSection nativeResourceSectionOpt = module.Win32ResourceSection;
             if (nativeResourceSectionOpt != null)
             {
                 return new ResourceSectionBuilderFromObj(nativeResourceSectionOpt);
             }
 
-            var nativeResourcesOpt = module.Win32Resources;
+            IEnumerable<IWin32Resource> nativeResourcesOpt = module.Win32Resources;
             if (nativeResourcesOpt?.Any() == true)
             {
                 return new ResourceSectionBuilderFromResources(nativeResourcesOpt);

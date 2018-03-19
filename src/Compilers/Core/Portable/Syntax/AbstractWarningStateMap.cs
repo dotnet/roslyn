@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// </summary>
         public ReportDiagnostic GetWarningState(string id, int position)
         {
-            var entry = GetEntryAtOrBeforePosition(position);
+            WarningStateMapEntry entry = GetEntryAtOrBeforePosition(position);
 
             ReportDiagnostic state;
             if (entry.SpecificWarningOption.TryGetValue(id, out state))

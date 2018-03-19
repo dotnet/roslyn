@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (symbol.Kind == SymbolKind.Field)
                 {
                     // If this is the backing field of an event, look at the event instead.
-                    var associatedSymbol = ((FieldSymbol)symbol).AssociatedSymbol;
+                    Symbol associatedSymbol = ((FieldSymbol)symbol).AssociatedSymbol;
                     if ((object)associatedSymbol != null)
                     {
                         symbol = associatedSymbol;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     symbol.ForceCompleteObsoleteAttribute();
                 }
 
-                var state = symbol.ObsoleteState;
+                ThreeState state = symbol.ObsoleteState;
                 if (state != ThreeState.False)
                 {
                     return state;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static DiagnosticInfo CreateObsoleteDiagnostic(Symbol symbol, BinderFlags location)
         {
-            var data = symbol.ObsoleteAttributeData;
+            ObsoleteAttributeData data = symbol.ObsoleteAttributeData;
             Debug.Assert(data != null);
 
             if (data == null)

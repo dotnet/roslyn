@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(_currentBlock == null);
 
-            var block = _scopeManager.CreateBlock(this);
+            BasicBlock block = _scopeManager.CreateBlock(this);
             UpdatesForCreatedBlock(block);
         }
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 block.Reachability = Reachability.Reachable;
 
-                var branchCode = block.BranchCode;
+                ILOpCode branchCode = block.BranchCode;
                 if (branchCode == ILOpCode.Nop && block.Type == BlockType.Normal)
                 {
                     block = block.NextBlock;
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // the reachability of the following special block.
                     if (branchCode == ILOpCode.Endfinally)
                     {
-                        var enclosingFinally = block.EnclosingHandler;
+                        ExceptionHandlerScope enclosingFinally = block.EnclosingHandler;
                         enclosingFinally?.UnblockFinally();
                     }
                 }
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private static void MarkReachableFromBranch(ArrayBuilder<BasicBlock> reachableBlocks, BasicBlock block)
         {
-            var branchBlock = block.BranchBlock;
+            BasicBlock branchBlock = block.BranchBlock;
 
             if (branchBlock != null)
             {
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // blockedDest is no longer "unreachable".
             // Something branches to it so it should be at least BlockedByFinally.
-            var newBranchBlock = block.BranchBlock;
+            BasicBlock newBranchBlock = block.BranchBlock;
             if (newBranchBlock.Reachability == Reachability.NotReachable)
             {
                 block.BranchBlock.Reachability = Reachability.BlockedByFinally;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Otherwise returns null
         private static object BlockedBranchDestination(BasicBlock src, BasicBlock dest)
         {
-            var srcHandler = src.EnclosingHandler;
+            ExceptionHandlerScope srcHandler = src.EnclosingHandler;
 
             // most common case - we are not in an exception handler.
             if (srcHandler == null)
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 if (srcHandler.Type == ScopeType.Try)
                 {
-                    var handlerBlock = srcHandler.LeaderBlock.NextExceptionHandler;
+                    ExceptionHandlerLeaderBlock handlerBlock = srcHandler.LeaderBlock.NextExceptionHandler;
                     if (handlerBlock.Type == BlockType.Finally)
                     {
                         var blockedDest = handlerBlock.EnclosingHandler.BlockedByFinallyDestination;
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             // Since the try block is reachable, associated
             // catch and finally blocks are also reachable.
-            var handlerBlock = ((ExceptionHandlerLeaderBlock)block).NextExceptionHandler;
+            ExceptionHandlerLeaderBlock handlerBlock = ((ExceptionHandlerLeaderBlock)block).NextExceptionHandler;
             Debug.Assert(handlerBlock != null);
 
             // Subsequent handlers are either one or more catch
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var blockBuilder = ArrayBuilder<BasicBlock>.GetInstance();
             switchBlock.GetBranchBlocks(blockBuilder);
 
-            foreach (var targetBlock in blockBuilder)
+            foreach (BasicBlock targetBlock in blockBuilder)
             {
                 PushReachableBlockToProcess(reachableBlocks, targetBlock);
             }
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             bool madeChanges = false;
 
-            var labels = _labelInfos.Keys;
+            SmallDictionary<object, LabelInfo>.KeyCollection labels = _labelInfos.Keys;
 
             bool done;
             do
@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 foreach (object label in labels)
                 {
-                    var labelInfo = _labelInfos[label];
-                    var targetBlock = labelInfo.bb;
+                    LabelInfo labelInfo = _labelInfos[label];
+                    BasicBlock targetBlock = labelInfo.bb;
 
                     Debug.Assert(!IsSpecialEndHandlerBlock(targetBlock));
 
@@ -515,8 +515,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if ((targetsTarget != null) && (targetsTarget != targetBlock))
                         {
-                            var currentHandler = targetBlock.EnclosingHandler;
-                            var newHandler = targetsTarget.EnclosingHandler;
+                            ExceptionHandlerScope currentHandler = targetBlock.EnclosingHandler;
+                            ExceptionHandlerScope newHandler = targetsTarget.EnclosingHandler;
 
                             // forward the label if can be done without leaving current handler
                             if (currentHandler == newHandler)
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             bool madeChanges = false;
 
-            var labels = _labelInfos.Keys;
+            SmallDictionary<object, LabelInfo>.KeyCollection labels = _labelInfos.Keys;
 
             bool done;
             do
@@ -548,14 +548,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 foreach (object label in labels)
                 {
-                    var labelInfo = _labelInfos[label];
+                    LabelInfo labelInfo = _labelInfos[label];
                     if (labelInfo.targetOfConditionalBranches)
                     {
                         // only unconditional labels can be forwarded as a leave
                         continue;
                     }
 
-                    var targetBlock = labelInfo.bb;
+                    BasicBlock targetBlock = labelInfo.bb;
 
                     Debug.Assert(!IsSpecialEndHandlerBlock(targetBlock));
 
@@ -575,8 +575,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if ((targetsTarget != null) && (targetsTarget != targetBlock))
                         {
-                            var currentHandler = targetBlock.EnclosingHandler;
-                            var newHandler = targetsTarget.EnclosingHandler;
+                            ExceptionHandlerScope currentHandler = targetBlock.EnclosingHandler;
+                            ExceptionHandlerScope newHandler = targetsTarget.EnclosingHandler;
 
                             // can skip the jump if it is in the same try scope
                             if (CanMoveLabelToAnotherHandler(currentHandler, newHandler))
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return true;
                 }
 
-                var containerScope = currentHandler.ContainingExceptionScope;
+                ExceptionHandlerContainerScope containerScope = currentHandler.ContainingExceptionScope;
                 if (!containerScope.FinallyOnly())
                 {
                     // this may move the label outside of catch-protected region
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool dropped = false;
 
             //sweep unreachable
-            var current = leaderBlock;
+            BasicBlock current = leaderBlock;
             while (current.NextBlock != null)
             {
                 if (current.NextBlock.Reachability == Reachability.NotReachable)
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private void MarkAllBlocksUnreachable()
         {
             //sweep unreachable
-            var current = leaderBlock;
+            BasicBlock current = leaderBlock;
             while (current != null)
             {
                 current.Reachability = Reachability.NotReachable;
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void ComputeOffsets()
         {
-            var current = leaderBlock;
+            BasicBlock current = leaderBlock;
             while (current.NextBlock != null)
             {
                 current.NextBlock.Start = current.Start + current.TotalSize;
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </remarks>
         private void RewriteSpecialBlocks()
         {
-            var current = leaderBlock;
+            BasicBlock current = leaderBlock;
 
             while (current != null)
             {
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void RewriteBranchesAcrossExceptionHandlers()
         {
-            var current = leaderBlock;
+            BasicBlock current = leaderBlock;
             while (current != null)
             {
                 current.RewriteBranchesAcrossExceptionHandlers();
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             do
             {
                 delta = 0;
-                var current = leaderBlock;
+                BasicBlock current = leaderBlock;
                 while (current != null)
                 {
                     current.AdjustForDelta(delta);
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Now linearize everything with computed offsets.
             var writer = Cci.PooledBlobBuilder.GetInstance();
 
-            for (var block = leaderBlock; block != null; block = block.NextBlock)
+            for (BasicBlock block = leaderBlock; block != null; block = block.NextBlock)
             {
                 // If the block has any IL markers, we can calculate their real IL offsets now
                 int blockFirstMarker = block.FirstILMarker;
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         var blockBuilder = ArrayBuilder<BasicBlock>.GetInstance();
                         switchBlock.GetBranchBlocks(blockBuilder);
 
-                        foreach (var branchBlock in blockBuilder)
+                        foreach (BasicBlock branchBlock in blockBuilder)
                         {
                             writer.WriteInt32(branchBlock.Start - switchBlockEnd);
                         }
@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 int lastOffset = -1;
 
                 ArrayBuilder<RawSequencePoint> seqPoints = ArrayBuilder<RawSequencePoint>.GetInstance();
-                foreach (var seqPoint in this.SeqPointsOpt)
+                foreach (RawSequencePoint seqPoint in this.SeqPointsOpt)
                 {
                     int offset = this.GetILOffsetFromMarker(seqPoint.ILMarker);
                     if (offset >= 0)
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void DefineSequencePoint(SyntaxTree syntaxTree, TextSpan span)
         {
-            var curBlock = GetCurrentBlock();
+            BasicBlock curBlock = GetCurrentBlock();
             _lastSeqPointTree = syntaxTree;
 
             if (this.SeqPointsOpt == null)
@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void DefineHiddenSequencePoint()
         {
-            var lastDebugDocument = _lastSeqPointTree;
+            SyntaxTree lastDebugDocument = _lastSeqPointTree;
 
             // if no document is known for this code, do not bother emitting a sequence point
             // CCI will not emit it anyways.
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             EndBlock();  //blocks should not cross scope boundaries.
-            var scope = _scopeManager.OpenScope(scopeType, exceptionType);
+            ScopeInfo scope = _scopeManager.OpenScope(scopeType, exceptionType);
 
             // Exception handler scopes must have a leader block, even
             // if the exception handler is empty, and created before any
@@ -1196,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private bool AllBlocks(Func<BasicBlock, bool> predicate)
         {
-            var current = leaderBlock;
+            BasicBlock current = leaderBlock;
             while (current != null)
             {
                 if (!predicate(current))
@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var visType = Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
             if (visType != null)
             {
-                var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
+                MethodInfo method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
                 return (string)method.Invoke(null, new object[] { this, null, null });
             }
 #endif

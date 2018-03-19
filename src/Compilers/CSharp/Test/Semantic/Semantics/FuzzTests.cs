@@ -43,12 +43,12 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            foreach (var node in tree.GetRoot().DescendantNodes())
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            foreach (SyntaxNode node in tree.GetRoot().DescendantNodes())
             {
-                var _ = model.GetSymbolInfo(node);
+                SymbolInfo _ = model.GetSymbolInfo(node);
             }
         }
     }

@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var visited = VisitExpressionWithStackGuard(node);
+            BoundExpression visited = VisitExpressionWithStackGuard(node);
 
             // If you *really* need to change the type, consider using an indirect method
             // like compound assignment does (extra flag only passed when it is an expression
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLambdas = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            var oldContainingSymbol = _factory.CurrentMethod;
+            MethodSymbol oldContainingSymbol = _factory.CurrentMethod;
             try
             {
                 _factory.CurrentMethod = node.Symbol;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            var oldContainingSymbol = _factory.CurrentMethod;
+            MethodSymbol oldContainingSymbol = _factory.CurrentMethod;
             try
             {
                 _factory.CurrentMethod = node.Symbol;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression PlaceholderReplacement(BoundValuePlaceholderBase placeholder)
         {
-            var value = _placeholderReplacementMapDoNotUseDirectly[placeholder];
+            BoundExpression value = _placeholderReplacementMapDoNotUseDirectly[placeholder];
             AssertPlaceholderReplacement(placeholder, value);
             return value;
         }
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)node.GetTypeFromHandle == null);
 
             var sourceType = (BoundTypeExpression)this.Visit(node.SourceType);
-            var type = this.VisitType(node.Type);
+            TypeSymbol type = this.VisitType(node.Type);
 
             // Emit needs this helper
             MethodSymbol getTypeFromHandle;
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)node.GetTypeFromHandle == null);
 
             var operand = (BoundExpression)this.Visit(node.Operand);
-            var type = this.VisitType(node.Type);
+            TypeSymbol type = this.VisitType(node.Type);
 
             // Emit needs this helper
             MethodSymbol getTypeFromHandle;
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundStatement> originalStatements = node.Statements;
             ArrayBuilder<BoundStatement> statements = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Length);
-            foreach (var initializer in originalStatements)
+            foreach (BoundStatement initializer in originalStatements)
             {
                 if (IsFieldOrPropertyInitializer(initializer))
                 {
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsFieldOrPropertyInitializer(BoundStatement initializer)
         {
-            var syntax = initializer.Syntax;
+            SyntaxNode syntax = initializer.Syntax;
 
             if (syntax is ExpressionSyntax && syntax?.Parent.Kind() == SyntaxKind.EqualsValueClause) // Should be the initial value.
             {
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(assignment.Left.Kind == BoundKind.FieldAccess);
 
-            var lhsField = ((BoundFieldAccess)assignment.Left).FieldSymbol;
+            FieldSymbol lhsField = ((BoundFieldAccess)assignment.Left).FieldSymbol;
             if (!lhsField.IsStatic && lhsField.ContainingType.IsStructType())
             {
                 return false;

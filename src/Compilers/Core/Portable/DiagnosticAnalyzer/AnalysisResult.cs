@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal ImmutableArray<Diagnostic> GetDiagnostics(IEnumerable<DiagnosticAnalyzer> analyzers, bool getLocalSyntaxDiagnostics, bool getLocalSemanticDiagnostics, bool getNonLocalDiagnostics)
         {
-            var excludedAnalyzers = Analyzers.Except(analyzers);
-            var excludedAnalyzersSet = excludedAnalyzers.Any() ? excludedAnalyzers.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            IEnumerable<DiagnosticAnalyzer> excludedAnalyzers = Analyzers.Except(analyzers);
+            ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzersSet = excludedAnalyzers.Any() ? excludedAnalyzers.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
             return GetDiagnostics(excludedAnalyzersSet, getLocalSyntaxDiagnostics, getLocalSemanticDiagnostics, getNonLocalDiagnostics);
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (SyntaxDiagnostics.Count > 0 || SemanticDiagnostics.Count > 0 || CompilationDiagnostics.Count > 0)
             {
-                var builder = ImmutableArray.CreateBuilder<Diagnostic>();
+                ImmutableArray<Diagnostic>.Builder builder = ImmutableArray.CreateBuilder<Diagnostic>();
                 if (getLocalSyntaxDiagnostics)
                 {
                     AddLocalDiagnostics(SyntaxDiagnostics, excludedAnalyzers, builder);
@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers,
             ImmutableArray<Diagnostic>.Builder builder)
         {
-            foreach (var diagnosticsByTree in localDiagnostics)
+            foreach (KeyValuePair<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> diagnosticsByTree in localDiagnostics)
             {
-                foreach (var diagnosticsByAnalyzer in diagnosticsByTree.Value)
+                foreach (KeyValuePair<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzer in diagnosticsByTree.Value)
                 {
                     if (excludedAnalyzers.Contains(diagnosticsByAnalyzer.Key))
                     {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers,
             ImmutableArray<Diagnostic>.Builder builder)
         {
-            foreach (var diagnosticsByAnalyzer in nonLocalDiagnostics)
+            foreach (KeyValuePair<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzer in nonLocalDiagnostics)
             {
                 if (excludedAnalyzers.Contains(diagnosticsByAnalyzer.Key))
                 {

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestNormalizeExpression(string text, string expected)
         {
-            var node = SyntaxFactory.ParseExpression(text);
+            ExpressionSyntax node = SyntaxFactory.ParseExpression(text);
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             Assert.Equal(expected, actual);
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestNormalizeStatement(string text, string expected)
         {
-            var node = SyntaxFactory.ParseStatement(text);
+            StatementSyntax node = SyntaxFactory.ParseStatement(text);
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             Assert.Equal(expected, actual);
         }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestNormalizeDeclaration(string text, string expected)
         {
-            var node = SyntaxFactory.ParseCompilationUnit(text);
+            CompilationUnitSyntax node = SyntaxFactory.ParseCompilationUnit(text);
             Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
             Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestNormalizeToken(string text, string expected)
         {
-            var token = SyntaxFactory.ParseToken(text);
+            SyntaxToken token = SyntaxFactory.ParseToken(text);
             var actual = token.NormalizeWhitespace().ToFullString();
             Assert.Equal(expected, actual);
         }
@@ -462,7 +462,7 @@ int i = 1;
 }
 }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 @"class c1
 {
@@ -489,7 +489,7 @@ int i = 1;
     {
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 "class c1\r\n" +
 "{\r\n"
@@ -517,7 +517,7 @@ $"  ///</summary>{Environment.NewLine}" +
   {
   }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code);
             TestNormalize(tree.GetCompilationUnitRoot(),
 "class c1\r\n" +
 "{\r\n" + // The normalizer doesn't change line endings in comments,
@@ -557,7 +557,7 @@ $"  ///  </summary>{Environment.NewLine}" +
 
         private void TestNormalizeTrivia(string text, string expected)
         {
-            var list = SyntaxFactory.ParseLeadingTrivia(text);
+            SyntaxTriviaList list = SyntaxFactory.ParseLeadingTrivia(text);
             TestNormalize(list, expected);
         }
 

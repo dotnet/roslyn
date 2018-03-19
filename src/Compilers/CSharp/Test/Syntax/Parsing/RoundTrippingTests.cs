@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), options);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), options);
             var toText = tree.GetCompilationUnitRoot().ToFullString();
 
             Assert.Equal(text, toText);
@@ -48,17 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void ParseAndCheckTerminalSpans(string text)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
             var toText = tree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(text, toText);
 
             var nodes = tree.GetCompilationUnitRoot().DescendantTokens(tk => tk.FullWidth > 0).ToList();
             if (nodes.Count > 0)
             {
-                var prevSpan = nodes[0].FullSpan;
+                TextSpan prevSpan = nodes[0].FullSpan;
                 for (int i = 1; i < nodes.Count; i++)
                 {
-                    var span = nodes[i].FullSpan;
+                    TextSpan span = nodes[i].FullSpan;
                     Assert.Equal(prevSpan.End, span.Start);
                     prevSpan = span;
                 }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void AutoPropInitializers()
         {
-            var parseOptions = TestOptions.Regular;
+            CSharpParseOptions parseOptions = TestOptions.Regular;
             ParseAndRoundTripping("class C { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
             ParseAndRoundTripping("class C { int GetInt { get; } = 0 }", parseOptions, 1, 1);
             ParseAndRoundTripping("class C { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CharMaxValue()
         {
             string text = "abc" + char.MaxValue + "def";
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), path: "");
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), path: "");
             var toText = tree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(text, toText);
         }
@@ -1574,7 +1574,7 @@ class A
             CSharpParseOptions options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp2);
 
             var itext = SourceText.From(text);
-            var tree = SyntaxFactory.ParseSyntaxTree(itext, options, "");
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(itext, options, "");
             var newTest = tree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(text, newTest);
         }
@@ -1584,7 +1584,7 @@ class A
         public void VariableDeclarationAsTypeOfArgument()
         {
             string text = "typeof(System.String value)";
-            var typeOfExpression = SyntaxFactory.ParseExpression(text, consumeFullText: true);
+            ExpressionSyntax typeOfExpression = SyntaxFactory.ParseExpression(text, consumeFullText: true);
             Assert.Equal(text, typeOfExpression.ToFullString());
             Assert.NotEmpty(typeOfExpression.GetDiagnostics());
 

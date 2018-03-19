@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodDeclarationSyntax syntax,
             DiagnosticBag diagnostics)
         {
-            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
-            var nameToken = syntax.Identifier;
+            ExplicitInterfaceSpecifierSyntax interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+            SyntaxToken nameToken = syntax.Identifier;
 
             TypeSymbol explicitInterfaceType;
             string discardedAliasQualifier;
             var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, out discardedAliasQualifier);
             var location = new SourceLocation(nameToken);
 
-            var methodKind = interfaceSpecifier == null
+            MethodKind methodKind = interfaceSpecifier == null
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
 
@@ -85,13 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // computed lazily later and then the flags will be fixed up.
             const bool returnsVoid = false;
 
-            var firstParam = syntax.ParameterList.Parameters.FirstOrDefault();
+            ParameterSyntax firstParam = syntax.ParameterList.Parameters.FirstOrDefault();
             bool isExtensionMethod = firstParam != null &&
                 !firstParam.IsArgList &&
                 firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, location, diagnostics, out modifierErrors);
+            DeclarationModifiers declarationModifiers = this.MakeModifiers(modifiers, methodKind, location, diagnostics, out modifierErrors);
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            CSDiagnosticInfo info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // evaluating the constraints may depend on accessing this method from
             // the container (comparing this method to others to find overrides for
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
-            var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+            Binder signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
-            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // span-like types are returnable in general
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // set ReturnsVoid flag
             this.SetReturnsVoid(returnsVoid);
 
-            var location = this.Locations[0];
+            Location location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
             // Checks taken from MemberDefiner::defineMethod
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                var parameter0Type = this.Parameters[0].Type;
-                var parameter0RefKind = this.Parameters[0].RefKind;
+                TypeSymbol parameter0Type = this.Parameters[0].Type;
+                RefKind parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
-                    var parameterSyntax = syntax.ParameterList.Parameters[0];
+                    ParameterSyntax parameterSyntax = syntax.ParameterList.Parameters[0];
                     Debug.Assert(parameterSyntax.Type != null);
-                    var loc = parameterSyntax.Type.Location;
+                    Location loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
                 }
                 else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
@@ -240,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Duplicate Dev10 behavior by selecting the containing type identifier. However if there
                     // is no containing type (in the interactive case for instance), select the method identifier.
                     var typeDecl = syntax.Parent as TypeDeclarationSyntax;
-                    var identifier = (typeDecl != null) ? typeDecl.Identifier : syntax.Identifier;
-                    var loc = identifier.GetLocation();
+                    SyntaxToken identifier = (typeDecl != null) ? typeDecl.Identifier : syntax.Identifier;
+                    Location loc = identifier.GetLocation();
                     diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, loc);
                 }
                 else if (!IsStatic)
@@ -251,10 +251,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Verify ExtensionAttribute is available.
-                    var attributeConstructor = withTypeParamsBinder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+                    Symbol attributeConstructor = withTypeParamsBinder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                     if ((object)attributeConstructor == null)
                     {
-                        var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+                        RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                         // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
                         diagnostics.Add(
                             ErrorCode.ERR_ExtensionAttrNotFound,
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsPartial)
             {
                 // check that there are no out parameters in a partial
-                foreach (var p in this.Parameters)
+                foreach (ParameterSymbol p in this.Parameters)
                 {
                     if (p.RefKind == RefKind.Out)
                     {
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (_refKind == RefKind.RefReadOnly)
                 {
-                    var modifierType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
+                    NamedTypeSymbol modifierType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
 
                     _lazyCustomModifiers = CustomModifiersTuple.Create(
                         typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
 
-            foreach (var typeParameter in _typeParameters)
+            foreach (TypeParameterSymbol typeParameter in _typeParameters)
             {
                 if (typeParameter.HasUnmanagedTypeConstraint)
                 {
@@ -381,9 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
         internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
         {
-            foreach (var parameter in parameters)
+            foreach (ParameterSymbol parameter in parameters)
             {
-                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
+                Location loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
                 if (parameter.RefKind != RefKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
@@ -416,10 +416,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind != RefKind.None)
             {
-                var returnTypeSyntax = GetSyntax().ReturnType;
+                TypeSyntax returnTypeSyntax = GetSyntax().ReturnType;
                 if (!returnTypeSyntax.HasErrors)
                 {
-                    var refKeyword = returnTypeSyntax.GetFirstToken();
+                    SyntaxToken refKeyword = returnTypeSyntax.GetFirstToken();
                     diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
                 }
             }
@@ -475,8 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = GetSyntax();
-            var withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
+            MethodDeclarationSyntax syntax = GetSyntax();
+            Binder withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
             MethodChecks(syntax, withTypeParametersBinder, diagnostics);
         }
 
@@ -498,12 +498,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyTypeParameterConstraints.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var syntax = GetSyntax();
-                    var withTypeParametersBinder =
+                    MethodDeclarationSyntax syntax = GetSyntax();
+                    Binder withTypeParametersBinder =
                         this.DeclaringCompilation
                         .GetBinderFactory(syntax.SyntaxTree)
                         .GetBinder(syntax.ReturnType, syntax, this);
-                    var constraints = this.MakeTypeParameterConstraints(
+                    ImmutableArray<TypeParameterConstraintClause> constraints = this.MakeTypeParameterConstraints(
                         withTypeParametersBinder,
                         TypeParameters,
                         syntax.ConstraintClauses,
@@ -754,10 +754,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            DeclarationModifiers defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            DeclarationModifiers allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
 
             if (methodKind != MethodKind.ExplicitInterfaceImplementation)
             {
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            DeclarationModifiers mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -817,19 +817,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeMap = new ExplicitInterfaceMethodTypeParameterMap(this);
             }
 
-            var typeParameters = syntax.TypeParameterList.Parameters;
+            SeparatedSyntaxList<TypeParameterSyntax> typeParameters = syntax.TypeParameterList.Parameters;
             var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
 
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
-                var parameter = typeParameters[ordinal];
+                TypeParameterSyntax parameter = typeParameters[ordinal];
                 if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
                 }
 
-                var identifier = parameter.Identifier;
-                var location = identifier.GetLocation();
+                SyntaxToken identifier = parameter.Identifier;
+                Location location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
                 // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                TypeParameterSymbol tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
                 if ((object)tpEnclosing != null)
                 {
                     // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
                 var locations = ImmutableArray.Create(location);
-                var typeParameter = (typeMap != null) ?
+                TypeParameterSymbol typeParameter = (typeMap != null) ?
                     (TypeParameterSymbol)new SourceOverridingMethodTypeParameterSymbol(
                         typeMap,
                         name,
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
-                var compilation = this.DeclaringCompilation;
+                CSharpCompilation compilation = this.DeclaringCompilation;
 
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            var implementingPart = this.SourcePartialImplementation;
+            SourceOrdinaryMethodSymbol implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)
             {
                 implementingPart.ForceComplete(locationOpt, cancellationToken);
@@ -1023,19 +1023,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)_explicitInterfaceType != null)
             {
-                var syntax = this.GetSyntax();
+                MethodDeclarationSyntax syntax = this.GetSyntax();
                 Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }
 
             this.ReturnType.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
 
-            foreach (var parameter in this.Parameters)
+            foreach (ParameterSymbol parameter in this.Parameters)
             {
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }
 
-            var implementingPart = this.SourcePartialImplementation;
+            SourceOrdinaryMethodSymbol implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)
             {
                 PartialMethodChecks(this, implementingPart, diagnostics);
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!ReferenceEquals(part1, part2));
             Debug.Assert(part1.Arity == part2.Arity);
 
-            var typeParameters1 = part1.TypeParameters;
+            ImmutableArray<TypeParameterSymbol> typeParameters1 = part1.TypeParameters;
 
             int arity = typeParameters1.Length;
             if (arity == 0)
@@ -1100,8 +1100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var typeParameters2 = part2.TypeParameters;
-            var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
+            ImmutableArray<TypeParameterSymbol> typeParameters2 = part2.TypeParameters;
+            ImmutableArray<TypeParameterSymbol> indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 

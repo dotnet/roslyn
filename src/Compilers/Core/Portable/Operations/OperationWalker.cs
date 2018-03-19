@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal void VisitArray<T>(IEnumerable<T> operations) where T : IOperation
         {
-            foreach (var operation in operations)
+            foreach (T operation in operations)
             {
                 VisitOperationArrayElement(operation);
             }

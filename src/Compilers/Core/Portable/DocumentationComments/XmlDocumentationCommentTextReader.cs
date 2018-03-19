@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis
 
         public static XmlException ParseAndGetException(string text)
         {
-            var reader = s_pool.Allocate();
-            var retVal = reader.ParseInternal(text);
+            XmlDocumentationCommentTextReader reader = s_pool.Allocate();
+            XmlException retVal = reader.ParseInternal(text);
             s_pool.Free(reader);
             return retVal;
         }

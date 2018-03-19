@@ -17,23 +17,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Func<EmitOptions, T> getter,
             T validNonDefaultValue)
         {
-            var oldOpt1 = EmitOptions.Default;
+            EmitOptions oldOpt1 = EmitOptions.Default;
 
-            var validDefaultValue = getter(oldOpt1);
+            T validDefaultValue = getter(oldOpt1);
 
             // we need non-default value to test Equals and GetHashCode
             Assert.NotEqual(validNonDefaultValue, validDefaultValue);
 
             // check that the assigned value can be read:
-            var newOpt1 = factory(oldOpt1, validNonDefaultValue);
+            EmitOptions newOpt1 = factory(oldOpt1, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(newOpt1));
 
             // check that creating new options with the same value yields the same options instance:
-            var newOpt1_alias = factory(newOpt1, validNonDefaultValue);
+            EmitOptions newOpt1_alias = factory(newOpt1, validNonDefaultValue);
             Assert.Same(newOpt1_alias, newOpt1);
 
             // check that Equals and GetHashCode work
-            var newOpt2 = factory(oldOpt1, validNonDefaultValue);
+            EmitOptions newOpt2 = factory(oldOpt1, validNonDefaultValue);
             Assert.False(newOpt1.Equals(oldOpt1));
             Assert.True(newOpt1.Equals(newOpt2));
 

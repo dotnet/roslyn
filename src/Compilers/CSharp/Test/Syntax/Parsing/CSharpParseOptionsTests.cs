@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     {
         private void TestProperty<T>(Func<CSharpParseOptions, T, CSharpParseOptions> factory, Func<CSharpParseOptions, T> getter, T validValue)
         {
-            var oldOpt1 = CSharpParseOptions.Default;
-            var newOpt1 = factory(oldOpt1, validValue);
-            var newOpt2 = factory(newOpt1, validValue);
+            CSharpParseOptions oldOpt1 = CSharpParseOptions.Default;
+            CSharpParseOptions newOpt1 = factory(oldOpt1, validValue);
+            CSharpParseOptions newOpt2 = factory(newOpt1, validValue);
 
             Assert.Equal(validValue, getter(newOpt1));
             Assert.Same(newOpt2, newOpt1);
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void WithDocumentationModeDoesntChangeFeatures()
         {
             var kvp = new KeyValuePair<string, string>("IOperation", "true");
-            var po = new CSharpParseOptions().WithFeatures(new[] { kvp });
+            CSharpParseOptions po = new CSharpParseOptions().WithFeatures(new[] { kvp });
             Assert.Equal(po.Features.AsSingleton(), kvp);
-            var po2 = po.WithDocumentationMode(DocumentationMode.Diagnose);
+            CSharpParseOptions po2 = po.WithDocumentationMode(DocumentationMode.Diagnose);
             Assert.Equal(po2.Features.AsSingleton(), kvp);
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void BadSourceCodeKindShouldProduceDiagnostics_WithVariation()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var options = new CSharpParseOptions().WithKind(SourceCodeKind.Interactive);
+            CSharpParseOptions options = new CSharpParseOptions().WithKind(SourceCodeKind.Interactive);
 #pragma warning restore CS0618 // Type or member is obsolete
 
             options.Errors.Verify(
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadDocumentationModeShouldProduceDiagnostics_WithVariation()
         {
-            var options = new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100));
+            CSharpParseOptions options = new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100));
 
             options.Errors.Verify(
                 // error CS8191: Provided documentation mode is unsupported or invalid: '100'.
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadLanguageVersionShouldProduceDiagnostics_WithVariation()
         {
-            var options = new CSharpParseOptions().WithLanguageVersion(unchecked((LanguageVersion)10000));
+            CSharpParseOptions options = new CSharpParseOptions().WithLanguageVersion(unchecked((LanguageVersion)10000));
 
             options.Errors.Verify(
                 // error CS8191: Provided language version is unsupported or invalid: '10000'.
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_EmptyString()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "" });
+            CSharpParseOptions options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "" });
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; '' is not a valid identifier
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpaceString()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
+            CSharpParseOptions options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; ' ' is not a valid identifier
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithDots()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad.Symbol" });
+            CSharpParseOptions options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad.Symbol" });
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; 'Bad.Symbol' is not a valid identifier
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_SymbolWithSlashes()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad\\Symbol" });
+            CSharpParseOptions options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", "Bad\\Symbol" });
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; 'Bad\Symbol' is not a valid identifier
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void BadPreProcessorSymbolsShouldProduceDiagnostics_NullSymbol()
         {
-            var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", null });
+            CSharpParseOptions options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { "Good", null });
 
             options.Errors.Verify(
                 // error CS8301: Invalid name for a preprocessing symbol; 'null' is not a valid identifier

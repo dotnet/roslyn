@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private RuleSet ParseRuleSet(string source, params string[] otherSources)
         {
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("a.ruleset");
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempFile file = dir.CreateFile("a.ruleset");
             file.WriteAllText(source);
 
             for (int i = 1; i <= otherSources.Length; i++)
             {
-                var newFile = dir.CreateFile("file" + i + ".ruleset");
+                CodeAnalysis.Test.Utilities.TempFile newFile = dir.CreateFile("file" + i + ".ruleset");
                 newFile.WriteAllText(otherSources[i - 1]);
             }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             if (locSpecific)
             {
-                var preferred = EnsureEnglishUICulture.PreferredOrNull;
+                CultureInfo preferred = EnsureEnglishUICulture.PreferredOrNull;
                 if (preferred == null)
                 {
                     locSpecific = false;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            var ruleSet = ParseRuleSet(source);
+            RuleSet ruleSet = ParseRuleSet(source);
             Assert.Equal(expected: ReportDiagnostic.Error, actual: ruleSet.SpecificDiagnosticOptions["CA1012"]);
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source);
+            RuleSet ruleSet = ParseRuleSet(source);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.GeneralDiagnosticOption);
         }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source);
+            RuleSet ruleSet = ParseRuleSet(source);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
         }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, new string[] { "" });
+            RuleSet ruleSet = ParseRuleSet(source, new string[] { "" });
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
             Assert.Equal(1, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
             Assert.Equal(2, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1, source2);
+            RuleSet ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
             Assert.Equal(3, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source);
+            RuleSet ruleSet = ParseRuleSet(source);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1012"], ReportDiagnostic.Error);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source);
+            RuleSet ruleSet = ParseRuleSet(source);
             Assert.True(ruleSet.Includes.Count() == 1);
             Assert.Equal(ruleSet.Includes.First().Action, ReportDiagnostic.Default);
             Assert.Equal(ruleSet.Includes.First().IncludePath, "goo.ruleset");
@@ -461,8 +461,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("a.ruleset");
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempFile file = dir.CreateFile("a.ruleset");
             file.WriteAllText(source);
 
             var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Hidden, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Info, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Error, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1, source2);
+            RuleSet ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Equal(ReportDiagnostic.Error, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1, source2);
+            RuleSet ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Equal(ReportDiagnostic.Error, ruleSet.GeneralDiagnosticOption);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             // CA1012's value in source wins.
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1, source2);
+            RuleSet ruleSet = ParseRuleSet(source, source1, source2);
             // CA1012's value in source still wins.
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1, source2);
+            RuleSet ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             // CA1013's value in source2 wins.
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.DoesNotContain("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Error, ruleSet.GeneralDiagnosticOption);
         }
 
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.GeneralDiagnosticOption);
         }
 
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var ruleSet = ParseRuleSet(source, source1);
+            RuleSet ruleSet = ParseRuleSet(source, source1);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            var ruleSet = ParseRuleSet(source, source1, source2);
+            RuleSet ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1000"]);
             Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1001"]);
             Assert.Equal(ReportDiagnostic.Error, ruleSet.SpecificDiagnosticOptions["CA2100"]);
@@ -970,10 +970,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("a.ruleset");
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempFile file = dir.CreateFile("a.ruleset");
             file.WriteAllText(source);
-            var newFile = dir.CreateFile("file1.ruleset");
+            CodeAnalysis.Test.Utilities.TempFile newFile = dir.CreateFile("file1.ruleset");
             newFile.WriteAllText(source1);
 
             using (new EnsureEnglishUICulture())
@@ -1001,11 +1001,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("a.ruleset");
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempFile file = dir.CreateFile("a.ruleset");
             file.WriteAllText(source);
 
-            var includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
+            System.Collections.Immutable.ImmutableArray<string> includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
 
             Assert.Equal(expected: 1, actual: includePaths.Length);
             Assert.Equal(expected: file.Path, actual: includePaths[0]);
@@ -1034,15 +1034,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            var dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
 
-            var file = dir.CreateFile("a.ruleset");
+            CodeAnalysis.Test.Utilities.TempFile file = dir.CreateFile("a.ruleset");
             file.WriteAllText(ruleSetSource);
 
-            var include = dir.CreateFile("file1.ruleset");
+            CodeAnalysis.Test.Utilities.TempFile include = dir.CreateFile("file1.ruleset");
             include.WriteAllText(includeSource);
 
-            var includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
+            System.Collections.Immutable.ImmutableArray<string> includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
 
             Assert.Equal(expected: 2, actual: includePaths.Length);
             Assert.Equal(expected: file.Path, actual: includePaths[0]);
@@ -1083,18 +1083,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            var dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
 
-            var file = dir.CreateFile("a.ruleset");
+            CodeAnalysis.Test.Utilities.TempFile file = dir.CreateFile("a.ruleset");
             file.WriteAllText(ruleSetSource);
 
-            var include1 = dir.CreateFile("file1.ruleset");
+            CodeAnalysis.Test.Utilities.TempFile include1 = dir.CreateFile("file1.ruleset");
             include1.WriteAllText(includeSource1);
 
-            var include2 = dir.CreateFile("file2.ruleset");
+            CodeAnalysis.Test.Utilities.TempFile include2 = dir.CreateFile("file2.ruleset");
             include2.WriteAllText(includeSource2);
 
-            var includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
+            System.Collections.Immutable.ImmutableArray<string> includePaths = RuleSet.GetEffectiveIncludesFromFile(file.Path);
 
             Assert.Equal(expected: 3, actual: includePaths.Length);
             Assert.Equal(expected: file.Path, actual: includePaths[0]);

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         [Fact]
         public void PartialMethods()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 public partial class C
 {
     static partial void goo() => System.Console.WriteLine(""test"");
@@ -31,10 +31,10 @@ public partial class C
     static partial void goo();
 }
 ");
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot()
+            MethodDeclarationSyntax node = tree.GetRoot()
                 .DescendantNodes()
                 .OfType<MethodDeclarationSyntax>()
                 .ElementAt(1);
@@ -58,7 +58,7 @@ public partial class C
         [Fact]
         public void ExprBodiedProp01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class Program
 {
     public int F = 1;
@@ -66,16 +66,16 @@ class Program
 }
 ");
             comp.VerifyDiagnostics();
-            var semanticInfo = GetSemanticInfoForTest<MemberAccessExpressionSyntax>(comp);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<MemberAccessExpressionSyntax>(comp);
 
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int32, semanticInfo.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            var semanticSymbol = semanticInfo.Symbol;
-            var global = comp.GlobalNamespace;
-            var program = global.GetTypeMember("Program");
-            var field = program.GetMember<SourceFieldSymbol>("F");
+            ISymbol semanticSymbol = semanticInfo.Symbol;
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol program = global.GetTypeMember("Program");
+            SourceFieldSymbol field = program.GetMember<SourceFieldSymbol>("F");
 
             Assert.Equal(field, semanticSymbol);
 
@@ -90,7 +90,7 @@ class Program
         [Fact]
         public void ExprBodiedProp03()
         {
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(@"
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(@"
 using System;
 
 class C
@@ -106,26 +106,26 @@ class C
         [Fact]
         public void ExprBodiedProp04()
         {
-            var tree = Parse(@"
+            SyntaxTree tree = Parse(@"
 using System;
 
 class C
 {
     int P => /*<bind>*/P/*</bind>*/;
 }");
-            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(new[] { tree });
 
-            var info = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+            CompilationUtils.SemanticInfoSummary info = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
             Assert.NotNull(info);
-            var sym = Assert.IsType<SourcePropertySymbol>(info.Symbol);
-            var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            SourcePropertySymbol sym = Assert.IsType<SourcePropertySymbol>(info.Symbol);
+            NamedTypeSymbol c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(c.GetMember<SourcePropertySymbol>("P"), sym);
         }
 
         [Fact]
         public void ExprBodiedIndexer01()
         {
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(@"
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(@"
 using System;
 class Program
 {
@@ -142,7 +142,7 @@ class Program
         [Fact]
         public void ExprBodiedIndexer02()
         {
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(@"
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(@"
 using System;
 class C {}
 class Program
@@ -160,7 +160,7 @@ class Program
         [Fact]
         public void ExprBodiedIndexer03()
         {
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(@"
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(@"
 class C
 {
     public object this[string s] => /*<bind>*/s/*</bind>*/;
@@ -178,7 +178,7 @@ class C
         [Fact]
         public void ExprBodiedIndexer04()
         {
-            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(@"
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(@"
 class C
 {
     int M(int i) => i;
@@ -195,39 +195,39 @@ class C
         [Fact]
         public void ExprBodiedIndexer05()
         {
-            var semanticInfo = GetSemanticInfoForTest<SimpleNameSyntax>(@"
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<SimpleNameSyntax>(@"
 class C
 {
     int this[int i] => /*<bind>*/i/*</bind>*/;
 }");
             Assert.NotNull(semanticInfo);
-            var sym = semanticInfo.Symbol;
-            var accessor = Assert.IsType<SourcePropertyAccessorSymbol>(sym.ContainingSymbol);
-            var prop = accessor.AssociatedSymbol;
+            ISymbol sym = semanticInfo.Symbol;
+            SourcePropertyAccessorSymbol accessor = Assert.IsType<SourcePropertyAccessorSymbol>(sym.ContainingSymbol);
+            Symbol prop = accessor.AssociatedSymbol;
             Assert.IsType<SourcePropertySymbol>(prop);
         }
 
         [Fact]
         public void ExprBodiedFunc01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class Program
 {
     public int M(int i) => /*<bind>*/i/*</bind>*/;
 }");
             comp.VerifyDiagnostics();
 
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int32, semanticInfo.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            var semanticSymbol = semanticInfo.Symbol;
-            var global = comp.GlobalNamespace;
-            var program = global.GetTypeMember("Program");
-            var method = program.GetMember<SourceOrdinaryMethodSymbol>("M");
-            var i = method.Parameters[0];
+            ISymbol semanticSymbol = semanticInfo.Symbol;
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol program = global.GetTypeMember("Program");
+            SourceOrdinaryMethodSymbol method = program.GetMember<SourceOrdinaryMethodSymbol>("M");
+            ParameterSymbol i = method.Parameters[0];
 
             Assert.Equal(i, semanticSymbol);
 
@@ -243,14 +243,14 @@ class Program
         [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void ExprBodiedFunc02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public T M<T>(T t) where T : class => /*<bind>*/t/*</bind>*/;
 }");
             comp.VerifyDiagnostics();
 
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("T", semanticInfo.Type.Name);
@@ -266,24 +266,24 @@ class C
         [Fact]
         public void ExprBodiedOperator01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class Program
 {
     public static Program operator ++(Program p) => /*<bind>*/p/*</bind>*/;
 }");
             comp.VerifyDiagnostics();
 
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Equal("Program", semanticInfo.Type.Name);
             Assert.Equal("Program", semanticInfo.ConvertedType.Name);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            var semanticSymbol = semanticInfo.Symbol;
-            var global = comp.GlobalNamespace;
-            var program = global.GetTypeMember("Program");
-            var method = program.GetMember<SourceUserDefinedOperatorSymbol>("op_Increment");
-            var p = method.Parameters[0];
+            ISymbol semanticSymbol = semanticInfo.Symbol;
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol program = global.GetTypeMember("Program");
+            SourceUserDefinedOperatorSymbol method = program.GetMember<SourceUserDefinedOperatorSymbol>("op_Increment");
+            ParameterSymbol p = method.Parameters[0];
 
             Assert.Equal(p, semanticSymbol);
 
@@ -298,7 +298,7 @@ class Program
         [Fact]
         public void ExprBodiedConversion01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public static C M(int i) => new C();
@@ -306,17 +306,17 @@ class C
 }");
             comp.VerifyDiagnostics();
 
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int32, semanticInfo.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            var semanticSymbol = semanticInfo.Symbol;
-            var global = comp.GlobalNamespace;
-            var program = global.GetTypeMember("C");
-            var method = program.GetMember<SourceUserDefinedConversionSymbol>("op_Explicit");
-            var p = method.Parameters[0];
+            ISymbol semanticSymbol = semanticInfo.Symbol;
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol program = global.GetTypeMember("C");
+            SourceUserDefinedConversionSymbol method = program.GetMember<SourceUserDefinedConversionSymbol>("op_Explicit");
+            ParameterSymbol p = method.Parameters[0];
 
             Assert.Equal(p, semanticSymbol);
 
@@ -409,20 +409,20 @@ public class Program : Base
         [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class Program
 {
     private int x => () => { 
 }
 ");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            ParenthesizedLambdaExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
 
-            var typeInfo1 = model.GetTypeInfo(node);
-            var typeInfo2 = model.GetTypeInfo(node);
+            TypeInfo typeInfo1 = model.GetTypeInfo(node);
+            TypeInfo typeInfo2 = model.GetTypeInfo(node);
 
             Assert.Equal(typeInfo1.Type, typeInfo2.Type);
         }
@@ -431,7 +431,7 @@ class Program
         [Fact]
         public void Bug1112875()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class Program
 {
     private void M() => (new object());
@@ -446,7 +446,7 @@ class Program
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_01()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -465,10 +465,10 @@ public class C
     => P1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -477,7 +477,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_02()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -496,10 +496,10 @@ public class C
     => P1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -508,7 +508,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_03()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     int P1 {get; set;}
@@ -525,17 +525,17 @@ public class C
     { P1 = 1; }
     => P1;").WithLocation(6, 5)
                 );
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
 
             Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single().Body.Position));
 
-            var node2 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single()
+            ExpressionSyntax node2 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single()
                 .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
                 .Single().Left;
 
@@ -546,7 +546,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_04()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     int P1 {get; set;}
@@ -565,17 +565,17 @@ public class C
     => P1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
 
             Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single().Body.Position));
 
-            var node2 = tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single()
+            ExpressionSyntax node2 = tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single()
                 .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
                 .Single().Left;
 
@@ -586,7 +586,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_05()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -608,14 +608,14 @@ public class C
         => P1;").WithLocation(8, 9)
                 );
 
-            var tree = comp.SyntaxTrees[0];
+            SyntaxTree tree = comp.SyntaxTrees[0];
             Assert.Equal(1, tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Count());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_06()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -639,10 +639,10 @@ public class C
     Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P2").WithArguments("C.P2").WithLocation(6, 23)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Null(model.GetSymbolInfo(node).Symbol);
@@ -651,7 +651,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_07()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -670,10 +670,10 @@ public class C
     => P1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -682,7 +682,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_08()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -701,10 +701,10 @@ public class C
     => 1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -713,7 +713,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_09()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -732,10 +732,10 @@ public class C
     => 1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -744,7 +744,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_10()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -767,10 +767,10 @@ public class C
     => 1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -779,7 +779,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_11()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -798,10 +798,10 @@ public class C
     => 1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            ExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
@@ -810,7 +810,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_12()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -829,15 +829,15 @@ public class C
     => P1 = 1;").WithLocation(6, 5)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            System.Collections.Generic.IEnumerable<AssignmentExpressionSyntax> nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
             Assert.Equal(2, nodes.Count());
 
-            foreach (var assign in nodes)
+            foreach (AssignmentExpressionSyntax assign in nodes)
             {
-                var node = assign.Left;
+                ExpressionSyntax node = assign.Left;
                 Assert.Equal("P1", node.ToString());
                 Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
             }
@@ -846,7 +846,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_13()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -864,15 +864,15 @@ public class C
     { P1 = 1; }
     => P1 = 1;").WithLocation(6, 5));
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            System.Collections.Generic.IEnumerable<AssignmentExpressionSyntax> nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
             Assert.Equal(2, nodes.Count());
 
-            foreach (var assign in nodes)
+            foreach (AssignmentExpressionSyntax assign in nodes)
             {
-                var node = assign.Left;
+                ExpressionSyntax node = assign.Left;
                 Assert.Equal("P1", node.ToString());
                 Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
             }
@@ -881,7 +881,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_14()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -903,15 +903,15 @@ public class C
             => P1 = 1;").WithLocation(8, 9)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            System.Collections.Generic.IEnumerable<AssignmentExpressionSyntax> nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
             Assert.Equal(2, nodes.Count());
 
-            foreach (var assign in nodes)
+            foreach (AssignmentExpressionSyntax assign in nodes)
             {
-                var node = assign.Left;
+                ExpressionSyntax node = assign.Left;
                 Assert.Equal("P1", node.ToString());
                 Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
             }
@@ -920,7 +920,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_15()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     void Goo()
@@ -942,7 +942,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_16()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     int this[int i] { get { return 0; } } => 0;
@@ -958,7 +958,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_17()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class C
 {
     int this[int i] { get { return 0; } => 0; }
@@ -974,7 +974,7 @@ public class C
         [Fact]
         public void BlockBodyAndExpressionBody_18()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 public class C
 {
@@ -991,7 +991,7 @@ public class C
         [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
         public void LookupSymbols()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 public class C
 {
@@ -1011,10 +1011,10 @@ public class D
 }
 ");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            LiteralExpressionSyntax[] nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
             Assert.Equal(6, nodes.Length);
 
             for (int i = 0; i < nodes.Length; i++)
