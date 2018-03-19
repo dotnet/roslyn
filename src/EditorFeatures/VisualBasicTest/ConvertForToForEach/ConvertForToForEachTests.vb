@@ -34,6 +34,80 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestForSelected() As Task
+            Await TestInRegularAndScript1Async(
+"imports System
+
+class C
+    sub Test(array as string())
+        [|For|] i = 0 to array.Length - 1
+            Console.WriteLine(array(i))
+        next
+    end sub
+end class",
+"imports System
+
+class C
+    sub Test(array as string())
+        For Each {|Rename:v|} In array
+            Console.WriteLine(v)
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestAtEndOfFor() As Task
+            Await TestInRegularAndScript1Async(
+"imports System
+
+class C
+    sub Test(array as string())
+        For i = 0 to array.Length - 1[||]
+            Console.WriteLine(array(i))
+        next
+    end sub
+end class",
+"imports System
+
+class C
+    sub Test(array as string())
+        For Each {|Rename:v|} In array
+            Console.WriteLine(v)
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestMissingBeforeFor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System
+
+class C
+    sub Test(array as string())
+       [||] For i = 0 to array.Length - 1
+            Console.WriteLine(array(i))
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestMissingAfterFor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System
+
+class C
+    sub Test(array as string())
+        For [||]i = 0 to array.Length - 1
+            Console.WriteLine(array(i))
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
         Public Async Function TestArrayPlusStep1() As Task
             Await TestInRegularAndScript1Async(
 "imports System

@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertForToForEach
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
@@ -20,6 +21,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
 
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Convert_For_to_For_Each
+        End Function
+
+        Protected Overrides Function IsValidCursorPosition(forBlock As ForBlockSyntax, cursorPos As Integer) As Boolean
+            ' If there isn't a selection, then we allow the refactoring in the 'for' keyword, or at the end
+            ' of hte for-statement signature.
+
+            Dim forStatement = forBlock.ForStatement
+            Dim startSpan = forStatement.ForKeyword.Span
+            Dim endSpan = TextSpan.FromBounds(forStatement.Span.End, forStatement.FullSpan.End)
+
+            Return startSpan.IntersectsWith(cursorPos) OrElse endSpan.IntersectsWith(cursorPos)
         End Function
 
         Protected Overrides Function GetBodyStatements(forStatement As ForBlockSyntax) As SyntaxList(Of StatementSyntax)
