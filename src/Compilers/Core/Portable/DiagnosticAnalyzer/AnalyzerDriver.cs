@@ -684,12 +684,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot(cancellationToken);
             var span = root.FullSpan;
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: builder, cancellationToken: cancellationToken);
-            var declarationInfos = builder.ToImmutableAndFree();
-
+            var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
+            
             ImmutableHashSet<ISymbol>.Builder generatedSymbolsBuilderOpt = null;
-            foreach (var declarationInfo in declarationInfos)
+            foreach (var declarationInfo in declarationInfoBuilder)
             {
                 var symbol = declarationInfo.DeclaredSymbol;
                 if (symbol != null &&
@@ -700,6 +699,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            declarationInfoBuilder.Free();
             return generatedSymbolsBuilderOpt != null ? generatedSymbolsBuilderOpt.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
         }
 
@@ -1679,13 +1679,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             cancellationToken.ThrowIfCancellationRequested();
 
             var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
-            var topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
+            SyntaxNode declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
+            SyntaxNode topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
-            var declarationInfos = builder.ToImmutableAndFree();
+            ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
 
-            var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
-            var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
+            bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
+            ImmutableArray<SyntaxNode> nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
             return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
@@ -2011,11 +2011,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 first = false;
             }
 
-            bool ShouldAddNode(SyntaxNode node) => descendantDeclsToSkipOpt == null || !descendantDeclsToSkipOpt.Contains(node);
+            bool shouldAddNode(SyntaxNode node) => descendantDeclsToSkipOpt == null || !descendantDeclsToSkipOpt.Contains(node);
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
-            foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: ShouldAddNode, descendIntoTrivia: true))
+            foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
-                if (ShouldAddNode(node) &&
+                if (shouldAddNode(node) &&
                     (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
                 {
                     nodeBuilder.Add(node);

@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out var cachedData))
+                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out DeclarationAnalysisData cachedData))
                     {
                         return cachedData;
                     }
                 }
 
-                var data = computeDeclarationAnalysisData();
+                DeclarationAnalysisData data = computeDeclarationAnalysisData();
 
                 lock (_declarationAnalysisDataMap)
                 {
