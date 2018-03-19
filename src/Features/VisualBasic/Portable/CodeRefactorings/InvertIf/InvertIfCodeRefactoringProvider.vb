@@ -150,8 +150,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Private Function InvertSingleLineIfStatement(workspace As Workspace, originalIfNode As SingleLineIfStatementSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
             Dim root = model.SyntaxTree.GetRoot()
 
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken) _
-                .WithAdditionalAnnotations(Formatter.Annotation)
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken)
+            '        .WithAdditionalAnnotations(Formatter.Annotation)
 
             Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
 
@@ -186,7 +186,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ' If we're moving a single line if from the else body to the if body,
             ' and it is the last statement in the body, we have to introduce an extra
             ' StatementTerminator Colon and Else token.
-
             Dim newIfStatements = elseClause.Statements
 
             If newIfStatements.Count > 0 Then
@@ -251,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
         Private Function InvertMultiLineIfBlock(originalIfNode As MultiLineIfBlockSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
             Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken) _
-                .WithAdditionalAnnotations(Formatter.Annotation)
+            '    .WithAdditionalAnnotations(Formatter.Annotation)
 
             Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
             Return result.Model
@@ -289,12 +288,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 Dim oldElseIfBlock = ifNode.ElseIfBlocks.Last
                 Dim oldElseIfStatement = oldElseIfBlock.ElseIfStatement
 
-                Dim newElseIfStatement = oldElseIfStatement.WithCondition(Negate(oldElseIfStatement.Condition, semanticModel, cancellationToken)) _
-                                                           .WithAdditionalAnnotations(Formatter.Annotation)
+                Dim newElseIfStatement = oldElseIfStatement.WithCondition(Negate(oldElseIfStatement.Condition, semanticModel, cancellationToken))
+                '    .WithAdditionalAnnotations(Formatter.Annotation)
 
                 Dim newElseIfBlock = oldElseIfBlock.WithElseIfStatement(newElseIfStatement) _
-                                                   .WithStatements(elseBlock.Statements) _
-                                                   .WithAdditionalAnnotations(Formatter.Annotation)
+                                                   .WithStatements(elseBlock.Statements)
+                '   .WithAdditionalAnnotations(Formatter.Annotation)
 
                 Return ifNode.ReplaceNode(oldElseIfBlock, newElseIfBlock) _
                              .WithElseBlock(ifNode.ElseBlock.WithStatements(oldElseIfBlock.Statements) _
@@ -379,7 +378,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
             If TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, result) OrElse
                TryNegateBinaryLogicalExpression(expression, semanticModel, cancellationToken, result) Then
-                Return result.WithAdditionalAnnotations(Formatter.Annotation)
+                'Return result.WithAdditionalAnnotations(Formatter.Annotation)
+                Return result
             End If
 
             Select Case expression.Kind
@@ -417,7 +417,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 SyntaxFactory.Token(SyntaxKind.NotKeyword),
                 expression.Parenthesize())
 
-            Return result.WithAdditionalAnnotations(Formatter.Annotation)
+            ' Return result.WithAdditionalAnnotations(Formatter.Annotation)
+            Return result
         End Function
     End Class
 End Namespace

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,18 +53,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override SyntaxNode GetRootWithInvertIfStatement(Workspace workspace, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
             var ifNode = (IfStatementSyntax)ifStatement;
-
+            var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
             // In the case that the else clause is actually an else if clause, place the if
             // statement to be moved in a new block in order to make sure that the else
             // statement matches the right if statement after the edit.
-            var newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement
-                ? SyntaxFactory.Block(ifNode.Else.Statement)
-                : ifNode.Else.Statement;
+
+
+            // For single line statment, we swap the TrailingTrivia to preserve the single line
+            ElseClauseSyntax newElseStatement = null;
+            StatementSyntax newIfNodeStatement = null;
+            if (ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia)) 
+            {
+                // multiline if
+                // need to convert StatementSyntax to IEnumerable<SyntaxNode>
+                // generator.IfStatement(Negate(ifNode.Condition, model, cancellationToken), ifNode.Else.Statement, ifNode.Else.WithStatement(ifNode.Statement))
+                newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement
+               ? SyntaxFactory.Block(ifNode.Else.Statement)
+               : ifNode.Else.Statement;
+                newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
+            }
+            else
+            {
+                // singleline if
+                var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
+                var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
+                newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
+                newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
+            }
+
+
+
 
             ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
                 .WithStatement(newIfNodeStatement)
-                .WithElse(ifNode.Else.WithStatement(ifNode.Statement))
-                .WithAdditionalAnnotations(Formatter.Annotation);
+                .WithElse(newElseStatement);
+              //  .WithAdditionalAnnotations(Formatter.Annotation);
 
             // get new root
             return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);

@@ -870,7 +870,7 @@ End Module")
     Sub Main(args As String())
         Dim x() As String
         [||]If x.Length > 0x0 Then 
- GreaterThanZero()
+            GreaterThanZero()
         Else
             EqualsZero()
         End If
@@ -1026,7 +1026,7 @@ End Module")
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        If True [||]Then Return Else Console.WriteLine(""a"")
+        If True Then Return Else [||]Console.WriteLine(""a"")
     End Sub
 End Module")
         End Function
