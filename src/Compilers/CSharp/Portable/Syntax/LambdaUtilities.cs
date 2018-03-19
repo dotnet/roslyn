@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken sourceIdentifier;
             QueryBodySyntax containingBody;
 
-            CSharpSyntaxNode containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
+            SyntaxNode containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
             if (containingQueryOrContinuation.IsKind(SyntaxKind.QueryExpression))
             {
                 var containingQuery = (QueryExpressionSyntax)containingQueryOrContinuation;
