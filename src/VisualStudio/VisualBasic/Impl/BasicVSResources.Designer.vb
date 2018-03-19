@@ -92,20 +92,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;.
+        '''  Looks up a localized string similar to Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;.
         '''</summary>
-        Friend Shared ReadOnly Property Arithmetic_operations() As String
+        Friend Shared ReadOnly Property Arithmetic_operators() As String
             Get
-                Return ResourceManager.GetString("Arithmetic_operations", resourceCulture)
+                Return ResourceManager.GetString("Arithmetic_operators", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Assignment operations:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=.
+        '''  Looks up a localized string similar to Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=.
         '''</summary>
-        Friend Shared ReadOnly Property Assignment_operations() As String
+        Friend Shared ReadOnly Property Assignment_operators() As String
             Get
-                Return ResourceManager.GetString("Assignment_operations", resourceCulture)
+                Return ResourceManager.GetString("Assignment_operators", resourceCulture)
             End Get
         End Property
         
@@ -290,11 +290,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Logical operations:   And   AndAlso   Or   OrElse.
+        '''  Looks up a localized string similar to Logical operators:   And   AndAlso   Or   OrElse.
         '''</summary>
-        Friend Shared ReadOnly Property Logical_operations() As String
+        Friend Shared ReadOnly Property Logical_operators() As String
             Get
-                Return ResourceManager.GetString("Logical_operations", resourceCulture)
+                Return ResourceManager.GetString("Logical_operators", resourceCulture)
             End Get
         End Property
         
@@ -479,11 +479,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like.
+        '''  Looks up a localized string similar to Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like.
         '''</summary>
-        Friend Shared ReadOnly Property Relational_operations() As String
+        Friend Shared ReadOnly Property Relational_operators() As String
             Get
-                Return ResourceManager.GetString("Relational_operations", resourceCulture)
+                Return ResourceManager.GetString("Relational_operators", resourceCulture)
             End Get
         End Property
         
@@ -506,11 +506,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Shift operations:   &lt;&lt;   &gt;&gt;.
+        '''  Looks up a localized string similar to Shift operators:   &lt;&lt;   &gt;&gt;.
         '''</summary>
-        Friend Shared ReadOnly Property Shift_operations() As String
+        Friend Shared ReadOnly Property Shift_operators() As String
             Get
-                Return ResourceManager.GetString("Shift_operations", resourceCulture)
+                Return ResourceManager.GetString("Shift_operators", resourceCulture)
             End Get
         End Property
         

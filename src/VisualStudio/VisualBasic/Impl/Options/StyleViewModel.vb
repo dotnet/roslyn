@@ -609,35 +609,35 @@ end class
         Private Sub AddParenthesesOptions(optionSet As OptionSet)
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
-                BasicVSResources.Assignment_operations,
+                BasicVSResources.Assignment_operators,
                 {s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
-                BasicVSResources.Arithmetic_operations,
+                BasicVSResources.Arithmetic_operators,
                 {s_arithmeticParenthesesIgnore, s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ShiftOperationParentheses,
-                BasicVSResources.Shift_operations,
+                BasicVSResources.Shift_operators,
                 {s_shiftParenthesesIgnore, s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=False)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.RelationalOperationParentheses,
-                BasicVSResources.Relational_operations,
+                BasicVSResources.Relational_operators,
                 {s_relationalParenthesesIgnore, s_relationalParenthesesRequireForPrecedenceClarity, s_relationalParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.LogicalOperationParentheses,
-                BasicVSResources.Logical_operations,
+                BasicVSResources.Logical_operators,
                 {s_logicalParenthesesIgnore, s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=True)

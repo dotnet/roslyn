@@ -272,29 +272,29 @@
         <target state="translated">Séparer les groupes de directives import</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arithmetic_operations">
-        <source>Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;</source>
-        <target state="new">Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;</target>
+      <trans-unit id="Arithmetic_operators">
+        <source>Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;</source>
+        <target state="new">Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Logical_operations">
-        <source>Logical operations:   And   AndAlso   Or   OrElse</source>
-        <target state="new">Logical operations:   And   AndAlso   Or   OrElse</target>
+      <trans-unit id="Logical_operators">
+        <source>Logical operators:   And   AndAlso   Or   OrElse</source>
+        <target state="new">Logical operators:   And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
-      <trans-unit id="Relational_operations">
-        <source>Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</source>
-        <target state="new">Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</target>
+      <trans-unit id="Relational_operators">
+        <source>Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</source>
+        <target state="new">Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</target>
         <note />
       </trans-unit>
-      <trans-unit id="Shift_operations">
-        <source>Shift operations:   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">Shift operations:   &lt;&lt;   &gt;&gt;</target>
+      <trans-unit id="Shift_operators">
+        <source>Shift operators:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">Shift operators:   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assignment_operations">
-        <source>Assignment operations:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</source>
-        <target state="new">Assignment operations:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</target>
+      <trans-unit id="Assignment_operators">
+        <source>Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</source>
+        <target state="new">Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</target>
         <note />
       </trans-unit>
     </body>
