@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         internal void AssertShowing(string expectedText)
         {
             Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
-            Assert.Equal(1, _commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent.Count());
+            Assert.Single(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
 
             var textElement = _commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent.First();
             Assert.Equal(2, textElement.Runs.Count());
