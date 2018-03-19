@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -31,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             => s_lazyExportProviderWithCSharpAndVisualBasic.Value;
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
-            new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
+            new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
+                        .WithParts(ExportProviderCache.CreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
             => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// </summary>
         public static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
-            return MinimalTestExportProvider.CreateAssemblyCatalog(
+            return ExportProviderCache.CreateAssemblyCatalog(
                 GetCSharpAndVisualBasicAssemblies(),
                 MinimalTestExportProvider.CreateResolver());
         }

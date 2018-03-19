@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.SymbolMapping
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Microsoft.VisualStudio.Text

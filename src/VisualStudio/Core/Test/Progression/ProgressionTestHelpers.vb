@@ -2,10 +2,10 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Progression
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 Imports <xmlns="http://schemas.microsoft.com/vs/2009/dgml">
 

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
@@ -68,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Return MinimalTestExportProvider.CreateTypeCatalog(types)
+            Return ExportProviderCache.CreateTypeCatalog(types)
         End Function
 
         Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession

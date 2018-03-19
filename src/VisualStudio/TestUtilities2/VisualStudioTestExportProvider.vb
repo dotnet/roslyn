@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
@@ -14,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim additionalAssemblies = {GetType(CSharpCodeModelService).Assembly,
                                         GetType(VisualBasicCodeModelService).Assembly}
 
-            s_partCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(additionalAssemblies))
+            s_partCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(ExportProviderCache.CreateAssemblyCatalog(additionalAssemblies))
             s_exportProvider = MinimalTestExportProvider.CreateExportProvider(s_partCatalog)
         End Sub
 

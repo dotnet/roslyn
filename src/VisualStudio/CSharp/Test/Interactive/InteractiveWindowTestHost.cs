@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text.Utilities;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         {
             var assemblies = new[] { typeof(TestWaitIndicator).Assembly, typeof(TestInteractiveEvaluator).Assembly, typeof(IInteractiveWindow).Assembly }
                 .Concat(MinimalTestExportProvider.GetEditorAssemblies());
-            return MinimalTestExportProvider.CreateAssemblyCatalog(assemblies);
+            return ExportProviderCache.CreateAssemblyCatalog(assemblies);
         });
 
 
