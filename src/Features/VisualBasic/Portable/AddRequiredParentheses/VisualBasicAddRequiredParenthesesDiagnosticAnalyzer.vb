@@ -11,8 +11,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
     <DiagnosticAnalyzer(LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddRequiredParenthesesDiagnosticAnalyzer
-        Inherits AbstractAddRequiredParenthesesDiagnosticAnalyzer(Of SyntaxKind)
+    Friend Class VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer
+        Inherits AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(Of SyntaxKind)
 
         Private Shared ReadOnly s_kinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
                 SyntaxKind.AddExpression,

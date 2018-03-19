@@ -39,8 +39,11 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             foreach (var diagnostic in diagnostics)
             {
                 var location = diagnostic.AdditionalLocations[0];
-                var binaryExpression = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
-                editor.ReplaceNode(binaryExpression,
+                var node = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
+
+                // Do not add the simplifier annotation.  We do not want the simplifier undoing the 
+                // work we just did.
+                editor.ReplaceNode(node,
                     (current, _) => syntaxFacts.Parenthesize(current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 

@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpAddRequiredParenthesesDiagnosticAnalyzer :
-        AbstractAddRequiredParenthesesDiagnosticAnalyzer<SyntaxKind>
+    internal class CSharpAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer :
+        AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer<SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kinds = ImmutableArray.Create(
             SyntaxKind.AddExpression,

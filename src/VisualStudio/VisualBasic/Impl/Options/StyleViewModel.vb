@@ -309,6 +309,8 @@ Class Customer
     End Sub
 End Class"
 
+#Region "assignment parentheses"
+
         Private Shared ReadOnly s_assignmentParenthesesIgnore As String = $"
 class C
     sub M()
@@ -347,6 +349,10 @@ class C
     end sub
 end class
 "
+
+#End Region
+
+#Region "arithmetic parentheses"
 
         Private Shared ReadOnly s_arithmeticParenthesesIgnore As String = $"
 class C
@@ -387,6 +393,10 @@ class C
 end class
 "
 
+#End Region
+
+#Region "logical parentheses"
+
         Private Shared ReadOnly s_logicalParenthesesIgnore As String = $"
 class C
     sub M()
@@ -425,6 +435,9 @@ class C
     end sub
 end class
 "
+#End Region
+
+#Region "relational parentheses"
 
         Private ReadOnly s_relationalParenthesesIgnore As String = $"
 class C
@@ -465,6 +478,10 @@ class C
 end class
 "
 
+#End Region
+
+#Region "shift parentheses"
+
         Private Shared ReadOnly s_shiftParenthesesIgnore As String = $"
 class C
     sub M()
@@ -504,6 +521,10 @@ class C
 end class
 "
 
+#End Region
+
+#Region "other parentheses"
+
         Private Shared ReadOnly s_otherParenthesesIgnore As String = $"
 class C
     sub M()
@@ -528,6 +549,8 @@ class C
     end sub
 end class
 "
+
+#End Region
 
 #End Region
 
@@ -621,7 +644,7 @@ end class
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherOperationParentheses,
-                ServicesVSResources.Other_operations,
+                ServicesVSResources.Other_operators,
                 {s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=False,
                 recommended:=True)

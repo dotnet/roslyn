@@ -7,11 +7,11 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddRequiredParentheses
-    Partial Public Class AddRequiredParenthesesTests
+    Partial Public Class AddRequiredParenthesesForBinaryLikeExpressionTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicAddRequiredParenthesesDiagnosticAnalyzer(), New AddRequiredParenthesesCodeFixProvider())
+            Return (New VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(), New AddRequiredParenthesesCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>

@@ -1570,11 +1570,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Other operations.
+        ///   Looks up a localized string similar to Other operators.
         /// </summary>
-        internal static string Other_operations {
+        internal static string Other_operators {
             get {
-                return ResourceManager.GetString("Other_operations", resourceCulture);
+                return ResourceManager.GetString("Other_operators", resourceCulture);
             }
         }
         

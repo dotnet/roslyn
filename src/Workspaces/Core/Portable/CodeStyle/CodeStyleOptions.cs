@@ -234,6 +234,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
         }
 
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CastOperationParentheses =
+            CreateParenthesesOption(
+                nameof(CastOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> AssignmentOperationParentheses =
             CreateParenthesesOption(
                 nameof(AssignmentOperationParentheses),

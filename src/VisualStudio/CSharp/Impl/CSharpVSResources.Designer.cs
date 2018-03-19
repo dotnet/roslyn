@@ -79,20 +79,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Arithmetic operations:   *   /   %   +   -.
+        ///   Looks up a localized string similar to Arithmetic operators:   *   /   %   +   -.
         /// </summary>
-        internal static string Arithmetic_operations {
+        internal static string Arithmetic_operators {
             get {
-                return ResourceManager.GetString("Arithmetic_operations", resourceCulture);
+                return ResourceManager.GetString("Arithmetic_operators", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assignment operations:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=.
+        ///   Looks up a localized string similar to Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=.
         /// </summary>
-        internal static string Assignment_operations {
+        internal static string Assignment_operators {
             get {
-                return ResourceManager.GetString("Assignment_operations", resourceCulture);
+                return ResourceManager.GetString("Assignment_operators", resourceCulture);
             }
         }
         
@@ -142,20 +142,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bitwise operations:   &amp;   |   ^.
+        ///   Looks up a localized string similar to Bitwise operators:   &amp;   |   ^.
         /// </summary>
-        internal static string Bitwise_operations {
+        internal static string Bitwise_operators {
             get {
-                return ResourceManager.GetString("Bitwise_operations", resourceCulture);
+                return ResourceManager.GetString("Bitwise_operators", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Coalesce operations:   ??.
+        ///   Looks up a localized string similar to Cast operator:  (type)expression.
         /// </summary>
-        internal static string Coalesce_operations {
+        internal static string Cast_operator {
             get {
-                return ResourceManager.GetString("Coalesce_operations", resourceCulture);
+                return ResourceManager.GetString("Cast_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Coalesce operator:   ??.
+        /// </summary>
+        internal static string Coalesce_operator {
+            get {
+                return ResourceManager.GetString("Coalesce_operator", resourceCulture);
             }
         }
         
@@ -232,11 +241,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Equality operations:   ==   !=.
+        ///   Looks up a localized string similar to Equality operators:   ==   !=.
         /// </summary>
-        internal static string Equality_operations {
+        internal static string Equality_operators {
             get {
-                return ResourceManager.GetString("Equality_operations", resourceCulture);
+                return ResourceManager.GetString("Equality_operators", resourceCulture);
             }
         }
         
@@ -655,11 +664,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Logical operations:   &amp;&amp;   ||.
+        ///   Looks up a localized string similar to Logical operators:   &amp;&amp;   ||.
         /// </summary>
-        internal static string Logical_operations {
+        internal static string Logical_operators {
             get {
-                return ResourceManager.GetString("Logical_operations", resourceCulture);
+                return ResourceManager.GetString("Logical_operators", resourceCulture);
             }
         }
         
@@ -1087,11 +1096,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as.
+        ///   Looks up a localized string similar to Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as.
         /// </summary>
-        internal static string Relational_operations {
+        internal static string Relational_operators {
             get {
-                return ResourceManager.GetString("Relational_operations", resourceCulture);
+                return ResourceManager.GetString("Relational_operators", resourceCulture);
             }
         }
         
@@ -1186,11 +1195,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Shift operations:   &lt;&lt;   &gt;&gt;.
+        ///   Looks up a localized string similar to Shift operators:   &lt;&lt;   &gt;&gt;.
         /// </summary>
-        internal static string Shift_operations {
+        internal static string Shift_operators {
             get {
-                return ResourceManager.GetString("Shift_operations", resourceCulture);
+                return ResourceManager.GetString("Shift_operators", resourceCulture);
             }
         }
         

@@ -34,10 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                 return false;
             }
 
-            var innerExpression = parenthesizedExpression.Expression;
-            var innerExpressionPrecedence = innerExpression.GetOperatorPrecedence();
-            var innerExpressionIsSimple = innerExpressionPrecedence == OperatorPrecedence.Primary ||
-                                          innerExpressionPrecedence == OperatorPrecedence.None;
+            var inner = parenthesizedExpression.Expression;
+            var innerKind = inner.Kind();
+            var innerPrecedence = inner.GetOperatorPrecedence();
+            var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
+                                innerPrecedence == OperatorPrecedence.None;
 
             ExpressionSyntax parentExpression;
 
@@ -55,7 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                 //
                 precedenceKind = PrecedenceKind.Other;
                 clarifiesPrecedence = false;
-                return innerExpressionIsSimple;
+                return innerIsSimple;
+
+            case CastExpressionSyntax _:
+                // if our parent is a cast, then we may have something like: (int)(-x)
+                // While the latter parens aren't necessary, they can help clarify precedence
+                // as '(int)-x' looks somewhat like a binary expression.
+                precedenceKind = PrecedenceKind.Cast;
+                clarifiesPrecedence = IsAmbiguousInnerExpressionKindForCast(innerKind);
+                return true;
 
             case AssignmentExpressionSyntax assignmentExpression:
                 parentExpression = assignmentExpression;
@@ -93,10 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             // However, this does not:
             //
             //      a + (b.Length)
-            clarifiesPrecedence = !innerExpressionIsSimple &&
-                                  parentExpression.GetOperatorPrecedence() != innerExpressionPrecedence;
+            clarifiesPrecedence = !innerIsSimple &&
+                                  parentExpression.GetOperatorPrecedence() != innerPrecedence;
             return true;
         }
+
+        public static bool IsAmbiguousInnerExpressionKindForCast(SyntaxKind kind)
+            => kind == SyntaxKind.UnaryMinusExpression ||
+               kind == SyntaxKind.UnaryPlusExpression ||
+               kind == SyntaxKind.AddressOfExpression ||
+               kind == SyntaxKind.PointerIndirectionExpression;
 
         public static PrecedenceKind GetPrecedenceKind(ExpressionSyntax parentExpression)
         {

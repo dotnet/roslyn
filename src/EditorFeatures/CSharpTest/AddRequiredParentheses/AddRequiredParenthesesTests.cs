@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
-    public partial class AddRequiredParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddRequiredParenthesesForBinaryLikeExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpAddRequiredParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
+            => (new CSharpAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
         
         private Task TestMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
             => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));

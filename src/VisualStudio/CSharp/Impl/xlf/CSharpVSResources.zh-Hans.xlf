@@ -692,44 +692,49 @@
         <target state="translated">显示名称建议(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arithmetic_operations">
-        <source>Arithmetic operations:   *   /   %   +   -</source>
-        <target state="new">Arithmetic operations:   *   /   %   +   -</target>
+      <trans-unit id="Arithmetic_operators">
+        <source>Arithmetic operators:   *   /   %   +   -</source>
+        <target state="new">Arithmetic operators:   *   /   %   +   -</target>
         <note />
       </trans-unit>
-      <trans-unit id="Bitwise_operations">
-        <source>Bitwise operations:   &amp;   |   ^</source>
-        <target state="new">Bitwise operations:   &amp;   |   ^</target>
+      <trans-unit id="Bitwise_operators">
+        <source>Bitwise operators:   &amp;   |   ^</source>
+        <target state="new">Bitwise operators:   &amp;   |   ^</target>
         <note />
       </trans-unit>
-      <trans-unit id="Coalesce_operations">
-        <source>Coalesce operations:   ??</source>
-        <target state="new">Coalesce operations:   ??</target>
+      <trans-unit id="Coalesce_operator">
+        <source>Coalesce operator:   ??</source>
+        <target state="new">Coalesce operator:   ??</target>
         <note />
       </trans-unit>
-      <trans-unit id="Equality_operations">
-        <source>Equality operations:   ==   !=</source>
-        <target state="new">Equality operations:   ==   !=</target>
+      <trans-unit id="Equality_operators">
+        <source>Equality operators:   ==   !=</source>
+        <target state="new">Equality operators:   ==   !=</target>
         <note />
       </trans-unit>
-      <trans-unit id="Logical_operations">
-        <source>Logical operations:   &amp;&amp;   ||</source>
-        <target state="new">Logical operations:   &amp;&amp;   ||</target>
+      <trans-unit id="Logical_operators">
+        <source>Logical operators:   &amp;&amp;   ||</source>
+        <target state="new">Logical operators:   &amp;&amp;   ||</target>
         <note />
       </trans-unit>
-      <trans-unit id="Relational_operations">
-        <source>Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as</source>
-        <target state="new">Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as</target>
+      <trans-unit id="Relational_operators">
+        <source>Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as</source>
+        <target state="new">Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as</target>
         <note />
       </trans-unit>
-      <trans-unit id="Shift_operations">
-        <source>Shift operations:   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">Shift operations:   &lt;&lt;   &gt;&gt;</target>
+      <trans-unit id="Shift_operators">
+        <source>Shift operators:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">Shift operators:   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assignment_operations">
-        <source>Assignment operations:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</source>
-        <target state="new">Assignment operations:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</target>
+      <trans-unit id="Assignment_operators">
+        <source>Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</source>
+        <target state="new">Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cast_operator">
+        <source>Cast operator:  (type)expression</source>
+        <target state="new">Cast operator:  (type)expression</target>
         <note />
       </trans-unit>
     </body>

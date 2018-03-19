@@ -977,8 +977,8 @@ Additional information: {1}</value>
   <data name="Ignore" xml:space="preserve">
     <value>Ignore</value>
   </data>
-  <data name="Other_operations" xml:space="preserve">
-    <value>Other operations</value>
+  <data name="Other_operators" xml:space="preserve">
+    <value>Other operators</value>
   </data>
   <data name="Remove_if_unnecessary" xml:space="preserve">
     <value>Remove if unnecessary</value>

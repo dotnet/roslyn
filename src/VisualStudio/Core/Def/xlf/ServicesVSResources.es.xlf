@@ -1523,11 +1523,6 @@ Estoy de acuerdo con todo lo anterior:</target>
         <target state="new">Ignore</target>
         <note />
       </trans-unit>
-      <trans-unit id="Other_operations">
-        <source>Other operations</source>
-        <target state="new">Other operations</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_if_unnecessary">
         <source>Remove if unnecessary</source>
         <target state="new">Remove if unnecessary</target>
@@ -1546,6 +1541,11 @@ Estoy de acuerdo con todo lo anterior:</target>
       <trans-unit id="Require_for_clarity">
         <source>Require for clarity</source>
         <target state="new">Require for clarity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other_operators">
+        <source>Other operators</source>
+        <target state="new">Other operators</target>
         <note />
       </trans-unit>
     </body>
