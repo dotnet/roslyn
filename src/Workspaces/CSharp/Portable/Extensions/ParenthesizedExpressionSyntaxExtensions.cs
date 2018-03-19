@@ -375,30 +375,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             // Be careful not to break the special case around (x)(-y)
             // as defined in section 7.7.6 of the C# language specification.
+            //
+            // cases we can't remove the parens for are:
+            //
+            //      (x)(+y)
+            //      (x)(-y)
+            //      (x)(&y) // unsafe code
+            //      (x)(*y) // unsafe code
+            //
+            // Note: we can reomve the parens if the (x) part is unambiguously a type.
+            // i.e. if it something like:
+            //
+            //      (int)(...)
+            //      (x[])(...)
+            //      (X*)(...)
+            //      (X?)(...)
+            //      (global::X)(...)
 
             if (node.IsParentKind(SyntaxKind.CastExpression))
             {
                 var castExpression = (CastExpressionSyntax)node.Parent;
-                if (castExpression.Type is PredefinedTypeSyntax)
+                if (castExpression.Type.IsKind(
+                        SyntaxKind.PredefinedType,
+                        SyntaxKind.ArrayType,
+                        SyntaxKind.PointerType,
+                        SyntaxKind.NullableType))
+                {
+                    return false;
+                }
+
+                if (castExpression.Type is NameSyntax name && StartsWithAlias(name))
                 {
                     return false;
                 }
 
                 var expression = node.Expression;
 
-                if (expression.IsKind(SyntaxKind.UnaryMinusExpression))
+                if (expression.IsKind(
+                        SyntaxKind.UnaryMinusExpression,
+                        SyntaxKind.UnaryPlusExpression, 
+                        SyntaxKind.PointerIndirectionExpression,
+                        SyntaxKind.AddressOfExpression))
                 {
                     return true;
                 }
+            }
 
-                if (expression.IsKind(SyntaxKind.NumericLiteralExpression))
-                {
-                    var numericLiteral = (LiteralExpressionSyntax)expression;
-                    if (numericLiteral.Token.ValueText.StartsWith("-", StringComparison.Ordinal))
-                    {
-                        return true;
-                    }
-                }
+            return false;
+        }
+
+        private static bool StartsWithAlias(NameSyntax name)
+        {
+            if (name.IsKind(SyntaxKind.AliasQualifiedName))
+            {
+                return true;
+            }
+
+            if (name is QualifiedNameSyntax qualifiedName)
+            {
+                return StartsWithAlias(qualifiedName.Left);
             }
 
             return false;

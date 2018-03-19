@@ -1053,5 +1053,470 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastAmbiguity1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(+1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastAmbiguity2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(-1);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastAmbiguity3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(+1);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastAmbiguity4()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(&1);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastAmbiguity5()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(*1);
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPrimitiveCastNoAmbiguity1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$(-1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (int)-1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPrimitiveCastNoAmbiguity2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$(+1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (int)+1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPrimitiveCastNoAmbiguity3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$(&x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (int)&x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPrimitiveCastNoAmbiguity4()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$(*x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (int)*x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestArrayCastNoAmbiguity1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T[])$$(-1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T[])-1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestArrayCastNoAmbiguity2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T[])$$(+1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T[])+1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestArrayCastNoAmbiguity3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T[])$$(&x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T[])&x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestArrayCastNoAmbiguity4()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T[])$$(*x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T[])*x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPointerCastNoAmbiguity1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T*)$$(-1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T*)-1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPointerCastNoAmbiguity2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T*)$$(+1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T*)+1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPointerCastNoAmbiguity3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T*)$$(&x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T*)&x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPointerCastNoAmbiguity4()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T*)$$(*x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T*)*x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestNullableCastNoAmbiguity1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T?)$$(-1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T?)-1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestNullableCastNoAmbiguity2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T?)$$(+1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T?)+1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestNullableCastNoAmbiguity3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T?)$$(&x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T?)&x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestNullableCastNoAmbiguity4()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (T?)$$(*x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (T?)*x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAliasCastNoAmbiguity1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)$$(-1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)-1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAliasCastNoAmbiguity2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)$$(+1);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)+1;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAliasCastNoAmbiguity3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)$$(&x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)&x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAliasCastNoAmbiguity4()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)$$(*x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (e::N.T)*x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }

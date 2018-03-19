@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
     internal enum PrecedenceKind
     {
+        Cast,
         Arithmetic,
         Shift,
         Relational,
