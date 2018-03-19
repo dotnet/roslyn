@@ -499,6 +499,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -1001,6 +1011,16 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         
         public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitMethodBodyOperation(IMethodBodyOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitConstructorBodyOperation(IConstructorBodyOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

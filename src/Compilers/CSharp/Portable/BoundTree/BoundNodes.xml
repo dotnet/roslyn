@@ -33,12 +33,8 @@
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
-  <Node Name="BoundFieldInitializer" Base="BoundInitializer">
-    <Field Name="Field" Type="FieldSymbol"/>
-    <Field Name="InitialValue" Type="BoundExpression"/>
-  </Node>
-
-  <AbstractNode Name="BoundEqualsValue" Base="BoundNode">
+  <AbstractNode Name="BoundEqualsValue" Base="BoundInitializer">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <!-- Expression representing the value. -->
     <Field Name="Value" Type="BoundExpression"/>
   </AbstractNode>
@@ -1672,5 +1668,21 @@
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+  </Node>
+  
+  <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">
+    <!-- Type is not significant for this node type; always null -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+  
+    <Field Name="BlockBody" Type="BoundBlock" Null="allow"/>
+    <Field Name="ExpressionBody" Type="BoundBlock" Null="allow"/>
+  </AbstractNode>
+
+  <Node Name="BoundNonConstructorMethodBody" Base="BoundMethodBodyBase">
+  </Node>
+
+  <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Initializer" Type="BoundExpressionStatement" Null="allow"/>
   </Node>
 </Tree>

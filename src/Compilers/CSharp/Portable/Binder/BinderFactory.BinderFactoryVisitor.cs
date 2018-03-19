@@ -209,6 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Destructors have neither parameters nor type parameters, so there's nothing special to do here.
                     resultBinder = VisitCore(parent.Parent);
 
+                    SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
+                    resultBinder = new InMethodBinder(method, resultBinder);
+
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
 
                     binderCache.TryAdd(key, resultBinder);
