@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
