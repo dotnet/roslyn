@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private readonly Dictionary<ProjectId, ProjectFileInfo> _projectIdToFileInfoMap;
             private readonly Dictionary<ProjectId, List<ProjectReference>> _projectIdToProjectReferencesMap;
-            private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToProjectInfosMap;
-
+            private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToDiscoveredProjectInfosMap;
 
             public Worker(
                 MSBuildProjectLoader owner,
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencedProjects = preferMetadataForReferencedProjects;
                 _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
-                _pathToProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
+                _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
                 _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
             }
 
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         results.AddRange(projectFileInfos);
                     }
 
-                    foreach (var (projectPath, projectInfos) in _pathToProjectInfosMap)
+                    foreach (var (projectPath, projectInfos) in _pathToDiscoveredProjectInfosMap)
                     {
                         if (!processedPaths.Contains(projectPath))
                         {
@@ -206,7 +205,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(string projectPath, ReportingOptions reportingOptions, CancellationToken cancellationToken)
             {
-                if (_pathToProjectInfosMap.TryGetValue(projectPath, out var results))
+                if (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results))
                 {
                     return results;
                 }
@@ -247,11 +246,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var projectInfo = await CreateProjectInfoAsync(fileInfo, id, addDiscriminator, cancellationToken).ConfigureAwait(false);
 
                     builder.Add(projectInfo);
+                    _projectMap.AddProjectInfo(projectInfo);
                 }
 
                 results = builder.ToImmutable();
 
-                _pathToProjectInfosMap.Add(projectPath, results);
+                _pathToDiscoveredProjectInfosMap.Add(projectPath, results);
 
                 return results;
             }

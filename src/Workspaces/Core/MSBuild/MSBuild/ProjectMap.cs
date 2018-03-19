@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -9,12 +11,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
     public class ProjectMap
     {
         private readonly Dictionary<string, HashSet<ProjectId>> _projectPathToProjectIdsMap;
+        private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _projectPathToProjectInfosMap;
         private readonly Dictionary<ProjectId, string> _projectIdToOutputFilePathMap;
         private readonly Dictionary<ProjectId, string> _projectIdToOutputRefFilePathMap;
 
         private ProjectMap()
         {
             _projectPathToProjectIdsMap = new Dictionary<string, HashSet<ProjectId>>(PathUtilities.Comparer);
+            _projectPathToProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
             _projectIdToOutputFilePathMap = new Dictionary<ProjectId, string>();
             _projectIdToOutputRefFilePathMap = new Dictionary<ProjectId, string>();
         }
@@ -36,6 +40,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public void Add(Project project)
         {
             Add(project.Id, project.FilePath, project.OutputFilePath, project.OutputRefFilePath);
+            AddProjectInfo(project.State.ProjectInfo);
         }
 
         private void Add(ProjectId id, string projectPath, string outputFilePath, string outputRefFilePath)
@@ -57,6 +62,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 _projectIdToOutputRefFilePathMap.Add(id, outputRefFilePath);
             }
+        }
+
+        internal void AddProjectInfo(ProjectInfo projectInfo)
+        {
+            if (!_projectPathToProjectInfosMap.TryGetValue(projectInfo.FilePath, out var projectInfos))
+            {
+                projectInfos = ImmutableArray<ProjectInfo>.Empty;
+            }
+
+            if (projectInfos.Contains(pi => pi.Id == projectInfo.Id))
+            {
+                throw new ArgumentException("Project already added.");
+            }
+
+            projectInfos = projectInfos.Add(projectInfo);
+
+            _projectPathToProjectInfosMap[projectInfo.FilePath] = projectInfos;
         }
 
         internal ProjectId GetOrCreateProjectId(string projectPath)
@@ -150,5 +172,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         internal bool TryGetOutputRefFilePathById(ProjectId id, out string outputRefFilePath)
             => _projectIdToOutputRefFilePathMap.TryGetValue(id, out outputRefFilePath);
+
+        internal bool TryGetProjectInfosByProjectPath(string projectPath, out ImmutableArray<ProjectInfo> projectInfos)
+            => _projectPathToProjectInfosMap.TryGetValue(projectPath, out projectInfos);
     }
 }

@@ -106,6 +106,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 
+        protected FileSet GetNetCoreApp2AndLibraryFiles()
+        {
+            return new FileSet(
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndLibrary_Project),
+                (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndLibrary_Program),
+                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndLibrary_Library),
+                (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndLibrary_Class1));
+        }
+
+        protected FileSet GetNetCoreApp2AndTwoLibrariesFiles()
+        {
+            return new FileSet(
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndTwoLibraries_Project),
+                (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndTwoLibraries_Program),
+                (@"Library1\Library1.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndTwoLibraries_Library1),
+                (@"Library1\Class1.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndTwoLibraries_Class1),
+                (@"Library2\Library2.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndTwoLibraries_Library2),
+                (@"Library2\Class2.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndTwoLibraries_Class2));
+        }
+
         protected FileSet GetNetCoreMultiTFMFiles()
         {
             return new FileSet(

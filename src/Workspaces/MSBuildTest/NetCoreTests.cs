@@ -43,6 +43,93 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProjectTwice_NetCoreApp2AndLibrary()
+        {
+            CreateFiles(GetNetCoreApp2AndLibraryFiles());
+
+            var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
+            var libraryFilePath = GetSolutionFileName(@"Library\Library.csproj");
+
+            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var libraryProject = await workspace.OpenProjectAsync(libraryFilePath);
+
+                // Assert that there is a single project loaded.
+                Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+                // Assert that the project does not have any diagnostics in Class1.cs
+                var document = libraryProject.Documents.First(d => d.Name == "Class1.cs");
+                var semanticModel = await document.GetSemanticModelAsync();
+                var diagnostics = semanticModel.GetDiagnostics();
+                Assert.Empty(diagnostics);
+
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that there are only two projects opened.
+                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+
+                // Assert that there is a project reference between Project.csproj and Library.csproj
+                Assert.Single(project.ProjectReferences);
+
+                var projectRefId = project.ProjectReferences.Single().ProjectId;
+                Assert.Equal(libraryProject.Id, projectRefId);
+                Assert.Equal(libraryProject.FilePath, workspace.CurrentSolution.GetProject(projectRefId).FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProjectTwice_NetCoreApp2AndTwoLibraries()
+        {
+            CreateFiles(GetNetCoreApp2AndTwoLibrariesFiles());
+
+            var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
+            var library1FilePath = GetSolutionFileName(@"Library1\Library1.csproj");
+            var library2FilePath = GetSolutionFileName(@"Library2\Library2.csproj");
+
+            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetHelper.Restore(@"Library2\Library2.csproj", workingDirectory: this.SolutionDirectory.Path);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that there is are two projects loaded (Project.csproj references Library1.csproj).
+                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+
+                // Assert that the project does not have any diagnostics in Program.cs
+                var document = project.Documents.First(d => d.Name == "Program.cs");
+                var semanticModel = await document.GetSemanticModelAsync();
+                var diagnostics = semanticModel.GetDiagnostics();
+                Assert.Empty(diagnostics);
+
+                var library2 = await workspace.OpenProjectAsync(library2FilePath);
+
+                // Assert that there are now three projects loaded (Library2.csproj also references Library1.csproj)
+                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+
+                // Assert that there is a project reference between Project.csproj and Library1.csproj
+                AssertSingleProjectReference(project, library1FilePath);
+
+                // Assert that there is a project reference between Library2.csproj and Library1.csproj
+                AssertSingleProjectReference(library2, library1FilePath);
+            }
+
+            void AssertSingleProjectReference(Project project, string projectRefFilePath)
+            {
+                Assert.Single(project.ProjectReferences);
+
+                var projectRefId = project.ProjectReferences.Single().ProjectId;
+                Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM()
         {
             CreateFiles(GetNetCoreMultiTFMFiles());

@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public DiagnosticLog Log { get; }
 
+        public override string ToString()
+            => string.IsNullOrWhiteSpace(TargetFramework)
+                ? FilePath
+                : $"{FilePath} ({TargetFramework})";
+
         private ProjectFileInfo(
             bool isEmpty,
             string language,

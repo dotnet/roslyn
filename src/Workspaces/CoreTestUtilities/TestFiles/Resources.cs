@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
                 public static string MsbuildError => GetText("ProjectFiles.CSharp.MsbuildError.csproj");
                 public static string NetCoreApp2_Project => GetText("NetCoreApp2.Project.csproj");
+                public static string NetCoreApp2AndLibrary_Project => GetText("NetCoreApp2AndLibrary.Project.csproj");
+                public static string NetCoreApp2AndLibrary_Library => GetText("NetCoreApp2AndLibrary.Library.csproj");
+                public static string NetCoreApp2AndTwoLibraries_Project => GetText("NetCoreApp2AndTwoLibraries.Project.csproj");
+                public static string NetCoreApp2AndTwoLibraries_Library1 => GetText("NetCoreApp2AndTwoLibraries.Library1.csproj");
+                public static string NetCoreApp2AndTwoLibraries_Library2 => GetText("NetCoreApp2AndTwoLibraries.Library2.csproj");
                 public static string NetCoreMultiTFM_Project => GetText("NetCoreMultiTFM.Project.csproj");
                 public static string NetCoreMultiTFM_ProjectReference_Library => GetText("NetCoreMultiTFM_ProjectReference.Library.csproj");
                 public static string NetCoreMultiTFM_ProjectReference_Project => GetText("NetCoreMultiTFM_ProjectReference.Project.csproj");
@@ -166,6 +171,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CSharpConsole => GetText("SourceFiles.CSharp.CSharpConsole.cs");
                 public static string CSharpExternAlias => GetText("SourceFiles.CSharp.CSharpExternAlias.cs");
                 public static string NetCoreApp2_Program => GetText("NetCoreApp2.Program.cs");
+                public static string NetCoreApp2AndLibrary_Class1 => GetText("NetCoreApp2AndLibrary.Class1.cs");
+                public static string NetCoreApp2AndLibrary_Program => GetText("NetCoreApp2AndLibrary.Program.cs");
+                public static string NetCoreApp2AndTwoLibraries_Class1 => GetText("NetCoreApp2AndTwoLibraries.Class1.cs");
+                public static string NetCoreApp2AndTwoLibraries_Class2 => GetText("NetCoreApp2AndTwoLibraries.Class1.cs");
+                public static string NetCoreApp2AndTwoLibraries_Program => GetText("NetCoreApp2AndTwoLibraries.Program.cs");
                 public static string NetCoreMultiTFM_Program => GetText("NetCoreMultiTFM.Program.cs");
                 public static string NetCoreMultiTFM_ProjectReference_Class1 => GetText("NetCoreMultiTFM_ProjectReference.Class1.cs");
                 public static string NetCoreMultiTFM_ProjectReference_Program => GetText("NetCoreMultiTFM_ProjectReference.Program.cs");
