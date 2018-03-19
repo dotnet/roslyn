@@ -1062,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 {
     void M()
     {
-        int x = (X)$$(+1);
+        int x = (X)$$(-1);
     }
 }");
         }
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 {
     void M()
     {
-        int x = (X)$$(-1);
+        int x = (X)$$(+1);
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
