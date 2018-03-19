@@ -45,13 +45,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         Public Sub TestLiteralExpressions()
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(0), "0")
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(1), "1")
-            VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(-1), "-1")
+            VerifySyntax(Of UnaryExpressionSyntax)(_g.LiteralExpression(-1), "-1")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Integer.MinValue), "Global.System.Int32.MinValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Integer.MaxValue), "Global.System.Int32.MaxValue")
 
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(0L), "0L")
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(1L), "1L")
-            VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(-1L), "-1L")
+            VerifySyntax(Of UnaryExpressionSyntax)(_g.LiteralExpression(-1L), "-1L")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Long.MinValue), "Global.System.Int64.MinValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Long.MaxValue), "Global.System.Int64.MaxValue")
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
 
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(0.0F), "0F")
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(1.0F), "1F")
-            VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(-1.0F), "-1F")
+            VerifySyntax(Of UnaryExpressionSyntax)(_g.LiteralExpression(-1.0F), "-1F")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Single.MinValue), "Global.System.Single.MinValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Single.MaxValue), "Global.System.Single.MaxValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Single.Epsilon), "Global.System.Single.Epsilon")
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
 
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(0.0), "0R")
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(1.0), "1R")
-            VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(-1.0), "-1R")
+            VerifySyntax(Of UnaryExpressionSyntax)(_g.LiteralExpression(-1.0), "-1R")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Double.MinValue), "Global.System.Double.MinValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Double.MaxValue), "Global.System.Double.MaxValue")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.LiteralExpression(Double.Epsilon), "Global.System.Double.Epsilon")

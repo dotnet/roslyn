@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0), "0");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(1), "1");
-            VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(-1), "-1");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(_g.LiteralExpression(-1), "-1");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(int.MinValue), "global::System.Int32.MinValue");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(int.MaxValue), "global::System.Int32.MaxValue");
 
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0L), "0L");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(1L), "1L");
-            VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(-1L), "-1L");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(_g.LiteralExpression(-1L), "-1L");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(long.MinValue), "global::System.Int64.MinValue");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(long.MaxValue), "global::System.Int64.MaxValue");
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0.0f), "0F");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(1.0f), "1F");
-            VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(-1.0f), "-1F");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(_g.LiteralExpression(-1.0f), "-1F");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(float.MinValue), "global::System.Single.MinValue");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(float.MaxValue), "global::System.Single.MaxValue");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(float.Epsilon), "global::System.Single.Epsilon");
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0.0), "0D");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(1.0), "1D");
-            VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(-1.0), "-1D");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(_g.LiteralExpression(-1.0), "-1D");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(double.MinValue), "global::System.Double.MinValue");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(double.MaxValue), "global::System.Double.MaxValue");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.LiteralExpression(double.Epsilon), "global::System.Double.Epsilon");
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0m), "0M");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0.00m), "0.00M");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(1.00m), "1.00M");
-            VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(-1.00m), "-1.00M");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(_g.LiteralExpression(-1.00m), "-1.00M");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(1.0000000000m), "1.0000000000M");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0.000000m), "0.000000M");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(0.0000000m), "0.0000000M");
