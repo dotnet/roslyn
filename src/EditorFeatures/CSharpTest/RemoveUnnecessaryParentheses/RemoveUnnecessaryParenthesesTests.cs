@@ -1088,26 +1088,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 {
     void M()
     {
-        int x = (X)$$(+1);
-    }
-}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestCastAmbiguity4()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
-    {
         int x = (X)$$(&1);
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestCastAmbiguity5()
+        public async Task TestCastAmbiguity4()
         {
             await TestMissingAsync(
 @"class C
