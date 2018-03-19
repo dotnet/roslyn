@@ -344,6 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default:
                             return false;
                     }
+                case SyntaxKind.WhereKeyword:
+                    return token.Parent.Kind() == SyntaxKind.WhereClause; // false for e.g. type parameter constraint
                 default:
                     return false;
             }
