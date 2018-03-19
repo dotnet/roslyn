@@ -336,17 +336,6 @@ namespace Analyzer.Utilities.Extensions
             return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation is TOperation);
         }
 
-        public static bool HasAnyConditionalOperatorDescendant(this IOperation operation)
-        {
-            return operation.HasAnyOperationDescendant(predicate: o => o is IBinaryOperation b && b.IsConditionalOpertator());
-        }
-
-        /// <summary>
-        /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
-        /// A predicate operation is either an <see cref="IsConditionalOpertator(IBinaryOperation)"/> or an <see cref="IsComparisonOperator(IBinaryOperation)"/>.
-        /// </summary>
-        public static bool IsPredicate(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalOpertator() || binaryOperation.IsComparisonOperator();
-
         /// <summary>
         /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd/ConditionalOr operator ('&&' or '||').
         /// </summary>
