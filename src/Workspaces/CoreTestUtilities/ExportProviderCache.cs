@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -11,7 +13,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ExportProviderCache
     {
+        private static readonly ConditionalWeakTable<ComposableCatalog, IExportProviderFactory> _exportProviderFactoryCache =
+            new ConditionalWeakTable<ComposableCatalog, IExportProviderFactory>();
+
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
+
+        private static bool _enabled;
+
+        private static ExportProvider _currentExportProvider;
+        private static ComposableCatalog _expectedCatalog;
+        private static ExportProvider _expectedProviderForCatalog;
+
+        internal static bool EnabledViaUseExportProviderAttributeOnly
+        {
+            get
+            {
+                return _enabled;
+            }
+
+            set
+            {
+                _enabled = value;
+                if (!_enabled)
+                {
+                    _currentExportProvider = null;
+                    _expectedCatalog = null;
+                    _expectedProviderForCatalog = null;
+                }
+            }
+        }
+
+        internal static ExportProvider ExportProviderForCleanup => _currentExportProvider;
 
         public static ComposableCatalog CreateAssemblyCatalog(Assembly assembly)
         {
@@ -63,6 +95,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static ComposableCatalog WithPart(this ComposableCatalog catalog, Type t)
         {
             return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
+        }
+
+        public static ExportProvider CreateExportProvider(ComposableCatalog catalog, bool cacheExportProviderFactory = false)
+        {
+            if (!_enabled)
+            {
+                throw new InvalidOperationException($"{nameof(ExportProviderCache)} may only be used from tests marked with UseExportProviderAttribute");
+            }
+
+            var expectedCatalog = Interlocked.CompareExchange(ref _expectedCatalog, catalog, null) ?? catalog;
+            if (expectedCatalog != catalog)
+            {
+                throw new InvalidOperationException($"Only one {nameof(ComposableCatalog)} can be created for a single test.");
+            }
+
+            var expected = _expectedProviderForCatalog;
+            if (expected == null)
+            {
+                if (!_exportProviderFactoryCache.TryGetValue(catalog, out var exportProviderFactory))
+                {
+                    var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
+                    var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+                    exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+                    if (cacheExportProviderFactory)
+                    {
+                        _exportProviderFactoryCache.Add(catalog, exportProviderFactory);
+                    }
+                }
+
+                expected = exportProviderFactory.CreateExportProvider();
+                expected = Interlocked.CompareExchange(ref _expectedProviderForCatalog, expected, null) ?? expected;
+                Interlocked.CompareExchange(ref _currentExportProvider, expected, null);
+            }
+
+            var exportProvider = _currentExportProvider;
+            if (exportProvider != expected)
+            {
+                throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created in the context of a single test.");
+            }
+
+            return exportProvider;
         }
     }
 }
