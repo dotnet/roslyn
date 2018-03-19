@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits,
             Func<ISymbol, bool> isAddedSymbol)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources)
         {
             var initialBaseline = previousGeneration.InitialBaseline;
             var context = new EmitContext(this, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);

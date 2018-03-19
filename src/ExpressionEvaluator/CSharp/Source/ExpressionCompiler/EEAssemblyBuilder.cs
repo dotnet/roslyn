@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     internal sealed class EEAssemblyBuilder : PEAssemblyBuilderBase
     {
         private readonly Func<NamedTypeSymbol, NamedTypeSymbol> _getDynamicOperationContextType;
+        private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
 
         public EEAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
@@ -32,16 +33,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                   emitOptions,
                   outputKind: OutputKind.DynamicallyLinkedLibrary,
                   serializationProperties: serializationProperties,
-                  manifestResources: SpecializedCollections.EmptyEnumerable<ResourceDescription>(),
-                  additionalTypes: additionalTypes)
+                  manifestResources: SpecializedCollections.EmptyEnumerable<ResourceDescription>())
         {
             _getDynamicOperationContextType = getDynamicOperationContextType;
+            _additionalTypes = additionalTypes;
 
             if (testData != null)
             {
                 this.SetMethodTestData(testData.Methods);
                 testData.Module = this;
             }
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        {
+            return _additionalTypes;
         }
 
         protected override IModuleReference TranslateModule(ModuleSymbol symbol, DiagnosticBag diagnostics)

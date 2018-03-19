@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssemblyReference
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
-        private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
@@ -47,25 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitOptions emitOptions,
             OutputKind outputKind,
             Cci.ModulePropertiesForSerialization serializationProperties,
-            IEnumerable<ResourceDescription> manifestResources,
-            ImmutableArray<NamedTypeSymbol> additionalTypes)
+            IEnumerable<ResourceDescription> manifestResources)
             : base((SourceModuleSymbol)sourceAssembly.Modules[0], emitOptions, outputKind, serializationProperties, manifestResources)
         {
             Debug.Assert((object)sourceAssembly != null);
 
             _sourceAssembly = sourceAssembly;
-            _additionalTypes = additionalTypes.NullToEmpty();
             _metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
-
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
-        {
-            return _additionalTypes;
-        }
 
         internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
@@ -281,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             OutputKind outputKind,
             Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, ImmutableArray<NamedTypeSymbol>.Empty)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources)
         {
         }
 

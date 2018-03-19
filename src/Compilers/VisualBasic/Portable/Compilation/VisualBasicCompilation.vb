@@ -2154,29 +2154,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
-            Return CreateModuleBuilder(
-                emitOptions,
-                debugEntryPoint,
-                sourceLinkStream,
-                embeddedTexts,
-                manifestResources,
-                testData,
-                diagnostics,
-                ImmutableArray(Of NamedTypeSymbol).Empty,
-                cancellationToken)
-        End Function
-
-        Friend Overloads Function CreateModuleBuilder(
-            emitOptions As EmitOptions,
-            debugEntryPoint As IMethodSymbol,
-            sourceLinkStream As Stream,
-            embeddedTexts As IEnumerable(Of EmbeddedText),
-            manifestResources As IEnumerable(Of ResourceDescription),
-            testData As CompilationTestData,
-            diagnostics As DiagnosticBag,
-            additionalTypes As ImmutableArray(Of NamedTypeSymbol),
-            cancellationToken As CancellationToken) As CommonPEModuleBuilder
-
             Debug.Assert(Not IsSubmission OrElse HasCodeToEmit())
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
@@ -2190,8 +2167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' if there is no stream to write to, then there is no need for a module
             Dim moduleBeingBuilt As PEModuleBuilder
             If Options.OutputKind.IsNetModule() Then
-                Debug.Assert(additionalTypes.IsEmpty)
-
                 moduleBeingBuilt = New PENetModuleBuilder(
                     DirectCast(Me.SourceModule, SourceModuleSymbol),
                     emitOptions,
@@ -2204,8 +2179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         emitOptions,
                         kind,
                         moduleSerializationProperties,
-                        manifestResources,
-                        additionalTypes)
+                        manifestResources)
             End If
 
             If debugEntryPoint IsNot Nothing Then

@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Inherits PEAssemblyBuilderBase
 
         Friend ReadOnly Methods As ImmutableArray(Of MethodSymbol)
+        Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
 
         Friend Sub New(
             sourceAssembly As SourceAssemblySymbol,
@@ -34,16 +35,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 emitOptions,
                 outputKind:=OutputKind.DynamicallyLinkedLibrary,
                 serializationProperties:=serializationProperties,
-                manifestResources:=SpecializedCollections.EmptyEnumerable(Of ResourceDescription)(),
-                additionalTypes:=additionalTypes)
+                manifestResources:=SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
 
             Me.Methods = methods
+            _additionalTypes = additionalTypes
 
             If testData IsNot Nothing Then
                 SetMethodTestData(testData.Methods)
                 testData.Module = Me
             End If
         End Sub
+
+        Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
+            Return Me._additionalTypes
+        End Function
 
         Protected Overrides Function TranslateModule(symbol As ModuleSymbol, diagnostics As DiagnosticBag) As IModuleReference
             Dim moduleSymbol = TryCast(symbol, PEModuleSymbol)

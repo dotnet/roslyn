@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Implements Cci.IAssemblyReference
 
         Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
-        Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyFiles As ImmutableArray(Of Cci.IFileReference)
 
         ''' <summary>
@@ -30,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As Cci.ModulePropertiesForSerialization,
-                       manifestResources As IEnumerable(Of ResourceDescription),
-                       additionalTypes As ImmutableArray(Of NamedTypeSymbol))
+                       manifestResources As IEnumerable(Of ResourceDescription))
 
             MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol),
                        emitOptions,
@@ -43,7 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(manifestResources IsNot Nothing)
 
             Me.m_SourceAssembly = sourceAssembly
-            Me._additionalTypes = additionalTypes.NullToEmpty()
             Me._metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
@@ -53,10 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return m_SourceAssembly
             End Get
         End Property
-
-        Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me._additionalTypes
-        End Function
 
         Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
             If _lazyFiles.IsDefault Then
@@ -141,10 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As Cci.ModulePropertiesForSerialization,
-                       manifestResources As IEnumerable(Of ResourceDescription),
-                       Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing)
+                       manifestResources As IEnumerable(Of ResourceDescription))
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources)
         End Sub
 
         Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
