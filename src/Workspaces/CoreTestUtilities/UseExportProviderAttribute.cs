@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -22,11 +23,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed class UseExportProviderAttribute : BeforeAfterTestAttribute
     {
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(15);
-        private static MefHostServices _hostServices;
+        private readonly object _remoteHostServicesCreationLock = new object();
+        private MefHostServices _hostServices;
+        private MefHostServices _remoteHostServices;
 
         public override void Before(MethodInfo methodUnderTest)
         {
             MefHostServices.HookServiceCreation(CreateMefHostServices);
+            RoslynServices.HookHostServices(GetOrCreateRemoteHostServices);
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(true);
@@ -68,11 +72,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 exportProvider?.Dispose();
                 _hostServices = null;
                 MefHostServices.HookServiceCreation((_, __) => throw new InvalidOperationException("Cannot create host services after test tear down."));
+                RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
                 ExportProviderCache.EnabledViaUseExportProviderAttributeOnly = false;
             }
         }
 
-        private static MefHostServices CreateMefHostServices(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
+        private MefHostServices CreateMefHostServices(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
         {
             if (requestingDefaultAssemblies && ExportProviderCache.ExportProviderForCleanup != null)
             {
@@ -92,6 +97,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 null);
 
             return _hostServices;
+        }
+
+        private HostServices GetOrCreateRemoteHostServices()
+        {
+            if (_remoteHostServices != null)
+            {
+                return _remoteHostServices;
+            }
+
+            lock (_remoteHostServicesCreationLock)
+            {
+                if (_remoteHostServices == null)
+                {
+                    var compositionConfiguration = new ContainerConfiguration().WithAssemblies(RoslynServices.RemoteHostAssemblies.Distinct());
+                    var container = compositionConfiguration.CreateContainer();
+                    _remoteHostServices = new MefHostServices(container);
+                }
+            }
+
+            return _remoteHostServices;
         }
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider

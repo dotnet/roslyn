@@ -23,6 +23,7 @@
     <ProjectReference Include="..\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\BasicWorkspace.vbproj" />
     <ProjectReference Include="..\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\Remote\Core\RemoteWorkspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml.cs">
