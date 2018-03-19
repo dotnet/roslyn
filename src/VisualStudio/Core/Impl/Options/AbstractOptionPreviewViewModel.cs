@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             if (allowRequireForClarity)
             {
-                preferences.Add(ParenthesesPreference.RequireForPrecedenceClarity);
+                preferences.Add(ParenthesesPreference.RequireForClarity);
                 codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Require_for_clarity, isChecked: false));
             }
 

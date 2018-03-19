@@ -313,8 +313,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     {
                         case "ignore":
                             return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, notificationOpt);
-                        case "require_for_precedence_clarity" when allowRequireForClarityOption:
-                            return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RequireForPrecedenceClarity, notificationOpt);
+                        case "require_for_clarity" when allowRequireForClarityOption:
+                            return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RequireForClarity, notificationOpt);
                         case "remove_if_unnecessary":
                             return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RemoveIfUnnecessary, notificationOpt);
                     }

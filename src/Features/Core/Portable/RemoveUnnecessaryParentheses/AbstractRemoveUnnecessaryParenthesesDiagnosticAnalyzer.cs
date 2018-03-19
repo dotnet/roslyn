@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 return;
             }
 
-            if (preference.Value == ParenthesesPreference.RequireForPrecedenceClarity &&
+            if (preference.Value == ParenthesesPreference.RequireForClarity &&
                 clarifiesPrecedence)
             {
                 // User wants these parens if they clarify precedence, and these parens

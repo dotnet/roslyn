@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             var precedenceKind = GetPrecedenceKind(parentBinaryLike);
 
             var preference = optionSet.GetOption(GetLanguageOption(precedenceKind), binaryLike.Language);
-            if (preference.Value != ParenthesesPreference.RequireForPrecedenceClarity)
+            if (preference.Value != ParenthesesPreference.RequireForClarity)
             {
                 return;
             }
