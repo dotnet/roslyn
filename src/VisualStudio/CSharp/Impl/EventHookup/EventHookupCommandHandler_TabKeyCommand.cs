@@ -95,13 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return;
             }
 
-            // The EventHookupFoundInSession() is called here to avoid the following scenario:
-            // User types "=<Tab>" very fast, and adding the event handler method into document somehow takes long.
-            // During that time before the event handler method shows up, we want the tooltip to show up
-            // so user does not have to wondering why VS has no response.
-            // If the tooltip is already shown then nothing will change (handled inside EventHookupFoundInSession by checking _toolTipPresenter == null)
-            EventHookupSessionManager.EventHookupFoundInSession(EventHookupSessionManager.CurrentSession);
-
             // This tab means we should generate the event handler method. Begin the code
             // generation process.
             GenerateAndAddEventHandler(textView, subjectBuffer, eventHandlerMethodName, nextHandler, cancellationToken);

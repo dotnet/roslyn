@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 CurrentSession = null;
             }
 
-            if (this._toolTipPresenter != null)
+            if (_toolTipPresenter != null)
             {
-                this._toolTipPresenter.Dismiss();
-                this._toolTipPresenter = null;
+                _toolTipPresenter.Dismiss();
+                _toolTipPresenter = null;
             }
 
             // For test purposes only!
