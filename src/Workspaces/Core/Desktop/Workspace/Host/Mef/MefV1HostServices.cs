@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
@@ -19,6 +18,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         internal delegate MefV1HostServices CreationHook(IEnumerable<Assembly> assemblies);
 
+        /// <summary>
+        /// This delegate allows test code to override the behavior of <see cref="Create(IEnumerable{Assembly})"/>.
+        /// </summary>
+        /// <seealso cref="HookServiceCreation"/>
         private static CreationHook s_CreationHook;
 
         // the export provider for the MEF composition
@@ -60,6 +63,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return new MefV1HostServices(container);
         }
 
+        /// <summary>
+        /// For test use only. Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
+        /// </summary>
         internal static void HookServiceCreation(CreationHook hook)
         {
             s_CreationHook = hook;
