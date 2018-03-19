@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var span = root.FullSpan;
             var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
             model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
-            
+
             ImmutableHashSet<ISymbol>.Builder generatedSymbolsBuilderOpt = null;
             foreach (var declarationInfo in declarationInfoBuilder)
             {

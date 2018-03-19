@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var fullSpan = tree.GetRoot(cancellationToken).FullSpan;
             var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
             model.ComputeDeclarationsInSpan(fullSpan, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
-            var result = declarationInfoBuilder.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull().ToImmutableArray();
+            ImmutableArray<ISymbol> result = declarationInfoBuilder.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull().ToImmutableArray();
             declarationInfoBuilder.Free();
             return result;
         }
