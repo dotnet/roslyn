@@ -885,5 +885,192 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMultidimensionalArray1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[,] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i, 0]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestJaggedArray1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        foreach (string[] {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestJaggedArray2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i][0]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        foreach (string[] {|Rename:v|} in array)
+        {
+            Console.WriteLine(v[0]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestJaggedArray3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            var subArray = array[i];
+            for (int j = 0; j < subArray.Length; j++)
+            {
+                Console.WriteLine(array[i][j]);
+            }
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        foreach (var subArray in array)
+        {
+            for (int j = 0; j < subArray.Length; j++)
+            {
+                Console.WriteLine(subArray[j]);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestJaggedArray4()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            for (int j = 0; j < array[i].Length; j++)
+            {
+                Console.WriteLine(array[i][j]);
+            }
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        foreach (string[] {|Rename:v|} in array)
+        {
+            for (int j = 0; j < v.Length; j++)
+            {
+                Console.WriteLine(v[j]);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestJaggedArray5()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            [||]for (int j = 0; j < array[i].Length; j++)
+            {
+                Console.WriteLine(array[i][j]);
+            }
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            foreach (string {|Rename:v|} in array[i])
+            {
+                Console.WriteLine(v);
+            }
+        }
+    }
+}");
+        }
     }
 }

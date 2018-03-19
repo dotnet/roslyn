@@ -194,6 +194,13 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             return true;
                         }
 
+                        var arguments = syntaxFacts.GetArgumentsOfArgumentList(current.Parent.Parent);
+                        if (arguments.Count != 1)
+                        {
+                            // was used in a multi-dimensional indexing.  Can't conver this.
+                            return true;
+                        }
+
                         var expr = syntaxFacts.GetExpressionOfElementAccessExpression(current.Parent.Parent.Parent);
                         if (!syntaxFacts.AreEquivalent(expr, collectionExpression))
                         {
@@ -242,7 +249,9 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             if (collectionType is IArrayTypeSymbol arrayType)
             {
                 iterationType = arrayType.ElementType;
-                return true;
+
+                // We only support single-dimensional array iteration.
+                return arrayType.Rank == 1;
             }
 
             // Check in the class/struct hierarchy first.
@@ -450,7 +459,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         {
             if (collectionType is IArrayTypeSymbol arrayType)
             {
-                return arrayType.ElementType;
+                return arrayType.Rank == 1 ? arrayType.ElementType : null;
             }
 
             var indexer =
