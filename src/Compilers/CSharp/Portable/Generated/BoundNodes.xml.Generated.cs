@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ParameterEqualsValue,
         GlobalStatementInitializer,
         DeconstructValuePlaceholder,
+        TupleOperandPlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MakeRefOperator,
         RefValueOperator,
         BinaryOperator,
+        TupleBinaryOperator,
         UserDefinedConditionalLogicalOperator,
         CompoundAssignmentOperator,
         AssignmentOperator,
@@ -444,6 +446,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (valEscape != this.ValEscape || type != this.Type)
             {
                 var result = new BoundDeconstructValuePlaceholder(this.Syntax, valEscape, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundTupleOperandPlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundTupleOperandPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.TupleOperandPlaceholder, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundTupleOperandPlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.TupleOperandPlaceholder, syntax, type)
+        {
+
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitTupleOperandPlaceholder(this);
+        }
+
+        public BoundTupleOperandPlaceholder Update(TypeSymbol type)
+        {
+            if (type != this.Type)
+            {
+                var result = new BoundTupleOperandPlaceholder(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -1044,6 +1082,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operatorKind != this.OperatorKind || left != this.Left || right != this.Right || constantValueOpt != this.ConstantValueOpt || methodOpt != this.MethodOpt || resultKind != this.ResultKind || type != this.Type)
             {
                 var result = new BoundBinaryOperator(this.Syntax, operatorKind, left, right, constantValueOpt, methodOpt, resultKind, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundTupleBinaryOperator : BoundExpression
+    {
+        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors() || convertedLeft.HasErrors() || convertedRight.HasErrors())
+        {
+
+            Debug.Assert(left != null, "Field 'left' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(right != null, "Field 'right' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(convertedLeft != null, "Field 'convertedLeft' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(convertedRight != null, "Field 'convertedRight' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(operators != null, "Field 'operators' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Left = left;
+            this.Right = right;
+            this.ConvertedLeft = convertedLeft;
+            this.ConvertedRight = convertedRight;
+            this.OperatorKind = operatorKind;
+            this.Operators = operators;
+        }
+
+
+        public BoundExpression Left { get; }
+
+        public BoundExpression Right { get; }
+
+        public BoundExpression ConvertedLeft { get; }
+
+        public BoundExpression ConvertedRight { get; }
+
+        public BinaryOperatorKind OperatorKind { get; }
+
+        public TupleBinaryOperatorInfo.Multiple Operators { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitTupleBinaryOperator(this);
+        }
+
+        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
+        {
+            if (left != this.Left || right != this.Right || convertedLeft != this.ConvertedLeft || convertedRight != this.ConvertedRight || operatorKind != this.OperatorKind || operators != this.Operators || type != this.Type)
+            {
+                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, convertedLeft, convertedRight, operatorKind, operators, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6204,6 +6293,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitGlobalStatementInitializer(node as BoundGlobalStatementInitializer, arg);
                 case BoundKind.DeconstructValuePlaceholder: 
                     return VisitDeconstructValuePlaceholder(node as BoundDeconstructValuePlaceholder, arg);
+                case BoundKind.TupleOperandPlaceholder: 
+                    return VisitTupleOperandPlaceholder(node as BoundTupleOperandPlaceholder, arg);
                 case BoundKind.Dup: 
                     return VisitDup(node as BoundDup, arg);
                 case BoundKind.PassByCopy: 
@@ -6236,6 +6327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitRefValueOperator(node as BoundRefValueOperator, arg);
                 case BoundKind.BinaryOperator: 
                     return VisitBinaryOperator(node as BoundBinaryOperator, arg);
+                case BoundKind.TupleBinaryOperator: 
+                    return VisitTupleBinaryOperator(node as BoundTupleBinaryOperator, arg);
                 case BoundKind.UserDefinedConditionalLogicalOperator: 
                     return VisitUserDefinedConditionalLogicalOperator(node as BoundUserDefinedConditionalLogicalOperator, arg);
                 case BoundKind.CompoundAssignmentOperator: 
@@ -6526,6 +6619,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
+        public virtual R VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
         public virtual R VisitDup(BoundDup node, A arg)
         {
             return this.DefaultVisit(node, arg);
@@ -6587,6 +6684,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitBinaryOperator(BoundBinaryOperator node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitTupleBinaryOperator(BoundTupleBinaryOperator node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7134,6 +7235,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
+        public virtual BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
+        {
+            return this.DefaultVisit(node);
+        }
         public virtual BoundNode VisitDup(BoundDup node)
         {
             return this.DefaultVisit(node);
@@ -7195,6 +7300,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             return this.DefaultVisit(node);
         }
@@ -7747,6 +7856,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+        public override BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
+        {
+            return null;
+        }
         public override BoundNode VisitDup(BoundDup node)
         {
             return null;
@@ -7821,6 +7934,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            this.Visit(node.Left);
+            this.Visit(node.Right);
+            return null;
+        }
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             this.Visit(node.Left);
             this.Visit(node.Right);
@@ -8532,6 +8651,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.ValEscape, type);
         }
+        public override BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
         public override BoundNode VisitDup(BoundDup node)
         {
             TypeSymbol type = this.VisitType(node.Type);
@@ -8625,6 +8749,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.OperatorKind, left, right, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, type);
+        }
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundExpression convertedLeft = node.ConvertedLeft;
+            BoundExpression convertedRight = node.ConvertedRight;
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, type);
         }
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
@@ -9455,6 +9588,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
+        public override TreeDumperNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, object arg)
+        {
+            return new TreeDumperNode("tupleOperandPlaceholder", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
         public override TreeDumperNode VisitDup(BoundDup node, object arg)
         {
             return new TreeDumperNode("dup", null, new TreeDumperNode[]
@@ -9616,6 +9757,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("methodOpt", node.MethodOpt, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node, object arg)
+        {
+            return new TreeDumperNode("tupleBinaryOperator", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
+                new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
+                new TreeDumperNode("convertedLeft", null, new TreeDumperNode[] { Visit(node.ConvertedLeft, null) }),
+                new TreeDumperNode("convertedRight", null, new TreeDumperNode[] { Visit(node.ConvertedRight, null) }),
+                new TreeDumperNode("operatorKind", node.OperatorKind, null),
+                new TreeDumperNode("operators", node.Operators, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

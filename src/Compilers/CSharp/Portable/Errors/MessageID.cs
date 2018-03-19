@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12738,
         IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12739,
         IDS_FeatureStackAllocInitializer = MessageBase + 12740,
+        IDS_FeatureTupleEquality = MessageBase + 12741,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -198,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
+                case MessageID.IDS_FeatureTupleEquality: // semantic check
                 case MessageID.IDS_FeatureRefReassignment:
                 case MessageID.IDS_FeatureRefFor:
                 case MessageID.IDS_FeatureRefForEach:

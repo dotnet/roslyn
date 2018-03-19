@@ -868,6 +868,90 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal abstract class BaseTupleBinaryOperatorExpression : Operation, ITupleBinaryOperation
+    {
+        public BaseTupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.BinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            OperatorKind = operatorKind;
+        }
+        /// <summary>
+        /// Kind of binary operation.
+        /// </summary>
+        public BinaryOperatorKind OperatorKind { get; }
+        /// <summary>
+        /// Left operand.
+        /// </summary>
+        public abstract IOperation LeftOperand { get; }
+        /// <summary>
+        /// Right operand.
+        /// </summary>
+        public abstract IOperation RightOperand { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (LeftOperand != null)
+                {
+                    yield return LeftOperand;
+                }
+                if (RightOperand != null)
+                {
+                    yield return RightOperand;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTupleBinaryOperator(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTupleBinaryOperator(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal sealed class TupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
+    {
+        public TupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            LeftOperand = SetParentOperation(leftOperand, this);
+            RightOperand = SetParentOperation(rightOperand, this);
+        }
+
+        public override IOperation LeftOperand { get; }
+        public override IOperation RightOperand { get; }
+    }
+
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal sealed class LazyTupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
+    {
+        private readonly Lazy<IOperation> _lazyLeftOperand;
+        private readonly Lazy<IOperation> _lazyRightOperand;
+
+        public LazyTupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
+            _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
+        }
+
+        public override IOperation LeftOperand => SetParentOperation(_lazyLeftOperand.Value, this);
+        public override IOperation RightOperand => SetParentOperation(_lazyRightOperand.Value, this);
+    }
+
+    /// <summary>
     /// Represents a block scope.
     /// </summary>
     internal abstract partial class BaseBlockStatement : Operation, IBlockOperation
