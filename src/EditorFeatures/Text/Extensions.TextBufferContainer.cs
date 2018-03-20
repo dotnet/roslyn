@@ -100,18 +100,24 @@ namespace Microsoft.CodeAnalysis.Text
             private void OnTextContentChanged(object sender, TextContentChangedEventArgs args)
             {
                 var changed = this.EtextChanged;
-                if (changed != null && args.Changes.Count != 0)
+                if (changed == null)
                 {
-                    // this should convert given editor snapshots to roslyn forked snapshots
-                    var oldText = (SnapshotSourceText)args.Before.AsText();
-                    var newText = SnapshotSourceText.From(args.After);
-                    _currentText = newText;
-
-                    var changes = ImmutableArray.CreateRange(args.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)));
-                    var eventArgs = new TextChangeEventArgs(oldText, newText, changes);
-                    this.LastEventArgs = eventArgs;
-                    changed(sender, eventArgs);
+                    return;
                 }
+
+                // we should process all changes even though there is no text changes
+                // otherwise, Workspace.CurrentSolution won't move forward to latest ITextSnapshot
+
+                // this should convert given editor snapshots to roslyn forked snapshots
+                var oldText = (SnapshotSourceText)args.Before.AsText();
+                var newText = SnapshotSourceText.From(args.After);
+                _currentText = newText;
+
+                var changes = ImmutableArray.CreateRange(args.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)));
+                var eventArgs = new TextChangeEventArgs(oldText, newText, changes);
+
+                this.LastEventArgs = eventArgs;
+                changed(sender, eventArgs);
             }
 
             // These are the event args that were last sent from this text container when the text
