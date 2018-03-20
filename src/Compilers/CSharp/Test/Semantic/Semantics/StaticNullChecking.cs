@@ -4488,8 +4488,7 @@ public struct S2
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_02()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4549,15 +4548,9 @@ class C
 ", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                // (13,22): hidden CS8607: Expression is probably never null.
-                //         object? x1 = CL0.M1() ?? M2();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(13, 22),
-                // (15,21): hidden CS8607: Expression is probably never null.
-                //         object z1 = x1 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(15, 21),
-                // (20,22): hidden CS8607: Expression is probably never null.
-                //         object? x2 = CL0.M1() ?? M3();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(20, 22),
+                // (14,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object y1 = x1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(14, 21),
                 // (21,21): hidden CS8607: Expression is probably never null.
                 //         object z2 = x2 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
@@ -4567,13 +4560,7 @@ class C
                 // (27,21): hidden CS8607: Expression is probably never null.
                 //         object z3 = x3 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
-                // (32,22): hidden CS8607: Expression is probably never null.
-                //         object? x4 = CL0.M1() ?? CL0.M1();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(32, 22),
-                // (34,21): hidden CS8607: Expression is probably never null.
-                //         object z4 = x4 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(34, 21),
-                // (39,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (39,21): warning CS8601: Possible null reference assignment.
                 //         object x5 = M2() ?? M2();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M2() ?? M2()").WithLocation(39, 21),
                 // (44,22): hidden CS8607: Expression is probably never null.
@@ -4639,8 +4626,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_04()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4714,8 +4700,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_05()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -5385,8 +5370,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_04()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -5507,8 +5491,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_06()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -5587,8 +5570,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_07()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -15804,8 +15786,7 @@ struct S
 
         // PROTOTYPE(NullableReferenceTypes): Update other tests with WithNullCheckingFeature(NullableReferenceFlags.None) to verify expected changes.
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Assignment()
         {
             var source =
@@ -15836,54 +15817,59 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
-                // (15,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (13,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         p.LastName = (string)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(13, 22),
+                // (15,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null as string").WithLocation(15, 22),
-                // (16,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string").WithLocation(15, 22),
+                // (16,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string?;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null as string?").WithLocation(16, 22),
-                // (19,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string?").WithLocation(16, 22),
+                // (19,23): warning CS8601: Possible null reference assignment.
                 //         p.FirstName = p.MiddleName;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "p.MiddleName").WithLocation(19, 23),
-                // (20,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName").WithLocation(19, 23),
+                // (20,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = p.MiddleName ?? null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "p.MiddleName ?? null").WithLocation(20, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22));
 
             comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (12,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (12,22): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         p.LastName = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 22),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 22),
                 // (13,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         p.LastName = (string)null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(13, 22),
-                // (14,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (13,22): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //         p.LastName = (string)null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(13, 22),
+                // (14,22): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         p.LastName = (string?)null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(14, 22),
-                // (15,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(14, 22),
+                // (15,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null as string").WithLocation(15, 22),
-                // (16,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string").WithLocation(15, 22),
+                // (16,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string?;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null as string?").WithLocation(16, 22),
-                // (17,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string?").WithLocation(16, 22),
+                // (17,22): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         p.LastName = default(string);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(string)").WithLocation(17, 22),
-                // (18,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(17, 22),
+                // (18,22): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         p.LastName = default;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(18, 22),
-                // (19,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(18, 22),
+                // (19,23): warning CS8601: Possible null reference assignment.
                 //         p.FirstName = p.MiddleName;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "p.MiddleName").WithLocation(19, 23),
-                // (20,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName").WithLocation(19, 23),
+                // (20,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = p.MiddleName ?? null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "p.MiddleName ?? null").WithLocation(20, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Receiver()
         {
             var source =
@@ -15918,6 +15904,9 @@ static class Extensions
                 source,
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
+                // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ((string)null).F();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(12, 10),
                 // (14,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (null as string).F();
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("s", "void Extensions.F(string s)").WithLocation(14, 10),
@@ -15941,18 +15930,21 @@ static class Extensions
                 // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         ((string)null).F();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(12, 10),
-                // (13,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (12,10): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //         ((string)null).F();
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(12, 10),
+                // (13,10): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         ((string?)null).F();
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(13, 10),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(13, 10),
                 // (14,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (null as string).F();
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("s", "void Extensions.F(string s)").WithLocation(14, 10),
                 // (15,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (null as string?).F();
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("s", "void Extensions.F(string s)").WithLocation(15, 10),
-                // (16,9): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (16,9): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         default(string).F();
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(string)").WithLocation(16, 9),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(16, 9),
                 // (17,11): hidden CS8605: Result of the comparison is possibly always true.
                 //         ((p != null) ? p.MiddleName : null).F();
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(17, 11),
@@ -15964,8 +15956,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("s", "void Extensions.F(string s)").WithLocation(18, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Argument()
         {
             var source =
@@ -15999,6 +15990,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
+                // (13,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         G((string)null);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(13, 11),
                 // (15,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("name", "void Program.G(string name)").WithLocation(15, 11),
@@ -16019,27 +16013,30 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (12,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (12,11): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         G(null);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 11),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 11),
                 // (13,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         G((string)null);
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(13, 11),
-                // (14,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (13,11): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //         G((string)null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(13, 11),
+                // (14,11): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         G((string?)null);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(14, 11),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(14, 11),
                 // (15,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("name", "void Program.G(string name)").WithLocation(15, 11),
                 // (16,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string?);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("name", "void Program.G(string name)").WithLocation(16, 11),
-                // (17,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (17,11): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         G(default(string));
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(string)").WithLocation(17, 11),
-                // (18,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(17, 11),
+                // (18,11): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         G(default);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(18, 11),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(18, 11),
                 // (19,12): hidden CS8605: Result of the comparison is possibly always true.
                 //         G((p != null) ? p.MiddleName : null);
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(19, 12),
@@ -16051,8 +16048,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("name", "void Program.G(string name)").WithLocation(20, 11));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Return()
         {
             var source =
@@ -16080,6 +16076,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
+                // (11,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //     static string F2() => (string)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(11, 27),
                 // (13,27): warning CS8603: Possible null reference return.
                 //     static string F4() => null as string;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string").WithLocation(13, 27),
@@ -16100,27 +16099,30 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (10,27): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //     static string F1() => null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 27),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 27),
                 // (11,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static string F2() => (string)null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(11, 27),
-                // (12,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (11,27): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //     static string F2() => (string)null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(11, 27),
+                // (12,27): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //     static string F3() => (string?)null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(12, 27),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(12, 27),
                 // (13,27): warning CS8603: Possible null reference return.
                 //     static string F4() => null as string;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string").WithLocation(13, 27),
                 // (14,27): warning CS8603: Possible null reference return.
                 //     static string F5() => null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string?").WithLocation(14, 27),
-                // (15,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (15,27): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //     static string F6() => default(string);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default(string)").WithLocation(15, 27),
-                // (16,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(15, 27),
+                // (16,27): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //     static string F7() => default;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(16, 27),
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(16, 27),
                 // (17,36): hidden CS8605: Result of the comparison is possibly always true.
                 //     static string F8(Person p) => (p != null) ? p.MiddleName : null;
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(17, 36),
@@ -18354,6 +18356,40 @@ class C
         }
 
         [Fact]
+        public void NullableConversionAndNullCoalescingOperator_01()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    short F;
+    static ushort G(S? s)
+    {
+        return (ushort)(s?.F ?? 0);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableConversionAndNullCoalescingOperator_02()
+        {
+            var source =
+@"struct S
+{
+    public static implicit operator int(S s) => 0;
+}
+class P
+{
+    static int F(S? x, int y) => x ?? y;
+    static int G(S x, int? y) => y ?? x;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConstrainedToTypeParameter_01()
         {
             var source =
@@ -18380,9 +18416,21 @@ class C
         }
 
         [Fact]
-        public void TrackNonNullableLocals()
+        public void ArrayElementConversion()
         {
             var source =
+@"class C
+{
+    static object F() => new sbyte[] { -1 };
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TrackNonNullableLocals()
+            {
+                var source =
 @"class C
 {
     static void F(object x)

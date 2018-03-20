@@ -400,6 +400,7 @@
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
     <Field Name="LeftConversion" Type="Conversion"/>
+    <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundConditionalOperator" Base="BoundExpression">

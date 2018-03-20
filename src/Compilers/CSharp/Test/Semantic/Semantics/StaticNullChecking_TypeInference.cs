@@ -2039,8 +2039,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TypeInference_NullCoalescingOperator()
         {
             var source =
