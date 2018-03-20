@@ -1538,6 +1538,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = arguments[i];
                 if (refKind != RefKind.Out)
                 {
+                    // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
+                    // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
                     VisitRvalue(argument);
                 }
                 else

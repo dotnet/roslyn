@@ -3947,7 +3947,8 @@ class CL1
 {
 }
 ", parseOptions: TestOptions.Regular8);
-
+            // PROTOTYPE(NullReferenceTypes): Should report WRN_NullReferenceAssignment for `ref x3`
+            // even though the local is unassigned. (The local should be treated as an l-value for assignment.)
             c.VerifyDiagnostics(
                 // (12,12): warning CS8604: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
                 //         M1(x1);
@@ -3958,6 +3959,9 @@ class CL1
                 // (27,16): error CS0165: Use of unassigned local variable 'x3'
                 //         M2(ref x3);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(27, 16),
+                // (27,16): warning CS8601: Possible null reference assignment.
+                //         M2(ref x3);
+                //Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(27, 16),
                 // (32,16): warning CS8601: Possible null reference assignment.
                 //         M2(ref x4);
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4").WithLocation(32, 16),
@@ -11023,6 +11027,12 @@ class C
     {
         x6--; 
     }
+
+    void Test7()
+    {
+        CL1 x7;
+        x7--; 
+    }
 }
 
 class CL0
@@ -11041,48 +11051,54 @@ class CL1
     }
 }
 ", parseOptions: TestOptions.Regular8);
-
+            // PROTOTYPE(NullReferenceTypes): Should report WRN_NullReferenceAssignment for `x7--`
+            // even though the local is unassigned. (The local should be treated as an l-value for assignment.)
             c.VerifyDiagnostics(
-                 // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
-                 //         CL0? u1 = ++x1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
-                 // (11,18): hidden CS8607: Expression is probably never null.
-                 //         CL0 v1 = u1 ?? new CL0(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
-                 // (12,18): hidden CS8607: Expression is probably never null.
-                 //         CL0 w1 = x1 ?? new CL0(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
-                 // (16,18): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
-                 //         CL0 u2 = x2++;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
-                 // (16,18): warning CS8601: Possible null reference assignment.
-                 //         CL0 u2 = x2++;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 18),
-                 // (17,18): hidden CS8607: Expression is probably never null.
-                 //         CL0 v2 = x2 ?? new CL0();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(17, 18),
-                 // (21,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 u3 = --x3;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3").WithLocation(21, 18),
-                 // (22,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 v3 = x3;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(22, 18),
-                 // (26,19): warning CS8601: Possible null reference assignment.
-                 //         CL1? u4 = x4--; // Result of increment is nullable, storing it in not nullable parameter.
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4--").WithLocation(26, 19),
-                 // (27,18): hidden CS8607: Expression is probably never null.
-                 //         CL1 v4 = u4 ?? new CL1(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
-                 // (32,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 u5 = --x5;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
-                 // (32,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 u5 = --x5;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
-                 // (37,9): warning CS8601: Possible null reference assignment.
-                 //         x6--; 
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6--").WithLocation(37, 9)
-                );
+                // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+                //         CL0? u1 = ++x1;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
+                // (11,18): hidden CS8607: Expression is probably never null.
+                //         CL0 v1 = u1 ?? new CL0(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+                // (12,18): hidden CS8607: Expression is probably never null.
+                //         CL0 w1 = x1 ?? new CL0(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+                // (16,18): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+                //         CL0 u2 = x2++;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
+                // (16,18): warning CS8601: Possible null reference assignment.
+                //         CL0 u2 = x2++;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 18),
+                // (17,18): hidden CS8607: Expression is probably never null.
+                //         CL0 v2 = x2 ?? new CL0();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(17, 18),
+                // (21,18): warning CS8601: Possible null reference assignment.
+                //         CL1 u3 = --x3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3").WithLocation(21, 18),
+                // (22,18): warning CS8601: Possible null reference assignment.
+                //         CL1 v3 = x3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(22, 18),
+                // (26,19): warning CS8601: Possible null reference assignment.
+                //         CL1? u4 = x4--; // Result of increment is nullable, storing it in not nullable parameter.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4--").WithLocation(26, 19),
+                // (27,18): hidden CS8607: Expression is probably never null.
+                //         CL1 v4 = u4 ?? new CL1(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+                // (32,18): warning CS8601: Possible null reference assignment.
+                //         CL1 u5 = --x5;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
+                // (32,18): warning CS8601: Possible null reference assignment.
+                //         CL1 u5 = --x5;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
+                // (37,9): warning CS8601: Possible null reference assignment.
+                //         x6--; 
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6--").WithLocation(37, 9),
+                // (43,9): warning CS8601: Possible null reference assignment.
+                //         x7--; 
+                //Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7--").WithLocation(43, 9),
+                // (43,9): error CS0165: Use of unassigned local variable 'x7'
+                //         x7--; 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x7").WithArguments("x7").WithLocation(43, 9));
         }
 
         [Fact]
@@ -11711,6 +11727,12 @@ class Test
     {
         x5 += y5;
     }
+
+    void Test6(CL0 y6)
+    {
+        CL1 x6;
+        x6 += y6;
+    }
 }
 
 class CL0
@@ -11731,40 +11753,45 @@ class CL1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 w1 = x1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(12, 18),
-                 // (13,14): warning CS8601: Possible null reference assignment.
-                 //         w1 = u1; 
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u1").WithLocation(13, 14),
-                 // (18,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 u2 = x2 += y2;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(18, 18),
-                 // (18,18): warning CS8601: Possible null reference assignment.
-                 //         CL1 u2 = x2 += y2;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(18, 18),
+                // (12,18): warning CS8601: Possible null reference assignment.
+                //         CL1 w1 = x1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(12, 18),
+                // (13,14): warning CS8601: Possible null reference assignment.
+                //         w1 = u1; 
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u1").WithLocation(13, 14),
+                // (18,18): warning CS8601: Possible null reference assignment.
+                //         CL1 u2 = x2 += y2;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(18, 18),
+                // (18,18): warning CS8601: Possible null reference assignment.
+                //         CL1 u2 = x2 += y2;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(18, 18),
                 // (19,18): warning CS8601: Possible null reference assignment.
                 //         CL1 w2 = x2; 
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(19, 18),
-                 // (24,9): warning CS8601: Possible null reference assignment.
-                 //         x3 += y3;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 += y3").WithLocation(24, 9),
-                 // (29,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1? CL0.operator +(CL0 x, CL0? y)'.
-                 //         CL0? u4 = x4 += y4;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("x", "CL1? CL0.operator +(CL0 x, CL0? y)").WithLocation(29, 19),
-                 // (29,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
-                 //         CL0? u4 = x4 += y4;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 += y4").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(29, 19),
-                 // (30,18): hidden CS8607: Expression is probably never null.
-                 //         CL0 v4 = u4 ?? new CL0(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(30, 18),
-                 // (31,18): hidden CS8607: Expression is probably never null.
-                 //         CL0 w4 = x4 ?? new CL0(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(31, 18),
-                 // (36,9): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
-                 //         x5 += y5;
-                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x5 += y5").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(36, 9)
-                );
+                // (24,9): warning CS8601: Possible null reference assignment.
+                //         x3 += y3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 += y3").WithLocation(24, 9),
+                // (29,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1? CL0.operator +(CL0 x, CL0? y)'.
+                //         CL0? u4 = x4 += y4;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("x", "CL1? CL0.operator +(CL0 x, CL0? y)").WithLocation(29, 19),
+                // (29,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+                //         CL0? u4 = x4 += y4;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 += y4").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(29, 19),
+                // (30,18): hidden CS8607: Expression is probably never null.
+                //         CL0 v4 = u4 ?? new CL0(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(30, 18),
+                // (31,18): hidden CS8607: Expression is probably never null.
+                //         CL0 w4 = x4 ?? new CL0(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(31, 18),
+                // (36,9): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+                //         x5 += y5;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x5 += y5").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(36, 9),
+                // (42,9): error CS0165: Use of unassigned local variable 'x6'
+                //         x6 += y6;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x6").WithArguments("x6").WithLocation(42, 9),
+                // (42,9): warning CS8601: Possible null reference assignment.
+                //         x6 += y6;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6 += y6").WithLocation(42, 9));
         }
 
         [Fact]
