@@ -19,7 +19,7 @@
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DiaSymReader.Pdb2Pdb" Version="$(MicrosoftDiaSymReaderPdb2PdbVersion)" ExcludeAssets="all" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" ExcludeAssets="all" />
     <PackageReference Include="MicroBuild.Core.Sentinel" Version="$(MicroBuildCoreSentinelVersion)" ExcludeAssets="all" />
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" ExcludeAssets="all" />

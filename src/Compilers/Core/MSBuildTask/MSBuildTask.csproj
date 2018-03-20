@@ -9,7 +9,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <AssemblyName>Microsoft.Build.Tasks.CodeAnalysis</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

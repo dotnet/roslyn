@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Next.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Next.UnitTests</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>

@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Editor2.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>

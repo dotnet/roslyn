@@ -560,7 +560,10 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
+                                                                isFacade:=(frameworkAssemblies IsNot Nothing AndAlso
+                                                                          packageName <> "Microsoft.Build" AndAlso
+                                                                          packageName <> "Microsoft.DiaSymReader") OrElse
+                                                                          packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -845,12 +848,12 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.PortablePdb.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Converter.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Converter.Xml.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.x86.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Native.x86.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")
