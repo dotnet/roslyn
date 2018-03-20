@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = new DiagnosticBag();
             }
 
-            return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
+            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, isExplicitlyNullable: false, targetType, diagnostics);
         }
 
         internal void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, SyntaxNode syntax,
@@ -1999,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The expression could not be bound. Insert a fake conversion
                 // around it to bool and keep on going.
                 // NOTE: no user-defined conversion candidates.
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, false, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, isExplicitlyNullable: false, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             // Oddly enough, "if(dyn)" is bound not as a dynamic conversion to bool, but as a dynamic
@@ -2052,6 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         source: expr,
                         conversion: conversion,
                         isCast: false,
+                        isExplicitlyNullable: false,
                         wasCompilerGenerated: true,
                         destination: boolean,
                         diagnostics: diagnostics);
@@ -2069,7 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
                 Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, false, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, isExplicitlyNullable: false, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             UnaryOperatorSignature signature = best.Signature;
@@ -2079,6 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr,
                 best.Conversion,
                 isCast: false,
+                isExplicitlyNullable: false,
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
@@ -2507,7 +2509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, false, returnType, diagnostics);
+            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, isExplicitlyNullable: false, returnType, diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, DiagnosticBag diagnostics)

@@ -550,6 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion.IdentityValue,
                 @checked: false,
                 explicitCastInCode: true,
+                isExplicitlyNullable: false,
                 constantValueOpt: null,
                 type: expr.Type)
             { WasCompilerGenerated = true };

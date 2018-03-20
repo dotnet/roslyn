@@ -591,8 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: conversion.IsBaseConversion,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
+                    isExplicitlyNullable: conversion.IsExplicitlyNullable,
                     constantValueOpt: conversion.ConstantValueOpt,
-                    isNullable: conversion.IsNullable,
                     type: conversion.Type);
             }
 

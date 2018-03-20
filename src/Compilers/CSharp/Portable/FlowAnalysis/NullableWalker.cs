@@ -350,7 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportAssignmentWarnings(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
         {
+            Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
+
             if (this.State.Reachable)
             {
                 if (targetType is null || valueType is null)
@@ -379,7 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot)
         {
+            Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
+
             if (this.State.Reachable)
             {
                 if ((object)targetType == null)
@@ -1853,12 +1857,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (node.ExplicitCastInCode &&
-                    node.IsNullable == false &&
+                    !node.IsExplicitlyNullable &&
                     targetType.IsReferenceType &&
                     (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should not report warning for explicit
-                    // user -defined conversion if the operator is defined from nullable to
+                    // user-defined conversion if the operator is defined from nullable to
                     // non-nullable. See StaticNullChecking.ExplicitCast_UserDefined.
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
                 }

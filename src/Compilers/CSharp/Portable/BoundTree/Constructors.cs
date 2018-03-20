@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: false,
                 explicitCastInCode: false,
+                isExplicitlyNullable: false,
                 constantValueOpt: constantValueOpt,
-                isNullable: null,
                 type: type)
             { WasCompilerGenerated = true };
         }
@@ -219,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
+            bool isExplicitlyNullable,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -228,7 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand,
                 conversion,
                 @checked,
-                explicitCastInCode,
+                explicitCastInCode: explicitCastInCode,
+                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt,
                 type,
                 hasErrors || !conversion.IsValid)
@@ -243,10 +245,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
+            bool isExplicitlyNullable,
             ConstantValue constantValueOpt,
             TypeSymbol type,
-            bool hasErrors = false,
-            bool? isNullable = null)
+            bool hasErrors = false)
             : this(
                 syntax,
                 operand,
@@ -254,11 +256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
+                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt: constantValueOpt,
-                isNullable: isNullable,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         {
+            Debug.Assert(explicitCastInCode || !isExplicitlyNullable);
             OriginalUserDefinedConversionsOpt = conversion.OriginalUserDefinedConversions;
         }
     }

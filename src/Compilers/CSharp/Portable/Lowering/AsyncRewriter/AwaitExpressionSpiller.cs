@@ -898,8 +898,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: node.IsBaseConversion,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
+                    isExplicitlyNullable: node.IsExplicitlyNullable,
                     constantValueOpt: node.ConstantValueOpt,
-                    isNullable: node.IsNullable,
                     type: node.Type));
         }
 

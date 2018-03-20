@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteDiagnostics);
 
             diagnostics.Add(source.Syntax, useSiteDiagnostics);
-            return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
+            return CreateConversion(source.Syntax, source, conversion, isCast: false, isExplicitlyNullable: false, destination: destination, diagnostics: diagnostics);
         }
 
         internal BoundExpression CreateConversion(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
+            return CreateConversion(source.Syntax, source, conversion, isCast: false, isExplicitlyNullable: false, destination: destination, diagnostics: diagnostics);
         }
 
         internal BoundExpression CreateConversion(
@@ -40,10 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
+            bool isExplicitlyNullable, // explicit cast with top-level `?` specified
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            return CreateConversion(syntax, source, conversion, isCast, source.WasCompilerGenerated, destination, diagnostics);
+            return CreateConversion(syntax, source, conversion, isCast: isCast, isExplicitlyNullable: isExplicitlyNullable, source.WasCompilerGenerated, destination, diagnostics);
         }
 
         protected BoundExpression CreateConversion(
@@ -51,13 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
+            bool isExplicitlyNullable, // explicit cast with top-level `?` specified
             bool wasCompilerGenerated,
             TypeSymbol destination,
-            DiagnosticBag diagnostics,
-            bool? isNullable = null)
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
+            Debug.Assert(isCast || !isExplicitlyNullable);
 
             if (conversion.IsIdentity)
             {
@@ -88,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsMethodGroup)
             {
-                return CreateMethodGroupConversion(syntax, source, conversion, isCast, destination, diagnostics);
+                return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, isExplicitlyNullable: isExplicitlyNullable, destination, diagnostics);
             }
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
-                return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
+                return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, isExplicitlyNullable: isExplicitlyNullable, destination, diagnostics);
             }
 
             if (conversion.IsStackAlloc)
@@ -104,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsTupleLiteralConversion ||
                 (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
-                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
+                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, isExplicitlyNullable: isExplicitlyNullable, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
             {
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, isNullable: isNullable, destination, diagnostics);
+                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, isExplicitlyNullable: isExplicitlyNullable, destination, diagnostics);
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -124,14 +126,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast && !wasCompilerGenerated,
+                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt: constantValue,
-                type: destination,
-                isNullable: isNullable)
+                type: destination)
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        private BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool? isNullable, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool isExplicitlyNullable, TypeSymbol destination, DiagnosticBag diagnostics)
         {
+            Debug.Assert(isCast || !isExplicitlyNullable);
+
             if (!conversion.IsValid)
             {
                 GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
@@ -142,10 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
+                    isExplicitlyNullable: isExplicitlyNullable,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
-                    hasErrors: true,
-                    isNullable: isNullable)
+                    hasErrors: true)
                 { WasCompilerGenerated = source.WasCompilerGenerated };
             }
 
@@ -182,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source: source,
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
+                isExplicitlyNullable: false,
                 wasCompilerGenerated: true,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
@@ -198,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     source: convertedOperand,
                     conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteDiagnostics),
                     isCast: false,
+                    isExplicitlyNullable: false,
                     wasCompilerGenerated: true,
                     destination: conversionParameterType,
                     diagnostics: diagnostics);
@@ -220,9 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
                     explicitCastInCode: isCast,
+                    isExplicitlyNullable: false,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversionReturnType,
-                    isNullable: isNullable)
+                    type: conversionReturnType)
                 { WasCompilerGenerated = true };
 
                 if (conversionToType.IsNullableType() && conversionToType.GetNullableUnderlyingType() == conversionReturnType)
@@ -241,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         source: userDefinedConversion,
                         conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteDiagnostics),
                         isCast: false,
+                        isExplicitlyNullable: false,
                         wasCompilerGenerated: true,
                         destination: conversionToType,
                         diagnostics: diagnostics);
@@ -256,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    isExplicitlyNullable: isExplicitlyNullable,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversionToType,
-                    isNullable: isNullable)
+                    type: conversionToType)
                 { WasCompilerGenerated = true };
             }
 
@@ -270,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source: userDefinedConversion,
                 conversion: toConversion,
                 isCast: false,
+                isExplicitlyNullable: false,
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
                 diagnostics: diagnostics);
@@ -279,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
-        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool isExplicitlyNullable, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
             // which is a conversion on top of an unbound lambda, replace it with the bound
@@ -298,12 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
+                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt: ConstantValue.NotAvailable,
                 type: destination)
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool isExplicitlyNullable, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
             BoundExpression receiverOpt = group.ReceiverOpt;
@@ -321,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
+            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, isExplicitlyNullable: isExplicitlyNullable, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
@@ -347,10 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, stackAllocType, boundStackAlloc.HasErrors);
 
             var underlyingConversion = conversion.UnderlyingConversions.Single();
-            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast, destination, diagnostics);
+            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, isExplicitlyNullable: false, destination, diagnostics);
         }
 
-        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, bool isExplicitlyNullable, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
@@ -411,10 +420,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
-                var destType = targetElementTypes[i].TypeSymbol;
+                var destType = targetElementTypes[i];
                 var elementConversion = underlyingConversions[i];
 
-                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
+                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast: isCast, isExplicitlyNullable: isCast && destType.IsNullable.GetValueOrDefault(), destType.TypeSymbol, diagnostics));
             }
 
             BoundExpression result = new BoundConvertedTupleLiteral(
@@ -432,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    isExplicitlyNullable: isExplicitlyNullable,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination);
             }
@@ -446,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.Identity,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    isExplicitlyNullable: isExplicitlyNullable,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination);
             }

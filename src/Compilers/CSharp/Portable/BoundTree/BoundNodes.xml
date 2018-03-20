@@ -558,9 +558,10 @@
     <Field Name="IsBaseConversion" Type="Boolean"/>
     <Field Name="Checked" Type="Boolean"/>
     <Field Name="ExplicitCastInCode" Type="Boolean"/>
-    
+    <!-- True for explicit casts with top-level `?`. Used by NullableWalker. -->
+    <Field Name="IsExplicitlyNullable" Type="bool" Null="allow"/>
+
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-    <Field Name="IsNullable" Type="bool?" Null="allow"/>
   </Node>
 
   <!--
