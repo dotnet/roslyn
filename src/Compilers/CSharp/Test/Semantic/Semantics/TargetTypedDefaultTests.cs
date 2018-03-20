@@ -1732,7 +1732,7 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
-                // (6,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (byte* p = default)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "default").WithLocation(6, 26),
                 // (9,27): error CS0211: Cannot take the address of the given expression
@@ -2246,7 +2246,7 @@ class Program
             // Confusing, but matches Dev10.
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_1)
                 .VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = default)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "default").WithLocation(6, 25)
                 );

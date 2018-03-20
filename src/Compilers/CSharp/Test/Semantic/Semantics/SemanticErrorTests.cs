@@ -8053,7 +8053,7 @@ public class MyClass
                 // (7,23): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //       fixed (int *j = &i) { }  // CS0213
                 Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i").WithLocation(7, 23),
-                // (14,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (14,26): error CS9385: The given expression cannot be used in a fixed statement
                 //          fixed (int *c = b) { }  // CS0213
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "b").WithLocation(14, 26));
         }
@@ -8768,7 +8768,7 @@ class FixedTest
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (20,23): error CS9365: The given expression cannot be used in a fixed statement
+                // (20,23): error CS9385: The given expression cannot be used in a fixed statement
                 //       fixed (int* p = (int*)&pt.x)   // CS0254
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)&pt.x").WithLocation(20, 23));
         }

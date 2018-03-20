@@ -1575,7 +1575,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TupleBinopLiteralNameMismatch = 8383,
         ERR_TupleSizesMismatchForBinOps = 8384,
         ERR_ExprCannotBeFixed = 9385,
-        ERR_FixableHelperDoesNotFitThePattern = 9386,
         #endregion diagnostics introduced for C# 7.3
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
