@@ -1052,24 +1052,26 @@ interface IB<T>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
                 // (3,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where V : T[]
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(3, 15),
                 // (9,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(9, 19),
                 // (10,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where V : T[];
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(10, 19),
 
                 // CONSIDER: Dev10 doesn't report these cascading errors.
 
                 // (2,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*"),
-                // (2,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"),
+                //     where U : T*
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(2, 15),
                 // (9,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*"),
-                // (9,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
+                //         where U : T*
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(9, 19));
         }
 
         [Fact]
@@ -4731,19 +4733,16 @@ public class Test
             // Extra errors
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (7,34): error CS1002: ; expected
-                //         int *pp = stackalloc int 30; 
+                //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
-                // (6,18): error CS1525: Invalid expression term 'stackalloc'
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 18),
                 // (6,29): error CS1575: A stackalloc expression requires [] after type
-                //         int *p = stackalloc int (30); 
+                //         int *p = stackalloc int (30);
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
                 // (7,30): error CS1575: A stackalloc expression requires [] after type
-                //         int *pp = stackalloc int 30; 
+                //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
                 // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         int *pp = stackalloc int 30; 
+                //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34)
                 );
         }

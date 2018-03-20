@@ -20,5 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string SimplifyLambda = "Simplify Lambda Code Action Provider";
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string MoveTypeToFile = "Move Type To File Code Action Provider";
+        public const string UseExplicitType = "Use Explicit Type Code Action Provider";
     }
 }

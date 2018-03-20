@@ -104,6 +104,12 @@ do
     shift
 done
 
+config_path=${binaries_path}/${build_configuration}
+logs_path=${config_path}/Logs
+mkdir -p ${binaries_path}
+mkdir -p ${config_path}
+mkdir -p ${logs_path}
+
 if [[ "$build_in_docker" = true ]]
 then
     echo "Docker exec: $args"
@@ -115,7 +121,10 @@ source "${root_path}"/build/scripts/obtain_dotnet.sh
 
 if [[ "$restore" == true ]]
 then
-    "${root_path}"/build/scripts/restore.sh
+    echo "Restoring RoslynToolset.csproj"
+    dotnet restore "${root_path}/build/ToolsetPackages/RoslynToolset.csproj" /bl:${logs_path}/Restore-RoslynToolset.binlog
+    echo "Restoring Compilers.sln"
+    dotnet restore "${root_path}/Compilers.sln" /bl:${logs_path}/Restore-Compilers.binlog
 fi
 
 build_args="--no-restore -c ${build_configuration} /nologo /maxcpucount:1"
@@ -127,7 +136,7 @@ then
     dotnet publish "${root_path}"/src/Compilers/CSharp/csc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapCsc.binlog"
     dotnet publish "${root_path}"/src/Compilers/VisualBasic/vbc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVbc.binlog"
     dotnet publish "${root_path}"/src/Compilers/Server/VBCSCompiler -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVBCSCompiler.binlog"
-    dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
+    dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
 fi
 
 if [[ "${use_bootstrap}" == true ]]

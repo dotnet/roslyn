@@ -395,11 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     return true;
 
-                // With the introduction of pattern-matching, many nodes now contain top-level
-                // expressions that may introduce pattern variables.
-                case SyntaxKind.EqualsValueClause:
-                    return true;
-
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:
@@ -424,6 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 default:
+                    // With the introduction of pattern-matching, many nodes now contain top-level
+                    // expressions that may introduce pattern variables.
+                    if (node.Parent.IsKind(SyntaxKind.EqualsValueClause))
+                    {
+                        return true;
+                    }
+
                     break;
             }
 

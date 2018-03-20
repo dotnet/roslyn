@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 switch (classifiedSpan.ClassificationType) // filter out unsupported classification types
                 {
                     case ClassificationTypeNames.FieldName:
-                    case ClassificationTypeNames.EnumFieldName:
+                    case ClassificationTypeNames.EnumMemberName:
                     case ClassificationTypeNames.ConstantName:
                     case ClassificationTypeNames.LocalName:
                     case ClassificationTypeNames.ParameterName:

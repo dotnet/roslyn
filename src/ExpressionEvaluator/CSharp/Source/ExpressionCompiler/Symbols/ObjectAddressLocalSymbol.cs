@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _address = address;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             // Return true?
             get { return false; }
