@@ -22,7 +22,6 @@ param (
     [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
-    [switch]$buildAll = $false,
     [switch]$buildCoreClr = $false,
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
@@ -56,7 +55,6 @@ function Print-Usage() {
     Write-Host "  -release                  Perform release build (default is debug)"
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build Roslyn.sln"
-    Write-Host "  -buildAll                 Build all Roslyn source items"
     Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -sign                     Sign our binaries"
@@ -84,7 +82,7 @@ function Print-Usage() {
 # specified.
 #
 # In this function it's okay to use two arguments to extend the effect of another. For 
-# example it's okay to look at $buildAll and infer $build. It's not okay though to infer 
+# example it's okay to look at $buildCoreClr and infer $build. It's not okay though to infer 
 # $build based on say $testDesktop. It's possible the developer wanted only for testing 
 # to execute, not any build.
 function Process-Arguments() {
@@ -112,12 +110,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ($buildCoreClr -and $buildAll) {
-        Write-Host "Cannot combine coreclr build with full Roslyn build"
-        exit 1
-    }
-
-    if ($buildAll -or $buildCoreClr) {
+    if ($buildCoreClr) {
         $script:build = $true
     }
 
@@ -176,6 +169,24 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     }
 }
 
+# Restore all of the projects that the repo consumes
+function Restore-Packages() {
+    Write-Host "Restore using dotnet at $dotnet"
+
+    $all = @(
+        "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
+        "Roslyn:Roslyn.sln")
+
+    foreach ($cur in $all) {
+        $both = $cur.Split(':')
+        Write-Host "Restoring $($both[0])"
+        $projectFilePath = $both[1]
+        $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
+        $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        Restore-Project $dotnet $both[1] $logFilePath
+    }
+}
+
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
 # is located. 
 #
@@ -215,9 +226,6 @@ function Build-Artifacts() {
     }
     elseif ($build) {
         Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-    }
-
-    if ($buildAll) {
         Build-ExtraSignArtifacts
     }
 
@@ -233,7 +241,7 @@ function Build-Artifacts() {
         Build-DeployToSymStore
     }
 
-    if ($buildAll) {
+    if ($build -and (-not $buildCoreClr)) {
         Build-InsertionItems
     }
 }
@@ -260,7 +268,6 @@ function Build-ExtraSignArtifacts() {
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln" -buildArgs ""
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
     finally {
@@ -444,12 +451,11 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
-    $logFilePath = Join-Path $logsDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
     $args = "$xunitDir"
-    $args += " -log:$logFilePath"
+    $args += " -logpath:$logsDir"
     $args += " -nocache"
 
     if ($testDesktop) {
@@ -661,7 +667,7 @@ try {
 
     if ($restore) {
         Write-Host "Running restore"
-        Restore-All $dotnet
+        Restore-Packages
     }
 
     if ($isAnyTestSpecial) {
