@@ -22,7 +22,6 @@ param (
     [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
-    [switch]$buildAll = $false,
     [switch]$buildCoreClr = $false,
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
@@ -56,7 +55,6 @@ function Print-Usage() {
     Write-Host "  -release                  Perform release build (default is debug)"
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build Roslyn.sln"
-    Write-Host "  -buildAll                 Build all Roslyn source items"
     Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -sign                     Sign our binaries"
@@ -84,7 +82,7 @@ function Print-Usage() {
 # specified.
 #
 # In this function it's okay to use two arguments to extend the effect of another. For 
-# example it's okay to look at $buildAll and infer $build. It's not okay though to infer 
+# example it's okay to look at $buildCoreClr and infer $build. It's not okay though to infer 
 # $build based on say $testDesktop. It's possible the developer wanted only for testing 
 # to execute, not any build.
 function Process-Arguments() {
@@ -112,12 +110,7 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ($buildCoreClr -and $buildAll) {
-        Write-Host "Cannot combine coreclr build with full Roslyn build"
-        exit 1
-    }
-
-    if ($buildAll -or $buildCoreClr) {
+    if ($buildCoreClr) {
         $script:build = $true
     }
 
@@ -233,9 +226,6 @@ function Build-Artifacts() {
     }
     elseif ($build) {
         Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-    }
-
-    if ($buildAll) {
         Build-ExtraSignArtifacts
     }
 
@@ -251,9 +241,7 @@ function Build-Artifacts() {
         Build-DeployToSymStore
     }
 
-    if ($buildAll) {
-        Build-InsertionItems
-    }
+    Build-InsertionItems
 }
 
 # Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
