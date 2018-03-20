@@ -430,3 +430,8 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$
     Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath $logArg"
 }
 
+function Unzip-File([string]$zipFilePath, [string]$outputDir) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $outputDir)
+}
+

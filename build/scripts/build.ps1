@@ -151,8 +151,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
     }
 
-    if ($testIOperation)
-    {
+    if ($testIOperation) {
         $args += " /p:TestIOperationInterface=true"
     }
 
@@ -160,8 +159,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     $args += " $projectFilePath"
 
     if ($useDotnetBuild) {
-        $args = " build --no-restore " + $args
-        $args += " -m:1"
+        $args = " msbuild $args"
         Exec-Console $dotnet $args
     }
     else {
@@ -187,7 +185,7 @@ function Restore-Packages() {
     }
 }
 
-# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
+# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build 
 # is located. 
 #
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of 
@@ -200,17 +198,40 @@ function Make-BootstrapBuild() {
     Create-Directory $dir
     if ($buildCoreClr) {
         $bootstrapFramework = "netcoreapp2.0"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapCsc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapVbc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapMSBuildTask.binlog"
+        $projectFiles = @(
+            'src/Compilers/CSharp/csc/csc.csproj',
+            'src/Compilers/VisualBasic/vbc/vbc.csproj',
+            'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj',
+            'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj'
+        )
+
+        foreach ($projectFilePath in $projectFiles) { 
+            $fileName = [IO.Path]::GetFileNameWithoutExtension((Split-Path -leaf $projectFilePath))
+            $logFileName = "Bootstrap$($fileName)"
+            Run-MSBuild $projectFilePath "/t:Publish /p:TargetFramework=netcoreapp2.0 $bootstrapArgs" -logFileName $logFileName -useDotnetBuild
+        }
+
+        # The csi executable is only supported on desktop (even though we do multi-target it to 
+        # netcoreapp2.). Need to build the desktop version here in order to build our NuGet 
+        # packages below. 
+        Run-MSBuild "src/Interactive/csi/csi.csproj" -logFileName "BootstrapCsi" -useDotnetBuild
+
+        Ensure-NuGet | Out-Null
+        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Unzip-File "$dir\Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\42.42.42.42"
+
+        Write-Host "Cleaning Bootstrap compiler artifacts"
+        Run-MSBuild "Compilers.sln" "/t:Clean"
         Stop-BuildProcesses
     }
     else {
         Run-MSBuild "build\Toolset\Toolset.csproj" $bootstrapArgs -logFileName "Bootstrap"
         Remove-Item -re $dir -ErrorAction SilentlyContinue
         Create-Directory $dir
-        Move-Item "$configDir\Exes\Toolset\*" $dir
+
+        Ensure-NuGet | Out-Null
+        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        Unzip-File "$dir\Microsoft.Net.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
