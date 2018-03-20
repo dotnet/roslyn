@@ -173,7 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             comp.VerifyDiagnostics(
                 // (5,20): warning CS8600: Cannot convert null to non-nullable reference.
                 //         string s = default;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 20));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 20),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -277,6 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // (5,15): warning CS8600: Cannot convert null to non-nullable reference.
                 //         T s = default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 15),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         t.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 9));
@@ -314,7 +320,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Cannot convert null to non-nullable reference.
                 //         s = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
