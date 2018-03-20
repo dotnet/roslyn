@@ -83,7 +83,7 @@ commitPullList.each { isPr ->
 // Windows CoreCLR
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
-    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_test", isPr)
+    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_${configuration}", isPr)
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
@@ -212,27 +212,6 @@ commitPullList.each { isPr ->
   def triggerPhraseExtra = "microbuild"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// VS Integration Tests
-commitPullList.each { isPr ->
-  ['debug', 'release'].each { configuration ->
-    ['vs-integration'].each { buildTarget ->
-      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
-      def myJob = job(jobName) {
-        description("Windows ${configuration} tests on ${buildTarget}")
-        steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
-        }
-      }
-
-      def triggerPhraseOnly = false
-      def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3')
-      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-    }
-  }
 }
 
 JobReport.Report.generateJobReport(out)

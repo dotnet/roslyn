@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461 || NET46 || NETCOREAPP2_0
+#if !NETSTANDARD1_3
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -542,14 +542,10 @@ namespace Roslyn.Test.Utilities
 
             if (field.IsInitOnly) sb.Append("initonly ");
             if (field.IsLiteral) sb.Append("literal ");
-#if NET46 || NET461
             if (field.IsNotSerialized) sb.Append("notserialized ");
-#endif
             if (field.Attributes.HasFlag(FieldAttributes.SpecialName)) sb.Append("specialname ");
             if (field.Attributes.HasFlag(FieldAttributes.RTSpecialName)) sb.Append("rtspecialname ");
-#if NET46 || NET461
             if (field.IsPinvokeImpl) sb.Append("pinvokeimpl ");
-#endif
 
             sb.Append(field.IsStatic ? "static " : "instance ");
             AppendType(field.FieldType, sb);

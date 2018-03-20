@@ -125,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return false; }
+        }
+
         public override bool HasConstructorConstraint
         {
             get { return false; }

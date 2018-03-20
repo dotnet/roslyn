@@ -10,7 +10,3 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.Shared.TestHooks.IAsynchronousOperationListener))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.Shared.TestHooks.IAsyncToken))]
 [assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.Shared.TestHooks.TaskExtensions))]
-
-#pragma warning disable CS0618 // Type or member is obsolete
-[assembly: TypeForwardedTo(typeof(Microsoft.CodeAnalysis.Shared.TestHooks.FeatureMetadata))]
-#pragma warning restore CS0618 // Type or member is obsolete
