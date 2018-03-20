@@ -440,8 +440,7 @@ function Restore-Packages([string]$dotnetExe = "", [string]$project = "") {
     else {
         $all = @(
             "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-            "Roslyn:Roslyn.sln",
-            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
+            "Roslyn:Roslyn.sln")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')

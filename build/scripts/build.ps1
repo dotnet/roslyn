@@ -260,7 +260,6 @@ function Build-ExtraSignArtifacts() {
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln" -buildArgs ""
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
     finally {
