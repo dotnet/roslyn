@@ -2,10 +2,12 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
@@ -150,18 +152,10 @@ End Class
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of Host.IWaitIndicator), workspace.GetService(Of ITextBufferUndoManagerProvider),
-                    workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
-
-                Dim state = handler.GetCommandState(New Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of ITextBufferUndoManagerProvider),
+                                                                 workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
         End Sub
     End Class

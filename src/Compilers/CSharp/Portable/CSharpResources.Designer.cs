@@ -4463,6 +4463,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple == or != operator.
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsTupleBinOp {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsTupleBinOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a tuple conversion..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsTupleConversion {
@@ -4486,24 +4495,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionTreeMustHaveDelegate {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeMustHaveDelegate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers..
-        /// </summary>
-        internal static string ERR_ExpressionVariableInConstructorOrFieldInitializer {
-            get {
-                return ResourceManager.GetString("ERR_ExpressionVariableInConstructorOrFieldInitializer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Out variable and pattern variable declarations are not allowed within a query clause..
-        /// </summary>
-        internal static string ERR_ExpressionVariableInQueryClause {
-            get {
-                return ResourceManager.GetString("ERR_ExpressionVariableInQueryClause", resourceCulture);
             }
         }
         
@@ -9512,6 +9503,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right..
+        /// </summary>
+        internal static string ERR_TupleSizesMismatchForBinOps {
+            get {
+                return ResourceManager.GetString("ERR_TupleSizesMismatchForBinOps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple must contain at least two elements..
         /// </summary>
         internal static string ERR_TupleTooFewElements {
@@ -10359,7 +10359,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                               form: /t:exe)
         /// /target:winexe                Build a Windows executable (Short form:
         ///                               /t:winexe)
-        /// /target:library        [rest of string was truncated]&quot;;.
+        /// /target:library               Bu [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -10571,6 +10571,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExpressionBodiedProperty {
             get {
                 return ResourceManager.GetString("IDS_FeatureExpressionBodiedProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to declaration of expression variables in member initializers and queries.
+        /// </summary>
+        internal static string IDS_FeatureExpressionVariablesInQueriesAndInitializers {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionVariablesInQueriesAndInitializers", resourceCulture);
             }
         }
         
@@ -10958,6 +10967,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureThrowExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureThrowExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tuple equality.
+        /// </summary>
+        internal static string IDS_FeatureTupleEquality {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTupleEquality", resourceCulture);
             }
         }
         
@@ -13902,7 +13920,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///
         ///Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
         ///
-        ///Give the compiler some way to differentiate the methods. For example, you ca [rest of string was truncated]&quot;;.
+        ///Give the compiler some way to differentiate the methods. For example, you can gi [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_MultipleRuntimeImplementationMatches_Description {
             get {
@@ -14336,7 +14354,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to You have added a reference to an assembly using /link (Embed Interop Types property set to True). This instructs the compiler to embed interop type information from that assembly. However, the compiler cannot embed interop type information from that assembly because another assembly that you have referenced also references that assembly using /reference (Embed Interop Types property set to False).
         ///
-        ///To embed interop type information for both assemblies, use /link for references to each assembly (set the Em [rest of string was truncated]&quot;;.
+        ///To embed interop type information for both assemblies, use /link for references to each assembly (set the Embe [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_ReferencedAssemblyReferencesLinkedPIA_Description {
             get {
@@ -14440,6 +14458,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_TooManyLinesForDebugger_Title {
             get {
                 return ResourceManager.GetString("WRN_TooManyLinesForDebugger_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name or no name is specified on the other side of the tuple == or != operator..
+        /// </summary>
+        internal static string WRN_TupleBinopLiteralNameMismatch {
+            get {
+                return ResourceManager.GetString("WRN_TupleBinopLiteralNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator..
+        /// </summary>
+        internal static string WRN_TupleBinopLiteralNameMismatch_Title {
+            get {
+                return ResourceManager.GetString("WRN_TupleBinopLiteralNameMismatch_Title", resourceCulture);
             }
         }
         
@@ -14752,7 +14788,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to This warning is caused when a catch() block has no specified exception type after a catch (System.Exception e) block. The warning advises that the catch() block will not catch any exceptions.
         ///
-        ///A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS excep [rest of string was truncated]&quot;;.
+        ///A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS excepti [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_UnreachableGeneralCatch_Description {
             get {

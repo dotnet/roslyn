@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Commanding.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -956,22 +957,13 @@ End Namespace</element>
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New OrganizeDocumentCommandHandler(workspace.GetService(Of Host.IWaitIndicator))
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                Dim handler = New OrganizeDocumentCommandHandler()
 
-                Dim state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
-                delegatedToNext = False
+                Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
 
-                state = handler.GetCommandState(New Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                state = handler.GetCommandState(New OrganizeDocumentCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
         End Sub
     End Class
