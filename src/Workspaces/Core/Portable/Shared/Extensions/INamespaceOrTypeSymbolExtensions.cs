@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -81,6 +82,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             GetNameParts(namespaceOrTypeSymbol.ContainingNamespace, result);
             result.Add(namespaceOrTypeSymbol.Name);
+        }
+
+        /// <summary>
+        /// Lazily returns all nested types contained (recursively) within this namespace or type.
+        /// In case of a type, it is included itself as the first result.
+        /// </summary>
+        public static IEnumerable<INamedTypeSymbol> GetAllTypes(
+            this INamespaceOrTypeSymbol namespaceOrTypeSymbol,
+            CancellationToken cancellationToken)
+        {
+            var stack = new Stack<INamespaceOrTypeSymbol>();
+            stack.Push(namespaceOrTypeSymbol);
+
+            while (stack.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+                if (current is INamespaceSymbol currentNs)
+                {
+                    stack.Push(currentNs.GetMembers());
+                }
+                else
+                {
+                    var namedType = (INamedTypeSymbol)current;
+                    stack.Push(namedType.GetTypeMembers());
+                    yield return namedType;
+                }
+            }
         }
     }
 }

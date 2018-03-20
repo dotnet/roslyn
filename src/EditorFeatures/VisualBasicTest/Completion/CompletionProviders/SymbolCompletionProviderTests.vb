@@ -1854,6 +1854,142 @@ End Class
             Await VerifyItemIsAbsentAsync(markup, "C2")
         End Function
 
+        <WorkItem(25589, "https://github.com/dotnet/roslyn/issues/25589")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute1() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace1")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute2() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.$$>
+]]></Text>.Value
+
+            Await VerifyItemIsAbsentAsync(markup, "Namespace2")
+            Await VerifyItemExistsAsync(markup, "Namespace3")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute3() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.Namespace3.$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace4")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute4() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.Namespace3.Namespace4.$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Custom")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute_NamespaceAlias() As Task
+            Dim markup = <Text><![CDATA[
+Imports Namespace1Alias = Namespace1
+Imports Namespace2Alias = Namespace1.Namespace2
+Imports Namespace3Alias = Namespace1.Namespace3
+Imports Namespace4Alias = Namespace1.Namespace3.Namespace4
+
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace1Alias")
+            Await VerifyItemIsAbsentAsync(markup, "Namespace2Alias")
+            Await VerifyItemExistsAsync(markup, "Namespace3Alias")
+            Await VerifyItemExistsAsync(markup, "Namespace4Alias")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithoutNestedAttribute() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class NonAttribute
+            Inherits System.NonAttribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemIsAbsentAsync(markup, "Namespace1")
+        End Function
+
         <WorkItem(542737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542737")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestQueryVariableAfterSelectClause() As Task
