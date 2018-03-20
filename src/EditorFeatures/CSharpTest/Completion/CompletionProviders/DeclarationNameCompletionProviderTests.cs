@@ -630,7 +630,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition1()
+        public async void TupleExpressionDeclaration1()
         {
             var markup = @"
 class Test
@@ -646,7 +646,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition2()
+        public async void TupleExpressionDeclaration2()
         {
             var markup = @"
 class Test
@@ -662,7 +662,23 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition3()
+        public async void TupleExpressionDeclaration_NestedTuples()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        ((int i1, int i2), (System.Array array, System.Action $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition1()
         {
             var markup = @"
 class Test
@@ -678,7 +694,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition4()
+        public async void TupleElementDefinition2()
         {
             var markup = @"
 class Test
@@ -691,7 +707,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition5()
+        public async void TupleElementDefinition3()
         {
             var markup = @"
 class Test
@@ -704,7 +720,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition6()
+        public async void TupleElementDefinition4()
         {
             var markup = @"
 class Test
@@ -717,12 +733,25 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition7()
+        public async void TupleElementDefinition5()
         {
             var markup = @"
 class Test
 {
     void M((System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition_NestedTuples()
+        {
+            var markup = @"
+class Test
+{
+    void M(((int, int), (int, System.Array $$
 }
 ";
             await VerifyItemExistsAsync(markup, "array");

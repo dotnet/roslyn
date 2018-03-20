@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static bool IsTupleExpressionDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
-                if (token.GetAncestor<TupleExpressionSyntax>() != null)
+                if (token.GetAncestor(node => node.IsKind(SyntaxKind.TupleExpression)) is TupleExpressionSyntax tupleExpression &&
+                    tupleExpression.GetLastToken() == token)
                 {
                     result = IsLastTokenOfType<ArgumentSyntax>(token, semanticModel, argument => argument.Expression, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
                     return result.Type != null;
