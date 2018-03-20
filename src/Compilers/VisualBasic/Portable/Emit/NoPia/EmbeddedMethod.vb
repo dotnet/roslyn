@@ -155,5 +155,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                 Return UnderlyingMethod.ContainingNamespace
             End Get
         End Property
+
+        Public Overrides ReadOnly Property HasBody As Boolean
+            Get
+                Return UnderlyingMethod.HasBody
+            End Get
+        End Property
     End Class
 End Namespace

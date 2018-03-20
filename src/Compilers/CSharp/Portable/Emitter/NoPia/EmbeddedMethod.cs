@@ -200,5 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 return UnderlyingMethod.ContainingNamespace;
             }
         }
+
+        public override sealed bool HasBody
+        {
+            get
+            {
+                return UnderlyingMethod.HasBody;
+            }
+        }
     }
 }

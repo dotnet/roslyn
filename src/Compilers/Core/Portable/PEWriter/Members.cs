@@ -426,7 +426,7 @@ namespace Microsoft.Cci
         /// A container for a list of IL instructions providing the implementation (if any) of this method.
         /// </summary>
         /// <remarks>
-        /// When emitting metadata-only assemblies this returns null even if <see cref="Cci.Extensions.HasBody"/> returns true.
+        /// When emitting metadata-only assemblies this returns null even if <see cref="Cci.IMethodDefinition.HasBody"/> returns true.
         /// </remarks>
         IMethodBody GetBody(EmitContext context);
 
@@ -582,6 +582,8 @@ namespace Microsoft.Cci
         /// TODO: Ideally we would expose INamespace on INamespaceTypeDefinition. Right now we can only get the qualified namespace name.
         /// </summary>
         INamespace ContainingNamespace { get; }
+
+        bool HasBody { get; }
     }
 
     /// <summary>
@@ -909,15 +911,6 @@ namespace Microsoft.Cci
 
     internal static class Extensions
     {
-        internal static bool HasBody(this IMethodDefinition methodDef)
-        {
-            // Method definition has body if it is a non-abstract, non-extern method.
-            // Additionally, methods within COM types have no body.
-
-            return !methodDef.IsAbstract && !methodDef.IsExternal &&
-                (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
-        }
-
         /// <summary>
         /// When emitting ref assemblies, some members will not be included.
         /// </summary>

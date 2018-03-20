@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     break;
 
                 default:
-                    if (Cci.Extensions.HasBody(embedded))
+                    if (embedded.HasBody)
                     {
                         // ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
                         Error(diagnostics, ErrorCode.ERR_InteropMethodWithBody, syntaxNodeOpt, method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));

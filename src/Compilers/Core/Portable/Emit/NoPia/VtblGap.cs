@@ -255,5 +255,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         {
             return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
         }
+
+        bool Cci.IMethodDefinition.HasBody => false;
     }
 }

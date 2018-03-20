@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -520,6 +521,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodDefinition_ContainingNamespace As Cci.INamespace Implements Cci.IMethodDefinition.ContainingNamespace
             Get
                 Return ContainingNamespace
+            End Get
+        End Property
+
+        Public ReadOnly Property HasBody As Boolean Implements IMethodDefinition.HasBody
+            Get
+                Return Not IsMustOverride AndAlso Not IsExternal AndAlso (ContainingType Is Nothing OrElse Not ContainingType.IsComImport)
             End Get
         End Property
     End Class

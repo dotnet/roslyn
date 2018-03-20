@@ -2852,7 +2852,7 @@ namespace Microsoft.Cci
             int methodRid = 0;
             foreach (IMethodDefinition method in methods)
             {
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     if (bodyOffsetCache == -1)
                     {
@@ -2894,7 +2894,7 @@ namespace Microsoft.Cci
                 IMethodBody body;
                 StandaloneSignatureHandle localSignatureHandleOpt;
 
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     body = method.GetBody(Context);
 

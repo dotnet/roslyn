@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool AcceptsExtraArguments { get; }
             protected abstract Cci.ISignature UnderlyingMethodSignature { get; }
             protected abstract Cci.INamespace ContainingNamespace { get; }
+            public abstract bool HasBody { get; }
 
             public TMethodSymbol UnderlyingMethod => this.UnderlyingSymbol;
 
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
             {
-                if (Cci.Extensions.HasBody(this))
+                if (this.HasBody)
                 {
                     // This is an error condition, which we already reported.
                     // To prevent metadata emitter/visitor from crashing, let's
@@ -188,6 +189,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             bool Cci.IMethodDefinition.IsStatic => IsStatic;
 
             bool Cci.IMethodDefinition.IsVirtual => IsVirtual;
+
+            bool Cci.IMethodDefinition.HasBody => HasBody;
 
             System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
             {
