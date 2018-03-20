@@ -3949,7 +3949,8 @@ class CL1
 {
 }
 ", parseOptions: TestOptions.Regular8);
-
+            // PROTOTYPE(NullReferenceTypes): Should report WRN_NullReferenceAssignment for `ref x3`
+            // even though the local is unassigned. (The local should be treated as an l-value for assignment.)
             c.VerifyDiagnostics(
                 // (12,12): warning CS8604: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
                 //         M1(x1);
@@ -11027,6 +11028,12 @@ class C
     {
         x6--; 
     }
+
+    void Test7()
+    {
+        CL1 x7;
+        x7--; 
+    }
 }
 
 class CL0
@@ -11045,7 +11052,8 @@ class CL1
     }
 }
 ", parseOptions: TestOptions.Regular8);
-
+            // PROTOTYPE(NullReferenceTypes): Should report WRN_NullReferenceAssignment for `x7--`
+            // even though the local is unassigned. (The local should be treated as an l-value for assignment.)
             c.VerifyDiagnostics(
                 // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
                 //         CL0? u1 = ++x1;
@@ -11715,6 +11723,12 @@ class Test
     {
         x5 += y5;
     }
+
+    void Test6(CL0 y6)
+    {
+        CL1 x6;
+        x6 += y6;
+    }
 }
 
 class CL0
@@ -11767,8 +11781,13 @@ class CL1
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(31, 18),
                 // (36,9): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
                 //         x5 += y5;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x5 += y5").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(36, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x5 += y5").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(36, 9),
+                // (42,9): error CS0165: Use of unassigned local variable 'x6'
+                //         x6 += y6;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x6").WithArguments("x6").WithLocation(42, 9),
+                // (42,9): warning CS8601: Possible null reference assignment.
+                //         x6 += y6;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6 += y6").WithLocation(42, 9));
         }
 
         [Fact]

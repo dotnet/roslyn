@@ -1561,6 +1561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = arguments[i];
                 if (refKind != RefKind.Out)
                 {
+                    // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
+                    // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
                     VisitRvalue(argument);
                 }
                 else
@@ -3244,7 +3246,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability.
+            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability
+            // or perhaps expose as nullability from `this[int]` even if stored differently.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
 
