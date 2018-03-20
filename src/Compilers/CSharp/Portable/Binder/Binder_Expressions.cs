@@ -2080,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingExpr.ConstantValue != null)
                 {
                     underlyingExpr.WasCompilerGenerated = true;
-                    return BindCastCore(node, underlyingExpr, targetType, wasCompilerGenerated: operand.WasCompilerGenerated,  isExplicitlyNullable: true, diagnostics: diagnostics);
+                    return BindCastCore(node, underlyingExpr, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, isExplicitlyNullable: true, diagnostics: diagnostics);
                 }
 
                 return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, isExplicitlyNullable: true, diagnostics: diagnostics);

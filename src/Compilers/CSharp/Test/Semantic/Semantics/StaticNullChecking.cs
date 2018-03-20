@@ -18150,6 +18150,210 @@ class C
         }
 
         [Fact]
+        public void MultipleConversions_01()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator C(A a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    static void F(B? b)
+    {
+        C c = b; // (ImplicitUserDefined)(ImplicitReference)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
+                //         C c = b; // (ImplicitUserDefined)(ImplicitReference)b
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.implicit operator C(A a)").WithLocation(12, 15));
+        }
+
+        [Fact]
+        public void MultipleConversions_02()
+        {
+            var source =
+@"class A
+{
+}
+class B : A
+{
+}
+class C
+{
+    public static implicit operator B?(C c) => null;
+    static void F(C c)
+    {
+        A a = c; // (ImplicitReference)(ImplicitUserDefined)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         A a = c; // (ImplicitReference)(ImplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c").WithLocation(12, 15));
+        }
+
+        [Fact]
+        public void MultipleConversions_03()
+        {
+            var source =
+@"struct S<T>
+{
+    public static implicit operator S<T>(T t) => default;
+    static void M()
+    {
+        S<object> s = true; // (ImplicitUserDefined)(Boxing)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleConversions_04()
+        {
+            var source =
+@"struct S<T>
+{
+    public static implicit operator T(S<T> s) => throw new System.Exception();
+    static void M()
+    {
+        bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0266: Cannot implicitly convert type 'S<object>' to 'bool'. An explicit conversion exists (are you missing a cast?)
+                //         bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new S<object>()").WithArguments("S<object>", "bool").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void MultipleConversions_Explicit_01()
+        {
+            var source =
+@"class A
+{
+    public static explicit operator C(A a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    static void F(B? b)
+    {
+        C? c;
+        c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C?)b; // (ExplicitUserDefined)(ImplicitReference)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
+                //         c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator C(A a)").WithLocation(13, 16),
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b").WithLocation(13, 13),
+                // (14,17): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
+                //         c = (C?)b; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator C(A a)").WithLocation(14, 17));
+        }
+
+        [Fact]
+        public void MultipleConversions_Explicit_02()
+        {
+            var source =
+@"class A
+{
+    public static explicit operator S(A a) => new S();
+}
+class B : A { }
+struct S { }
+class C
+{
+    static void F(B? b)
+    {
+        S? s;
+        s = (S)b; // (ExplicitUserDefined)(ImplicitReference)
+        s = (S?)b; // (ImplicitNullable)(ExplicitUserDefined)(ImplicitReference)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator S(A a)'.
+                //         s = (S)b; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator S(A a)").WithLocation(12, 16),
+                // (13,17): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator S(A a)'.
+                //         s = (S?)b; // (ImplicitNullable)(ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator S(A a)").WithLocation(13, 17));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Conversions: Tuples
+        [Fact(Skip = "TODO")]
+        public void MultipleTupleConversions_01()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator C(A a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    static void F((B?, B) b)
+    {
+        (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,21): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
+                //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.implicit operator C(A a)").WithLocation(12, 21),
+                // (12,21): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
+                //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("(B?, B)", "(C, C?)").WithLocation(12, 21));
+        }
+
+        [Fact]
+        public void MultipleTupleConversions_02()
+        {
+            var source =
+@"class A
+{
+}
+class B : A
+{
+}
+class C
+{
+    public static implicit operator B(C c) => new C();
+    static void F(C? x, C y)
+    {
+        (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,17): warning CS0219: The variable 't' is assigned but its value is never used
+                //         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t").WithArguments("t").WithLocation(12, 17),
+                // (12,22): warning CS8604: Possible null reference argument for parameter 'c' in 'C.implicit operator B(C c)'.
+                //         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("c", "C.implicit operator B(C c)").WithLocation(12, 22));
+        }
+
+        [Fact]
         public void ConstrainedToTypeParameter_01()
         {
             var source =
