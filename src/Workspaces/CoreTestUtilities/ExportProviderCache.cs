@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (!_enabled)
             {
-                throw new InvalidOperationException($"{nameof(ExportProviderCache)} may only be used from tests marked with UseExportProviderAttribute");
+                throw new InvalidOperationException($"{nameof(ExportProviderCache)} may only be used from tests marked with {nameof(UseExportProviderAttribute)}");
             }
 
             var expectedCatalog = Interlocked.CompareExchange(ref _expectedCatalog, catalog, null) ?? catalog;
