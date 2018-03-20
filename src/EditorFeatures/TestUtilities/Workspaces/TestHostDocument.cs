@@ -203,6 +203,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
+                // Explicitly instantiate IMouseProcessorProvider instances to avoid crashing when a text view is
+                // created. https://github.com/dotnet/roslyn/issues/25119
+                _exportProvider.GetExportedValues<IMouseProcessorProvider>().ToArray();
+
                 var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
 
                 // Every default role but outlining. Starting in 15.2, the editor
