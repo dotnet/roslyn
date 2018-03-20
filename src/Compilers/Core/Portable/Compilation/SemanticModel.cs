@@ -88,11 +88,32 @@ namespace Microsoft.CodeAnalysis
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Deep Clone given IOperation
+        /// PROTOTYPE(dataflow): Add documentation. Also, we should guard this API with a feature flag before we merge it to master.
         /// </summary>
-        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
+        {
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
 
-        internal abstract IOperation CloneOperationCore(IOperation operation);
+            if (!body.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
+            }
+
+            try
+            {
+                return Operations.ControlFlowGraphBuilder.Create(body);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
+                Debug.Assert(false, "\n" + e.ToString());
+            }
+
+            return default;
+        }
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.

@@ -833,6 +833,11 @@
         <target state="translated">L'ID della diagnostica restituita è '{0}', che deve essere restituito solo da un compilatore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

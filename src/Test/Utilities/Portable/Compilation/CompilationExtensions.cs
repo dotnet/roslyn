@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
-            var visitor = TestOperationVisitor.GetInstance();
+            var visitor = TestOperationVisitor.Singleton;
 
             foreach (var root in roots)
             {

@@ -833,6 +833,11 @@
         <target state="translated">El diagnóstico notificado tiene un identificador "{0}", que solo debería notificar un compilador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -28,7 +28,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -81,7 +81,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String item
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -135,7 +135,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (Ke ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (Ke ... }')
   Locals: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'KeyValuePair<int, int>')
@@ -206,7 +206,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 num) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -228,7 +228,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+            IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... eLine(num);')
@@ -269,7 +269,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 num) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -291,7 +291,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Synta
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            IBranchOperation (BranchKind.Continue) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
+            IBranchOperation (BranchKind.Continue, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'continue;')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... eLine(num);')
@@ -330,7 +330,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (st ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -393,7 +393,7 @@ namespace DisplayStructContentsTest
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (Fi ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (Fi ... }')
   Locals: Local_1: System.Reflection.FieldInfo fi
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Reflection.FieldInfo fi) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'FieldInfo')
@@ -474,7 +474,7 @@ class Class1
 
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ch ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ch ... }')
   Locals: Local_1: System.Char c
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Char c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'char')
@@ -526,7 +526,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -592,7 +592,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (Mi ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (Mi ... }')
   Locals: Local_1: MissingType x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: MissingType x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'MissingType')
@@ -643,7 +643,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -674,7 +674,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -706,7 +706,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... a) { x++; }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... a) { x++; }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -757,7 +757,7 @@ class Enumerator
 
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (lo ... x in e) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (lo ... x in e) { }')
   Locals: Local_1: System.Int64 x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int64 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'long')
@@ -789,7 +789,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (var x in s) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (var x in s) { }')
   Locals: Local_1: System.Char x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Char x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -823,7 +823,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (var x in a) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (var x in a) { }')
   Locals: Local_1: C.var x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: C.var x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -855,7 +855,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (int x in d) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (int x in d) { }')
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -895,7 +895,7 @@ public class Enumerable<T>
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ob ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ob ... }')
   Locals: Local_1: System.Object x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Object x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'object')
@@ -942,7 +942,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... e)args) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... e)args) { }')
   Locals: Local_1: System.String x
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -987,7 +987,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 num) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')
@@ -1051,7 +1051,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.Int32 a
     Local_2: System.Int32 b
   LoopControlVariable: 
@@ -1091,7 +1091,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.Int32 a
     Local_2: System.Int32 b
     Local_3: System.Int32 c
@@ -1137,7 +1137,7 @@ class X
 ";
             string expectedOperationTree = @"
 IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
-  IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (i')
+  IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (i')
     LoopControlVariable: 
       null
     Collection: 
@@ -1217,7 +1217,7 @@ class X
 ";
             string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
-  IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (x[ ... }')
+  IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (x[ ... }')
     LoopControlVariable: 
       null
     Collection: 
@@ -1253,7 +1253,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 i
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'int')

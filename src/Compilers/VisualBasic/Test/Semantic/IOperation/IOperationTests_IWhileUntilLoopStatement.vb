@@ -29,7 +29,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... While i < 4')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... While i < 4')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 4')
       Left: 
@@ -81,7 +81,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do Until X  ... Loop')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'Do Until X  ... Loop')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'X < 0')
       Left: 
@@ -135,7 +135,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While condi ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While condi ... End While')
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
   Body: 
@@ -203,7 +203,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 5 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While i < 5 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
@@ -257,7 +257,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -298,7 +298,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "While-loop break") (Syntax: '"While-loop break"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit While')
+            IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'Exit While')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... statement")')
@@ -337,7 +337,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -417,7 +417,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While (Inli ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While (Inli ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(InlineAssi ... alue)) >= 0')
       Left: 
@@ -493,7 +493,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While numbe ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While numbe ... End While')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'number')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -529,7 +529,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -592,7 +592,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While True' ... End While')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: 
@@ -656,7 +656,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While 'BIND ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While 'BIND ... End While')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
@@ -720,7 +720,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While (cond ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While (cond ... End While')
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(condition)')
       Operand: 
@@ -753,7 +753,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i <=  ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While i <=  ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: 
@@ -780,7 +780,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 9) (Syntax: '9')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If i < 9 Th ... End If')
-            IBranchOperation (BranchKind.Continue, Label: continue) (OperationKind.Branch, Type: null) (Syntax: 'Continue While')
+            IBranchOperation (BranchKind.Continue, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'Continue While')
         WhenFalse: 
           null
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(i)')
@@ -823,7 +823,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While IsTru ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While IsTru ... End While')
   Condition: 
     IInvocationOperation (Function ContinueTest.IsTrue(i As System.Int32) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'IsTrue(i)')
       Instance Receiver: 
@@ -882,7 +882,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
@@ -910,7 +910,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -979,7 +979,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While i < 1 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
@@ -1007,7 +1007,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
           Initializer: 
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
+      IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'While j < 1 ... End While')
         Condition: 
           IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
@@ -1080,7 +1080,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While Syste ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While Syste ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'System.Thre ... ment(i) < 5')
       Left: 
@@ -1129,7 +1129,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While i > 0 ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While i > 0 ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
       Left: 
@@ -1170,7 +1170,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While b = b ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While b = b ... End While')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: True) (Syntax: 'b = b')
       Left: 
@@ -1209,7 +1209,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While Syste ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'While Syste ... End While')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'System.Math ...  x + 1) > 0')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1239,7 +1239,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'While Syste ... End While')
-      ITryOperation (OperationKind.Try, Type: null) (Syntax: 'Try ... End Try')
+      ITryOperation (Exit Label Id: 2) (OperationKind.Try, Type: null) (Syntax: 'Try ... End Try')
         Body: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Try ... End Try')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'y = CSByte(x / 2)')
@@ -1297,7 +1297,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do While G( ... Loop')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'Do While G( ... Loop')
   Condition: 
     IInvocationOperation ( Function C.G() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: 
@@ -1342,7 +1342,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... p While G()')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... p While G()')
   Condition: 
     IInvocationOperation ( Function C.G() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: 
@@ -1381,7 +1381,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... Until X < 0')
+IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'Do'BIND:"Do ... Until X < 0')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'X < 0')
       Left: 
@@ -1437,7 +1437,7 @@ End Module
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null) (Syntax: 'While Not b ... End While')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'While Not b ... End While')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: 'Not breakLoop')
       Operand: 
@@ -1488,7 +1488,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
+IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
       Left: 
@@ -1524,5 +1524,341 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub WhileFlow_01()
+            Dim source1 = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        While condition
+            condition = false
+        End While
+    End Sub
+End Class]]>.Value
+
+            Dim source2 = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do While condition
+            condition = false
+        Loop
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B1]
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source1, expectedFlowGraph, expectedDiagnostics)
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source2, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub WhileFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition1 As Boolean, condition2 As Boolean)'BIND:"Sub M"
+        Do While condition1
+        Loop While condition2
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
+        Loop While condition2
+             ~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[B1]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub WhileFlow_03()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition1 As Boolean, condition2 As Boolean)'BIND:"Sub M"
+        Do While condition1
+        Loop Until condition2
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
+        Loop Until condition2
+             ~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[B1]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub UntilFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do Until condition
+            condition = false
+        Loop
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2]
+    Statements (0)
+    Jump if True (Regular) to Block[B3]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B1]
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub UntilFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition1 As Boolean, condition2 As Boolean)'BIND:"Sub M"
+        Do Until condition1
+        Loop While condition2
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
+        Loop While condition2
+             ~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B2]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[B1]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub UntilFlow_03()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition1 As Boolean, condition2 As Boolean)'BIND:"Sub M"
+        Do Until condition1
+        Loop Until condition2
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
+        Loop Until condition2
+             ~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B2]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[B1]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DoFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do
+            condition = false
+        Loop While condition
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Jump if True (Regular) to Block[B1]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DoUntilFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do
+            condition = false
+        Loop Until condition
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Jump if False (Regular) to Block[B1]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace

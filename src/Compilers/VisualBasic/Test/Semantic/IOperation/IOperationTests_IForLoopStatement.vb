@@ -24,7 +24,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
@@ -89,7 +89,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
@@ -147,7 +147,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As Do ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For i As Do ... Next')
   Locals: Local_1: i As System.Double
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Double) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Double')
@@ -205,7 +205,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For ctrlVar ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For ctrlVar ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: ctrlVar (OperationKind.LocalReference, Type: System.Object) (Syntax: 'ctrlVar')
   InitialValue: 
@@ -254,7 +254,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For AVarNam ... xt AVarName')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For AVarNam ... xt AVarName')
   Locals: Local_1: AVarName As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: AVarName As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'AVarName')
@@ -271,7 +271,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For AVarNam ... xt AVarName')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For AVarNam ... xt AVarName')
-      IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For B = 1 T ... Next B')
+      IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For B = 1 T ... Next B')
         Locals: Local_1: B As System.Int32
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: B As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'B')
@@ -288,7 +288,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For B = 1 T ... Next B')
         Body: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For B = 1 T ... Next B')
-            IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For C = 1 T ... Next C')
+            IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 4, Exit Label Id: 5) (OperationKind.Loop, Type: null) (Syntax: 'For C = 1 T ... Next C')
               Locals: Local_1: C As System.Int32
               LoopControlVariable: 
                 IVariableDeclaratorOperation (Symbol: C As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'C')
@@ -305,7 +305,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For C = 1 T ... Next C')
               Body: 
                 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For C = 1 T ... Next C')
-                  IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For D = 1 T ... Next D')
+                  IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 6, Exit Label Id: 7) (OperationKind.Loop, Type: null) (Syntax: 'For D = 1 T ... Next D')
                     Locals: Local_1: D As System.Int32
                     LoopControlVariable: 
                       IVariableDeclaratorOperation (Symbol: D As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'D')
@@ -356,7 +356,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
   Locals: Local_1: I As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: I As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'I')
@@ -373,7 +373,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For I = 1 T ... Next')
-      IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For J = 1 T ... Next')
+      IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For J = 1 T ... Next')
         Locals: Local_1: J As System.Int32
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: J As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'J')
@@ -434,7 +434,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
   Locals: Local_1: I As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: I As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'I')
@@ -451,7 +451,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For I = 1 T ... Next')
-      IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For J = I + ... Next')
+      IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For J = I + ... Next')
         Locals: Local_1: J As System.Int32
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: J As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'J')
@@ -509,7 +509,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For I = 1 T ... Next')
   Locals: Local_1: I As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: I As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'I')
@@ -526,7 +526,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For I = 1 T ... Next')
   Body: 
     IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For I = 1 T ... Next')
-      IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For J = 1 T ... Next')
+      IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For J = 1 T ... Next')
         Locals: Local_1: J As System.Int32
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: J As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'J')
@@ -543,7 +543,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For J = 1 T ... Next')
         Body: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For J = 1 T ... Next')
-            IBranchOperation (BranchKind.Break, Label: exit) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
+            IBranchOperation (BranchKind.Break, Label Id: 3) (OperationKind.Branch, Type: null) (Syntax: 'Exit For')
         NextVariables(0)
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... riteLine(I)')
         Expression: 
@@ -581,7 +581,7 @@ End Enum
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x As e1 ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x As e1 ... Next')
   Locals: Local_1: x As e1
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As e1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As e1')
@@ -632,7 +632,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
@@ -690,7 +690,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For global_ ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For global_ ... Next')
   Locals: Local_1: global_x As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: global_x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'global_x As Integer')
@@ -732,7 +732,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x As In ... o 10 : Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x As In ... o 10 : Next')
   Locals: Local_1: x As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: x As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x As Integer')
@@ -771,7 +771,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For Y = 1 T ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Y = 1 T ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: Y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'Y')
   InitialValue: 
@@ -814,7 +814,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For element ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For element ... Next')
   Locals: Local_1: element1 As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: element1 As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'element1')
@@ -860,7 +860,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i As Integer')
@@ -890,7 +890,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         WhenTrue: 
           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If i Mod 2  ... End If')
-            IBranchOperation (BranchKind.Continue, Label: continue) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
+            IBranchOperation (BranchKind.Continue, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'Continue For')
         WhenFalse: 
           null
   NextVariables(0)
@@ -919,7 +919,7 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For X = 10  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For X = 10  ... Next')
   LoopControlVariable: 
     IFieldReferenceOperation: M.X As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
       Instance Receiver: 
@@ -963,7 +963,7 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For X = 10  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For X = 10  ... Next')
   LoopControlVariable: 
     IFieldReferenceOperation: M.X As System.String (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'X')
       Instance Receiver: 
@@ -1003,7 +1003,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For A = 1 T ... Next B, A')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For A = 1 T ... Next B, A')
   Locals: Local_1: A As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: A As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'A')
@@ -1020,7 +1020,7 @@ IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: '
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For A = 1 T ... Next B, A')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For A = 1 T ... Next B, A')
-      IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For B = A T ... Next B, A')
+      IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'For B = A T ... Next B, A')
         Locals: Local_1: B As System.Int32
         LoopControlVariable: 
           IVariableDeclaratorOperation (Symbol: B As System.Int32) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'B')
@@ -1063,7 +1063,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   InitialValue: 
@@ -1098,7 +1098,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
@@ -1139,7 +1139,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   InitialValue: 
@@ -1177,7 +1177,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
@@ -1216,7 +1216,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   InitialValue: 
@@ -1252,7 +1252,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
@@ -1291,7 +1291,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   InitialValue: 
@@ -1330,7 +1330,7 @@ End Structure
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For x = 12  ... Next')
   LoopControlVariable: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
   InitialValue: 
@@ -1367,7 +1367,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For X = 0 T ... Next X')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For X = 0 T ... Next X')
   LoopControlVariable: 
     IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
       Instance Receiver: 
@@ -1411,7 +1411,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null) (Syntax: 'For c.X = 0 ... Next c.X')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For c.X = 0 ... Next c.X')
   LoopControlVariable: 
     IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'c.X')
       Instance Receiver: 
@@ -1455,7 +1455,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopOperation (LoopKind.ForTo) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i as In ... Next i')
+IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'For i as In ... Next i')
   Locals: Local_1: i As System.Int32
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: i As System.Int32) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i as Integer')

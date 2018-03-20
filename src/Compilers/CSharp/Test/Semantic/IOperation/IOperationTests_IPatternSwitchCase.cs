@@ -686,7 +686,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchOperation (3 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (p) ... }')
+ISwitchOperation (3 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (p) ... }')
   Switch expression: 
     IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
   Sections:
@@ -698,7 +698,7 @@ ISwitchOperation (3 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case int y: ... break;')
           Clauses:
               IPatternCaseClauseOperation (Label Symbol: case int y:) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case int y:')
@@ -707,7 +707,7 @@ ISwitchOperation (3 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case X z: ... break;')
           Clauses:
               IPatternCaseClauseOperation (Label Symbol: case X z:) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X z:')
@@ -716,7 +716,7 @@ ISwitchOperation (3 cases) (OperationKind.Switch, Type: null, IsInvalid) (Syntax
                 Guard Expression: 
                   null
           Body:
-              IBranchOperation (BranchKind.Break) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8120: The switch case has already been handled by a previous case.

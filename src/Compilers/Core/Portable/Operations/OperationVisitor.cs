@@ -509,6 +509,31 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitFlowCapture(IFlowCaptureOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitIsNull(IIsNullOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitCaughtException(ICaughtExceptionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -1021,6 +1046,31 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitConstructorBodyOperation(IConstructorBodyOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFlowCapture(IFlowCaptureOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIsNull(IIsNullOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitCaughtException(ICaughtExceptionOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

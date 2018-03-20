@@ -694,9 +694,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from CSharp code.</exception>
         public static Conversion GetConversion(this IConversionOperation conversionExpression)
         {
-            if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
+            if (conversionExpression.Language == LanguageNames.CSharp)
             {
-                return csharpConversionExpression.ConversionInternal;
+                return (Conversion)((BaseConversionExpression)conversionExpression).ConvertibleConversion;
             }
             else
             {
@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignment)
+            if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return csharpCompoundAssignment.InConversionInternal;
+                return (Conversion)((BaseCompoundAssignmentExpression)compoundAssignment).InConversionConvertible;
             }
             else
             {
@@ -746,9 +746,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignemnt)
+            if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return csharpCompoundAssignemnt.OutConversionInternal;
+                return (Conversion)((BaseCompoundAssignmentExpression)compoundAssignment).OutConversionConvertible;
             }
             else
             {

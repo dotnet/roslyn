@@ -824,6 +824,15 @@ Public MustInherit Class BasicTestBase
         End If
     End Sub
 
+    Protected Shared Sub VerifyFlowGraphForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedFlowGraph As String, Optional which As Integer = 0)
+        Dim tree = compilation.SyntaxTrees(0)
+        Dim model = compilation.GetSemanticModel(tree)
+        Dim syntaxNode As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, tree.FilePath, which, prefixMatch:=True)
+
+        Dim graph As Operations.ControlFlowGraph = SemanticModel.GetControlFlowGraph(DirectCast(model.GetOperation(syntaxNode), Operations.IBlockOperation))
+        ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph)
+    End Sub
+
     Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
         source As String,
         expectedOperationTree As String,
@@ -856,6 +865,11 @@ Public MustInherit Class BasicTestBase
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which, additionalOperationTreeVerifier)
     End Sub
 
+    Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0)
+        compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
+        VerifyFlowGraphForTest(Of TSyntaxNode)(compilation, expectedOperationTree, which)
+    End Sub
+
     Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
         source As String,
         expectedOperationTree As String,
@@ -875,6 +889,27 @@ Public MustInherit Class BasicTestBase
         Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
     End Sub
+
+    Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
+        testSrc As String,
+        expectedOperationTree As String,
+        expectedDiagnostics As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
+        Optional useLatestFramework As Boolean = False)
+
+        Dim fileName = "a.vb"
+        parseOptions = If(parseOptions?.WithFlowAnalysisFeature(), TestOptions.RegularWithFlowAnalysisFeature)
+        Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
+        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
+        Dim references = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        references = If(additionalReferences IsNot Nothing, references.Concat(additionalReferences), references)
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedOperationTree, expectedDiagnostics, which)
+    End Sub
+
 
     Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)

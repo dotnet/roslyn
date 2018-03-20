@@ -365,5 +365,274 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int* .
             VerifyOperationTreeAndDiagnosticsForTest<FixedStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeDebugDll);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FixedStatement_01()
+        {
+            string source = @"
+unsafe public class MyClass
+{
+    int i;
+    unsafe void M(bool b)
+    /*<bind>*/{
+        fixed (int* p = &i)
+        {
+            System.Console.WriteLine($""P is {p}"");
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int*' to 'object'
+                //             System.Console.WriteLine($"P is {p}");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p").WithArguments("int*", "object").WithLocation(9, 46)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsImplicit) (Syntax: 'p = &i')
+          Left: 
+            ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsImplicit) (Syntax: 'p = &i')
+          Right: 
+            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i')
+              Children(1):
+                  IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i')
+                    Reference: 
+                      IFieldReferenceOperation: System.Int32 MyClass.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
+                        Instance Receiver: 
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsImplicit) (Syntax: 'i')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'System.Cons ... P is {p}"");')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... ""P is {p}"")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '$""P is {p}""')
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""P is {p}""')
+                      Parts(2):
+                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'P is ')
+                            Text: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""P is "", IsImplicit) (Syntax: 'P is ')
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{p}')
+                            Expression: 
+                              ILocalReferenceOperation: p (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'p')
+                            Alignment: 
+                              null
+                            FormatString: 
+                              null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FixedStatement_02()
+        {
+            string source = @"
+unsafe public class MyClass
+{
+    int i;
+    unsafe void M(bool b)
+    /*<bind>*/{
+        fixed (int* p = &i)
+        {
+            if (b)
+            {
+                System.Console.WriteLine($""P is {p}"");
+            }
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int*' to 'object'
+                //                 System.Console.WriteLine($"P is {p}");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p").WithArguments("int*", "object").WithLocation(11, 50)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsImplicit) (Syntax: 'p = &i')
+          Left: 
+            ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsImplicit) (Syntax: 'p = &i')
+          Right: 
+            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&i')
+              Children(1):
+                  IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&i')
+                    Reference: 
+                      IFieldReferenceOperation: System.Int32 MyClass.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
+                        Instance Receiver: 
+                          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsImplicit) (Syntax: 'i')
+
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'System.Cons ... P is {p}"");')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... ""P is {p}"")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '$""P is {p}""')
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""P is {p}""')
+                      Parts(2):
+                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'P is ')
+                            Text: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""P is "", IsImplicit) (Syntax: 'P is ')
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{p}')
+                            Expression: 
+                              ILocalReferenceOperation: p (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'p')
+                            Alignment: 
+                              null
+                            FormatString: 
+                              null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FixedStatement_04()
+        {
+            string source = @"
+unsafe public class MyClass
+{
+    int i1, i2;
+    unsafe void M(bool b)
+    /*<bind>*/{
+        fixed (int* p = b ? &i1 : &i2)
+        {
+            if (b)
+            {
+                System.Console.WriteLine($""P is {*p}"");
+            }
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         fixed (int* p = b ? &i1 : &i2)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&i1").WithLocation(7, 29),
+                // CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         fixed (int* p = b ? &i1 : &i2)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&i2").WithLocation(7, 35)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '&i1')
+          Value: 
+            IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*, IsInvalid) (Syntax: '&i1')
+              Reference: 
+                IFieldReferenceOperation: System.Int32 MyClass.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '&i2')
+          Value: 
+            IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*, IsInvalid) (Syntax: '&i2')
+              Reference: 
+                IFieldReferenceOperation: System.Int32 MyClass.i2 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i2')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
+          Left: 
+            ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
+          Right: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'b ? &i1 : &i2')
+
+    Jump if False (Regular) to Block[B6]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ...  is {*p}"");')
+          Expression: 
+            IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... P is {*p}"")')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '$""P is {*p}""')
+                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""P is {*p}""')
+                      Parts(2):
+                          IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'P is ')
+                            Text: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""P is "", IsImplicit) (Syntax: 'P is ')
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{*p}')
+                            Expression: 
+                              IOperation:  (OperationKind.None, Type: null) (Syntax: '*p')
+                                Children(1):
+                                    ILocalReferenceOperation: p (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p')
+                            Alignment: 
+                              null
+                            FormatString: 
+                              null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+
     }
 }

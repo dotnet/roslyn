@@ -833,6 +833,11 @@
         <target state="translated">O diagnóstico relatado tem uma ID '{0}', na qual somente um compilador deve ser relatado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
