@@ -678,6 +678,22 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleExpressionDeclaration_NestedTuples_CompletionInTheMiddle()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        ((System.Array array, System.Action $$), (int i1, int i2))
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void TupleElementDefinition1()
         {
             var markup = @"
@@ -752,6 +768,19 @@ class Test
 class Test
 {
     void M(((int, int), (int, System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TupleElementDefinition_InMiddleOfTuple()
+        {
+            var markup = @"
+class Test
+{
+    void M((int, System.Array $$),int)
 }
 ";
             await VerifyItemExistsAsync(markup, "array");

@@ -68,16 +68,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static bool IsTupleElementDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
-                result = IsLastTokenOfType<TupleElementSyntax>(token, semanticModel, tupleElement => tupleElement.Type, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                result = IsFollowingTypeOrComma<TupleElementSyntax>(token, semanticModel, tupleElement => tupleElement.Type, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
                 return result.Type != null;
             }
 
             private static bool IsTupleExpressionDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
-                if (token.GetAncestor(node => node.IsKind(SyntaxKind.TupleExpression)) is TupleExpressionSyntax tupleExpression &&
-                    tupleExpression.GetLastToken() == token)
+                if (token.GetAncestor(node => node.IsKind(SyntaxKind.TupleExpression)) != null)
                 {
-                    result = IsLastTokenOfType<ArgumentSyntax>(token, semanticModel, argument => argument.Expression, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                    result = IsFollowingTypeOrComma<ArgumentSyntax>(
+                        token,
+                        semanticModel,
+                        GetTypeSyntaxOfArgument,
+                        _ => default(SyntaxTokenList),
+                        _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
                     return result.Type != null;
                 }
                 result = default;
@@ -411,6 +415,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 return Accessibility.NotApplicable;
+            }
+
+            private static SyntaxNode GetTypeSyntaxOfArgument(ArgumentSyntax argumentSyntax)
+            {
+                switch (argumentSyntax.Expression?.Kind())
+                {
+                    case SyntaxKind.DeclarationExpression:
+                        return (argumentSyntax.Expression as DeclarationExpressionSyntax).Type;
+                    default:
+                        return argumentSyntax.Expression;
+                }
             }
         }
     }
