@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     public static partial class Extensions
     {
         public static SourceTextContainer AsTextContainer(this ITextBuffer buffer)
-            => TextBufferContainer.From(workspace: null, buffer);
+            => TextBufferContainer.From(buffer);
 
         public static ITextBuffer GetTextBuffer(this SourceTextContainer textContainer)
             => TryGetTextBuffer(textContainer) ?? throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Text
             => line.Snapshot.AsText().Lines[line.LineNumber];
 
         public static SourceText AsText(this ITextSnapshot textSnapshot)
-            => SnapshotSourceText.From(workspace: null, textSnapshot);
+            => SnapshotSourceText.From(textBufferCloneServiceOpt: null, textSnapshot);
 
-        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, Workspace workspace, Encoding encoding)
-            => new SnapshotSourceText.ClosedSnapshotSourceText(workspace, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
+        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding encoding)
+            => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
 
         /// <summary>
         /// Gets the workspace corresponding to the text buffer.

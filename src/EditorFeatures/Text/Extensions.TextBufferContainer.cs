@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -19,49 +18,39 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
             private readonly object _gate = new object();
+            private readonly ITextBufferCloneService _textBufferCloneServiceOpt;
 
             private event EventHandler<TextChangeEventArgs> EtextChanged;
             private SourceText _currentText;
 
-            private TextBufferContainer(Workspace workspace, ITextBuffer editorBuffer)
+            private TextBufferContainer(ITextBuffer editorBuffer)
             {
                 Contract.ThrowIfNull(editorBuffer);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                _currentText = SnapshotSourceText.From(workspace, editorBuffer.CurrentSnapshot, this);
+                editorBuffer.Properties.TryGetProperty(typeof(ITextBufferCloneService), out _textBufferCloneServiceOpt);
+                _currentText = SnapshotSourceText.From(_textBufferCloneServiceOpt, editorBuffer.CurrentSnapshot, this);
             }
 
             /// <summary>
             /// A weak map of all Editor ITextBuffers and their associated SourceTextContainer
             /// </summary>
             private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer> s_textContainerMap = new ConditionalWeakTable<ITextBuffer, TextBufferContainer>();
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer>.CreateValueCallback s_createContainerWithoutWorkspaceCallback = CreateContainer;
+            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer>.CreateValueCallback s_createContainerCallback = CreateContainer;
 
-            public static TextBufferContainer From(Workspace workspace, ITextBuffer buffer)
+            public static TextBufferContainer From(ITextBuffer buffer)
             {
                 if (buffer == null)
                 {
                     throw new ArgumentNullException(nameof(buffer));
                 }
 
-                if (workspace is null)
-                {
-                    return s_textContainerMap.GetValue(buffer, s_createContainerWithoutWorkspaceCallback);
-                }
-
-                if (!s_textContainerMap.TryGetValue(buffer, out var container))
-                {
-                    // Avoid capturing 'workspace' on the fast path
-                    var workspaceCopy = workspace;
-                    container = s_textContainerMap.GetValue(buffer, key => new TextBufferContainer(workspace, key));
-                }
-
-                return container;
+                return s_textContainerMap.GetValue(buffer, s_createContainerCallback);
             }
 
             private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
             {
-                return new TextBufferContainer(workspace: null, editorBuffer);
+                return new TextBufferContainer(editorBuffer);
             }
 
             public ITextBuffer TryFindEditorTextBuffer()
@@ -122,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // this should convert given editor snapshots to roslyn forked snapshots
                 var oldText = (SnapshotSourceText)args.Before.AsText();
-                var newText = SnapshotSourceText.From(oldText.Workspace, args.After);
+                var newText = SnapshotSourceText.From(_textBufferCloneServiceOpt, args.After);
                 _currentText = newText;
 
                 var changes = ImmutableArray.CreateRange(args.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)));

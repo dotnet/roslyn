@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             bufferMock.SetupGet(x => x.CurrentSnapshot).Returns(textSnapshotMock.Object);
             bufferMock.SetupGet(x => x.Properties).Returns(new VisualStudio.Utilities.PropertyCollection());
 
-            var textContainer = Text.Extensions.TextBufferContainer.From(workspace: null, bufferMock.Object);
+            var textContainer = Text.Extensions.TextBufferContainer.From(bufferMock.Object);
 
             Text.Extensions.GetTextBuffer(textContainer);
         }
