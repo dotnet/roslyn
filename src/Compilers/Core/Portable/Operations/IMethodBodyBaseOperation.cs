@@ -1,32 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an initializer for a field, property, parameter or a local variable declaration.
+    /// Represents a method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# field, property, parameter or local variable initializer.
-    ///  (2) VB field(s), property, parameter or local variable initializer.
+    ///  (1) C# method body
     /// </para>
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ISymbolInitializerOperation : IOperation
+    public interface IMethodBodyBaseOperation : IOperation
     {
         /// <summary>
-        /// Local declared in and scoped to the <see cref="Value"/>.
+        /// Method body corresponding to BaseMethodDeclarationSyntax.Body or AccessorDeclarationSyntax.Body
         /// </summary>
-        ImmutableArray<ILocalSymbol> Locals { get; }
+        IBlockOperation BlockBody { get; }
 
         /// <summary>
-        /// Underlying initializer value.
+        /// Method body corresponding to BaseMethodDeclarationSyntax.ExpressionBody or AccessorDeclarationSyntax.ExpressionBody
         /// </summary>
-        IOperation Value { get; }
+        IBlockOperation ExpressionBody { get; }
     }
 }
-
