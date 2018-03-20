@@ -27,6 +27,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\CoreClrShim.cs" Link="InternalUtilities\CoreClrShim.cs" />
     <Compile Include="..\..\Shared\DesktopShim.cs">
       <Link>DesktopShim.cs</Link>
     </Compile>

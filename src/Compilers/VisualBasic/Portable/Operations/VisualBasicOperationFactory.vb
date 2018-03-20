@@ -853,7 +853,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundFieldInitializer.WasCompilerGenerated
-            Return New LazyFieldInitializer(initializedFields, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyFieldInitializer(ImmutableArray(Of ILocalSymbol).Empty, initializedFields, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundPropertyInitializerOperation(boundPropertyInitializer As BoundPropertyInitializer) As IPropertyInitializerOperation
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundPropertyInitializer.WasCompilerGenerated
-            Return New LazyPropertyInitializer(initializedProperties, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyPropertyInitializer(ImmutableArray(Of ILocalSymbol).Empty, initializedProperties, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundParameterEqualsValueOperation(boundParameterEqualsValue As BoundParameterEqualsValue) As IParameterInitializerOperation
@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundParameterEqualsValue.WasCompilerGenerated
-            Return New LazyParameterInitializer(parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyParameterInitializer(ImmutableArray(Of ILocalSymbol).Empty, parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IOperation

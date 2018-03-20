@@ -1460,8 +1460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
-        ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        ERR_ExpressionVariableInQueryClause = 8201,
+        //ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
+        //ERR_ExpressionVariableInQueryClause = 8201, 
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
@@ -1555,6 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultInPattern = 8363,
         ERR_InDynamicMethodArg = 8364,
 
+        #region diagnostics introduced for C# 7.3
         ERR_FeatureNotAvailableInVersion7_3 = 8370,
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
@@ -1570,8 +1571,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InvalidStackAllocArray = 8381,
 
-        ERR_ExprCannotBeFixed = 9365,
-        ERR_FixableHelperDoesNotFitThePattern = 9366,               
+        ERR_ExpressionTreeContainsTupleBinOp = 8382,
+        WRN_TupleBinopLiteralNameMismatch = 8383,
+        ERR_TupleSizesMismatchForBinOps = 8384,
+        ERR_ExprCannotBeFixed = 9385,
+        #endregion diagnostics introduced for C# 7.3
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

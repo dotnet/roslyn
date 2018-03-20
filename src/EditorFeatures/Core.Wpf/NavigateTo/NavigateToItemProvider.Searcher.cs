@@ -6,9 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.PatternMatching;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -123,27 +128,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
+                var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
+
+                var patternMatch = new PatternMatch(GetPatternMatchKind(result.MatchKind), 
+                    punctuationStripped: true, result.IsCaseSensitive, matchedSpans);
+
                 var navigateToItem = new NavigateToItem(
                     result.Name,
                     result.Kind,
                     GetNavigateToLanguage(project.Language),
                     result.SecondarySort,
                     result,
-                    GetMatchKind(result.MatchKind),
-                    result.IsCaseSensitive,
+                    patternMatch,
                     _displayFactory);
                 _callback.AddItem(navigateToItem);
             }
 
-            private MatchKind GetMatchKind(NavigateToMatchKind matchKind)
+            private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
             {
                 switch (matchKind)
                 {
-                    case NavigateToMatchKind.Exact: return MatchKind.Exact;
-                    case NavigateToMatchKind.Prefix: return MatchKind.Prefix;
-                    case NavigateToMatchKind.Substring: return MatchKind.Substring;
-                    case NavigateToMatchKind.Regular: return MatchKind.Regular;
-                    default: return MatchKind.None;
+                    case NavigateToMatchKind.Exact: return PatternMatchKind.Exact;
+                    case NavigateToMatchKind.Prefix: return PatternMatchKind.Prefix;
+                    case NavigateToMatchKind.Substring: return PatternMatchKind.Substring;
+                    case NavigateToMatchKind.Regular: return PatternMatchKind.Fuzzy;
+                    case NavigateToMatchKind.None: return PatternMatchKind.Fuzzy;
+                    case NavigateToMatchKind.CamelCaseExact: return PatternMatchKind.CamelCaseExact;
+                    case NavigateToMatchKind.CamelCasePrefix: return PatternMatchKind.CamelCasePrefix;
+                    case NavigateToMatchKind.CamelCaseNonContiguousPrefix: return PatternMatchKind.CamelCaseNonContiguousPrefix;
+                    case NavigateToMatchKind.CamelCaseSubstring: return PatternMatchKind.CamelCaseSubstring;
+                    case NavigateToMatchKind.CamelCaseNonContiguousSubstring: return PatternMatchKind.CamelCaseNonContiguousSubstring;
+                    case NavigateToMatchKind.Fuzzy: return PatternMatchKind.Fuzzy;
+                    default: throw ExceptionUtilities.UnexpectedValue(matchKind);
                 }
             }
 

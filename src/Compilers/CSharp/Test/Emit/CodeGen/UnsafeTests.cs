@@ -4270,7 +4270,7 @@ public struct Fixable
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (8,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (8,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = f)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(8, 25)
                 );
@@ -4325,13 +4325,13 @@ public static class FixableExt1
                 // (6,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.GetPinnableReference(in Fixable)' and 'FixableExt1.GetPinnableReference(in Fixable)'
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new Fixable(1)").WithArguments("FixableExt.GetPinnableReference(in Fixable)", "FixableExt1.GetPinnableReference(in Fixable)").WithLocation(6, 25),
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
                 // (12,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.GetPinnableReference(in Fixable)' and 'FixableExt1.GetPinnableReference(in Fixable)'
                 //         fixed (int* p = f)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("FixableExt.GetPinnableReference(in Fixable)", "FixableExt1.GetPinnableReference(in Fixable)").WithLocation(12, 25),
-                // (12,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (12,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = f)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(12, 25)
                 );
@@ -4369,7 +4369,7 @@ public static class FixableExt
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (dynamic)(new Fixable(1)))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(dynamic)(new Fixable(1))").WithLocation(6, 25)
                 );
@@ -4955,7 +4955,7 @@ public static class FixableExt
                 // (6,25): error CS1510: A ref or out value must be an assignable variable
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Fixable(1)").WithLocation(6, 25),
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
                 );
@@ -4994,7 +4994,7 @@ public static class FixableExt
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
                 // (6,25): error CS0122: 'FixableExt.GetPinnableReference(Fixable)' is inaccessible due to its protection level
@@ -5036,7 +5036,7 @@ public static class FixableExt
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
                 );
@@ -5072,7 +5072,7 @@ public struct Fixable
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
                 // (6,25): error CS0176: Member 'Fixable.GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -5111,7 +5111,7 @@ public struct Fixable
                 // (6,25): error CS1955: Non-invocable member 'Fixable.GetPinnableReference' cannot be used like a method.
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference").WithLocation(6, 25),
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
                 );
@@ -5146,7 +5146,7 @@ public struct Fixable
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable())
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
                 );

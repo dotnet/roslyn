@@ -6145,13 +6145,13 @@ class NotPointer
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (9,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (byte* p = (byte*)&x)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(byte*)&x").WithLocation(9, 26),
-                // (13,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (13,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "n").WithLocation(13, 25),
-                // (17,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (17,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (int*)n)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)n").WithLocation(17, 25),
                 // (5,23): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
@@ -6243,7 +6243,7 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
         }
@@ -6315,7 +6315,7 @@ class Program
 ";
             // Confusing, but matches Dev10.
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = null)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "null").WithLocation(6, 25),
                 // (10,26): error CS0211: Cannot take the address of the given expression
@@ -6327,7 +6327,7 @@ class Program
                 // (18,26): error CS0103: The name '_' does not exist in the current context
                 //         fixed (int* p = &_)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(18, 26),
-                // (22,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (22,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = ()=>throw null)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "()=>throw null").WithLocation(22, 25),
                 // (26,27): error CS0211: Cannot take the address of the given expression
@@ -6351,7 +6351,7 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (x => x))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "x => x").WithLocation(6, 26));
         }
@@ -6371,7 +6371,7 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = Main)
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "Main").WithLocation(6, 25));
         }

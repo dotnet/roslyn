@@ -216,6 +216,9 @@
   <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
     <value>private protected</value>
   </data>
+  <data name="IDS_FeatureTupleEquality" xml:space="preserve">
+    <value>tuple equality</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -929,9 +932,6 @@
   </data>
   <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
     <value>The given expression cannot be used in a fixed statement</value>
-  </data>
-  <data name="ERR_FixableHelperDoesNotFitThePattern" xml:space="preserve">
-    <value>The method '{0}' does not meet necessary requirements</value>
   </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
@@ -2179,6 +2179,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleBinOp" xml:space="preserve">
+    <value>An expression tree may not contain a tuple == or != operator</value>
   </data>
   <data name="ERR_ExpressionTreeContainsAssignment" xml:space="preserve">
     <value>An expression tree may not contain an assignment operator</value>
@@ -5048,6 +5051,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
   <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
     <value>Predefined type '{0}' must be a struct.</value>
   </data>
@@ -5092,12 +5101,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInQueryClause" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within a query clause.</value>
   </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
@@ -5276,6 +5279,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
   </data>
+  <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
+  </data>
   <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
     <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
   </data>
@@ -5311,6 +5317,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidStackAllocArray" xml:space="preserve">
     <value>"Invalid rank specifier: expected ']'</value>
+  </data>
+  <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
+    <value>declaration of expression variables in member initializers and queries</value>
   </data>
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>

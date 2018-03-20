@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1080,16 +1081,9 @@ class $$Test<T, U>
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new ExtractInterfaceCommandHandler();
-                var delegatedToNext = false;
-                CommandState nextHandler()
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                }
 
-                var state = handler.GetCommandState(new Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
+                var state = handler.GetCommandState(new ExtractInterfaceCommandArgs(textView, textView.TextBuffer));
+                Assert.True(state.IsUnspecified);
             }
         }
 

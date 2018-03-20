@@ -1249,13 +1249,13 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* v1 = stackalloc int [3] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int [3] { 1, 2, 3 }").WithLocation(6, 26),
-                // (7,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (7,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* v2 = stackalloc int [ ] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(7, 26),
-                // (8,26): error CS9365: The given expression cannot be used in a fixed statement
+                // (8,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* v3 = stackalloc     [ ] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(8, 26)
                 );

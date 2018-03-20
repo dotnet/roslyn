@@ -50,6 +50,10 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <!-- Force a reference to Microsoft.VisualStudio.Text.Internal. This NuGet package includes an empty ref folder so nobody accidentally uses APIs from it,
+         but includes the lib folder so it's copied as a dependency of Microsoft.VisualStudio.Platform.VSEditor. Unfortunately we still have test code that
+         does depend on internal APIs, so we need to a force a reference here. -->
+    <Reference Include="$(NuGetPackageRoot)\microsoft.visualstudio.text.internal\$(MicrosoftVisualStudioTextInternalVersion)\lib\net46\Microsoft.VisualStudio.Text.Internal.dll" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
@@ -61,9 +65,7 @@
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop" Version="$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />

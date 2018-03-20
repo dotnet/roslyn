@@ -4463,6 +4463,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple == or != operator.
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsTupleBinOp {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsTupleBinOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a tuple conversion..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsTupleConversion {
@@ -4486,24 +4495,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionTreeMustHaveDelegate {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeMustHaveDelegate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers..
-        /// </summary>
-        internal static string ERR_ExpressionVariableInConstructorOrFieldInitializer {
-            get {
-                return ResourceManager.GetString("ERR_ExpressionVariableInConstructorOrFieldInitializer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Out variable and pattern variable declarations are not allowed within a query clause..
-        /// </summary>
-        internal static string ERR_ExpressionVariableInQueryClause {
-            get {
-                return ResourceManager.GetString("ERR_ExpressionVariableInQueryClause", resourceCulture);
             }
         }
         
@@ -4756,15 +4747,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FileNotFound {
             get {
                 return ResourceManager.GetString("ERR_FileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The method &apos;{0}&apos; does not meet necessary requirements.
-        /// </summary>
-        internal static string ERR_FixableHelperDoesNotFitThePattern {
-            get {
-                return ResourceManager.GetString("ERR_FixableHelperDoesNotFitThePattern", resourceCulture);
             }
         }
         
@@ -9512,6 +9494,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right..
+        /// </summary>
+        internal static string ERR_TupleSizesMismatchForBinOps {
+            get {
+                return ResourceManager.GetString("ERR_TupleSizesMismatchForBinOps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple must contain at least two elements..
         /// </summary>
         internal static string ERR_TupleTooFewElements {
@@ -10575,6 +10566,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to declaration of expression variables in member initializers and queries.
+        /// </summary>
+        internal static string IDS_FeatureExpressionVariablesInQueriesAndInitializers {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionVariablesInQueriesAndInitializers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to extensible fixed statement.
         /// </summary>
         internal static string IDS_FeatureExtensibleFixedStatement {
@@ -10958,6 +10958,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureThrowExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureThrowExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tuple equality.
+        /// </summary>
+        internal static string IDS_FeatureTupleEquality {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTupleEquality", resourceCulture);
             }
         }
         
@@ -14440,6 +14449,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_TooManyLinesForDebugger_Title {
             get {
                 return ResourceManager.GetString("WRN_TooManyLinesForDebugger_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name or no name is specified on the other side of the tuple == or != operator..
+        /// </summary>
+        internal static string WRN_TupleBinopLiteralNameMismatch {
+            get {
+                return ResourceManager.GetString("WRN_TupleBinopLiteralNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator..
+        /// </summary>
+        internal static string WRN_TupleBinopLiteralNameMismatch_Title {
+            get {
+                return ResourceManager.GetString("WRN_TupleBinopLiteralNameMismatch_Title", resourceCulture);
             }
         }
         
