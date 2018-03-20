@@ -66,13 +66,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            private static bool IsTupleElementDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            private static bool IsTupleElementDeclaration(
+                SyntaxToken token, SemanticModel semanticModel, int position,
+                CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
-                result = IsFollowingTypeOrComma<TupleElementSyntax>(token, semanticModel, tupleElement => tupleElement.Type, _ => default(SyntaxTokenList), _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                result = IsFollowingTypeOrComma<TupleElementSyntax>(
+                    token,
+                    semanticModel,
+                    tupleElement => tupleElement.Type,
+                    _ => default(SyntaxTokenList),
+                    _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+
                 return result.Type != null;
             }
 
-            private static bool IsTupleExpressionDeclaration(SyntaxToken token, SemanticModel semanticModel, int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            private static bool IsTupleExpressionDeclaration(
+                SyntaxToken token, SemanticModel semanticModel, int position,
+                CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
                 if (token.GetAncestor(node => node.IsKind(SyntaxKind.TupleExpression)) != null)
                 {
@@ -84,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
                     return result.Type != null;
                 }
+
                 result = default;
                 return false;
             }
