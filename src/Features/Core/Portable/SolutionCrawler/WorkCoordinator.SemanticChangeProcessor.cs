@@ -49,16 +49,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     Start();
 
+                    // Register a clean-up task to ensure pending work items are flushed from the queue if they will
+                    // never be processed.
                     AsyncProcessorTask.ContinueWith(
-                        _ =>
-                        {
-                            foreach (var (documentId, data) in _pendingWork)
-                            {
-                                data.AsyncToken.Dispose();
-                            }
-
-                            _pendingWork.Clear();
-                        },
+                        _ => ClearQueueWorker(_workGate, _pendingWork, data => data.AsyncToken),
                         CancellationToken.None,
                         TaskContinuationOptions.ExecuteSynchronously,
                         TaskScheduler.Default);
@@ -296,6 +290,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
+                private static void ClearQueueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, Func<TValue, IDisposable> disposerSelector)
+                {
+                    using (gate.DisposableWait(CancellationToken.None))
+                    {
+                        foreach (var (_, data) in map)
+                        {
+                            disposerSelector?.Invoke(data)?.Dispose();
+                        }
+
+                        map.Clear();
+                    }
+                }
+
                 private static IEnumerable<ProjectId> GetProjectsToAnalyze(Solution solution, ProjectId projectId)
                 {
                     var graph = solution.GetProjectDependencyGraph();
@@ -354,16 +361,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         Start();
 
+                        // Register a clean-up task to ensure pending work items are flushed from the queue if they will
+                        // never be processed.
                         AsyncProcessorTask.ContinueWith(
-                            _ =>
-                            {
-                                foreach (var (projectId, data) in _pendingWork)
-                                {
-                                    data.AsyncToken.Dispose();
-                                }
-
-                                _pendingWork.Clear();
-                            },
+                            _ => ClearQueueWorker(_workGate, _pendingWork, data => data.AsyncToken),
                             CancellationToken.None,
                             TaskContinuationOptions.ExecuteSynchronously,
                             TaskScheduler.Default);

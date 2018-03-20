@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis
     [Export(typeof(PrimaryWorkspace)), Shared]
     internal sealed class PrimaryWorkspace
     {
-        private readonly ReaderWriterLockSlim s_registryGate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-        private Workspace s_primaryWorkspace;
+        private readonly ReaderWriterLockSlim _registryGate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private Workspace _primaryWorkspace;
 
         [ImportingConstructor]
         public PrimaryWorkspace()
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                using (s_registryGate.DisposableRead())
+                using (_registryGate.DisposableRead())
                 {
-                    return s_primaryWorkspace;
+                    return _primaryWorkspace;
                 }
             }
         }
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            using (s_registryGate.DisposableWrite())
+            using (_registryGate.DisposableWrite())
             {
-                s_primaryWorkspace = workspace;
+                _primaryWorkspace = workspace;
             }
         }
     }
