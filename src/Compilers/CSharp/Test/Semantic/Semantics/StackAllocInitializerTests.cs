@@ -1965,14 +1965,19 @@ unsafe class Test
     {
         var obj1 = stackalloc double[2] { 1, 1.2 };
         Span<double> obj2 = stackalloc double[2] { 1, 1.2 };
+        _ = stackalloc double[2] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
+                //         _ = stackalloc double[2] { 1, 1.2 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc double[2] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StackAllocArrayCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, expressions.Length);
+            Assert.Equal(3, expressions.Length);
 
             var @stackalloc = expressions[0];
             var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
@@ -2029,6 +2034,34 @@ unsafe class Test
             Assert.Equal(Conversion.Identity, sizeInfo.ImplicitConversion);
 
             Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+
+            @stackalloc = expressions[2];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            sizeInfo = model.GetSemanticInfoSummary(((ArrayTypeSyntax)@stackalloc.Type).RankSpecifiers[0].Sizes[0]);
+            Assert.Null(sizeInfo.Symbol);
+            Assert.Equal("System.Int32", sizeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", sizeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, sizeInfo.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
         }
 
         [Fact]
@@ -2042,14 +2075,19 @@ unsafe class Test
     {
         var obj1 = stackalloc[] { 1, 1.2 };
         Span<double> obj2 = stackalloc[] { 1, 1.2 };
+        _ = stackalloc[] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
+                //         _ = stackalloc[] { 1, 1.2 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc[] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, expressions.Length);
+            Assert.Equal(3, expressions.Length);
 
             var @stackalloc = expressions[0];
             var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
@@ -2074,6 +2112,28 @@ unsafe class Test
             Assert.Null(model.GetDeclaredSymbol(@stackalloc));
 
             @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+
+            @stackalloc = expressions[2];
             stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
 
             Assert.Null(stackallocInfo.Symbol);
