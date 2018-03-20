@@ -147,7 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int oldNext = state.Capacity;
             state.EnsureCapacity(nextVariableSlot);
-            for (int slot = oldNext; slot < nextVariableSlot; slot++)
+            Populate(ref state, oldNext);
+        }
+
+        private void Populate(ref LocalState state, int start)
+        {
+            int capacity = state.Capacity;
+            for (int slot = start; slot < capacity; slot++)
             {
                 var value = GetDefaultState(ref state, slot);
                 state[slot] = value;
@@ -355,10 +361,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                bool isByRefTarget = IsByRefTarget(targetSlot);
+                if (targetSlot > 0)
+                {
+                    if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
+
+                    this.State[targetSlot] = isByRefTarget ?
+                        // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
+                        // regardless of what value is being assigned. 
+                        (targetType.IsNullable == true) ? (bool?)false : null :
+                        !valueType?.IsNullable;
+
+                    // PROTOTYPE(NullableReferenceTypes): Might this clear state that
+                    // should be copied in InheritNullableStateOfTrackableType?
+                    InheritDefaultState(targetSlot);
+                }
+
                 if (targetType.IsReferenceType)
                 {
-                    bool isByRefTarget = IsByRefTarget(targetSlot);
-
                     if (targetType.IsNullable == false)
                     {
                         if (valueType?.IsNullable == true && (value == null || !CheckNullAsNonNullableReference(value)))
@@ -366,23 +386,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, (value ?? node).Syntax);
                         }
                     }
-                    else if (targetSlot > 0)
-                    {
-                        if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
-
-                        this.State[targetSlot] = isByRefTarget ?
-                            // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
-                            // regardless of what value is being assigned. 
-                            (targetType.IsNullable == true) ? (bool?)false : null :
-                            !valueType?.IsNullable;
-                    }
 
                     if (targetSlot > 0)
                     {
-                        // PROTOTYPE(NullableReferenceTypes): Might this clear state that
-                        // should be copied in InheritNullableStateOfTrackableType?
-                        InheritDefaultState(targetSlot);
-
                         // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
                         // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
                         // assignment to C.F below. See also StaticNullChecking_Members.FieldCycle_01.)
@@ -416,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private int GetSlotWatermark() => this.State.Capacity;
+        private int GetSlotWatermark() => this.nextVariableSlot;
 
         private bool IsByRefTarget(int slot)
         {
@@ -554,7 +560,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableState()
         {
-            return new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot));
+            var state = new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot));
+            Populate(ref state, start: 0);
+            return state;
         }
 
         protected override LocalState UnreachableState()
@@ -579,24 +587,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnterParameter(ParameterSymbol parameter)
         {
             int slot = GetOrCreateSlot(parameter);
-            if (parameter.RefKind == RefKind.Out && !this._currentMethodOrLambda.IsAsync) // out parameters not allowed in async
+            Debug.Assert(!IsConditionalState);
+            if (slot > 0 && parameter.RefKind != RefKind.Out)
             {
-            }
-            else
-            {
-                Debug.Assert(!IsConditionalState);
-                if (slot > 0 && parameter.RefKind != RefKind.Out)
+                var paramType = parameter.Type.TypeSymbol;
+                if (EmptyStructTypeCache.IsTrackableStructType(paramType))
                 {
-                    var paramType = parameter.Type.TypeSymbol;
-                    if (EmptyStructTypeCache.IsTrackableStructType(paramType))
-                    {
-                        InheritNullableStateOfTrackableStruct(paramType, slot, valueSlot: -1, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
-                    }
+                    InheritNullableStateOfTrackableStruct(paramType, slot, valueSlot: -1, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
                 }
             }
         }
 
-#region Visitors
+        #region Visitors
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -786,6 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     slot = GetOrCreateSlot(receiver);
                     if (slot > 0 && isTrackableStructType)
                     {
+                        this.State[slot] = true;
                         InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isByRefTarget: false, slotWatermark: GetSlotWatermark());
                     }
                 }
@@ -1155,6 +1158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (operandComparedToNull != null)
                     {
+                        // PROTOTYPE(NullableReferenceTypes): This check is incorrect since it compares declared
+                        // nullability rather than tracked nullability. Moreover, we should only report such
+                        // diagnostics for locals that are set or checked explicitly within this method.
                         if (operandComparedToNullType?.IsNullable == false)
                         {
                             ReportStaticNullCheckingDiagnostics(op == BinaryOperatorKind.Equal ?
@@ -1532,6 +1538,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = arguments[i];
                 if (refKind != RefKind.Out)
                 {
+                    // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
+                    // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
                     VisitRvalue(argument);
                 }
                 else
@@ -1724,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = pair.Type;
             var slot = pair.Slot;
-            if (type.IsNullable != false && slot > 0 && slot < this.State.Capacity)
+            if (slot > 0 && slot < this.State.Capacity)
             {
                 bool? isNullable = !this.State[slot];
                 if (isNullable != type.IsNullable)
@@ -2413,19 +2421,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!asLvalue)
                 {
-                    // If the symbol is statically declared as not-nullable
-                    // or null-oblivious, ignore flow state.
-                    if (resultType.IsNullable == true && resultType.IsReferenceType)
+                    // We are supposed to track information for the node. Use whatever we managed to
+                    // accumulate so far.
+                    if (resultType.IsReferenceType && slot > 0 && slot < this.State.Capacity)
                     {
-                        // We are supposed to track information for the node. Use whatever we managed to
-                        // accumulate so far.
-                        if (slot > 0 && slot < this.State.Capacity)
+                        var isNullable = !this.State[slot];
+                        if (isNullable != resultType.IsNullable)
                         {
-                            var isNullable = !this.State[slot];
-                            if (isNullable != resultType.IsNullable)
-                            {
-                                resultType = TypeSymbolWithAnnotations.Create(resultType.TypeSymbol, isNullable);
-                            }
+                            resultType = TypeSymbolWithAnnotations.Create(resultType.TypeSymbol, isNullable);
                         }
                     }
                 }
@@ -3153,7 +3156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!self.Reachable)
             {
-                self.Clone(other);
+                self = other.Clone();
                 return true;
             }
             else
@@ -3202,15 +3205,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability.
+            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability
+            // or perhaps expose as nullability from `this[int]` even if stored differently.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
 
-            internal LocalState(BitVector unknownNullState, BitVector notNull)
+            internal LocalState(BitVector knownNullState, BitVector notNull)
             {
-                Debug.Assert(!unknownNullState.IsNull);
+                Debug.Assert(!knownNullState.IsNull);
                 Debug.Assert(!notNull.IsNull);
-                this._knownNullState = unknownNullState;
+                this._knownNullState = knownNullState;
                 this._notNull = notNull;
             }
 
@@ -3233,12 +3237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _knownNullState[slot] = value.HasValue;
                     _notNull[slot] = value.GetValueOrDefault();
                 }
-            }
-
-            internal void Clone(LocalState other)
-            {
-                _knownNullState = other._knownNullState.Clone();
-                _notNull = other._notNull.Clone();
             }
 
             /// <summary>

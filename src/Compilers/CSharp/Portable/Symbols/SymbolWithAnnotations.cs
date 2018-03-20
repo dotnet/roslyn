@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var underlyingType = _underlying.TypeSymbol;
                 var str = underlyingType.ToDisplayString(format);
-                return underlyingType.IsValueType ? str : str + "?";
+                return underlyingType.IsNullableType() ? str : str + "?";
             }
         }
 
