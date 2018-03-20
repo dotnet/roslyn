@@ -339,22 +339,22 @@
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
         <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
-        <target state="new">Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</target>
+        <target state="translated">Tanılama çözümleyicisi türleri, Çalışma Alanları bütünleştirilmiş kodlarından alınan türleri kullanmamalıdır. Çalışma Alanları bütünleştirilmiş kodları yalnızca çözümleyici Visual Studio IDE canlı analizinde yürütülüyorsa kullanılabilir, ancak komut satırı derlemesi sırasında kullanılamaz. Çalışma Alanları bütünleştirilmiş kodlarından türlere başvurulması, komut satırı derlemesinde çözümleyici yürütüldüğü sırada çalışma zamanı özel durumuna yol açar.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
         <source>Do not use types from Workspaces assembly in an analyzer</source>
-        <target state="new">Do not use types from Workspaces assembly in an analyzer</target>
+        <target state="translated">Bir çözümleyicide Çalışma Alanları bütünleştirilmiş kodundan alınan türleri kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</target>
+        <target state="translated">'{2}' türüne erişen '{1}' türüne doğrudan veya dolaylı tüm erişimleri kaldırmak için tanılama çözümleyici türünü ('{0}') değiştirin</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</target>
+        <target state="translated">'{1}' türüne yönelik tüm doğrudan erişimleri kaldırmak için tanılama çözümleyici türünü ('{0}') değiştirin</target>
         <note />
       </trans-unit>
     </body>
