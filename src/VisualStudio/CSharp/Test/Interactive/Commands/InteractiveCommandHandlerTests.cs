@@ -38,7 +38,7 @@ Task.Run(() => { return 1; });";
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithoutSelection()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             AssertExecuteInInteractive(exportProvider, Caret, new string[0]);
             AssertExecuteInInteractive(
@@ -56,7 +56,7 @@ var y = 2;", new string[0]);
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithEmptyBuffer()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             AssertExecuteInInteractive(
                 exportProvider,
@@ -77,7 +77,7 @@ Console.WriteLine(x);", ExampleCode2);
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithBoxSelection()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             string expectedBoxSubmissionResult = @"int x;
 int y;";
@@ -103,7 +103,7 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithNonEmptyBuffer()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             // Execute in interactive clears the existing current buffer before execution.
             // Therefore `var x = 1;` will not be executed.
@@ -117,7 +117,7 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/23200")]
         public void TestExecuteInInteractiveWithDefines()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             string exampleWithIfDirective =
 @"#if DEF
@@ -143,7 +143,7 @@ $@"#define DEF
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractiveWithoutSelection()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             AssertCopyToInteractive(exportProvider, Caret, "");
             AssertCopyToInteractive(exportProvider, $"{ExampleCode2}$$", ExampleCode2Line2);
@@ -163,7 +163,7 @@ $@"#define DEF
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractive()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             AssertCopyToInteractive(exportProvider, $"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
         }
@@ -172,7 +172,7 @@ $@"#define DEF
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractiveWithNonEmptyBuffer()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog);
+            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
             // Copy to interactive does not clear the existing buffer.
             // Therefore `var x = 1;` will still be present in the final buffer.

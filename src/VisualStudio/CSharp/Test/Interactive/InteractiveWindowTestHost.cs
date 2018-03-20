@@ -21,15 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
 
-        internal static readonly ComposableCatalog Catalog = ExportProviderCache.CreateAssemblyCatalog(
-            new[]
-            {
-                typeof(TestWaitIndicator).Assembly,
-                typeof(TestInteractiveEvaluator).Assembly,
-                typeof(IInteractiveWindow).Assembly
-            }
-            .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
-            .Concat(MinimalTestExportProvider.GetEditorAssemblies()));
+        internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.CreateAssemblyCatalog(
+                new[]
+                {
+                    typeof(TestWaitIndicator).Assembly,
+                    typeof(TestInteractiveEvaluator).Assembly,
+                    typeof(IInteractiveWindow).Assembly
+                }
+                .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
+                .Concat(MinimalTestExportProvider.GetEditorAssemblies())));
 
         // Provide an export of ILoggingServiceInternal to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/570290
         [Export(typeof(ILoggingServiceInternal))]

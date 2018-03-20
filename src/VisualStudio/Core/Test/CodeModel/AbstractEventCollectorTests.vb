@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)

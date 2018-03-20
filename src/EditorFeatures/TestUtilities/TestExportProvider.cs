@@ -22,23 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private static Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
+        private static Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
+            new Lazy<IExportProviderFactory>(() => ExportProviderCache.CreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic));
+
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
             => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
 
+        public static IExportProviderFactory ExportProviderFactoryWithCSharpAndVisualBasic
+            => s_lazyExportProviderFactoryWithCSharpAndVisualBasic.Value;
+
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
-        {
-            get
-            {
-                return CreateExportProviderWithCSharpAndVisualBasic();
-            }
-        }
+            => ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
                         .WithParts(ExportProviderCache.CreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
 
+        private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
+            new Lazy<IExportProviderFactory>(() => ExportProviderCache.CreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
+
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
             => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
+
+        public static IExportProviderFactory MinimumExportProviderFactoryWithCSharpAndVisualBasic
+            => s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic.Value;
 
         private static Type[] GetNeutralAndCSharpAndVisualBasicTypes()
         {
@@ -111,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// Create fresh ExportProvider that doesn't share anything with others. Tests can use this
         /// export provider to create all new MEF components not shared with others.
         /// </summary>
-        private static ExportProvider CreateExportProviderWithCSharpAndVisualBasic()
+        private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
         {
-            return ExportProviderCache.CreateExportProvider(EntireAssemblyCatalogWithCSharpAndVisualBasic);
+            return ExportProviderCache.CreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
         /// <summary>

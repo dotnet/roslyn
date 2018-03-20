@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string existingFileName,
             string languageName)
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(s_composableCatalog);
+            var exportProvider = s_exportProviderFactory.CreateExportProvider();
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
                 ? TestWorkspace.Create(initial, exportProvider: exportProvider)
                 : languageName == LanguageNames.CSharp
@@ -104,21 +104,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             }
         }
 
-        private static readonly ComposableCatalog s_composableCatalog =
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                typeof(TestGenerateTypeOptionsService),
-                typeof(TestProjectManagementService),
-                typeof(CSharpGenerateTypeService),
-                typeof(VisualBasicGenerateTypeService),
-                typeof(CSharpCaseCorrectionService),
-                typeof(VisualBasicCaseCorrectionServiceFactory),
-                typeof(CSharpTypeInferenceService),
-                typeof(VisualBasicTypeInferenceService),
-                typeof(CodeActionEditHandlerService),
-                typeof(PreviewFactoryService),
-                typeof(InlineRenameService),
-                typeof(TextBufferAssociatedViewService),
-                typeof(IProjectionBufferFactoryServiceExtensions));
+        private static readonly IExportProviderFactory s_exportProviderFactory =
+            ExportProviderCache.CreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
+                    typeof(TestGenerateTypeOptionsService),
+                    typeof(TestProjectManagementService),
+                    typeof(CSharpGenerateTypeService),
+                    typeof(VisualBasicGenerateTypeService),
+                    typeof(CSharpCaseCorrectionService),
+                    typeof(VisualBasicCaseCorrectionServiceFactory),
+                    typeof(CSharpTypeInferenceService),
+                    typeof(VisualBasicTypeInferenceService),
+                    typeof(CodeActionEditHandlerService),
+                    typeof(PreviewFactoryService),
+                    typeof(InlineRenameService),
+                    typeof(TextBufferAssociatedViewService),
+                    typeof(IProjectionBufferFactoryServiceExtensions)));
 
         public void Dispose()
         {

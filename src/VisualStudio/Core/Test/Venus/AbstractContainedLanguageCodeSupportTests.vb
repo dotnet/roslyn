@@ -39,12 +39,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Protected Function GetWorkspace(code As String) As TestWorkspace
             Return TestWorkspace.Create(
 <Workspace>
-<Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
-<Document FilePath="file">
-<%= code.Replace(vbCrLf, vbLf) %>
-</Document>
-</Project>
-</Workspace>, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+    <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
+        <Document FilePath="file">
+            <%= code.Replace(vbCrLf, vbLf) %>
+        </Document>
+    </Project>
+</Workspace>, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
         End Function
 
         Protected Function GetDocument(workspace As TestWorkspace) As Document

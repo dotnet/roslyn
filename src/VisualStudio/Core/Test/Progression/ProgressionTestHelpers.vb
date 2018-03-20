@@ -11,10 +11,10 @@ Imports <xmlns="http://schemas.microsoft.com/vs/2009/dgml">
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Friend Module ProgressionTestHelpers
-        Public ReadOnly CompositionCatalog As ComposableCatalog =
+        Public ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(CSharpProgressionLanguageService),
-                GetType(VisualBasicProgressionLanguageService))
+                GetType(VisualBasicProgressionLanguageService)))
 
         <Extension>
         Public Function ToSimplifiedXDocument(graph As Graph) As XDocument

@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim projected = workspace.CreateProjectionBufferDocument(<text><![CDATA[
 @{|S1:|}
@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, doc.CursorPosition.Value, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
@@ -161,7 +161,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
@@ -196,7 +196,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -227,7 +227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 

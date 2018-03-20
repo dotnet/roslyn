@@ -50,8 +50,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub RenameCommandDisabledInSubmission()
-            Dim exportProvider = ExportProviderCache.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>

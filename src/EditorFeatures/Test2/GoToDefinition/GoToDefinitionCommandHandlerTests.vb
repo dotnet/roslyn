@@ -56,7 +56,7 @@ class C
 
             Using workspace = TestWorkspace.Create(
                     definition,
-                    exportProvider:=ExportProviderCache.CreateExportProvider(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
+                    exportProvider:=ExportProviderCache.CreateExportProviderFactory(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))).CreateExportProvider())
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -88,7 +88,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, exportProvider:=ExportProviderCache.CreateExportProvider(GoToTestHelpers.Catalog))
+            Using workspace = TestWorkspace.Create(definition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 

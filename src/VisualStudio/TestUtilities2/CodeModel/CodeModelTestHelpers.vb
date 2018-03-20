@@ -3,9 +3,7 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -16,7 +14,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Module CodeModelTestHelpers
@@ -37,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
 
             Dim result As CodeModelTestState = Nothing
             Try

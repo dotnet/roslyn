@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Composition
@@ -22,12 +21,12 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
 
-        Friend _composableCatalog As ComposableCatalog =
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory))
+        Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(
+            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
 
-        Friend ReadOnly Property ComposableCatalog As ComposableCatalog
+        Friend ReadOnly Property ExportProviderFactory As IExportProviderFactory
             Get
-                Return _composableCatalog
+                Return _exportProviderFactory
             End Get
         End Property
 
@@ -100,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace
             Dim workspace = TestWorkspace.CreateWorkspace(
                 element,
-                exportProvider:=ExportProviderCache.CreateExportProvider(ComposableCatalog))
+                exportProvider:=ExportProviderFactory.CreateExportProvider())
             workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
             Return workspace
         End Function

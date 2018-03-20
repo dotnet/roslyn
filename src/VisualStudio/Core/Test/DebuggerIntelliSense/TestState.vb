@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             MyBase.New(
                 workspaceElement,
-                exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog),
+                exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider(),
                 workspaceKind:=WorkspaceKind.Debugger)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices

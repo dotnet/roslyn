@@ -19,10 +19,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
     <[UseExportProvider]>
     Public Class NavigableSymbolsTest
 
-        Private Shared ReadOnly s_composableCatalog As ComposableCatalog =
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                GetType(MockDocumentNavigationServiceProvider),
-                GetType(MockSymbolNavigationServiceProvider))
+        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
+            ExportProviderCache.CreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
+                    GetType(MockDocumentNavigationServiceProvider),
+                    GetType(MockSymbolNavigationServiceProvider)))
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharp() As Task
@@ -36,7 +37,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=ExportProviderCache.CreateExportProvider(s_composableCatalog))
+            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -52,7 +53,7 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=ExportProviderCache.CreateExportProvider(s_composableCatalog))
+            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function

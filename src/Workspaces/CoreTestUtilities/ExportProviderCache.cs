@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -13,10 +15,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ExportProviderCache
     {
-        private static readonly ConditionalWeakTable<ComposableCatalog, IExportProviderFactory> _exportProviderFactoryCache =
-            new ConditionalWeakTable<ComposableCatalog, IExportProviderFactory>();
-
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
+
+        // Cache the catalog and export provider factory for MefHostServices.DefaultAssemblies
+        private static readonly ComposableCatalog s_defaultHostCatalog =
+            CreateAssemblyCatalog(MefHostServices.DefaultAssemblies);
+
+        private static readonly IExportProviderFactory s_defaultHostExportProviderFactory =
+            CreateExportProviderFactory(s_defaultHostCatalog);
+
+        // Cache the catalog and export provider factory for DesktopMefHostServices.DefaultAssemblies
+        private static readonly ComposableCatalog s_desktopHostCatalog =
+            CreateAssemblyCatalog(DesktopMefHostServices.DefaultAssemblies);
+
+        private static readonly IExportProviderFactory s_desktopHostExportProviderFactory =
+            CreateExportProviderFactory(s_desktopHostCatalog);
+
+        // Cache the catalog and export provider factory for RoslynServices.RemoteHostAssemblies
+        private static readonly ComposableCatalog s_remoteHostCatalog =
+            CreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies);
+
+        private static readonly IExportProviderFactory s_remoteHostExportProviderFactory =
+            CreateExportProviderFactory(s_remoteHostCatalog);
 
         private static bool _enabled;
 
@@ -52,6 +72,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
         {
+            if (assemblies is ImmutableArray<Assembly> assembliesArray)
+            {
+                if (s_defaultHostCatalog != null && assembliesArray == MefHostServices.DefaultAssemblies)
+                {
+                    return s_defaultHostCatalog;
+                }
+                else if (s_desktopHostCatalog != null && assembliesArray == DesktopMefHostServices.DefaultAssemblies)
+                {
+                    return s_desktopHostCatalog;
+                }
+                else if (s_remoteHostCatalog != null && assembliesArray == RoslynServices.RemoteHostAssemblies)
+                {
+                    return s_remoteHostCatalog;
+                }
+            }
+
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
             // If we run CreatePartsAsync on the test thread we may deadlock since it'll schedule stuff back
@@ -103,45 +139,67 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
         }
 
-        public static ExportProvider CreateExportProvider(ComposableCatalog catalog, bool cacheExportProviderFactory = false)
+        public static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
         {
-            if (!_enabled)
+            if (s_defaultHostExportProviderFactory != null && catalog == s_defaultHostCatalog)
             {
-                throw new InvalidOperationException($"{nameof(ExportProviderCache)} may only be used from tests marked with {nameof(UseExportProviderAttribute)}");
+                return s_defaultHostExportProviderFactory;
+            }
+            else if (s_desktopHostExportProviderFactory != null && catalog == s_desktopHostCatalog)
+            {
+                return s_desktopHostExportProviderFactory;
+            }
+            else if (s_remoteHostExportProviderFactory != null && catalog == s_remoteHostCatalog)
+            {
+                return s_remoteHostExportProviderFactory;
             }
 
-            var expectedCatalog = Interlocked.CompareExchange(ref _expectedCatalog, catalog, null) ?? catalog;
-            if (expectedCatalog != catalog)
+            var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
+            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+            var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+            return new SingleExportProviderFactory(catalog, exportProviderFactory);
+        }
+
+        private class SingleExportProviderFactory : IExportProviderFactory
+        {
+            private readonly ComposableCatalog _catalog;
+            private readonly IExportProviderFactory _exportProviderFactory;
+
+            public SingleExportProviderFactory(ComposableCatalog catalog, IExportProviderFactory exportProviderFactory)
             {
-                throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created for a single test.");
+                _catalog = catalog;
+                _exportProviderFactory = exportProviderFactory;
             }
 
-            var expected = _expectedProviderForCatalog;
-            if (expected == null)
+            public ExportProvider CreateExportProvider()
             {
-                if (!_exportProviderFactoryCache.TryGetValue(catalog, out var exportProviderFactory))
+                if (!_enabled)
                 {
-                    var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
-                    var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-                    exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
-                    if (cacheExportProviderFactory)
-                    {
-                        _exportProviderFactoryCache.Add(catalog, exportProviderFactory);
-                    }
+                    throw new InvalidOperationException($"{nameof(ExportProviderCache)} may only be used from tests marked with {nameof(UseExportProviderAttribute)}");
                 }
 
-                expected = exportProviderFactory.CreateExportProvider();
-                expected = Interlocked.CompareExchange(ref _expectedProviderForCatalog, expected, null) ?? expected;
-                Interlocked.CompareExchange(ref _currentExportProvider, expected, null);
-            }
+                var expectedCatalog = Interlocked.CompareExchange(ref _expectedCatalog, _catalog, null) ?? _catalog;
+                if (expectedCatalog != _catalog)
+                {
+                    throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created for a single test.");
+                }
 
-            var exportProvider = _currentExportProvider;
-            if (exportProvider != expected)
-            {
-                throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created in the context of a single test.");
-            }
+                var expected = _expectedProviderForCatalog;
+                if (expected == null)
+                {
+                    expected = _exportProviderFactory.CreateExportProvider();
+                    expected = Interlocked.CompareExchange(ref _expectedProviderForCatalog, expected, null) ?? expected;
+                    Interlocked.CompareExchange(ref _currentExportProvider, expected, null);
+                }
 
-            return exportProvider;
+                var exportProvider = _currentExportProvider;
+                if (exportProvider != expected)
+                {
+                    throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created in the context of a single test.");
+                }
+
+                return exportProvider;
+            }
         }
 
         private class SimpleAssemblyLoader : IAssemblyLoader

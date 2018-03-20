@@ -5,7 +5,6 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
@@ -20,8 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
-            Dim workspace = TestWorkspace.Create(workspaceXml,
-exportProvider:=ExportProviderCache.CreateExportProvider(CompositionCatalog))
+            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderFactory.CreateExportProvider())
 
             Return New ProgressionTestState(workspace)
         End Function

@@ -29,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 </Project>
             </Workspace>
 
-            Dim exportProvider = ExportProviderCache.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic().WithParts(
-                    GetType(NoCompilationEditorClassificationService)))
+            Dim exportProvider = ExportProviderCache _
+                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic().WithParts(GetType(NoCompilationEditorClassificationService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
                 Dim listenerProvider = exportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)

@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed class UseExportProviderAttribute : BeforeAfterTestAttribute
     {
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(15);
-        private readonly object _remoteHostServicesCreationLock = new object();
+
+        // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
+        private static readonly object s_remoteHostServicesCreationLock = new object();
+        private static IExportProviderFactory s_remoteHostExportProviderFactory;
+
         private MefHostServices _hostServices;
         private MefHostServices _remoteHostServices;
 
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var catalog = ExportProviderCache.CreateAssemblyCatalog(assemblies);
             Interlocked.CompareExchange(
                 ref _hostServices,
-                new ExportProviderMefHostServices(ExportProviderCache.CreateExportProvider(catalog)),
+                new ExportProviderMefHostServices(ExportProviderCache.CreateExportProviderFactory(catalog).CreateExportProvider()),
                 null);
 
             return _hostServices;
@@ -114,13 +118,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return _remoteHostServices;
             }
 
-            lock (_remoteHostServicesCreationLock)
+            lock (s_remoteHostServicesCreationLock)
             {
                 if (_remoteHostServices == null)
                 {
-                    var compositionConfiguration = new ContainerConfiguration().WithAssemblies(RoslynServices.RemoteHostAssemblies.Distinct());
-                    var container = compositionConfiguration.CreateContainer();
-                    _remoteHostServices = new MefHostServices(container);
+                    if (s_remoteHostExportProviderFactory == null)
+                    {
+                        var configuration = CompositionConfiguration.Create(ExportProviderCache.CreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
+                        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+                        s_remoteHostExportProviderFactory = runtimeComposition.CreateExportProviderFactory();
+                    }
+
+                    _remoteHostServices = new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.CreateExportProvider());
                 }
             }
 

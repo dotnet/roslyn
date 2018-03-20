@@ -192,8 +192,10 @@ class Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void EncapsulateFieldCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .CreateExportProviderFactory(
+                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>

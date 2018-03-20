@@ -132,16 +132,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static ExportProvider GetExportProvider(bool useMinimumCatalog, ComposableCatalog extraParts)
         {
+            if (extraParts == null || extraParts.Parts.Count == 0)
+            {
+                return useMinimumCatalog
+                    ? TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider()
+                    : TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+            }
+
             var baseCatalog = useMinimumCatalog
                 ? TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 : TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
 
-            if (extraParts == null)
-            {
-                return ExportProviderCache.CreateExportProvider(baseCatalog);
-            }
-
-            return ExportProviderCache.CreateExportProvider(baseCatalog.WithParts(extraParts));
+            return ExportProviderCache.CreateExportProviderFactory(baseCatalog.WithParts(extraParts)).CreateExportProvider();
         }
 
         public virtual ITextView TextView

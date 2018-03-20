@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(s_composableCatalog);
+            var exportProvider = s_exportProviderFactory.CreateExportProvider();
             var workspace = languageName == LanguageNames.CSharp
                   ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
                   : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -79,11 +79,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 CancellationToken.None);
         }
 
-        private static readonly ComposableCatalog s_composableCatalog =
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestChangeSignatureOptionsService))
-                .WithPart(typeof(CSharpChangeSignatureService))
-                .WithPart(typeof(VisualBasicChangeSignatureService));
+        private static readonly IExportProviderFactory s_exportProviderFactory =
+            ExportProviderCache.CreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
+                    .WithPart(typeof(TestChangeSignatureOptionsService))
+                    .WithPart(typeof(CSharpChangeSignatureService))
+                    .WithPart(typeof(VisualBasicChangeSignatureService)));
 
         public void Dispose()
         {

@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -20,10 +19,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         Public Workspace As TestWorkspace
         Public TargetDocument As Document
 
-        Private Shared ReadOnly s_composableCatalog As ComposableCatalog =
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                GetType(VisualBasicEncapsulateFieldService),
-                GetType(DefaultDocumentSupportsFeatureService))
+        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
+            ExportProviderCache.CreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
+                    GetType(VisualBasicEncapsulateFieldService),
+                    GetType(DefaultDocumentSupportsFeatureService)))
 
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         End Sub
 
         Public Shared Function Create(markup As String) As EncapsulateFieldTestState
-            Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=ExportProviderCache.CreateExportProvider(s_composableCatalog))
+            Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=s_exportProviderFactory.CreateExportProvider())
             Return New EncapsulateFieldTestState(workspace)
         End Function
 

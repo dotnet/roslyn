@@ -9,13 +9,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public static class VisualStudioTestExportProvider
     {
-        public static readonly ComposableCatalog PartCatalog;
+        public static readonly IExportProviderFactory Factory;
 
         static VisualStudioTestExportProvider()
         {
-            PartCatalog =
+            Factory = ExportProviderCache.CreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                    ExportProviderCache.CreateAssemblyCatalog(typeof(CSharpCodeModelService).Assembly));
+                    ExportProviderCache.CreateAssemblyCatalog(typeof(CSharpCodeModelService).Assembly)));
         }
     }
 }

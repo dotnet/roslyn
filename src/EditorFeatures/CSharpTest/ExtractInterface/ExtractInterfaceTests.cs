@@ -1060,8 +1060,9 @@ class $$Test<T, U>
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>

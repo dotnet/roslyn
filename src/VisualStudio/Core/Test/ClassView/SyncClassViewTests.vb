@@ -862,7 +862,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             ParamArray presentationNodes As NodeVerifier()
         )
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

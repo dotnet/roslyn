@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
-            var exportProvider = ExportProviderCache.CreateExportProvider(ComposableCatalog);
+            var exportProvider = ExportProviderFactory.CreateExportProvider();
             var workspace = languageName == LanguageNames.CSharp
                 ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
                 : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, compilationOptions: compilationOptions);
@@ -51,11 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
         }
 
-        public static readonly ComposableCatalog ComposableCatalog =
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestExtractInterfaceOptionsService))
-                .WithPart(typeof(CSharpExtractInterfaceService))
-                .WithPart(typeof(VisualBasicExtractInterfaceService));
+        public static readonly IExportProviderFactory ExportProviderFactory =
+            ExportProviderCache.CreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
+                    .WithPart(typeof(TestExtractInterfaceOptionsService))
+                    .WithPart(typeof(CSharpExtractInterfaceService))
+                    .WithPart(typeof(VisualBasicExtractInterfaceService)));
 
         public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
         {

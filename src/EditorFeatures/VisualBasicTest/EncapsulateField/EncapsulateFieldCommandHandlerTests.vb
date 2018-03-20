@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
@@ -134,8 +133,9 @@ End Class
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub EncapsulateFieldCommandDisabledInSubmission()
-            Dim exportProvider = ExportProviderCache.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>

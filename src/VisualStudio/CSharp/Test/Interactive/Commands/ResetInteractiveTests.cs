@@ -37,7 +37,7 @@ namespace ResetInteractiveTestsDocument
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestResetREPLWithProjectContext()
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: ExportProviderCache.CreateExportProvider(InteractiveWindowTestHost.Catalog)))
+            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider()))
             {
                 var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
                 var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
