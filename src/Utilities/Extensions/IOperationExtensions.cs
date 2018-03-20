@@ -330,10 +330,9 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        public static bool HasAnyOperationDescendant<TOperation>(this ImmutableArray<IOperation> operationBlocks)
-            where TOperation : IOperation
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, OperationKind kind)
         {
-            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation is TOperation);
+            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
         }
 
         /// <summary>
