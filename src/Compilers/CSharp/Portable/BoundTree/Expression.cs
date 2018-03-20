@@ -106,12 +106,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundStackAllocArrayCreation
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+        internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundArrayInitialization arrayInitializer)
+        {
+            return arrayInitializer?.Initializers ?? ImmutableArray<BoundExpression>.Empty;
+        }
+
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(GetChildInitializers(this.InitializerOpt).Insert(0, this.Count));
     }
 
     internal partial class BoundConvertedStackAllocExpression
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(GetChildInitializers(this.InitializerOpt).Insert(0, this.Count));
     }
 
     internal partial class BoundDynamicObjectCreationExpression

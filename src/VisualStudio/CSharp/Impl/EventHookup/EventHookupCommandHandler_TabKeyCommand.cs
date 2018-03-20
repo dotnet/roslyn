@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
@@ -20,15 +18,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<TabKeyCommandArgs>
+    internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
     {
-        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext cotext)
         {
             AssertIsForeground();
             if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
@@ -47,12 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             HandleTabWorker(args.TextView, args.SubjectBuffer, nextHandler, CancellationToken.None);
         }
 
-        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(TabKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             if (EventHookupSessionManager.CurrentSession != null)
             {
-                return CommandState.Available;
+                return VSCommanding.CommandState.Available;
             }
             else
             {
