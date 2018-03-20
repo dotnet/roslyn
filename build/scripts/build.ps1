@@ -241,7 +241,9 @@ function Build-Artifacts() {
         Build-DeployToSymStore
     }
 
-    Build-InsertionItems
+    if ($build -and (-not $buildCoreClr)) {
+        Build-InsertionItems
+    }
 }
 
 # Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to 
