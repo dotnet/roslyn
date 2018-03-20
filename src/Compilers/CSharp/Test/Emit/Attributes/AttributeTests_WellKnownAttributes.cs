@@ -10116,6 +10116,48 @@ public class C
 }");
         }
 
+        // PROTOTYPE: we might want to update this test once SkipLocalsInitAttribute on classes is enabled
+        [Fact]
+        public void SourceMemberMethodSymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
