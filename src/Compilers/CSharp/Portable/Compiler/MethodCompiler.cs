@@ -222,18 +222,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!entryPoint.HasBody)
-            {
-                return entryPoint;
-            }
-
             if (((object)synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
                 BoundStatement body = synthesizedEntryPoint.CreateBody(diagnostics);
-                if (body.HasErrors || diagnostics.HasAnyErrors())
+                if (body.HasErrors || diagnostics.HasAnyErrors() || !synthesizedEntryPoint.HasBody)
                 {
                     return entryPoint;
                 }
@@ -656,12 +651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var methodWithBody in synthesizedMethods)
                 {
-                    var method = methodWithBody.Method;
-                    if (!method.HasBody)
-                    {
-                        continue;
-                    }
-
                     var importChain = methodWithBody.ImportChainOpt;
                     compilationState.CurrentImportChain = importChain;
 
@@ -670,6 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // any diagnostics emitted into it back into the main diagnostic bag.
                     var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
+                    var method = methodWithBody.Method;
                     var lambda = method as SynthesizedClosureMethod;
                     var variableSlotAllocatorOpt = ((object)lambda != null) ?
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod, diagnosticsThisMethod) :
@@ -697,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
-                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors && method.HasBody)
                         {
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
@@ -791,11 +781,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
 
-            if (!accessor.HasBody)
-            {
-                return;
-            }
-
             var diagnosticsThisMethod = DiagnosticBag.GetInstance();
             try
             {
@@ -806,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we cannot rely on GlobalHasErrors since that can be changed concurrently by other methods compiling
                 // we however do not want to continue with generating method body if we have errors in this particular method - generating may crash
                 // or if had declaration errors - we will fail anyways, but if some types are bad enough, generating may produce duplicate errors about that.
-                if (!hasErrors && !_hasDeclarationErrors)
+                if (!hasErrors && !_hasDeclarationErrors && accessor.HasBody)
                 {
                     const int accessorOrdinal = -1;
 

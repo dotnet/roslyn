@@ -99,7 +99,7 @@ namespace Microsoft.Cci
 
         protected override void ProcessMethodBody(IMethodDefinition method)
         {
-            if (method.HasBody && !metadataWriter.MetadataOnly)
+            if (method.HasBody() && !metadataWriter.MetadataOnly)
             {
                 var body = method.GetBody(Context);
 
