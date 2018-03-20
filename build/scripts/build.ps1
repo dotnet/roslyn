@@ -176,6 +176,24 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     }
 }
 
+# Restore all of the projects that the repo consumes
+function Restore-Packages() {
+    Write-Host "Restore using dotnet at $dotnet"
+
+    $all = @(
+        "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
+        "Roslyn:Roslyn.sln")
+
+    foreach ($cur in $all) {
+        $both = $cur.Split(':')
+        Write-Host "Restoring $($both[0])"
+        $projectFilePath = $both[1]
+        $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
+        $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        Restore-Project $dotnet $both[1] $logFilePath
+    }
+}
+
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
 # is located. 
 #
@@ -659,7 +677,7 @@ try {
 
     if ($restore) {
         Write-Host "Running restore"
-        Restore-All $dotnet
+        Restore-Packages
     }
 
     if ($isAnyTestSpecial) {

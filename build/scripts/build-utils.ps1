@@ -414,7 +414,7 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
+function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$logFilePath = "") {
     $nugetConfig = Join-Path $repoDir "nuget.config"
 
     $projectFilePath = $projectFileName
@@ -422,36 +422,11 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
         $projectFilePath = Join-Path $repoDir $projectFileName
     }
 
-    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath"
-}
-
-# Restore all of the projects that the repo consumes
-function Restore-Packages([string]$dotnetExe = "", [string]$project = "") {
-    if ($dotnetExe -eq "") { 
-        $dotnetExe = Ensure-DotnetSdk
+    $logArg = ""
+    if ($logFilePath -ne "") {
+        $logArg = " /bl:$logFilePath"
     }
 
-    Write-Host "Restore using dotnet at $dotnetExe"
-
-    if ($project -ne "") {
-        Write-Host "Restoring project $project"
-        Restore-Project $dotnetExe $project
-    }
-    else {
-        $all = @(
-            "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-            "Roslyn:Roslyn.sln")
-
-        foreach ($cur in $all) {
-            $both = $cur.Split(':')
-            Write-Host "Restoring $($both[0])"
-            Restore-Project $dotnetExe $both[1]
-        }
-    }
-}
-
-# Restore all of the projects that the repo consumes
-function Restore-All([string]$dotnetExe = "") {
-    Restore-Packages -dotnetExe $dotnetExe
+    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath $logArg"
 }
 
