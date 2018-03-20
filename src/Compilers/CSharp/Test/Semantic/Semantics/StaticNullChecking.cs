@@ -4492,8 +4492,7 @@ public struct S2
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_02()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4553,15 +4552,9 @@ class C
 ", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                // (13,22): hidden CS8607: Expression is probably never null.
-                //         object? x1 = CL0.M1() ?? M2();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(13, 22),
-                // (15,21): hidden CS8607: Expression is probably never null.
-                //         object z1 = x1 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(15, 21),
-                // (20,22): hidden CS8607: Expression is probably never null.
-                //         object? x2 = CL0.M1() ?? M3();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(20, 22),
+                // (14,21): warning CS8601: Possible null reference assignment.
+                //         object y1 = x1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(14, 21),
                 // (21,21): hidden CS8607: Expression is probably never null.
                 //         object z2 = x2 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
@@ -4571,12 +4564,6 @@ class C
                 // (27,21): hidden CS8607: Expression is probably never null.
                 //         object z3 = x3 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
-                // (32,22): hidden CS8607: Expression is probably never null.
-                //         object? x4 = CL0.M1() ?? CL0.M1();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(32, 22),
-                // (34,21): hidden CS8607: Expression is probably never null.
-                //         object z4 = x4 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(34, 21),
                 // (39,21): warning CS8601: Possible null reference assignment.
                 //         object x5 = M2() ?? M2();
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M2() ?? M2()").WithLocation(39, 21),
@@ -4643,8 +4630,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_04()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4718,8 +4704,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_05()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -5389,8 +5374,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_04()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -5511,8 +5495,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_06()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -5591,8 +5574,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_07()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -15811,8 +15793,7 @@ struct S
 
         // PROTOTYPE(NullableReferenceTypes): Update other tests with WithNullCheckingFeature(NullableReferenceFlags.None) to verify expected changes.
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Assignment()
         {
             var source =
@@ -15889,8 +15870,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Receiver()
         {
             var source =
@@ -15971,8 +15951,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("s", "void Extensions.F(string s)").WithLocation(18, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Argument()
         {
             var source =
@@ -16058,8 +16037,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("name", "void Program.G(string name)").WithLocation(20, 11));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Return()
         {
             var source =
@@ -18154,6 +18132,40 @@ class C
         }
 
         [Fact]
+        public void NullableConversionAndNullCoalescingOperator_01()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    short F;
+    static ushort G(S? s)
+    {
+        return (ushort)(s?.F ?? 0);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableConversionAndNullCoalescingOperator_02()
+        {
+            var source =
+@"struct S
+{
+    public static implicit operator int(S s) => 0;
+}
+class P
+{
+    static int F(S? x, int y) => x ?? y;
+    static int G(S x, int? y) => y ?? x;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConstrainedToTypeParameter_01()
         {
             var source =
@@ -18180,9 +18192,21 @@ class C
         }
 
         [Fact]
-        public void TrackNonNullableLocals()
+        public void ArrayElementConversion()
         {
             var source =
+@"class C
+{
+    static object F() => new sbyte[] { -1 };
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TrackNonNullableLocals()
+            {
+                var source =
 @"class C
 {
     static void F(object x)
