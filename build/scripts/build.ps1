@@ -146,9 +146,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
             $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
         }
         $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
-        $logDir = Join-Path $binariesDir "Logs"
-        Create-Directory $logDir
-        $logFilePath = Join-Path $logDir $logFileName
+        $logFilePath = Join-Path $logsDir $logFileName
         $args += " /bl:$logFilePath"
     }
 
@@ -191,12 +189,10 @@ function Make-BootstrapBuild() {
     Create-Directory $dir
     if ($buildCoreClr) {
         $bootstrapFramework = "netcoreapp2.0"
-        $logDir = Join-Path $binariesDir "Logs"
-        Create-Directory $logDir
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapCsc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapVbc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapVBCSCompiler.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapMSBuildTask.binlog"
         Stop-BuildProcesses
     }
     else {
@@ -397,8 +393,8 @@ function Test-XUnitCoreClr() {
 
     $unitDir = Join-Path $configDir "UnitTests"
     $tf = "netcoreapp2.0"
-    $logDir = Join-Path $unitDir "xUnitResults"
-    Create-Directory $logDir 
+    $xunitResultDir = Join-Path $unitDir "xUnitResults"
+    Create-Directory $xunitResultDir 
     $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\$tf\xunit.console.dll"
 
     $dlls = @()
@@ -414,7 +410,7 @@ function Test-XUnitCoreClr() {
             $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
             $args += " $xunitConsole"
             $args += " $dllPath"
-            $args += " -xml " + (Join-Path $logDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+            $args += " -xml " + (Join-Path $xunitResultDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
 
             # https://github.com/dotnet/roslyn/issues/25049
             # Disable parallel runs everywhere until we get assembly specific settings working again
@@ -448,7 +444,7 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
-    $logFilePath = Join-Path $configDir "runtests.log"
+    $logFilePath = Join-Path $logsDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
@@ -649,11 +645,13 @@ try {
     $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
+    $logsDir = Join-Path $configDir "Logs"
     $bootstrapDir = ""
 
     # Ensure the main output directories exist as a number of tools will fail when they don't exist. 
     Create-Directory $binariesDir
     Create-Directory $configDir 
+    Create-Directory $logsDir
 
     if ($cibuild) { 
         List-VSProcesses
