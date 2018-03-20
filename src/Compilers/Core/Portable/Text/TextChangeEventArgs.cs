@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="changes">A non-empty set of ranges for the change.</param>
         public TextChangeEventArgs(SourceText oldText, SourceText newText, IEnumerable<TextChangeRange> changes)
         {
-            if (changes == null || changes.IsEmpty())
+            if (changes == null)
             {
                 throw new ArgumentException("changes");
             }
