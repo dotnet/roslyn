@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !diagnostics.HasAnyErrors())
             {
                 BoundStatement body = synthesizedEntryPoint.CreateBody(diagnostics);
-                if (body.HasErrors || diagnostics.HasAnyErrors() || !synthesizedEntryPoint.HasBody)
+                if (body.HasErrors || diagnostics.HasAnyErrors())
                 {
                     return entryPoint;
                 }
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
-                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors && method.HasBody)
+                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we cannot rely on GlobalHasErrors since that can be changed concurrently by other methods compiling
                 // we however do not want to continue with generating method body if we have errors in this particular method - generating may crash
                 // or if had declaration errors - we will fail anyways, but if some types are bad enough, generating may produce duplicate errors about that.
-                if (!hasErrors && !_hasDeclarationErrors && accessor.HasBody)
+                if (!hasErrors && !_hasDeclarationErrors)
                 {
                     const int accessorOrdinal = -1;
 
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
                 ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
-                bool hasBody = flowAnalyzedBody != null && methodSymbol.HasBody;
+                bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
