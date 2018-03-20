@@ -77,11 +77,6 @@ public class Test
                 //             case null:
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
-                //             case null:
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("Test.eTypes").WithLocation(23, 18)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (23,18): error CS0037: Cannot convert null to 'Test.eTypes' because it is a non-nullable value type
                 //             case null:
@@ -113,11 +108,6 @@ enum color
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (7,17): error CS0119: 'color' is a type, which is not valid in the given context
-                //         switch (color)
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "color").WithArguments("color", "type").WithLocation(7, 17)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (7,17): error CS0119: 'color' is a type, which is not valid in the given context
                 //         switch (color)
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "color").WithArguments("color", "type").WithLocation(7, 17)
@@ -154,11 +144,6 @@ public class Test
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
-                //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0150: A constant value is expected
                 //             case test:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
@@ -201,14 +186,6 @@ public class A
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
-                //             case 1: break;   // CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
-                // (23,13): error CS0152: The switch statement contains multiple cases with the label value 'f'
-                //             case 'f':       // CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'f':").WithArguments("f").WithLocation(23, 13)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: break;   // CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
@@ -297,32 +274,6 @@ public class A
                 //             case 97:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
-                //             case 1: break;   // CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
-                // (23,13): error CS0152: The switch statement contains multiple cases with the label value '97'
-                //             case 97:       // CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("97").WithLocation(23, 13),
-                // (32,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
-                //             case 97.0f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(32, 18),
-                // (34,18): error CS0266: Cannot implicitly convert type 'float' to 'char'. An explicit conversion exists (are you missing a cast?)
-                //             case 97.0f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97.0f").WithArguments("float", "char").WithLocation(34, 18),
-                // (34,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
-                //             case 97.0f:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97.0f:").WithArguments("a").WithLocation(34, 13),
-                // (36,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
-                //             case 'a':
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 'a':").WithArguments("a").WithLocation(36, 13),
-                // (38,18): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
-                //             case 97:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "97").WithArguments("int", "char").WithLocation(38, 18),
-                // (38,13): error CS0152: The switch statement contains multiple cases with the label value 'a'
-                //             case 97:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 97:").WithArguments("a").WithLocation(38, 13)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case 1: break;   // CS0152
@@ -374,11 +325,6 @@ public class TestClass
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
-                //             default:            //CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
@@ -451,14 +397,6 @@ public class Test
                 //                 goto case 5;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(10, 17)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (10,17): error CS0159: No such label 'case 5:' within the scope of the goto statement
-                //                 goto case 5;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 5;").WithArguments("case 5:").WithLocation(10, 17),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 goto case 5;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(10, 17)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (10,17): error CS0159: No such label 'case 5:' within the scope of the goto statement
                 //                 goto case 5;
@@ -497,11 +435,6 @@ public class Test
                 //         switch (test) {
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "test").WithLocation(9, 17)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (9,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch (test) {
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "test").WithLocation(9, 17)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -523,11 +456,6 @@ class T
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (6,16): error CS8119: The switch expression must be a value; found <null>.
-                //         switch(null)
-                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found <null>.
                 //         switch(null)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
@@ -562,11 +490,6 @@ class T
                 //         switch(M())
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (6,16): error CS8119: The switch expression must be a value; found void.
-                //         switch(M())
-                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found void.
                 //         switch(M())
@@ -597,11 +520,6 @@ class T
                 //         switch(M)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (6,16): error CS8119: The switch expression must be a value; found method group
-                //         switch(M)
-                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found method group.
                 //         switch(M)
@@ -626,10 +544,6 @@ class T
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (6,16): error CS8119: The switch expression must be a value; found lambda expression
-                //         switch(() => {})
-                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found lambda expression
                 //         switch(() => {})
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
@@ -676,10 +590,6 @@ class Conv
                 // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -717,11 +627,6 @@ class Conv
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
@@ -764,11 +669,6 @@ struct Conv
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
@@ -823,11 +723,6 @@ struct Conv
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
-                );
             CreateCompilation(text).VerifyDiagnostics(
             );
         }
@@ -877,10 +772,6 @@ struct Conv
     }		
 }";
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (27,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16));
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (27,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
@@ -939,11 +830,6 @@ struct Conv
                 // 		switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (27,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                // 		switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -995,7 +881,6 @@ struct Conv
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1029,11 +914,6 @@ class Conv
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (13,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(13, 16)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (13,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(13, 16)
@@ -1073,11 +953,6 @@ class Conv
 }";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (14,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //         switch(C)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(14, 16)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (14,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "C").WithLocation(14, 16)
@@ -1123,10 +998,6 @@ class Conv
                 // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
                 //     public static implicit operator object(Conv C)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
-                //     public static implicit operator object(Conv C)
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "object").WithArguments("Conv.implicit operator object(Conv)").WithLocation(5, 37));
             CreateCompilation(text).VerifyDiagnostics(
                 // (5,37): error CS0553: 'Conv.implicit operator object(Conv)': user-defined conversions to or from a base class are not allowed
                 //     public static implicit operator object(Conv C)
@@ -1169,23 +1040,9 @@ class C
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "0").WithLocation(12, 18)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (8,18): error CS0150: A constant value is expected
-                //             case (1+(o.GetType().Name.Length)):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1+(o.GetType().Name.Length))").WithLocation(8, 18),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
-                //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case 0:
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "0").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
                 );
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
@@ -1194,9 +1051,9 @@ class C
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "0").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
                 );
         }
 
@@ -1220,11 +1077,6 @@ public class Test
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //       case 1.2f:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (10,12): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //       case 1.2f:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.2f").WithArguments("float", "int").WithLocation(10, 12)
@@ -1344,7 +1196,6 @@ public class Test
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1386,7 +1237,6 @@ class Conv
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1437,7 +1287,6 @@ class Conv
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1481,7 +1330,6 @@ struct Conv
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1520,7 +1368,6 @@ struct Conv
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1564,7 +1411,6 @@ struct Conv
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
             CreateCompilation(text).VerifyDiagnostics();
         }
 
@@ -1609,10 +1455,6 @@ class C
             // Note: Dev10 also reports CS0151 for "b2.F()", although
             // there is an implicit conversion from A2 to int.
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (20,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "b1.F()").WithLocation(20, 17)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (20,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "b1.F()").WithLocation(20, 17)
                 );
@@ -1663,11 +1505,6 @@ struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
@@ -1725,13 +1562,6 @@ struct A
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a"));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (22,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(aNullable)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "aNullable"),
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a"));
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -1779,11 +1609,6 @@ struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
@@ -1839,11 +1664,6 @@ struct A
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -1895,11 +1715,6 @@ struct A
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -1947,11 +1762,6 @@ struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
@@ -2009,11 +1819,6 @@ struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(34, 20)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(34, 20)
@@ -2079,14 +1884,6 @@ struct A
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(aNullable)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "aNullable"),
-                // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -2144,11 +1941,6 @@ struct A
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -2202,14 +1994,6 @@ struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(aNullable)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "aNullable"),
-                // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(aNullable)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "aNullable"),
@@ -2284,14 +2068,6 @@ struct A
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(aNullable)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "aNullable"),
-                // (40,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(a)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a")
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -2324,7 +2100,6 @@ struct A
 }
 ";
             CompileAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput: "a1");
-            CompileAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput: "a1");
             CompileAndVerify(text, expectedOutput: "a1");
         }
 
@@ -2361,7 +2136,6 @@ struct A
 }
 ";
             CompileAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput: "a2");
-            CompileAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput: "a2");
             CompileAndVerify(text, expectedOutput: "a2");
         }
 
@@ -2399,9 +2173,6 @@ struct X
     }
 }";
             CompileAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput:
-@"1
-null");
-            CompileAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput:
 @"1
 null");
             CompileAndVerify(text, expectedOutput:
@@ -2454,11 +2225,6 @@ struct A
                 //             switch (a) // both operators applicable in non-lifted form -> error
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(29, 21)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (29,21): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch (a) // both operators applicable in non-lifted form -> error
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(29, 21)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 );
         }
@@ -2495,19 +2261,14 @@ class Test
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (14,13): error CS8070: Control cannot fall out of switch from final case label ('default')
-                //             default:                        // CS8070
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default").WithLocation(14, 13)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (14,13): error CS8070: Control cannot fall out of switch from final case label ('default:')
                 //             default:                        // CS8070
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(14, 13)
                 );
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,13): error CS8070: Control cannot fall out of switch from final case label ('default')
+                // (14,13): error CS8070: Control cannot fall out of switch from final case label ('default:')
                 //             default:                        // CS8070
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default").WithLocation(14, 13)
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(14, 13)
                 );
         }
 
@@ -2537,11 +2298,6 @@ namespace Test
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,17): error CS8070: Control cannot fall out of switch from final case label ('case 11')
-                //                 case 11:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (15,17): error CS8070: Control cannot fall out of switch from final case label ('case 11')
                 //                 case 11:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17)
@@ -2603,20 +2359,9 @@ namespace Test
                 // (24,17): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
                 //                 case 5:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(24, 17),
-                // (32,17): error CS8070: Control cannot fall out of switch from final case label ('default')
-                //                 default:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default").WithLocation(32, 17)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (15,17): error CS8070: Control cannot fall out of switch from final case label ('case 11:')
-                //                 case 11:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17),
-                // (24,17): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
-                //                 case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(24, 17),
                 // (32,17): error CS8070: Control cannot fall out of switch from final case label ('default:')
                 //                 default:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(32, 17) // BUG
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(32, 17)
                 );
             CreateCompilation(text).VerifyDiagnostics(
                 // (15,17): error CS8070: Control cannot fall out of switch from final case label ('case 11:')
@@ -2625,9 +2370,9 @@ namespace Test
                 // (24,17): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
                 //                 case 5:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(24, 17),
-                // (32,17): error CS8070: Control cannot fall out of switch from final case label ('default')
+                // (32,17): error CS8070: Control cannot fall out of switch from final case label ('default:')
                 //                 default:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default").WithLocation(32, 17)
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(32, 17)
                 );
         }
 
@@ -2644,12 +2389,12 @@ switch (1)
         Console.WriteLine(2);
 }";
             CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,5): error CS0163: Control cannot fall through from one case label ('default') to another
+                // (4,5): error CS0163: Control cannot fall through from one case label ('default:') to another
                 //     default:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "default:").WithArguments("default").WithLocation(4, 5),
-                // (6,5): error CS8070: Control cannot fall out of switch from final case label ('case 2:')
-                //     case 2:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 2:").WithArguments("case 2:").WithLocation(6, 5)
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "default:").WithArguments("default:").WithLocation(4, 5),
+                // (7,9): warning CS0162: Unreachable code detected
+                //         Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(7, 9)
                 );
         }
 
@@ -2673,9 +2418,9 @@ switch (1)
                 // (4,5): error CS0163: Control cannot fall through from one case label ('case 1:') to another
                 //     case 1:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 1:").WithArguments("case 1:").WithLocation(4, 5),
-                // (6,5): error CS8070: Control cannot fall out of switch from final case label ('default')
-                //     default:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default").WithLocation(6, 5)
+                // (7,9): warning CS0162: Unreachable code detected
+                //         Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(7, 9)
                 );
         }
 
@@ -2711,11 +2456,6 @@ class Test
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,13): error CS0163: Control cannot fall through from one case label ('case 2:') to another
-                //             case 2:                         // CS0163
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 2:").WithArguments("case 2:").WithLocation(11, 13)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,13): error CS0163: Control cannot fall through from one case label ('case 2:') to another
                 //             case 2:                         // CS0163
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 2:").WithArguments("case 2:").WithLocation(11, 13)
@@ -2783,17 +2523,6 @@ namespace Test
                 //                 case 10:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(32, 17)
                 );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (12,17): error CS0163: Control cannot fall through from one case label ('case 10:') to another
-                //                 case 10:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(12, 17),
-                // (23,17): error CS0163: Control cannot fall through from one case label ('case 5:') to another
-                //                 case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 5:").WithArguments("case 5:").WithLocation(23, 17),
-                // (32,17): error CS0163: Control cannot fall through from one case label ('case 10:') to another
-                //                 case 10:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(32, 17)
-                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (12,17): error CS0163: Control cannot fall through from one case label ('case 10:') to another
                 //                 case 10:
@@ -2847,10 +2576,6 @@ public class Test
                 // (24,4): error CS0165: Use of unassigned local variable 'f'
                 //            f.Bar();        // unassigned variable f
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(24, 13));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (24,4): error CS0165: Use of unassigned local variable 'f'
-                //            f.Bar();        // unassigned variable f
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f").WithLocation(24, 13));
             CreateCompilation(text).VerifyDiagnostics(
                 // (24,4): error CS0165: Use of unassigned local variable 'f'
                 //            f.Bar();        // unassigned variable f
@@ -2882,16 +2607,6 @@ class SwitchTest
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 goo = 1;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(10, 17),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 goo = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(13, 17),
-                // (17,27): error CS0165: Use of unassigned local variable 'goo'
-                //         Console.WriteLine(goo);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(17, 27));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 goo = 1;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "goo").WithLocation(10, 17),
@@ -2964,10 +2679,6 @@ class SwitchTest
                 // (40,27): error CS0165: Use of unassigned local variable 'goo'
                 //         Console.WriteLine(goo);    // CS0165
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (40,27): error CS0165: Use of unassigned local variable 'goo'
-                //         Console.WriteLine(goo);    // CS0165
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
             CreateCompilation(text).VerifyDiagnostics(
                 // (40,27): error CS0165: Use of unassigned local variable 'goo'
                 //         Console.WriteLine(goo);    // CS0165
@@ -2998,17 +2709,6 @@ class SwitchTest
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (8,18): error CS0118: 'System' is a namespace but is used like a variable
-                //             case System:
-                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "variable").WithLocation(8, 18),
-                // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
-                //                 goto System;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System").WithLocation(11, 22),
-                // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
-                //             case 5:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(10, 13)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (8,18): error CS0118: 'System' is a namespace but is used like a variable
                 //             case System:
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "variable").WithLocation(8, 18),
@@ -3141,11 +2841,6 @@ public class TestClass
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break; //1
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
-                );
-            CreateCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 break; //1
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)

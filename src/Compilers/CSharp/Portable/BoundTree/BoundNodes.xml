@@ -760,30 +760,6 @@
     <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
-  <Node Name="BoundSwitchStatement" Base="BoundStatement">
-    <Field Name="LoweredPreambleOpt" Type="BoundStatement" Null="allow"/>
-    <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
-    
-    <!-- Locals declared immediately within the switch block. -->
-    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
-    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-    <!-- Well-known member populated during lowering -->
-    <Field Name="StringEquality" Type="MethodSymbol" Null="allow" />
-  </Node>
-
-  <Node Name="BoundSwitchSection" Base="BoundStatementList">
-    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
-  </Node>
-
-  <Node Name="BoundSwitchLabel" Base="BoundNode">
-    <Field Name="Label" Type="LabelSymbol"/>
-    <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-  </Node>
-
   <Node Name="BoundBreakStatement" Base="BoundStatement">
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
@@ -804,8 +780,9 @@
   </Node>
 
   <!-- Part of a lowered integral switch statement. This evaluates Value, and then branches
-       to the corresponding Target. If no Value is equal to the input, it is a no-op.
-       The input Value and the constants must be of the same integral type.
+       to the corresponding Target. If no Value is equal to the input, branches to the default label.
+       The input Value and the constants must be of the same type. Currently emit only supports
+       integral types and string.
 
        BoundSwitchDispatch is also used to mark labels in the code that will be the target of backward
        branches, but should be treated as having the same stack depth as the location where
@@ -824,12 +801,15 @@
        all of the labels as forward labels by producing a dummy inoperable forward jump to them.
   -->
   <Node Name="BoundSwitchDispatch" Base="BoundStatement">
-    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
-    <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol target)&gt;" Null="disallow"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow" />
+    <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
+    <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
+    <!-- Equality method to be used when dispatching on a non-integral type such as string. -->
+    <Field Name="EqualityMethod" Type="MethodSymbol" Null="allow" />
   </Node>
 
   <Node Name="BoundSwitchExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
   </Node>

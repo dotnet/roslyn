@@ -311,23 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitGotoStatement(node);
         }
 
-        public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
-        {
-            base.VisitSwitchSection(node);
-
-            // Check for switch section fall through error
-            if (this.State.Alive)
-            {
-                Debug.Assert(node.SwitchLabels.Any());
-
-                var boundLabel = node.SwitchLabels.Last();
-                Diagnostics.Add(lastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
-                                new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
-            }
-
-            return null;
-        }
-
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             base.VisitPatternSwitchSection(node, isLastSection);

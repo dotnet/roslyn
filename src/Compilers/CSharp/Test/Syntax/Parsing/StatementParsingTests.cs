@@ -2068,8 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
             var diags = statement.ErrorsAndWarnings();
-            Assert.Equal(1, diags.Length);
-            Assert.Equal((int)ErrorCode.WRN_EmptySwitch, diags[0].Code);
+            Assert.Equal(0, diags.Length);
 
             var ss = (SwitchStatementSyntax)statement;
             Assert.NotNull(ss.SwitchKeyword);

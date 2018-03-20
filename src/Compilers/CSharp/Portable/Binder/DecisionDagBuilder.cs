@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class DecisionDagBuilder
     {
+        private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
         private readonly TypeSymbol _booleanType;
         private readonly TypeSymbol _objectType;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, DiagnosticBag diagnostics)
         {
+            this._compilation = compilation;
             this._conversions = compilation.Conversions;
             this._booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
             this._objectType = compilation.GetSpecialType(SpecialType.System_Object);
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bindings = bindingsBuilder.ToImmutableAndFree();
         }
 
-        private void SimplifyDecisionsAndBindings(
+        private static void SimplifyDecisionsAndBindings(
             ArrayBuilder<BoundDagDecision> decisionsBuilder,
             ArrayBuilder<(BoundExpression, BoundDagTemp)> bindingsBuilder)
         {
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void NullCheck(
+        private static void NullCheck(
             BoundDagTemp input,
             SyntaxNode syntax,
             ArrayBuilder<BoundDagDecision> decisions)
@@ -379,6 +381,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// This can be used instead of Debug.Assert as it more reliably breaks to the debugger
+        /// when an assertion fails (it is unaffected by exception filters on enclosing frames).
+        /// </summary>
+        [Conditional("DEBUG")]
+        private void Assert(bool condition, string message = null)
+        {
+            if (!condition)
+            {
+                Debugger.Launch();
+                Debugger.Break();
+            }
+        }
+
         private void MakeDecisionsAndBindings(
             BoundDagTemp input,
             BoundRecursivePattern recursive,
@@ -426,10 +442,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeDecisionsAndBindings(output, pattern, decisions, bindings);
                     }
                 }
+                // PROTOTYPE(patterns2): Handle the ITuple case.
                 else
                 {
-                    // PROTOTYPE(patterns2): This should not occur except in error cases. Perhaps this will be used to handle the ITuple case.
+                    // This occurs in error cases.
                     Debug.Assert(recursive.HasAnyErrors);
+                    // To prevent this pattern from subsuming other patterns and triggering a cascaded diagnostic, we add a test that will fail.
+                    decisions.Add(new BoundTypeDecision(recursive.Syntax, ErrorType(), input, hasErrors: true));
                 }
             }
 
@@ -451,8 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         default:
                             Debug.Assert(recursive.HasAnyErrors);
+                            decisions.Add(new BoundTypeDecision(recursive.Syntax, ErrorType(), input, hasErrors: true));
                             continue;
                     }
+
                     decisions.Add(evaluation);
                     var output = new BoundDagTemp(prop.pattern.Syntax, prop.symbol.GetTypeOrReturnType(), evaluation, 0);
                     MakeDecisionsAndBindings(output, prop.pattern, decisions, bindings);
@@ -464,6 +485,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we have a "variable" declaration
                 bindings.Add((recursive.VariableAccess, input));
             }
+        }
+
+        private TypeSymbol ErrorType(string name = "")
+        {
+            return new ExtendedErrorTypeSymbol(this._compilation, name, arity: 0, errorInfo: null, unreported: false);
         }
 
         private BoundDecisionDag MakeDecisionDag(SyntaxNode syntax, ImmutableArray<PartialCaseDecision> cases)
@@ -503,6 +529,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (workList.Count != 0)
             {
                 DagState state = workList.Pop();
+                Debug.Assert(state.SelectedDecision == null);
+                Debug.Assert(state.TrueBranch == null);
+                Debug.Assert(state.FalseBranch == null);
                 if (state.Cases.IsDefaultOrEmpty)
                 {
                     continue;
@@ -540,24 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Note: It is useful for debugging the dag state table construction to view `initialState.Dump()` here.
             workList.Free();
 
-            // A successor function used to topologically sort the DagState set.
-            IEnumerable<DagState> succ(DagState state)
-            {
-                if (state.TrueBranch != null)
-                {
-                    yield return state.TrueBranch;
-                }
-
-                if (state.FalseBranch != null)
-                {
-                    yield return state.FalseBranch;
-                }
-            }
-
             // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-            ImmutableArray<DagState> sortedStates = TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(initialState), succ);
+            ImmutableArray<DagState> sortedStates = initialState.TopologicallySortedReachableStates;
             Debug.Assert(_defaultLabel != null);
             var finalStates = PooledDictionary<LabelSymbol, BoundDecisionDag>.GetInstance();
             finalStates.Add(_defaultLabel, defaultDecision);
@@ -565,13 +581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!finalStates.TryGetValue(label, out BoundDecisionDag final))
                 {
-                    if (bindings.IsDefaultOrEmpty)
+                    final = new BoundDecision(syntax, label);
+                    if (!bindings.IsDefaultOrEmpty)
                     {
-                        final = new BoundDecision(syntax, label);
-                    }
-                    else
-                    {
-                        final = new BoundWhenClause(syntax, bindings, null, new BoundDecision(syntax, label), null);
+                        final = new BoundWhenClause(syntax, bindings, null, final, null);
                     }
 
                     finalStates.Add(label, final);
@@ -613,10 +626,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundDagEvaluation e:
                             {
-                                BoundDecisionDag whenTrue = state.TrueBranch.Dag;
-                                Debug.Assert(whenTrue != null);
+                                BoundDecisionDag next = state.TrueBranch.Dag;
+                                Debug.Assert(next != null);
                                 Debug.Assert(state.FalseBranch == null);
-                                state.Dag = new BoundEvaluationPoint(e.Syntax, e, whenTrue);
+                                state.Dag = new BoundEvaluationPoint(e.Syntax, e, next);
                             }
                             break;
                         case BoundDagDecision d:
@@ -637,7 +650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalStates.Free();
 
             Debug.Assert(initialState.Dag != null);
-            // Note: It is useful for debugging the dag state table construction to view `initialState.Dump()` here.
             return initialState.Dag;
         }
 
@@ -704,15 +716,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            PartialCaseDecision makeNext(ArrayBuilder<BoundDagDecision> remainingDecisions)
+            {
+                if (remainingDecisions.Count == c.Decisions.Length)
+                {
+                    remainingDecisions.Free();
+                    return c;
+                }
+                else
+                {
+                    return new PartialCaseDecision(c.Index, c.Syntax, remainingDecisions.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
+                }
+            }
+
             if (trueBuilder != null)
             {
-                var pcd = trueBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, trueBuilder.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
+                var pcd = makeNext(trueBuilder);
                 whenTrueBuilder.Add(pcd);
             }
 
             if (falseBuilder != null)
             {
-                var pcd = falseBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, falseBuilder.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
+                var pcd = makeNext(falseBuilder);
                 whenFalseBuilder.Add(pcd);
             }
         }
@@ -788,13 +813,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             trueDecisionImpliesTrueOther = true;
                             break;
                         case BoundTypeDecision t2:
-                            // If T1 could never be T2, then success of T1 implies failure of T2.
                             {
                                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                                 bool? matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t1.Type, t2.Type, ref useSiteDiagnostics, out _);
                                 if (matches == false)
                                 {
+                                    // If T1 could never be T2, then success of T1 implies failure of T2.
                                     trueDecisionPermitsTrueOther = false;
+                                }
+                                else if (matches == true)
+                                {
+                                    // Every T1 is a T2
+                                    trueDecisionImpliesTrueOther = true;
                                 }
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
@@ -905,6 +935,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundDagDecision SelectedDecision;
             public DagState TrueBranch, FalseBranch;
 
+            public ImmutableArray<DagState> TopologicallySortedReachableStates
+            {
+                get
+                {
+                    // A successor function used to topologically sort the DagState set.
+                    IEnumerable<DagState> succ(DagState state)
+                    {
+                        if (state.TrueBranch != null)
+                        {
+                            yield return state.TrueBranch;
+                        }
+
+                        if (state.FalseBranch != null)
+                        {
+                            yield return state.FalseBranch;
+                        }
+                    }
+
+                    // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+                    return TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this), succ);
+                }
+            }
+
             // After the entire graph of DagState objects is complete, we translate each into its Dag.
             public BoundDecisionDag Dag;
 
@@ -914,18 +967,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Our simple heuristic is to perform the first test of the first possible matched case
                 var choice = Cases[0].Decisions[0];
 
-                // But if that test is a null check, it would be redundant with a following
-                // type test. We apply this refinement only when there is exactly one case, because
-                // when there are multiple cases the null check is likely to be shared.
+                // But if that test is a null check, it would be redundant with a following type test.
                 if (choice.Kind == BoundKind.NonNullDecision &&
-                    Cases.Length == 1 &&
-                    Cases[0].Decisions.Length > 1)
+                    Cases[0].Decisions.Length > 1 &&
+                    Cases[0].Decisions[1] is var choice2 &&
+                    choice2.Kind == BoundKind.TypeDecision &&
+                    choice.Input == choice2.Input)
                 {
-                    var choice2 = Cases[0].Decisions[1];
-                    if (choice2.Kind == BoundKind.TypeDecision)
-                    {
-                        return choice2;
-                    }
+                    return choice2;
                 }
 
                 return choice;
@@ -938,24 +987,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal string Dump()
             {
-                var printed = PooledHashSet<DagState>.GetInstance();
-
-                int nextStateNumber = 0;
-                var workQueue = ArrayBuilder<DagState>.GetInstance();
+                var allStates = this.TopologicallySortedReachableStates;
                 var stateIdentifierMap = PooledDictionary<DagState, int>.GetInstance();
-                int stateIdentifier(DagState state)
+                for (int i = 0; i < allStates.Length; i++)
                 {
-                    if (stateIdentifierMap.TryGetValue(state, out int value))
-                    {
-                        return value;
-                    }
-                    else
-                    {
-                        value = stateIdentifierMap[state] = ++nextStateNumber;
-                        workQueue.Push(state);
-                    }
-
-                    return value;
+                    stateIdentifierMap.Add(allStates[i], i);
                 }
 
                 int nextTempNumber = 0;
@@ -972,16 +1008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var resultBuilder = PooledStringBuilder.GetInstance();
                 var result = resultBuilder.Builder;
-                stateIdentifier(this); // push the start node onto the work queue
-                while (workQueue.Count != 0)
-                {
-                    var state = workQueue.Pop();
-                    if (!printed.Add(state))
-                    {
-                        continue;
-                    }
 
-                    result.AppendLine($"State " + stateIdentifier(state));
+                foreach (var state in allStates)
+                {
+                    result.AppendLine($"State " + stateIdentifierMap[state]);
                     foreach (PartialCaseDecision cd in state.Cases)
                     {
                         result.Append($"  [{cd.Syntax}]");
@@ -1000,17 +1030,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (state.TrueBranch != null)
                     {
-                        result.AppendLine($"  TrueBranch: {stateIdentifier(state.TrueBranch)}");
+                        result.AppendLine($"  TrueBranch: {stateIdentifierMap[state.TrueBranch]}");
                     }
 
                     if (state.FalseBranch != null)
                     {
-                        result.AppendLine($"  FalseBranch: {stateIdentifier(state.FalseBranch)}");
+                        result.AppendLine($"  FalseBranch: {stateIdentifierMap[state.FalseBranch]}");
                     }
                 }
 
-                workQueue.Free();
-                printed.Free();
                 stateIdentifierMap.Free();
                 tempIdentifierMap.Free();
                 return resultBuilder.ToStringAndFree();
@@ -1058,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class PartialCaseDecision
         {
             /// <summary>
-            /// A number that is distinct for each case and monotinically increasing from earlier to later cases.
+            /// A number that is distinct for each case and monotonically increasing from earlier to later cases.
             /// </summary>
             public readonly int Index;
             public readonly SyntaxNode Syntax;

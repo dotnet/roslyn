@@ -813,9 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 foreach (var se in sideEffects)
                 {
-                    if (se is BoundExpression)
+                    if (se is BoundExpression e)
                     {
-                        EmitExpression((BoundExpression)se, false);
+                        EmitExpression(e, false);
                     }
                     else
                     {

@@ -954,6 +954,79 @@ public class X
 9");
         }
 
+        [Fact]
+        public void TypeCheckInPropertyPattern()
+        {
+            var source =
+@"using System;
+
+class Program2
+{
+    public static void Main()
+    {
+        object o = new Frog(1, 2);
+        if (o is Frog(1, 2))
+        {
+            Console.Write(1);
+        }
+        if (o is Frog { A: 1, B: 2 })
+        {
+            Console.Write(2);
+        }
+        if (o is Frog(1, 2) { A: 1, B: 2, C: 3 })
+        {
+            Console.Write(3);
+        }
+    }
+}
+
+class Frog
+{
+    public object A, B;
+    public object C => (int)A + (int)B;
+    public Frog(object A, object B) => (this.A, this.B) = (A, B);
+    public void Deconstruct(out object A, out object B) => (A, B) = (this.A, this.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"123");
+        }
+
+        [Fact]
+        public void OvereagerSubsumption()
+        {
+            var source =
+@"using System;
+
+class Program2
+{
+    public static int Main() => 0;
+    public static void M(object o)
+    {
+        switch (o)
+        {
+            case (1, 2):
+                break;
+            case string s:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            // Two errors below instead of one due to https://github.com/dotnet/roslyn/issues/25533
+            compilation.VerifyDiagnostics(
+                // (10,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (1, 2):
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(10, 18),
+                // (10,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             case (1, 2):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(10, 18)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern

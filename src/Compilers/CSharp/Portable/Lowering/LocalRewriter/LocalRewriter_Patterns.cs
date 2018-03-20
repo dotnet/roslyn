@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
                             _localRewriter._diagnostics.Add(t.Syntax, useSiteDiagnostics);
+                            BoundExpression evaluated;
                             if (conversion.Exists)
                             {
                                 if (conversion.Kind == ConversionKind.ExplicitNullable &&
@@ -165,17 +166,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     _localRewriter.TryGetNullableMethod(t.Syntax, inputType, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
                                 {
                                     // As a special case, since the null test has already been done we can use Nullable<T>.GetValueOrDefault
-                                    return _factory.AssignmentExpression(output, _factory.Call(input, getValueOrDefault));
+                                    evaluated = _factory.Call(input, getValueOrDefault);
                                 }
                                 else
                                 {
-                                    return _factory.AssignmentExpression(output, _factory.Convert(type, input, conversion));
+                                    evaluated = _factory.Convert(type, input, conversion);
                                 }
                             }
                             else
                             {
-                                return _factory.AssignmentExpression(output, _factory.As(input, type));
+                                evaluated = _factory.As(input, type);
                             }
+
+                            return _factory.AssignmentExpression(output, evaluated);
                         }
 
                     default:
@@ -184,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Return the boolean test required for the given decision
+            /// Return the boolean test required for the given decision. Returns `null` if the decision is trivially true.
             /// </summary>
             protected BoundExpression LowerDecision(BoundDagDecision decision)
             {
@@ -445,7 +448,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int16:
                 case SpecialType.System_SByte:
                 case SpecialType.System_UInt16:
-                    // PROTOTYPE(patterns2): need to check that this produces efficient code
                     return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, loweredLiteral), _factory.Convert(intType, input), booleanType, method: null);
                 case SpecialType.System_Decimal:
                     return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, loweredLiteral, input, booleanType, method: null);
@@ -464,8 +466,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt64:
                     return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, loweredLiteral, input, booleanType, method: null);
                 default:
-                    // PROTOTYPE(patterns2): need more efficient code for enum test, e.g. `color is Color.Red`
-                    // This is the (correct but inefficient) fallback for any type that isn't yet implemented (e.g. enums)
+                    if (loweredLiteral.Type.IsEnumType())
+                    {
+                        return MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.EnumEqual, loweredLiteral, input, booleanType, method: null);
+                    }
+
+                    // This is the (correct but inefficient) fallback for any type that isn't yet implemented.
+                    // However, the above should handle all types.
+                    Debug.Assert(false); // don't fail in non-debug builds
                     NamedTypeSymbol systemObject = _factory.SpecialType(SpecialType.System_Object);
                     return _factory.StaticCall(
                         systemObject,

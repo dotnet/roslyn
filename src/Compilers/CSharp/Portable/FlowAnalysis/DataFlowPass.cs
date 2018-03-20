@@ -1598,10 +1598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             DeclareVariables(node.InnerLocals);
-            var result = base.VisitSwitchStatement(node);
+            var result = base.VisitPatternSwitchStatement(node);
             ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.InnerLocalFunctions);
             return result;

@@ -531,17 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _tempSubstitution.Clear();
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            EnterStatement(node);
-
-            BoundSpillSequenceBuilder builder = null;
-            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var boundExpression = VisitExpression(ref builder, node.Expression);
-            var switchSections = this.VisitList(node.SwitchSections);
-            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
-        }
-
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
             EnterStatement(node);
@@ -582,6 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var condition = VisitExpression(ref builder, node.Condition);
             return UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label), substituteTemps: true);
+        }
+
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            EnterStatement(node);
+
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod), substituteTemps: true);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
@@ -1157,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundSpillSequenceBuilder builder = null;
 
-            // TODO(patterns2): This does not properly handle side-effects that are statements. That occurs
+            // PROTOTYPE(patterns2): This does not properly handle side-effects that are statements. That occurs
             // as a result of lowering a switch expression. Interesting cases to test include using `await`
             // in a `when` clause of one of the switch expression arms, or in one of the result expressions.
             // Until it is fixed, the cast below will fail whenever an async method contains a pattern switch.

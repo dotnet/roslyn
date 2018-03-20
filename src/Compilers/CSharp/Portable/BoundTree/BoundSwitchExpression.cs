@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this;
         }
-
-        public HashSet<LabelSymbol> ReachableLabels => this.DecisionDag.ReachableLabels;
     }
 
 }

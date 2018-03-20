@@ -215,17 +215,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<ISwitchCaseOperation> GetSwitchStatementCases(BoundSwitchStatement statement)
-        {
-            return statement.SwitchSections.SelectAsArray(switchSection =>
-            {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
-                var body = switchSection.Statements.SelectAsArray(s => Create(s));
-
-                return (ISwitchCaseOperation)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
-            });
-        }
-
         private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>

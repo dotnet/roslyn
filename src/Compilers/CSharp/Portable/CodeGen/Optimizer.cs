@@ -1272,6 +1272,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            Debug.Assert(EvalStackIsEmpty());
+
+            // switch dispatch needs a byval local or a parameter as a key.
+            // if this is already a fitting local, let's keep it that way
+            BoundExpression boundExpression = node.Expression;
+            if (boundExpression.Kind == BoundKind.Local)
+            {
+                var localSym = ((BoundLocal)boundExpression).LocalSymbol;
+                if (localSym.RefKind == RefKind.None)
+                {
+                    ShouldNotSchedule(localSym);
+                }
+            }
+
+            boundExpression = (BoundExpression)this.Visit(boundExpression);
+
+            // expression value is consumed by the switch
+            PopEvalStack();
+
+            // implicit control flow
+            EnsureOnlyEvalStack();
+
+            RecordBranch(node.DefaultLabel);
+            foreach ((_, LabelSymbol label) in node.Cases)
+            {
+                RecordBranch(label);
+            }
+
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             var origStack = StackDepth();
@@ -1472,66 +1505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 return base.VisitUnaryOperator(node);
             }
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            Debug.Assert(EvalStackIsEmpty());
-
-            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-
-            DeclareLocals(node.InnerLocals, 0);
-
-            // switch needs a byval local or a parameter as a key.
-            // if this is already a fitting local, let's keep it that way
-            BoundExpression boundExpression = node.Expression;
-            if (boundExpression.Kind == BoundKind.Local)
-            {
-                var localSym = ((BoundLocal)boundExpression).LocalSymbol;
-                if (localSym.RefKind == RefKind.None)
-                {
-                    ShouldNotSchedule(localSym);
-                }
-            }
-
-            boundExpression = (BoundExpression)this.Visit(boundExpression);
-
-            // expression value is consumed by the switch
-            PopEvalStack();
-
-            // implicit control flow
-            EnsureOnlyEvalStack();
-
-            // switch sections
-            ImmutableArray<BoundSwitchSection> switchSections = this.VisitList(node.SwitchSections);
-
-            // break label
-            var breakLabel = node.BreakLabel;
-            if (breakLabel != null)
-            {
-                this.RecordLabel(breakLabel);
-            }
-
-            var result = node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabel, node.StringEquality);
-
-            // implicit control flow
-            EnsureOnlyEvalStack();
-
-            return result;
-        }
-
-        public override BoundNode VisitSwitchSection(BoundSwitchSection node)
-        {
-            EnsureOnlyEvalStack();
-
-            // implicit control flow
-            return base.VisitSwitchSection(node);
-        }
-
-        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
-        {
-            this.RecordLabel(node.Label);
-            return base.VisitSwitchLabel(node);
         }
 
         public override BoundNode VisitTryStatement(BoundTryStatement node)

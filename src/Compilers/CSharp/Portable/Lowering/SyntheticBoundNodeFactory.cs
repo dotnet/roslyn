@@ -804,37 +804,78 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// An internal helper class for building a switch statement.
+        /// </summary>
+        internal class SyntheticSwitchSection
+        {
+            public readonly ImmutableArray<int> Values;
+            public readonly ImmutableArray<BoundStatement> Statements;
+            public SyntheticSwitchSection(ImmutableArray<int> Values, ImmutableArray<BoundStatement> Statements)
+            {
+                this.Values = Values;
+                this.Statements = Statements;
+            }
+        }
+
+        public SyntheticSwitchSection SwitchSection(int value, params BoundStatement[] statements)
+        {
+            return new SyntheticSwitchSection(ImmutableArray.Create(value), ImmutableArray.Create(statements));
+        }
+
+        public SyntheticSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
+        {
+            return new SyntheticSwitchSection(ImmutableArray.CreateRange(values), ImmutableArray.Create(statements));
+        }
+
+        /// <summary>
         /// Produce an int switch.
         /// </summary>
-        public BoundStatement Switch(BoundExpression ex, params BoundSwitchSection[] sections)
+        public BoundStatement Switch(BoundExpression ex, params SyntheticSwitchSection[] sections)
         {
-            Debug.Assert(ex.Type.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_String); // BoundSwitchStatement.StringEquality not set
+            Debug.Assert(ex.Type.SpecialType == CodeAnalysis.SpecialType.System_Int32);
 
             if (sections.Length == 0)
             {
                 return ExpressionStatement(ex);
             }
 
+            CheckSwitchSections(sections);
             GeneratedLabelSymbol breakLabel = new GeneratedLabelSymbol("break");
-            var s = ImmutableArray.Create<BoundSwitchSection>(sections);
-            CheckSwitchSections(s);
-            return new BoundSwitchStatement(
-                Syntax,
-                null,
-                ex,
-                null,
-                ImmutableArray<LocalSymbol>.Empty,
-                ImmutableArray<LocalFunctionSymbol>.Empty,
-                s,
-                breakLabel,
-                null)
-            { WasCompilerGenerated = true };
+            var caseBuilder = ArrayBuilder<(ConstantValue Value, LabelSymbol label)>.GetInstance();
+            var statements = ArrayBuilder<BoundStatement>.GetInstance();
+            statements.Add(null); // placeholder at statements[0] for the dispatch
+            foreach (var section in sections)
+            {
+                LabelSymbol sectionLabel;
+                // If the section only contains a goto statement, use that label.
+                if (section.Statements.Length == 1 && section.Statements[0] is BoundGotoStatement bgoto)
+                {
+                    sectionLabel = bgoto.Label;
+                }
+                else
+                {
+                    sectionLabel = new GeneratedLabelSymbol("case " + section.Values[0]);
+                    statements.Add(Label(sectionLabel));
+                    statements.AddRange(section.Statements);
+                }
+
+                foreach (var value in section.Values)
+                {
+                    caseBuilder.Add((ConstantValue.Create(value), sectionLabel));
+                }
+            }
+
+            statements.Add(Label(breakLabel));
+            Debug.Assert(statements[0] == null);
+            statements[0] = new BoundSwitchDispatch(Syntax, ex, caseBuilder.ToImmutableAndFree(), breakLabel, null)
+                { WasCompilerGenerated = true };
+            return Block(statements.ToImmutableAndFree());
         }
 
         /// <summary>
         /// Produce an int switch.
         /// </summary>
-        public BoundStatement Switch(BoundExpression ex, IEnumerable<BoundSwitchSection> sections)
+        public BoundStatement Switch(BoundExpression ex, IEnumerable<SyntheticSwitchSection> sections)
         {
             return Switch(ex, sections.ToArray());
         }
@@ -844,44 +885,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="sections"></param>
         [Conditional("DEBUG")]
-        private static void CheckSwitchSections(ImmutableArray<BoundSwitchSection> sections)
+        private static void CheckSwitchSections(SyntheticSwitchSection[] sections)
         {
             var labels = new HashSet<int>();
             foreach (var s in sections)
             {
-                foreach (var l in s.SwitchLabels)
+                foreach (var v2 in s.Values)
                 {
-                    if (l.ConstantValueOpt == null)
-                    {
-                        continue;
-                    }
-
-                    var v2 = l.ConstantValueOpt.Int32Value;
                     Debug.Assert(!labels.Contains(v2));
                     labels.Add(v2);
                 }
             }
-        }
-
-        public BoundSwitchSection SwitchSection(int value, params BoundStatement[] statements)
-        {
-            var label = GenerateLabel("case+" + value);
-            var literal = Literal(value);
-            var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
-            return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
-        }
-
-        public BoundSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
-        {
-            var builder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
-            foreach (var i in values)
-            {
-                var label = GenerateLabel("case+" + i);
-                var expression = Literal(i);
-                builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
-            }
-
-            return new BoundSwitchSection(Syntax, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
         public BoundGotoStatement Goto(LabelSymbol label)

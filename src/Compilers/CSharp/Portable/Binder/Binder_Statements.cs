@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC:    If the goto case statement is not enclosed by a switch statement, a compile-time error occurs.
                     // SPEC:    If the goto default statement is not enclosed by a switch statement, a compile-time error occurs.
 
-                    SwitchBinder binder = GetSwitchBinder(this);
+                    PatternSwitchBinder binder = GetSwitchBinder(this);
                     if (binder == null)
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidGotoCase, node);
@@ -2252,13 +2252,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundContinueStatement(node, target);
         }
 
-        private static SwitchBinder GetSwitchBinder(Binder binder)
+        private static PatternSwitchBinder GetSwitchBinder(Binder binder)
         {
-            SwitchBinder switchBinder = binder as SwitchBinder;
+            PatternSwitchBinder switchBinder = binder as PatternSwitchBinder;
             while (binder != null && switchBinder == null)
             {
                 binder = binder.Next;
-                switchBinder = binder as SwitchBinder;
+                switchBinder = binder as PatternSwitchBinder;
             }
             return switchBinder;
         }

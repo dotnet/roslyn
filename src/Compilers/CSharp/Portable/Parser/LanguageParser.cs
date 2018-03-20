@@ -7924,11 +7924,6 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
-            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-            {
-                openBrace = this.AddError(openBrace, ErrorCode.WRN_EmptySwitch);
-            }
-
             var sections = _pool.Allocate<SwitchSectionSyntax>();
             try
             {
@@ -9098,7 +9093,7 @@ tryAgain:
             //
             // Only take the switch if we're at a precedence less than the null coalescing expression.
 
-            else if (tk == SyntaxKind.SwitchKeyword && precedence < Precedence.Coalescing)
+            else if (tk == SyntaxKind.SwitchKeyword && precedence < Precedence.Coalescing && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
             {
                 // PROTOTYPE(patterns2): for better error recovery when an expression is typed on a line before
                 // a switch statement, we should check if the cases between the parens look like cases with

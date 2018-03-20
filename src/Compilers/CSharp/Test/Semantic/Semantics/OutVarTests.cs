@@ -30328,7 +30328,7 @@ class Program
     {
         switch (true)
         {
-            case 1+TakeOutParam(3, out var x1):
+            case !TakeOutParam(3, out var x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -30342,13 +30342,10 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
-            compilation.VerifyDiagnostics(
-                // (8,18): error CS0019: Operator '+' cannot be applied to operands of type 'int' and 'bool'
-                //             case 1+TakeOutParam(3, out var x1):
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1+TakeOutParam(3, out var x1)").WithArguments("+", "int", "bool").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+           compilation.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case !TakeOutParam(3, out var x1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!TakeOutParam(3, out var x1)").WithLocation(8, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -30384,10 +30381,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 20),
                 // (8,40): error CS0246: The type or namespace name 'UndelcaredType' could not be found (are you missing a using directive or an assembly reference?)
                 //             case 1+TakeOutParam(3, out UndelcaredType x1):
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 40),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 40)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

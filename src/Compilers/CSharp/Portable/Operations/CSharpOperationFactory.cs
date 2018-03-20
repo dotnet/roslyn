@@ -174,10 +174,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundForStatementOperation((BoundForStatement)boundNode);
                 case BoundKind.ForEachStatement:
                     return CreateBoundForEachStatementOperation((BoundForEachStatement)boundNode);
-                case BoundKind.SwitchStatement:
-                    return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
-                case BoundKind.SwitchLabel:
-                    return CreateBoundSwitchLabelOperation((BoundSwitchLabel)boundNode);
                 case BoundKind.TryStatement:
                     return CreateBoundTryStatementOperation((BoundTryStatement)boundNode);
                 case BoundKind.CatchBlock:
@@ -1440,35 +1436,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyForEachLoopStatement(locals, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
-        {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchStatement.Expression));
-            Lazy<ImmutableArray<ISwitchCaseOperation>> cases = new Lazy<ImmutableArray<ISwitchCaseOperation>>(() => GetSwitchStatementCases(boundSwitchStatement));
-            SyntaxNode syntax = boundSwitchStatement.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
-            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit);
-        }
-
-        private ICaseClauseOperation CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
-        {
-            SyntaxNode syntax = boundSwitchLabel.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundSwitchLabel.WasCompilerGenerated;
-
-            if (boundSwitchLabel.ExpressionOpt != null)
-            {
-                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
-                return new LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit);
-            }
-            else
-            {
-                return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);
-            }
-        }
-
         private ITryOperation CreateBoundTryStatementOperation(BoundTryStatement boundTryStatement)
         {
             Lazy<IBlockOperation> body = new Lazy<IBlockOperation>(() => (IBlockOperation)Create(boundTryStatement.TryBlock));
@@ -1821,10 +1788,18 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPatternSwitchLabel.WasCompilerGenerated;
 
-            if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern)
+            if (boundPatternSwitchLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
             {
-                // Default switch label in pattern switch statement is represented as a default case clause.
+                Debug.Assert(boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
                 return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);
+            }
+            else if (boundPatternSwitchLabel.Guard == null &&
+                     boundPatternSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
+                     boundPatternSwitchLabel.Pattern is BoundConstantPattern cp &&
+                     cp.Value.Type.IsValidV6SwitchGoverningType())
+            {
+                Lazy<IOperation> value = new Lazy<IOperation>(() => Create(cp.Value));
+                return new LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
