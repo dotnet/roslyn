@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If no switch sections are subsumed, just return
-            if (switchSections.Count(s => s.SwitchLabels.Count(l => isSubsumed(l)) != 0) == 0)
+            if (!switchSections.Any(s => s.SwitchLabels.Any(l => isSubsumed(l))))
             {
                 return;
             }

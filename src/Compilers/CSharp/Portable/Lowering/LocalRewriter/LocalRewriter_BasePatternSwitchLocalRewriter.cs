@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Nodes with more than one predecessor are assigned a label
                 var hasPredecessor = PooledHashSet<BoundDecisionDag>.GetInstance();
-                void notePreedecesssor(BoundDecisionDag successor)
+                void notePredecessor(BoundDecisionDag successor)
                 {
                     if (successor != null && !hasPredecessor.Add(successor))
                     {
@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _dagNodeLabels[node] = d.Label;
                             break;
                         case BoundEvaluationPoint e:
-                            notePreedecesssor(e.Next);
+                            notePredecessor(e.Next);
                             break;
                         case BoundDecisionPoint p:
-                            notePreedecesssor(p.WhenTrue);
-                            notePreedecesssor(p.WhenFalse);
+                            notePredecessor(p.WhenTrue);
+                            notePredecessor(p.WhenFalse);
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(node.Kind);

@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// when an assertion fails (it is unaffected by exception filters on enclosing frames).
         /// </summary>
         [Conditional("DEBUG")]
-        private void Assert(bool condition, string message = null)
+        private static void Assert(bool condition, string message = null)
         {
             if (!condition)
             {
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             workList.Free();
 
             // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-            ImmutableArray<DagState> sortedStates = initialState.TopologicallySortedReachableStates;
+            ImmutableArray<DagState> sortedStates = initialState.TopologicallySortedReachableStates();
             Debug.Assert(_defaultLabel != null);
             var finalStates = PooledDictionary<LabelSymbol, BoundDecisionDag>.GetInstance();
             finalStates.Add(_defaultLabel, defaultDecision);
@@ -935,27 +935,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundDagDecision SelectedDecision;
             public DagState TrueBranch, FalseBranch;
 
-            public ImmutableArray<DagState> TopologicallySortedReachableStates
+            public ImmutableArray<DagState> TopologicallySortedReachableStates()
             {
-                get
+                // A successor function used to topologically sort the DagState set.
+                IEnumerable<DagState> succ(DagState state)
                 {
-                    // A successor function used to topologically sort the DagState set.
-                    IEnumerable<DagState> succ(DagState state)
+                    if (state.TrueBranch != null)
                     {
-                        if (state.TrueBranch != null)
-                        {
-                            yield return state.TrueBranch;
-                        }
-
-                        if (state.FalseBranch != null)
-                        {
-                            yield return state.FalseBranch;
-                        }
+                        yield return state.TrueBranch;
                     }
 
-                    // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-                    return TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this), succ);
+                    if (state.FalseBranch != null)
+                    {
+                        yield return state.FalseBranch;
+                    }
                 }
+
+                // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+                return TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this), succ);
             }
 
             // After the entire graph of DagState objects is complete, we translate each into its Dag.
@@ -987,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal string Dump()
             {
-                var allStates = this.TopologicallySortedReachableStates;
+                var allStates = this.TopologicallySortedReachableStates();
                 var stateIdentifierMap = PooledDictionary<DagState, int>.GetInstance();
                 for (int i = 0; i < allStates.Length; i++)
                 {
