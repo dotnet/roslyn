@@ -1249,6 +1249,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
+            // PROTOTYPE(NullableReferenceTypes): For cases where the left operand determines
+            // the type, we should unwrap the right conversion and re-apply.
             var rightResult = VisitRvalueWithResult(rightOperand);
             IntersectWith(ref this.State, ref leftState);
 
