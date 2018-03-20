@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 return null;
             }
 
-            // Tweak 
             var span = TextSpan.FromBounds(ifStatement.GetFirstToken().Span.Start, ifStatement.CloseParenToken.Span.End);
             if (!span.IntersectsWith(textSpan))
             {
@@ -52,45 +51,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         protected override SyntaxNode GetRootWithInvertIfStatement(Workspace workspace, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
-            var ifNode = (IfStatementSyntax)ifStatement;
-            var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-            // In the case that the else clause is actually an else if clause, place the if
-            // statement to be moved in a new block in order to make sure that the else
-            // statement matches the right if statement after the edit.
+        var ifNode = (IfStatementSyntax)ifStatement;
 
+        // For single line statment, we swap the TrailingTrivia to preserve the single line
+        StatementSyntax newIfNodeStatement = null;
+        ElseClauseSyntax newElseStatement = null;
+        var newCondition = Negate(ifNode.Condition, model, cancellationToken);
 
-            // For single line statment, we swap the TrailingTrivia to preserve the single line
-            ElseClauseSyntax newElseStatement = null;
-            StatementSyntax newIfNodeStatement = null;
-            if (ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia)) 
-            {
-                // multiline if
-                // need to convert StatementSyntax to IEnumerable<SyntaxNode>
-                // generator.IfStatement(Negate(ifNode.Condition, model, cancellationToken), ifNode.Else.Statement, ifNode.Else.WithStatement(ifNode.Statement))
-                newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement
-               ? SyntaxFactory.Block(ifNode.Else.Statement)
-               : ifNode.Else.Statement;
-                newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
-            }
-            else
-            {
-                // singleline if
-                var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
-                var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
-                newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
-                newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
-            }
-
-
-
-
+        if (ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia))
+        {
+            // multiline if
+            newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement  // if it's an else-if
+            ? SyntaxFactory.Block(ifNode.Else.Statement)
+            : ifNode.Else.Statement;
+            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
             ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
-                .WithStatement(newIfNodeStatement)
-                .WithElse(newElseStatement);
-              //  .WithAdditionalAnnotations(Formatter.Annotation);
+                .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ? SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
+                .WithElse(newElseStatement)
+                .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+        else
+        {
+            // singleline if
+            var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
+            var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
 
-            // get new root
-            return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
+            newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
+            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
+            ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
+                .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ?  SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
+                .WithElse(newElseStatement);
+            }
+
+        // get new root
+        return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
         }
 
         private bool TryNegateBinaryComparisonExpression(

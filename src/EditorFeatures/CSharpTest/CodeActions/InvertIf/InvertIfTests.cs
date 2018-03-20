@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); }",
-@"if (!a) {if (b) { b(); }} else { a(); }");
+@"if (!a) { if (b) { b(); } } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); } else { c(); }",
-@"if (!a) {if (b) { b(); } else { c(); }} else { a(); }");
+@"if (!a) { if (b) { b(); } else { c(); } } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -269,6 +269,90 @@ else
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMultiLineElseIf()
+        {
+            await TestFixOneAsync(
+@"[||]if (a)
+{
+    a();
+}
+else if (b)
+{
+    b();
+}
+else
+{
+    c();
+}",
+@"if (!a)
+{
+    if (b)
+    {
+        b();
+    }
+    else
+    {
+        c();
+    }
+}
+else
+{
+    a()
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMultiLineTrivia()
+        {
+            await TestFixOneAsync(
+@"/*1*/
+[||]if (a) /*2*/
+{ /*3*/
+    /*4*/
+    goo(); /*5*/
+    /*6*/
+} /*7*/
+else if (b) /*8*/
+{ /*9*/
+    /*10*/
+    goo(); /*11*/
+    /*12*/
+} /*13*/
+else /*14*/
+{ /*15*/
+    /*16*/
+    goo(); /*17*/
+    /*18*/
+} /*19*/
+/*20*/
+",
+@"/*1*/
+if (!a) /*2*/
+{
+    if (b) /*8*/
+{ /*9*/
+    /*10*/
+    goo(); /*11*/
+    /*12*/
+} /*13*/
+else /*14*/
+{ /*15*/
+    /*16*/
+    goo(); /*17*/
+    /*18*/
+} /*19*/
+}
+else             { /*3*/
+    /*4*/
+    goo(); /*5*/
+    /*6*/
+} /*7*/
+/*20*/
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestMissingOnNonEmptySpan()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -280,7 +364,7 @@ else
         {
             a();
         }
-else
+        else
         {
             b();
         }|]
@@ -301,7 +385,7 @@ else
         {
             a();
         }
-else
+        else
         {
             b();
         }
@@ -324,7 +408,7 @@ else
             a();
 #line default
         }
-else
+        else
         {
             b();
         }
@@ -344,7 +428,7 @@ else
         {
             a();
         }
-else
+        else
         {
 #line hidden
             b();
@@ -367,7 +451,7 @@ else
 #line hidden
             a();
         }
-else
+        else
         {
             b();
 #line default
@@ -389,7 +473,7 @@ else
             a();
 #line hidden
         }
-else
+        else
         {
 #line default
             b();
@@ -413,7 +497,7 @@ class C
         {
             a();
         }
-else
+        else
         {
             b();
         }
@@ -431,7 +515,7 @@ class C
         {
             b();
         }
-else
+        else
         {
             a();
         }
@@ -454,7 +538,7 @@ class C
         {
             a();
         }
-else
+        else
         {
             b();
         }
@@ -474,7 +558,7 @@ class C
         {
             b();
         }
-else
+        else
         {
             a();
         }

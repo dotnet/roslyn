@@ -398,7 +398,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestElseIf() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         If a Then
@@ -407,17 +407,6 @@ End Module")
             b()
         Else
             c()
-        End If
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Then
-            a()
-        ElseIf Not b Then
-            c()
-        Else
-            b()
         End If
     End Sub
 End Module")
@@ -425,7 +414,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestKeepElseIfKeyword() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "Module Program
     Sub Main()
         If a Then
@@ -434,17 +423,6 @@ End Module")
             b()
         Else
             c()
-        End If
-    End Sub
-End Module",
-"Module Program
-    Sub Main()
-        If a Then
-            a()
-        ElseIf Not b Then
-            c()
-        Else
-            b()
         End If
     End Sub
 End Module")
@@ -1022,11 +1000,16 @@ End Module")
 
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestOnlyOnIfOfSingleLineIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestAnywhereOnSingleLineIf() As Task
+            Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
         If True Then Return Else [||]Console.WriteLine(""a"")
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String())
+        If False Then Console.WriteLine(""a"") Else Return
     End Sub
 End Module")
         End Function

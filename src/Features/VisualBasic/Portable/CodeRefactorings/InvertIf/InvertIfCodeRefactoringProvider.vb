@@ -31,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim singleLineIf = token.GetAncestor(Of SingleLineIfStatementSyntax)()
             Dim multiLineIf = token.GetAncestor(Of MultiLineIfBlockSyntax)()
 
-            ' Tweak
             If singleLineIf IsNot Nothing AndAlso
                singleLineIf.ElseClause IsNot Nothing Then
 
@@ -45,19 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
                 If multiLineIf.ElseIfBlocks.IsEmpty Then
                     relevantSpan = multiLineIf.IfStatement.IfKeyword.Span
-                Else
-                    Dim elseIfBlock = token.GetAncestor(Of ElseIfBlockSyntax)()
-
-                    ' The MultiLineIfBlockSyntax has ElseIfBlocks and now we want to find out if the
-                    ' user has placed the cursor on the last ElseIfPart or a node contained in the
-                    ' last ElseIfPart to decide whether or not we should provide the code action
-                    If elseIfBlock IsNot Nothing AndAlso
-                       elseIfBlock Is multiLineIf.ElseIfBlocks.Last Then
-
-                        relevantSpan = elseIfBlock.ElseIfStatement.ElseIfKeyword.Span
-                    Else
-                        Return Nothing
-                    End If
+                Else 'if we have elseif blocks we won't offer refactoring
+                    Return Nothing
                 End If
             Else
                 Return Nothing
@@ -264,42 +252,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim ifPart = ifNode
             Dim elseBlock = ifNode.ElseBlock
 
-            If ifNode.ElseIfBlocks.IsEmpty Then
-                ' Since this block has no ElseIf parts, we can simply negate the condition
-                ' and swap the statements in the IfPart and the ElsePart
-                Dim ifStatement = ifNode.IfStatement
+            Dim ifStatement = ifNode.IfStatement
 
-                Return ifNode _
-                    .WithIfStatement(
-                        ifStatement.WithCondition(
-                            Negate(ifStatement.Condition, semanticModel, cancellationToken)
-                        )
-                     ) _
-                    .WithStatements(elseBlock.Statements) _
-                    .WithElseBlock(
-                        elseBlock.WithStatements(ifPart.Statements) _
-                                 .WithLeadingTrivia(ifNode.EndIfStatement.GetLeadingTrivia())
-                     ) _
-                    .WithEndIfStatement(ifNode.EndIfStatement.WithLeadingTrivia(elseBlock.GetLeadingTrivia()))
-            Else
-                ' Since this block has one or more ElseIf parts, we are acting on the last
-                ' ElseIf, which we have to find in the block's list of ElseIf parts to replace,
-                ' and the ElsePart
-                Dim oldElseIfBlock = ifNode.ElseIfBlocks.Last
-                Dim oldElseIfStatement = oldElseIfBlock.ElseIfStatement
+            Dim ifLeadingTrivia = ifNode.GetLeadingTrivia()
+            Dim endifTrailingTrivia = ifNode.EndIfStatement.GetTrailingTrivia()
+            Dim elseBlockLeadingTrivia = elseBlock.GetLeadingTrivia()
+            Dim endifLeadingTrivia = ifNode.EndIfStatement.GetLeadingTrivia()
 
-                Dim newElseIfStatement = oldElseIfStatement.WithCondition(Negate(oldElseIfStatement.Condition, semanticModel, cancellationToken))
-                '    .WithAdditionalAnnotations(Formatter.Annotation)
-
-                Dim newElseIfBlock = oldElseIfBlock.WithElseIfStatement(newElseIfStatement) _
-                                                   .WithStatements(elseBlock.Statements)
-                '   .WithAdditionalAnnotations(Formatter.Annotation)
-
-                Return ifNode.ReplaceNode(oldElseIfBlock, newElseIfBlock) _
-                             .WithElseBlock(ifNode.ElseBlock.WithStatements(oldElseIfBlock.Statements) _
-                                                            .WithLeadingTrivia(ifNode.EndIfStatement.GetLeadingTrivia())) _
-                             .WithEndIfStatement(ifNode.EndIfStatement.WithLeadingTrivia(ifNode.ElseBlock.GetLeadingTrivia()))
-            End If
+            Return ifNode _
+                .WithIfStatement(ifStatement.WithCondition(Negate(ifStatement.Condition, semanticModel, cancellationToken))) _
+                .WithStatements(elseBlock.Statements) _
+                .WithElseBlock(elseBlock.WithStatements(ifPart.Statements).WithLeadingTrivia(endifLeadingTrivia)) _
+                .WithEndIfStatement(ifNode.EndIfStatement.WithTrailingTrivia(endifTrailingTrivia).WithLeadingTrivia(elseBlockLeadingTrivia)) _
+                .WithLeadingTrivia(ifLeadingTrivia)
         End Function
 
         Private Function TryNegateBinaryComparisonExpression(

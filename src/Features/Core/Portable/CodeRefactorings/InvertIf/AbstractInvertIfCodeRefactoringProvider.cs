@@ -48,13 +48,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     c => InvertIfAsync(document, ifStatement, c)));
         }
 
-
         private async Task<Document> InvertIfAsync(Document document, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(
-                // this return root because VB require changing context around if statement
+                // this returns the root because VB requires changing context around if statement
                 GetRootWithInvertIfStatement(
                     document.Project.Solution.Workspace, model, ifStatement, cancellationToken));
         }
@@ -94,11 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         }
 
         private bool IsNumericLiteral(IOperation operation)
-        {
-            operation = RemoveImplicitConversion(operation);
-
-            return operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
-        }
+            => operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
 
         private IOperation RemoveImplicitConversion(IOperation operation)
         {
