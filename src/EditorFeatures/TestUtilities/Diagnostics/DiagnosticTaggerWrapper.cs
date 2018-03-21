@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
         public readonly DiagnosticService DiagnosticService;
-        private readonly AsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         private ITaggerProvider _taggerProvider;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IDiagnosticUpdateSource updateSource,
             bool createTaggerProvider)
         {
-            _listenerProvider = new AsynchronousOperationListenerProvider();
+            _listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             if (analyzerMap != null || updateSource == null)
             {

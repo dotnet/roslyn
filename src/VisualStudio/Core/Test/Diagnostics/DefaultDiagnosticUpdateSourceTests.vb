@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 class 123 { }
                        </code>
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -69,7 +69,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -104,7 +104,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -138,7 +138,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
@@ -172,7 +172,7 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)

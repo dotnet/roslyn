@@ -12,5 +12,10 @@ namespace Roslyn.Test.Utilities
         {
             return ((AsynchronousOperationListenerProvider)provider).WaitAllAsync(featureNames, eventProcessingAction: () => Dispatcher.CurrentDispatcher.DoEvents());
         }
+
+        internal static IAsynchronousOperationWaiter GetWaiter(this IAsynchronousOperationListenerProvider provider, string featureName)
+        {
+            return (IAsynchronousOperationWaiter)provider.GetListener(featureName);
+        }
     }
 }
