@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Windows.Threading;
@@ -44,13 +45,8 @@ namespace Roslyn.Test.Utilities
                 PropertyInfo fullNameProperty = typeof(MethodBase).GetProperty("FullName", BindingFlags.NonPublic | BindingFlags.Instance);
                 lock (s_lock)
                 {
-                    for (var i = 0; i < 5; i++)
+                    foreach (var info in s_delegateInfos)
                     {
-                        if (s_delegateInfos.Count == 0)
-                        {
-                            break;
-                        }
-                        var info = s_delegateInfos.Pop();
                         methodInfoBuilder.Append($"{info.ReturnType.Name} {fullNameProperty.GetValue(info)} (");
                         var useComma = false;
                         foreach (var param in info.GetParameters())
@@ -82,6 +78,18 @@ namespace Roslyn.Test.Utilities
                 if (s_hooked) return;
                 s_hooked = true;
                 Dispatcher.CurrentDispatcher.Hooks.OperationStarted += Hooks_OperationStarted;
+                Dispatcher.CurrentDispatcher.Hooks.OperationCompleted += Hooks_OperationCompleted;
+            }
+        }
+
+        private static void Hooks_OperationCompleted(object sender, DispatcherHookEventArgs e)
+        {
+            FieldInfo methodField = typeof(DispatcherOperation).GetField("_method", BindingFlags.NonPublic | BindingFlags.Instance);
+            var invokedDelegate = (Delegate)methodField.GetValue(e.Operation);
+            lock (s_lock)
+            {
+                var topInfo = s_delegateInfos.Pop();
+                Debug.Assert(topInfo == invokedDelegate.Method);
             }
         }
 
