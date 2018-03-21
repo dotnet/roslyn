@@ -3747,7 +3747,7 @@ False");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3783,7 +3783,7 @@ Infinity");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3820,7 +3820,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDecimalNegativeZero()
         {
             var text = @"

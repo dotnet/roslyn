@@ -463,7 +463,7 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23752, "https://github.com/dotnet/roslyn/issues/23752")]
-        public async Task OnDeconstructionVar()
+        public async Task OnDeconstructionVarParens()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -480,6 +480,29 @@ class Program
     void M()
     {
         (int x, string y) = new Program();
+    }
+    void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task OnDeconstructionVar()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    void M()
+    {
+        ([|var|] x, var y) = new Program();
+    }
+    void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
+}", @"using System;
+class Program
+{
+    void M()
+    {
+        (int x, var y) = new Program();
     }
     void Deconstruct(out int i, out string s) { i = 1; s = ""hello""; }
 }", options: ExplicitTypeEverywhere());

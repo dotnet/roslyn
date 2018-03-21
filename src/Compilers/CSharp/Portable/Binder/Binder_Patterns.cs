@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(operandType != (object)null);
 
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
                 declType = operandType;
@@ -340,12 +340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxToken identifier = singleVariableDesignation.Identifier;
                     SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
-                    if (localSymbol != (object)null)
-                    {
-                        if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
-                        }
+            if (localSymbol != (object)null)
+            {
+                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
+                }
 
                         localSymbol.SetType(declType);
 
@@ -478,11 +478,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             TypeSymbol declType = operandType;
-            Symbol foundType = BindVarType(varToken: node.VarKeyword, diagnostics: diagnostics, isVar: out bool isVar, basesBeingResolved: null);
+            Symbol foundSymbol = BindTypeOrAliasOrKeyword(node.VarKeyword, node, diagnostics, out bool isVar);
             if (!isVar)
             {
                 // Give an error if there is a bindable type "var" in scope
-                diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, node.VarKeyword.GetLocation(), foundType.ToDisplayString());
+                diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, node.VarKeyword.GetLocation(), foundSymbol.ToDisplayString());
                 hasErrors = true;
             }
 

@@ -1683,5 +1683,29 @@ public class Test : TestParent
     public override ref readonly int this[int p] => throw new System.NotImplementedException();
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public abstract class ParentTest
+{
+    public abstract void M<T>() where T : unmanaged;
+}
+public class [|Test|] : ParentTest
+{
+}",
+@"public abstract class ParentTest
+{
+    public abstract void M<T>() where T : unmanaged;
+}
+public class Test : ParentTest
+{
+    public override void M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }
