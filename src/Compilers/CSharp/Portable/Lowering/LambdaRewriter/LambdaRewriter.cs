@@ -1076,9 +1076,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RewriteLocals(node.Locals, newLocals);
 
-            foreach (var expr in node.SideEffects)
+            foreach (var effect in node.SideEffects)
             {
-                var replacement = this.Visit(expr);
+                var replacement = this.Visit(effect);
                 if (replacement != null) prologue.Add(replacement);
             }
 
