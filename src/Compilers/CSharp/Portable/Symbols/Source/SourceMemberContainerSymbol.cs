@@ -482,15 +482,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeParameter in this.TypeParameters)
                         {
                             typeParameter.ForceComplete(locationOpt, cancellationToken);
-                            var diagnostics = DiagnosticBag.GetInstance();
 
                             if (typeParameter.HasUnmanagedTypeConstraint)
                             {
-                                this.DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeParameter.GetNonNullSyntaxNode().Location, modifyCompilationForIsUnmanaged: true);
+                                var diagnostics = DiagnosticBag.GetInstance();
+                                DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, locationOpt, modifyCompilationForIsUnmanaged: true);
+                                AddDeclarationDiagnostics(diagnostics);
+                                diagnostics.Free();
                             }
-
-                            AddDeclarationDiagnostics(diagnostics);
-                            diagnostics.Free();
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);

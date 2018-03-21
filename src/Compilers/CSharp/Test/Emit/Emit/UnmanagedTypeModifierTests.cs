@@ -148,6 +148,75 @@ public class Test
         }
 
         [Fact]
+        public void LoadingUnmanagedTypeModifier_MoreThanOneModifier()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M1<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M1
+
+  .method public hidebysig instance void
+          M2<valuetype .ctor (class [mscorlib]System.ValueType modopt([mscorlib]System.DateTime) modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M2
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+
+        obj.M1<int>();      // valid
+        obj.M2<int>();      // invalid
+    }
+}";
+
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 13),
+                // (9,13): error CS0570: 'T' is not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13),
+                // (9,13): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "M2<int>").WithArguments("").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
         public void LoadingUnmanagedTypeModifier_ModreqWithoutAttribute()
         {
             var ilSource = IsUnmanagedAttributeIL + @"

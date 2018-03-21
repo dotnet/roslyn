@@ -1573,13 +1573,13 @@ public class Test2
         var f = new Test<W>();                  // unconstrained generic type
     }
 }").VerifyDiagnostics(
-                // (12,26): error CS8379: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (12,26): error CS8379: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var b = new Test<BadType>();            // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "BadType").WithArguments("Test<T>", "T", "BadType").WithLocation(12, 26),
-                // (13,26): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (13,26): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var c = new Test<string>();             // reference type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(13, 26),
-                // (16,26): error CS8379: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (16,26): error CS8379: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var f = new Test<W>();                  // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(16, 26));
         }
@@ -1606,13 +1606,13 @@ public class Test2
         var f = new Test().M<W>();                  // unconstrained generic type
     }
 }").VerifyDiagnostics(
-                // (13,28): error CS8379: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                // (13,28): error CS8379: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
                 //         var b = new Test().M<BadType>();            // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<BadType>").WithArguments("Test.M<T>()", "T", "BadType").WithLocation(13, 28),
-                // (14,28): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                // (14,28): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
                 //         var c = new Test().M<string>();             // reference type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<string>").WithArguments("Test.M<T>()", "T", "string").WithLocation(14, 28),
-                // (17,28): error CS8379: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                // (17,28): error CS8379: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
                 //         var f = new Test().M<W>();                  // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<W>").WithArguments("Test.M<T>()", "T", "W").WithLocation(17, 28)
                 );
@@ -1634,13 +1634,13 @@ public abstract class Test2<U, W> where U : unmanaged
     public abstract D<U> e();                       // generic type constrained to unmanaged
     public abstract D<W> f();                       // unconstrained generic type
 }").VerifyDiagnostics(
-                // (8,32): error CS8379: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                // (8,32): error CS8379: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     public abstract D<BadType> b();                 // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "b").WithArguments("D<T>", "T", "BadType").WithLocation(8, 32),
-                // (9,31): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                // (9,31): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     public abstract D<string> c();                  // reference type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "c").WithArguments("D<T>", "T", "string").WithLocation(9, 31),
-                // (12,26): error CS8379: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                // (12,26): error CS8379: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     public abstract D<W> f();                       // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "f").WithArguments("D<T>", "T", "W").WithLocation(12, 26));
         }
@@ -1709,7 +1709,7 @@ public abstract class Test2<U, W> where U : unmanaged
         }
 
         [Fact]
-        public void UnmanagedConstraint_Compilation_AnotherType_Before()
+        public void UnmanagedConstraint_Compilation_AnotherClass_Before()
         {
             CreateCompilation("public class Test<T> where T : unmanaged, System.Exception { }").VerifyDiagnostics(
                 // (1,43): error CS8380: 'Exception': cannot specify both a constraint class and the 'unmanaged' constraint
@@ -1719,24 +1719,38 @@ public abstract class Test2<U, W> where U : unmanaged
         }
 
         [Fact]
-        public void UnmanagedConstraint_Compilation_AnotherType_Before1()
-        {
-            CreateCompilation("public class Test<T> where T : unmanaged, System.Enum { }").VerifyDiagnostics();
-
-            CreateCompilation("public class Test<T> where T : unmanaged, System.Delegate { }").VerifyDiagnostics(
-                // (1,43): error CS8380: 'Delegate': cannot specify both a constraint class and the 'unmanaged' constraint
-                // public class Test<T> where T : unmanaged, System.Delegate { }
-                Diagnostic(ErrorCode.ERR_UnmanagedBoundWithClass, "System.Delegate").WithArguments("System.Delegate").WithLocation(1, 43)
-                );
-        }
-
-        [Fact]
-        public void UnmanagedConstraint_Compilation_AnotherType_After()
+        public void UnmanagedConstraint_Compilation_AnotherClass_After()
         {
             CreateCompilation("public class Test<T> where T : System.Exception, unmanaged { }").VerifyDiagnostics(
                 // (1,50): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Exception, unmanaged { }
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 50));
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Compilation_OtherValidTypes_After()
+        {
+            CreateCompilation("public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }").VerifyDiagnostics(
+                // (1,65): error CS8376: The 'unmanaged' constraint must come before any other constraints
+                // public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 65));
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_OtherValidTypes_Before()
+        {
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+
+                Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                AssertEx.Equal(new string[] { "Enum", "IDisposable" }, typeParameter.ConstraintTypes().Select(type => type.Name));
+            };
+
+            CompileAndVerify(
+                "public class Test<T> where T : unmanaged, System.Enum, System.IDisposable { }",
+                sourceSymbolValidator: validator,
+                symbolValidator: validator);
         }
 
         [Fact]
@@ -1823,13 +1837,13 @@ public class Test2
     }
 }";
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,26): error CS8379: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (9,26): error CS8379: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var b = new Test<BadType>();            // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "BadType").WithArguments("Test<T>", "T", "BadType").WithLocation(9, 26),
-                // (10,26): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (10,26): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var c = new Test<string>();             // reference type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(10, 26),
-                // (13,26): error CS8379: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (13,26): error CS8379: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var f = new Test<W>();                  // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(13, 26));
         }
@@ -1859,13 +1873,13 @@ public class Test2
     }
 }";
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,28): error CS8379: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                // (9,28): error CS8379: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
                 //         var b = new Test().M<BadType>();            // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<BadType>").WithArguments("Test.M<T>()", "T", "BadType").WithLocation(9, 28),
-                // (10,28): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                // (10,28): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
                 //         var c = new Test().M<string>();             // reference type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<string>").WithArguments("Test.M<T>()", "T", "string").WithLocation(10, 28),
-                // (13,28): error CS8379: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                // (13,28): error CS8379: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
                 //         var f = new Test().M<W>();                  // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<W>").WithArguments("Test.M<T>()", "T", "W").WithLocation(13, 28)
                 );
@@ -1891,13 +1905,13 @@ public abstract class Test2<U, W> where U : unmanaged
     public abstract D<W> f();                       // unconstrained generic type
 }";
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,32): error CS8379: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                // (7,32): error CS8379: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     public abstract D<BadType> b();                 // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "b").WithArguments("D<T>", "T", "BadType").WithLocation(7, 32),
-                // (8,31): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                // (8,31): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     public abstract D<string> c();                  // reference type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "c").WithArguments("D<T>", "T", "string").WithLocation(8, 31),
-                // (11,26): error CS8379: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                // (11,26): error CS8379: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     public abstract D<W> f();                       // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "f").WithArguments("D<T>", "T", "W").WithLocation(11, 26));
         }
@@ -1997,10 +2011,10 @@ public class B : A
         this.M<Test>();
     }
 }").VerifyDiagnostics(
-                // (17,14): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                // (17,14): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
                 //         this.M<string>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<string>").WithArguments("B.M<T>()", "T", "string").WithLocation(17, 14),
-                // (18,14): error CS8379: The type 'Test' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                // (18,14): error CS8379: The type 'Test' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
                 //         this.M<Test>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<Test>").WithArguments("B.M<T>()", "T", "Test").WithLocation(18, 14)
                 );
@@ -2031,10 +2045,10 @@ public class B : A
         this.M<Test>();
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (13,14): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                // (13,14): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
                 //         this.M<string>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<string>").WithArguments("B.M<T>()", "T", "string").WithLocation(13, 14),
-                // (14,14): error CS8379: The type 'Test' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                // (14,14): error CS8379: The type 'Test' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
                 //         this.M<Test>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<Test>").WithArguments("B.M<T>()", "T", "Test").WithLocation(14, 14)
                 );
@@ -2075,16 +2089,16 @@ public class C2<T> : I1<T> where T : struct
     }
 }
 ").VerifyDiagnostics(
-                // (7,14): error CS8379: The type 'T' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // (7,14): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 // public class C2<T> : I1<T> where T : struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(7, 14),
                 // (9,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
                 //     public void Test<G>(G x) where G : struct
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(9, 17),
-                // (11,12): error CS8379: The type 'T' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // (11,12): error CS8379: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 //         I1<T> i = this;
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(11, 12),
-                // (12,11): error CS8379: The type 'ArraySegment<int>' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
+                // (12,11): error CS8379: The type 'ArraySegment<int>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
                 //         i.Test(default(System.ArraySegment<int>));
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "System.ArraySegment<int>").WithLocation(12, 11)
                 );
@@ -2237,7 +2251,7 @@ class Test
         M(""test"");
     }
 }").VerifyDiagnostics(
-                // (9,9): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>(T)'
+                // (9,9): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>(T)'
                 //         M("test");
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("Test.M<T>(T)", "T", "string").WithLocation(9, 9));
         }
@@ -2472,7 +2486,7 @@ class Test
     {
     }
 }").VerifyDiagnostics(
-                // (24,9): error CS8379: The type 'TestData' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.N<T>()'
+                // (24,9): error CS8379: The type 'TestData' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.N<T>()'
                 //         N<TestData>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "N<TestData>").WithArguments("Test.N<T>()", "T", "TestData").WithLocation(24, 9));
         }
@@ -2526,7 +2540,7 @@ class Test
         arg.Print();
     }
 }").VerifyDiagnostics(
-                // (16,9): error CS8379: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>(T)'
+                // (16,9): error CS8379: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>(T)'
                 //         M("test");
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("Test.M<T>(T)", "T", "string").WithLocation(16, 9),
                 // (20,13): error CS1061: 'T' does not contain a definition for 'Print' and no extension method 'Print' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
