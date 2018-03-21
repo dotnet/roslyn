@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     internal partial class QuickInfoSourceProvider
     {
         private class QuickInfoSource : IAsyncQuickInfoSource
-        {            
+        {
             private readonly ITextBuffer _subjectBuffer;
 
             public QuickInfoSource(ITextBuffer subjectBuffer)
-            {   
+            {
                 _subjectBuffer = subjectBuffer;
             }
 
@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 {
                     return null;
                 }
-                    
+
                 try
                 {
                     using (Internal.Log.Logger.LogBlock(FunctionId.Get_QuickInfo_Async, cancellationToken))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();                            
+                        cancellationToken.ThrowIfCancellationRequested();
 
                         var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, cancellationToken).ConfigureAwait(false);
                         if (item != null)
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }            
-           
+            }
+
             public void Dispose()
             {
             }
