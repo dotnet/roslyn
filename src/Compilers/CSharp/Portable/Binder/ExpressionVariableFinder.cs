@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.VariableDeclarator:
+                case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.SwitchExpressionArm:
                     break;
                 case SyntaxKind.ArgumentList:
@@ -382,6 +383,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Visit(node.Right);
+        }
+
+        public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+        {
+            if (node.Initializer != null)
+            {
+                VisitNodeToBind(node.Initializer);
+            }
         }
 
         private void CollectVariablesFromDeconstruction(

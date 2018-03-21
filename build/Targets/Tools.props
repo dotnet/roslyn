@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <dotnetRuntimeVersion>2.0.0</dotnetRuntimeVersion>
-    <dotnetSdkVersion>2.2.0-preview1-007622</dotnetSdkVersion>
+    <dotnetSdkVersion>2.1.300-preview2-008324</dotnetSdkVersion>
     <nugetExeVersion>4.3.0</nugetExeVersion>
     <monoVersion>5.8.0.88</monoVersion>
     <vsMinimumVersion>15.3</vsMinimumVersion>

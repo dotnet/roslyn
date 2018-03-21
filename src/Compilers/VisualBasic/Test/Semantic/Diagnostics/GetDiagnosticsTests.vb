@@ -363,10 +363,10 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 ~
 </errors>)
 
-            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.Equal("2", diagnostics(0).Arguments(1))
             Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree2)) ' Syntax tree parse options are reported in CompilationStage.Parse
 
-            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Equal("1", diagnostics(1).Arguments(1))
             Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 
@@ -399,10 +399,10 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 ~
 </errors>)
 
-            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.Equal("2", diagnostics(0).Arguments(1))
             Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree)) ' Syntax tree parse options are reported in CompilationStage.Parse
 
-            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Equal("1", diagnostics(1).Arguments(1))
             Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 

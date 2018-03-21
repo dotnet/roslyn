@@ -427,7 +427,18 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
+        /// </summary>
+        internal static string Alias_ambiguous_type_0
+        {
+            get
+            {
+                return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>

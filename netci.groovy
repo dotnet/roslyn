@@ -83,7 +83,7 @@ commitPullList.each { isPr ->
 // Windows CoreCLR
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
-    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_test", isPr)
+    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_${configuration}", isPr)
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {

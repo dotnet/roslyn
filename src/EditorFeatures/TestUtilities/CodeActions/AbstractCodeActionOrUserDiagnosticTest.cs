@@ -489,6 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index, ImmutableArray<CodeAction> actions, CodeActionPriority? priority = null)
         {
             Assert.NotNull(actions);
+            Assert.NotEmpty(actions);
             if (actions.Length == 1)
             {
                 if (actions.Single() is TopLevelSuppressionCodeAction suppressionAction)
@@ -497,6 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
             }
 
+            Assert.True(actions.Length > 0, "No action produced");
             Assert.InRange(index, 0, actions.Length - 1);
 
             var action = actions[index];

@@ -43,9 +43,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 FixAllScope? fixAllScope = null,
                 bool blockUntilComplete = true)
             {
-                // Wait for the light bulb to appear before forcing it to drop down, otherwise the UI thread can
-                // deadlock in SuggestedActionsSource.
-                _textViewWindow.WaitForLightBulbSession();
                 _textViewWindow.ShowLightBulb();
                 _textViewWindow.WaitForLightBulbSession();
 

@@ -33,6 +33,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: false);
         }
 
+        public bool CloseWindow()
+        {
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true, wait: false);
+            if (dialog == null)
+            {
+                return false;
+            }
+
+            ClickCancel();
+            return true;
+        }
+
         public void Invoke()
             => VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.V, ShiftState.Ctrl));
 
