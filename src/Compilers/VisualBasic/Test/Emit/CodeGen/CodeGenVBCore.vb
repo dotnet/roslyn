@@ -2555,7 +2555,7 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="43, DF,  2, C2, F5, 5F, 6A, CB,  8, D3, 1F, D2, 8E, 4F, FE,  A, 8F, C2, 76, D7, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="43-DF-02-C2-F5-5F-6A-CB-08-D3-1F-D2-8E-4F-FE-0A-8F-C2-76-D7"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>

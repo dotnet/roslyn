@@ -1032,6 +1032,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            Visit(node.Left);
+            Visit(node.Right);
+            return null;
+        }
+
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
@@ -1173,12 +1180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitScope(BoundScope node)
         {
             VisitStatements(node.Statements);
-            return null;
-        }
-
-        public override BoundNode VisitFieldInitializer(BoundFieldInitializer node)
-        {
-            Visit(node.InitialValue);
             return null;
         }
 
@@ -1681,7 +1682,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // byref assignment is also a potential write
             if (node.IsRef)
             {
-                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
+                // Assume that BadExpression is a ref location to avoid
+                // cascading diagnostics
+                var refKind = node.Left.Kind == BoundKind.BadExpression
+                    ? RefKind.Ref
+                    : node.Left.GetRefKind();
+                WriteArgument(node.Right, refKind, method: null);
             }
 
             return null;
@@ -2590,12 +2596,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             VisitRvalue(node.Count);
+
+            if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
+            {
+                foreach (var element in node.InitializerOpt.Initializers)
+                {
+                    VisitRvalue(element);
+                }
+            }
+
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
-            VisitRvalue(node.Count);
+            VisitStackAllocArrayCreation(node);
             return null;
         }
 
@@ -2772,6 +2788,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        {
+            Visit(node.Initializer);
+            VisitMethodBodies(node.BlockBody, node.ExpressionBody);
+            return null;
+        }
+
+        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        {
+            VisitMethodBodies(node.BlockBody, node.ExpressionBody);
+            return null;
+        }
+
+        private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)
+        { 
+            if (blockBody == null)
+            {
+                Visit(expressionBody);
+                return;
+            }
+            else if (expressionBody == null)
+            {
+                Visit(blockBody);
+                return;
+            }
+
+            // In error cases we have two bodies. These are two unrelated pieces of code,
+            // they are not executed one after another. As we don't really know which one the developer
+            // intended to use, we need to visit both. We are going to pretend that there is
+            // an unconditional fork in execution and then we are converging after each body is executed. 
+            // For example, if only one body assigns an out parameter, then after visiting both bodies
+            // we should consider that parameter is not definitely assigned.
+            // Note, that today this code is not executed for regular definite assignment analysis. It is 
+            // only executed for region analysis.
+            LocalState initialState = this.State.Clone();
+            Visit(blockBody);
+            LocalState afterBlock = this.State;
+            SetState(initialState);
+            Visit(expressionBody);
+
+            IntersectWith(ref this.State, ref afterBlock);
+        }
         #endregion visitors
     }
 }

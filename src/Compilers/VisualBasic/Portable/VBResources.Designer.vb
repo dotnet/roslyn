@@ -12073,6 +12073,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to interpolated strings.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_InterpolatedStrings", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to iterators.
         '''</summary>
         Friend ReadOnly Property FEATURE_Iterators() As String

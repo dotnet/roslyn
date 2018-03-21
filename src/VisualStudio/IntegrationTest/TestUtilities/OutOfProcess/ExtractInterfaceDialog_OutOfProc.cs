@@ -48,6 +48,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
         }
 
+        public bool CloseWindow()
+        {
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ExtractInterfaceDialogID, isOpen: true, wait: false);
+            if (dialog == null)
+            {
+                return false;
+            }
+
+            ClickCancel();
+            return true;
+        }
+
         /// <summary>
         /// Clicks the "OK" button and waits for the Extract Interface operation to complete.
         /// </summary>

@@ -70,12 +70,13 @@ internal class D : IDisposable
 public class E
 {
     public int Id;
-}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+}", options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"1
 0");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()
         {
@@ -92,7 +93,21 @@ class Program
             var creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
 
             var operation = model.GetOperation(creation);
-            Assert.Null(operation); // we didn't bind the expression body, but should. See issue https://github.com/dotnet/roslyn/issues/24650
+            Assert.NotNull(operation);
+
+            comp.VerifyOperationTree(creation, expectedOperationTree:
+@"
+IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+  Arguments(0)
+  Initializer: 
+    null
+");
+
+            Assert.Equal(OperationKind.ExpressionStatement, operation.Parent.Kind);
+            Assert.Equal(OperationKind.Block, operation.Parent.Parent.Kind);
+            // We didn't bind the expression body, but should. See issue https://github.com/dotnet/roslyn/issues/24650
+            // The block from the previous assert, should have a parent 
+            Assert.Null(operation.Parent.Parent.Parent);
 
             var info = model.GetTypeInfo(creation);
             Assert.Equal("System.Object", info.Type.ToTestDisplayString());
@@ -161,7 +176,7 @@ class C
     {
         public int SomeField { get; set; }
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -703,7 +718,7 @@ public class Program {
             }
         }
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -1298,7 +1313,7 @@ class C
 1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope7()
         {

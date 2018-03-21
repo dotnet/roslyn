@@ -440,7 +440,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef },
+            CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef }, 
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -514,7 +514,8 @@ class D
 }";
             var expectedOutput = "Print method ran.";
             var compilationVerifier = CompileAndVerify(source: source,
-                references: new[] { CSharpRef, libCompRef },
+                references: new[] { libCompRef },
+                targetFramework: TargetFramework.StandardAndCSharp,
                 expectedOutput: expectedOutput);
         }
 
@@ -571,8 +572,11 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef },
-                                                    expectedOutput: expectedOutput);
+            var compilationVerifier = CompileAndVerify(
+                source: source, 
+                targetFramework: TargetFramework.StandardAndCSharp, 
+                references: new[] { libAssemblyRef },
+                expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -800,7 +804,7 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) }, 
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;

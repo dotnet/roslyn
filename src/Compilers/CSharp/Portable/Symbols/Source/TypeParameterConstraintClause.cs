@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ReferenceType = 0x01,
         ValueType = 0x02,
         Constructor = 0x04,
+        Unmanaged = 0x08,
     }
 
     /// <summary>

@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.SwitchExpression:
                 case SyntaxKind.SwitchExpressionArm:
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.ConstructorDeclaration:
                     return true;
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);

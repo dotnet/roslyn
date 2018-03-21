@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInteropAttributes01()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -133,7 +133,7 @@ class C
         [Fact]
         public void TestInteropAttributes02()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -255,7 +255,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestPseudoAttributes1()
         {
             #region "Source"
@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(text, references: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+            CompileAndVerifyWithMscorlib46(text, references: new[] { TestBase.SystemRef_v46 }, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -738,7 +738,6 @@ public class CCC
 
             CompileAndVerify(
                 text,
-                references: new[] { SystemRef },
                 expectedOutput: @"
 (Byte)0, (Byte)128, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
@@ -764,7 +763,7 @@ public class C
     }
 }
 ";
-            CreateCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,59): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(decimal)"));
         }
@@ -803,7 +802,7 @@ public class C
                 Assert.Equal(0, ps[0].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, references: new[] { SystemRef }, symbolValidator: verifier);
+            CompileAndVerify(source, symbolValidator: verifier);
         }
 
         [Fact]
@@ -818,7 +817,7 @@ public class C
     {
     }
 }
-", new[] { SystemRef });
+");
 
             Action<ModuleSymbol> verifier = module =>
             {
@@ -848,7 +847,7 @@ public class C
     {
     }
 }
-", new[] { SystemRef });
+");
 
             Action<ModuleSymbol> verifier = module =>
             {
@@ -888,7 +887,7 @@ public class C
         return i;
     }
 }
-", new[] { SystemRef });
+");
 
             var c2 = CreateCompilation(@"
 public class D 
@@ -1013,7 +1012,7 @@ public class C
         set {  }
 }
 }";
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1068,7 +1067,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 ";
             // Dev11: doesn't allow DPV(null) on int[], we do.
 
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1179,7 +1178,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CompileAndVerify(text, references: new[] { SystemRef });
+            CompileAndVerify(text);
         }
 
         [Fact, WorkItem(544934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
@@ -1199,7 +1198,7 @@ class C
         Goo();
     }
 }";
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"5");
+            CompileAndVerify(source, expectedOutput: @"5");
         }
 
         [Fact]
@@ -1214,7 +1213,7 @@ public class X
     public int InTheMiddle(int a, [Optional, DefaultParameterValue((short)1)]int b, int c){
         return 2;
     } 
-}", new[] { SystemRef });
+}");
 
             CompileAndVerify(compilation);
         }
@@ -1321,7 +1320,7 @@ partial class C
                 partialValidator(sourceMethod);
             };
 
-            CompileAndVerify(source, references: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
+            CompileAndVerify(source, sourceSymbolValidator: sourceValidator);
         }
 
         [WorkItem(544303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
@@ -1363,7 +1362,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (15,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(isOpt: false)][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(15, 17),
@@ -1394,7 +1393,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute"),
@@ -1425,7 +1424,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(16, 17),
@@ -1539,7 +1538,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
@@ -1720,7 +1719,7 @@ class C
 }
 ";
 
-            CreateCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
@@ -1778,7 +1777,7 @@ class Program
         Goo();
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
                 //         Goo();
@@ -1841,7 +1840,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"100200300400");
+            CompileAndVerify(source, expectedOutput: @"100200300400");
         }
 
         [WorkItem(544516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
@@ -4934,7 +4933,7 @@ namespace System
     }
 }";
             var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateCompilation(syntaxTree);
+            var compilation = CreateCompilationWithMscorlib40(syntaxTree);
 
             var comp = compilation.VerifyDiagnostics(
                 // test.cs(4,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
@@ -5153,7 +5152,7 @@ public class Test
 ";
             #endregion
 
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
+            CompileAndVerify(source, expectedOutput: @"System.Reflection.Missing")
                 .VerifyIL("Test.Main", @"{
   // Code size       16 (0x10)
   .maxstack  2
@@ -5221,7 +5220,7 @@ public class InvalidClass5 { }
 public interface InvalidTarget {}
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (26,17): error CS0591: Invalid value for argument to 'ClassInterface' attribute
                 // [ClassInterface((ClassInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ClassInterfaceType)(-1)").WithArguments("ClassInterface"),
@@ -5300,7 +5299,7 @@ public interface InvalidInterface5 {}
 [InterfaceType(ComInterfaceType.InterfaceIsDual)]
 public class InvalidTarget {}
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (34,16): error CS0591: Invalid value for argument to 'InterfaceType' attribute
                 // [InterfaceType((ComInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ComInterfaceType)(-1)").WithArguments("InterfaceType"),
@@ -5333,7 +5332,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(0, int.MaxValue)]
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5348,7 +5347,7 @@ public class C
     public const short S = short.MaxValue;
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5359,7 +5358,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,36): error CS0591: Invalid value for argument to 'TypeLibVersionAttribute' attribute
                 // [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("TypeLibVersionAttribute"),
@@ -5376,7 +5375,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(""str"", 0)]
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 // [assembly: TypeLibVersionAttribute("str", 0)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""str""").WithArguments("1", "string", "int"));
@@ -7918,7 +7917,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemRef });
+            var comp = CreateCompilation(source);
 
             Action<ModuleSymbol> validator = module =>
             {
