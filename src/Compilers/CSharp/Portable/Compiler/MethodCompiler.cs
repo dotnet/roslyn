@@ -1669,10 +1669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement BindConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!method.IsExtern);
+            Debug.Assert(!method.ContainingType.IsDelegateType() && !method.IsExtern);
 
             // delegates have constructors but not constructor initializers
-            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
+            if (method.MethodKind == MethodKind.Constructor)
             {
                 var compilation = method.DeclaringCompilation;
                 var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
