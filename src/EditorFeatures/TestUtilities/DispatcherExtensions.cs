@@ -56,7 +56,21 @@ namespace Roslyn.Test.Utilities
                         }
                         methodInfoBuilder.AppendLine(")");
                         methodInfoBuilder.AppendLine($"\tNum Args: {numArgs}");
-                        methodInfoBuilder.AppendLine($"\tArgs: {args}");
+                        if (args is Array arr)
+                        {
+                            methodInfoBuilder.Append("\tArgs (array):");
+                            useComma = true;
+                            foreach (var el in arr)
+                            {
+                                methodInfoBuilder.Append($"{(useComma ? "," : "")} {el}");
+
+                            }
+                            methodInfoBuilder.AppendLine();
+                        }
+                        else
+                        {
+                            methodInfoBuilder.AppendLine($"\tArgs: {args}");
+                        }
                         methodInfoBuilder.AppendLine($"\tPosted: {posted} Time: {startedTime.ToShortTimeString()}");
                     }
                     s_delegateInfos.Clear();
