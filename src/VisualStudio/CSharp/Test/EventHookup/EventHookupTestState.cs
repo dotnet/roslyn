@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         {
             _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                new EventHookupSessionManager(Workspace.GetService<IToolTipService>()));
+                Workspace.ExportProvider.GetExportedValue<EventHookupSessionManager>());
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         private static ComposableCatalog GetExtraParts()
         {
-            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler) });
+            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupSessionManager) });
         }
 
         public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)
