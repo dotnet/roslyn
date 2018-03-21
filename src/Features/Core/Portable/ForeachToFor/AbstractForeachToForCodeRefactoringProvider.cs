@@ -327,7 +327,11 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
         private static bool CheckRequireCollectionStatement(IOperation operation)
         {
-            return operation.Kind != OperationKind.LocalReference && operation.Kind != OperationKind.FieldReference;
+            return operation.Kind != OperationKind.LocalReference &&
+                   operation.Kind != OperationKind.FieldReference &&
+                   operation.Kind != OperationKind.ParameterReference &&
+                   operation.Kind != OperationKind.PropertyReference &&
+                   operation.Kind != OperationKind.ArrayElementReference;
         }
 
         private IOperation RemoveImplicitConversion(IOperation collection)

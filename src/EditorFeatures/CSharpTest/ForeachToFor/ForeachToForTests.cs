@@ -603,6 +603,99 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
+        public async Task ArrayElement()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[][] { { 1, 3, 4 } };
+        foreach [||] (var a in array[0])
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[][] { { 1, 3, 4 } };
+        for (var {|Rename:i|} = 0; i < array[0].Length; i++)
+        {
+            var a = array[0][i];
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
+        public async Task Parameter()
+        {
+            var text = @"
+class Test
+{
+    void Method(int[] array)
+    {
+        foreach [||] (var a in array)
+        {
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method(int[] array)
+    {
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        {
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
+        public async Task Property()
+        {
+            var text = @"
+class Test
+{
+    int [] Prop { get; } = new int[] { 1, 2, 3 };
+
+    void Method()
+    {
+        foreach [||] (var a in Prop)
+        {
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    int [] Prop { get; } = new int[] { 1, 2, 3 };
+
+    void Method()
+    {
+        for (var {|Rename:i|} = 0; i < Prop.Length; i++)
+        {
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
         public async Task Interface()
         {
             var text = @"
