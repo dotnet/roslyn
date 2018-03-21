@@ -1628,6 +1628,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body = null;
             }
 
+            // Delegate constructors and invokes have no body
+            if (method.IsExtern ||
+                method.MethodKind == MethodKind.DelegateInvoke ||
+                (method.MethodKind == MethodKind.Constructor &&
+                method.ContainingType?.IsDelegateType() == true))
+            {
+                return null;
+            }
+
             if (method.MethodKind == MethodKind.Destructor && body != null)
             {
                 return MethodBodySynthesizer.ConstructDestructorBody(method, body);
@@ -1660,8 +1669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement BindConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
+            Debug.Assert(!method.IsExtern);
+
             // delegates have constructors but not constructor initializers
-            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType() && !method.IsExtern)
+            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
             {
                 var compilation = method.DeclaringCompilation;
                 var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
