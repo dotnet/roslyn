@@ -23,7 +23,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     /// <summary>
-    /// Tip: debug EncVariableSlotAllocator.TryGetPreviousClosure to figure out missing markers in your test.
+    /// Tip: debug EncVariableSlotAllocator.TryGetPreviousClosure or other TryGet methods to figure out missing markers in your test.
     /// </summary>
     public class EditAndContinueTests : EditAndContinueTestBase
     {
