@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken.ThrowIfCancellationRequested();
             SourceMemberMethodSymbol sourceMethod = methodSymbol as SourceMemberMethodSymbol;
 
-            if (methodSymbol.IsAbstract)
+            if (methodSymbol.IsAbstract || methodSymbol.ContainingType?.IsDelegateType() == true)
             {
                 if ((object)sourceMethod != null)
                 {
@@ -1626,12 +1626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // synthesized methods should return their bound bodies
                 body = null;
-            }
-
-            // Delegate constructors and invokes have no body
-            if (method.IsExtern || method.ContainingType?.IsDelegateType() == true)
-            {
-                return null;
             }
 
             if (method.MethodKind == MethodKind.Destructor && body != null)
