@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ForeachToFor
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
         private static readonly ImmutableArray<string> s_KnownInterfaceNames =
             new string[] { typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName }.ToImmutableArray();
 
-        protected abstract SyntaxNode GetForEachStatement(SyntaxToken token);
+        protected abstract SyntaxNode GetForEachStatement(TextSpan selelction, SyntaxToken token);
         protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(SyntaxNode foreachStatement);
         protected abstract void ConvertToForStatement(SemanticModel model, ForEachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
 
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(context.Span.Start);
 
-            var foreachStatement = GetForEachStatement(token);
+            var foreachStatement = GetForEachStatement(context.Span, token);
             if (foreachStatement == null)
             {
                 return;
@@ -90,6 +92,49 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
 
             return node.ReplaceToken(token, token.WithAdditionalAnnotations(RenameAnnotation.Create()));
+        }
+
+        protected string GetCollectionVariableName(SemanticModel model, ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression)
+        {
+            if (foreachInfo.RequireCollectionStatement)
+            {
+                return CreateUniqueName(model, foreachInfo.ForEachStatement, "list");
+            }
+
+            return foreachCollectionExpression.ToString();
+        }
+
+        protected void IntroduceCollectionStatement(
+            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, SyntaxNode foreachCollectionExpression, string collectionVariableName)
+        {
+            if (!foreachInfo.RequireCollectionStatement)
+            {
+                return;
+            }
+
+            // TODO: refactor introduce variable refactoring to real service and use that service here to introduce local variable
+            var generator = editor.Generator;
+
+            // this expression is from user code. don't simplify this.
+            var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+            var collectionStatement = generator.LocalDeclarationStatement(
+                collectionVariableName,
+                foreachInfo.RequireExplicitCast
+                ? generator.CastExpression(foreachInfo.ExplicitCastInterface, expression) : expression);
+
+            collectionStatement = AddRenameAnnotation(
+                collectionStatement.WithLeadingTrivia(foreachInfo.ForEachStatement.GetFirstToken().LeadingTrivia), collectionVariableName);
+
+            editor.InsertBefore(foreachInfo.ForEachStatement, collectionStatement);
+        }
+
+        protected SyntaxNode AddItemVariableDeclaration(
+            SyntaxGenerator generator, string foreachVariableString, string collectionVariableName, string indexString)
+        {
+            return generator.LocalDeclarationStatement(
+                foreachVariableString,
+                generator.ElementAccessExpression(
+                    generator.IdentifierName(collectionVariableName), generator.IdentifierName(indexString)));
         }
 
         private ForEachInfo GetForeachInfo(ISemanticFactsService semanticFact, SemanticModel model, SyntaxNode foreachStatement, CancellationToken cancellationToken)

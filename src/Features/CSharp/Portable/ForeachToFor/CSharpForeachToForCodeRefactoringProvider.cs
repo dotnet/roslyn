@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpForEachToForCodeRefactoringProvider)), Shared]
     internal sealed class CSharpForEachToForCodeRefactoringProvider : AbstractForEachToForCodeRefactoringProvider
     {
-        protected override SyntaxNode GetForEachStatement(SyntaxToken token)
+        protected override SyntaxNode GetForEachStatement(TextSpan selection, SyntaxToken token)
         {
             var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
             if (foreachStatement == null)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
 
             // support refactoring only if caret is in between "foreach" and ")"
             var scope = TextSpan.FromBounds(foreachStatement.ForEachKeyword.Span.Start, foreachStatement.CloseParenToken.Span.End);
-            if (!scope.IntersectsWith(token.Span))
+            if (!scope.IntersectsWith(selection))
             {
                 return null;
             }
@@ -66,26 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
             var generator = editor.Generator;
             var foreachStatement = (ForEachStatementSyntax)foreachInfo.ForEachStatement;
 
-            // this expression is from user code. don't simplify this.
-            var foreachCollectionExpression = foreachStatement.Expression.WithoutAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
-            var collectionVariableName = foreachCollectionExpression.ToString();
+            var foreachCollectionExpression = foreachStatement.Expression;
+            var collectionVariableName = GetCollectionVariableName(model, foreachInfo, foreachCollectionExpression);
 
             // first, see whether we need to introduce new statement to capture collection
-            if (foreachInfo.RequireCollectionStatement)
-            {
-                collectionVariableName = CreateUniqueName(model, foreachStatement, "list");
-
-                var collectionStatement = generator.LocalDeclarationStatement(
-                    collectionVariableName,
-                    foreachInfo.RequireExplicitCast
-                    ? (CastExpressionSyntax)generator.CastExpression(foreachInfo.ExplicitCastInterface, foreachCollectionExpression)
-                    : foreachCollectionExpression);
-
-                collectionStatement = AddRenameAnnotation(
-                    collectionStatement.WithLeadingTrivia(foreachStatement.ForEachKeyword.LeadingTrivia), collectionVariableName);
-
-                editor.InsertBefore(foreachStatement, collectionStatement);
-            }
+            IntroduceCollectionStatement(model, foreachInfo, editor, foreachCollectionExpression, collectionVariableName);
 
             // create new index varialbe name
             var indexString = CreateUniqueName(model, foreachStatement.Statement, "i");
@@ -104,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
                             SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0))))),
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(
-                    generator.IdentifierName(indexString), 
+                    generator.IdentifierName(indexString),
                     generator.MemberAccessExpression(
                         generator.IdentifierName(collectionVariableName), foreachInfo.CountName)),
                 SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexString))),
@@ -136,10 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
                 var foreachVariableString = foreachStatement.Identifier.ToString();
 
                 // create varialbe statement
-                var variableStatement = generator.LocalDeclarationStatement(
-                    foreachVariableString,
-                    generator.ElementAccessExpression(
-                        generator.IdentifierName(collectionVariableName), generator.IdentifierName(indexString)));
+                var variableStatement = AddItemVariableDeclaration(generator, foreachVariableString, collectionVariableName, indexString);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(
                     bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(variableStatement));

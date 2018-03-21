@@ -535,7 +535,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
-        public async Task CaretPosition1()
+        public async Task WrongCaretPosition1()
         {
             var text = @"
 class Test
@@ -549,23 +549,11 @@ class Test
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
-        {
-        }
-    }
-}
-";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
-        public async Task CaretPosition2()
+        public async Task WrongCaretPosition2()
         {
             var text = @"
 class Test
@@ -579,19 +567,7 @@ class Test
     }
 }
 ";
-            var expected = @"
-class Test
-{
-    void Method()
-    {
-        var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
-        {
-        }
-    }
-}
-";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestMissingInRegularAndScriptAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
@@ -604,7 +580,7 @@ class Test
 
     void Method()
     {
-        foreach (var a in array) [||] 
+        foreach [||] (var a in array)
         {
         }
     }
