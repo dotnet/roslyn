@@ -22,6 +22,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    /// <summary>
+    /// Tip: debug EncVariableSlotAllocator.TryGetPreviousClosure to figure out missing markers in your test.
+    /// </summary>
     public class EditAndContinueTests : EditAndContinueTestBase
     {
         [Fact]
@@ -8889,14 +8892,14 @@ public class C : Base
             var source0 = MarkedSource(@"
 public class C : Base
 {
-    public C() : base(M(out int <N:0>x</N:0>) + M2(<N:1>() => x + 1</N:1>)) { }
+    <N:0>public C() : base(M(out int <N:1>x</N:1>) + M2(<N:2>() => x + 1</N:2>)) { }</N:0>
     static int M(out int x) => throw null;
     static int M2(System.Func<int> x) => throw null;
 }" + baseClass);
             var source1 = MarkedSource(@"
 public class C : Base
 {
-    public C() : base(M(out int <N:0>x</N:0>) + M2(<N:1>() => x - 1</N:1>)) { }
+    <N:0>public C() : base(M(out int <N:1>x</N:1>) + M2(<N:2>() => x - 1</N:2>)) { }</N:0>
     static int M(out int x) => throw null;
     static int M2(System.Func<int> x) => throw null;
 }" + baseClass);
@@ -8952,22 +8955,21 @@ public class C : Base
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            diff1.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0#1}", "C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0}");
+            diff1.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0}", "C.<>c__DisplayClass0_0: {x, <.ctor>b__0}");
 
             diff1.VerifyIL("C..ctor", @"
 {
   // Code size       44 (0x2c)
   .maxstack  4
-  .locals init ([unchanged] V_0,
-                C.<>c__DisplayClass0_0#1 V_1) //CS$<>8__locals0
-  IL_0000:  newobj     ""C.<>c__DisplayClass0_0#1..ctor()""
-  IL_0005:  stloc.1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  ldarg.0
-  IL_0007:  ldloc.1
-  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0#1.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0.x""
   IL_000d:  call       ""int C.M(out int)""
-  IL_0012:  ldloc.1
-  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0#1.<.ctor>b__0()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0.<.ctor>b__0()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int C.M2(System.Func<int>)""
   IL_0023:  add
@@ -8977,12 +8979,12 @@ public class C : Base
   IL_002b:  ret
 }
 ");
-            diff1.VerifyIL("C.<>c__DisplayClass0_0#1.<.ctor>b__0()", @"
+            diff1.VerifyIL("C.<>c__DisplayClass0_0.<.ctor>b__0()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0#1.x""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  sub
   IL_0008:  ret
@@ -8994,23 +8996,21 @@ public class C : Base
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
 
-            diff2.VerifySynthesizedMembers("C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0}", "C.<>c__DisplayClass0_0#2: {x, <.ctor>b__0}", "C: {<>c__DisplayClass0_0#2, <>c__DisplayClass0_0#1}");
+            diff2.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0}", "C.<>c__DisplayClass0_0: {x, <.ctor>b__0}");
 
             diff2.VerifyIL("C..ctor", @"
 {
   // Code size       44 (0x2c)
   .maxstack  4
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                C.<>c__DisplayClass0_0#2 V_2) //CS$<>8__locals0
-  IL_0000:  newobj     ""C.<>c__DisplayClass0_0#2..ctor()""
-  IL_0005:  stloc.2
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  ldarg.0
-  IL_0007:  ldloc.2
-  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0#2.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0.x""
   IL_000d:  call       ""int C.M(out int)""
-  IL_0012:  ldloc.2
-  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0#2.<.ctor>b__0()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0.<.ctor>b__0()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int C.M2(System.Func<int>)""
   IL_0023:  add
@@ -9020,12 +9020,12 @@ public class C : Base
   IL_002b:  ret
 }
 ");
-            diff2.VerifyIL("C.<>c__DisplayClass0_0#2.<.ctor>b__0()", @"
+            diff2.VerifyIL("C.<>c__DisplayClass0_0.<.ctor>b__0()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0#2.x""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -9039,14 +9039,14 @@ public class C : Base
             var source0 = MarkedSource(@"
 public class C
 {
-    public void Method() { int _ = M(out int <N:0>x</N:0>) + M2(<N:1>() => x + 1</N:1>); }
+    public void Method() <N:0>{ int _ = M(out int <N:1>x</N:1>) + M2(<N:2>() => x + 1</N:2>); }</N:0>
     static int M(out int x) => throw null;
     static int M2(System.Func<int> x) => throw null;
 }");
             var source1 = MarkedSource(@"
 public class C
 {
-    public void Method() { int _ = M(out int <N:0>x</N:0>) + M2(<N:1>() => x - 1</N:1>); }
+    public void Method() <N:0>{ int _ = M(out int <N:1>x</N:1>) + M2(<N:2>() => x - 1</N:2>); }</N:0>
     static int M(out int x) => throw null;
     static int M2(System.Func<int> x) => throw null;
 }");
@@ -9101,37 +9101,36 @@ public class C
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            diff1.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0#1}", "C.<>c__DisplayClass0_0#1: {x, <Method>b__0}");
+            diff1.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0}", "C.<>c__DisplayClass0_0: {x, <Method>b__0}");
 
             diff1.VerifyIL("C.Method", @"
 {
   // Code size       38 (0x26)
   .maxstack  3
-  .locals init ([unchanged] V_0,
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 [int] V_1,
-                C.<>c__DisplayClass0_0#1 V_2, //CS$<>8__locals0
-                int V_3) //_
-  IL_0000:  newobj     ""C.<>c__DisplayClass0_0#1..ctor()""
-  IL_0005:  stloc.2
+                int V_2) //_
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  nop
-  IL_0007:  ldloc.2
-  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0#1.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0.x""
   IL_000d:  call       ""int C.M(out int)""
-  IL_0012:  ldloc.2
-  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0#1.<Method>b__0()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0.<Method>b__0()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int C.M2(System.Func<int>)""
   IL_0023:  add
-  IL_0024:  stloc.3
+  IL_0024:  stloc.2
   IL_0025:  ret
 }
 ");
-            diff1.VerifyIL("C.<>c__DisplayClass0_0#1.<Method>b__0()", @"
+            diff1.VerifyIL("C.<>c__DisplayClass0_0.<Method>b__0()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0#1.x""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  sub
   IL_0008:  ret
@@ -9143,39 +9142,37 @@ public class C
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
 
-            diff2.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0#2, <>c__DisplayClass0_0#1}", "C.<>c__DisplayClass0_0#1: {x, <Method>b__0}", "C.<>c__DisplayClass0_0#2: {x, <Method>b__0}");
+            diff2.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0}", "C.<>c__DisplayClass0_0: {x, <Method>b__0}");
 
             diff2.VerifyIL("C.Method", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       38 (0x26)
   .maxstack  3
-  .locals init ([unchanged] V_0,
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 [int] V_1,
-                [unchanged] V_2,
-                [int] V_3,
-                C.<>c__DisplayClass0_0#2 V_4, //CS$<>8__locals0
-                int V_5) //_
-  IL_0000:  newobj     ""C.<>c__DisplayClass0_0#2..ctor()""
-  IL_0005:  stloc.s    V_4
-  IL_0007:  nop
-  IL_0008:  ldloc.s    V_4
-  IL_000a:  ldflda     ""int C.<>c__DisplayClass0_0#2.x""
-  IL_000f:  call       ""int C.M(out int)""
-  IL_0014:  ldloc.s    V_4
-  IL_0016:  ldftn      ""int C.<>c__DisplayClass0_0#2.<Method>b__0()""
-  IL_001c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0021:  call       ""int C.M2(System.Func<int>)""
-  IL_0026:  add
-  IL_0027:  stloc.s    V_5
-  IL_0029:  ret
+                [int] V_2,
+                int V_3) //_
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0.x""
+  IL_000d:  call       ""int C.M(out int)""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0.<Method>b__0()""
+  IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001e:  call       ""int C.M2(System.Func<int>)""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ret
 }
 ");
-            diff2.VerifyIL("C.<>c__DisplayClass0_0#2.<Method>b__0()", @"
+            diff2.VerifyIL("C.<>c__DisplayClass0_0.<Method>b__0()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0#2.x""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -9292,14 +9289,14 @@ public class C
             var source0 = MarkedSource(@"
 public class C
 {
-    int field = M(out int <N:0>x</N:0>) + M2(<N:1>() => x + 1</N:1>);
+    int field = <N:0>M(out int <N:1>x</N:1>) + M2(<N:2>() => x + 1</N:2>)</N:0>;
     static int M(out int x) => throw null;
     static int M2(System.Func<int> x) => throw null;
 }");
             var source1 = MarkedSource(@"
 public class C
 {
-    int field = M(out int <N:0>x</N:0>) + M2(<N:1>() => x - 1</N:1>);
+    int field = <N:0>M(out int <N:1>x</N:1>) + M2(<N:2>() => x - 1</N:2>)</N:0>;
     static int M(out int x) => throw null;
     static int M2(System.Func<int> x) => throw null;
 }");
@@ -9356,22 +9353,21 @@ public class C
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            diff1.VerifySynthesizedMembers("C.<>c__DisplayClass3_0#1: {x, <.ctor>b__0}", "C: {<>c__DisplayClass3_0#1}");
+            diff1.VerifySynthesizedMembers("C.<>c__DisplayClass3_0: {x, <.ctor>b__0}", "C: {<>c__DisplayClass3_0}");
 
             diff1.VerifyIL("C..ctor", @"
 {
   // Code size       49 (0x31)
   .maxstack  4
-  .locals init ([unchanged] V_0,
-                C.<>c__DisplayClass3_0#1 V_1) //CS$<>8__locals0
-  IL_0000:  newobj     ""C.<>c__DisplayClass3_0#1..ctor()""
-  IL_0005:  stloc.1
+  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass3_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  ldarg.0
-  IL_0007:  ldloc.1
-  IL_0008:  ldflda     ""int C.<>c__DisplayClass3_0#1.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass3_0.x""
   IL_000d:  call       ""int C.M(out int)""
-  IL_0012:  ldloc.1
-  IL_0013:  ldftn      ""int C.<>c__DisplayClass3_0#1.<.ctor>b__0()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass3_0.<.ctor>b__0()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int C.M2(System.Func<int>)""
   IL_0023:  add
@@ -9382,12 +9378,12 @@ public class C
   IL_0030:  ret
 }
 ");
-            diff1.VerifyIL("C.<>c__DisplayClass3_0#1.<.ctor>b__0()", @"
+            diff1.VerifyIL("C.<>c__DisplayClass3_0.<.ctor>b__0()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0#1.x""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  sub
   IL_0008:  ret
@@ -9399,23 +9395,21 @@ public class C
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
 
-            diff2.VerifySynthesizedMembers("C.<>c__DisplayClass3_0#1: {x, <.ctor>b__0}", "C: {<>c__DisplayClass3_0#2, <>c__DisplayClass3_0#1}", "C.<>c__DisplayClass3_0#2: {x, <.ctor>b__0}");
+            diff2.VerifySynthesizedMembers("C.<>c__DisplayClass3_0: {x, <.ctor>b__0}", "C: {<>c__DisplayClass3_0}");
 
             diff2.VerifyIL("C..ctor", @"
 {
   // Code size       49 (0x31)
   .maxstack  4
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                C.<>c__DisplayClass3_0#2 V_2) //CS$<>8__locals0
-  IL_0000:  newobj     ""C.<>c__DisplayClass3_0#2..ctor()""
-  IL_0005:  stloc.2
+  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass3_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  ldarg.0
-  IL_0007:  ldloc.2
-  IL_0008:  ldflda     ""int C.<>c__DisplayClass3_0#2.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass3_0.x""
   IL_000d:  call       ""int C.M(out int)""
-  IL_0012:  ldloc.2
-  IL_0013:  ldftn      ""int C.<>c__DisplayClass3_0#2.<.ctor>b__0()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass3_0.<.ctor>b__0()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int C.M2(System.Func<int>)""
   IL_0023:  add
@@ -9426,12 +9420,12 @@ public class C
   IL_0030:  ret
 }
 ");
-            diff2.VerifyIL("C.<>c__DisplayClass3_0#2.<.ctor>b__0()", @"
+            diff2.VerifyIL("C.<>c__DisplayClass3_0.<.ctor>b__0()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0#2.x""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -9650,7 +9644,7 @@ public class Program
     {
         var <N:0>query =
             from a in new int[] { 1, 2 }
-            <N:1>select M(a, out int <N:2>x</N:2>) + M2(<N:3>() => x + 1</N:3>)</N:1></N:0>;
+            <N:1>select <N:2>M(a, out int <N:3>x</N:3>) + M2(<N:4>() => x + 1</N:4>)</N:2></N:1></N:0>;
     }
 }");
             var source1 = MarkedSource(@"
@@ -9663,7 +9657,7 @@ public class Program
     {
         var <N:0>query =
             from a in new int[] { 1, 2 }
-            <N:1>select M(a, out int <N:2>x</N:2>) + M2(<N:3>() => x - 1</N:3>)</N:1></N:0>;
+            <N:1>select <N:2>M(a, out int <N:3>x</N:3>) + M2(<N:4>() => x - 1</N:4>)</N:2></N:1></N:0>;
     }
 }");
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -9743,7 +9737,7 @@ public class Program
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, n0, n1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            diff1.VerifySynthesizedMembers("Program: {<>c__DisplayClass2_0#1, <>c}", "Program.<>c__DisplayClass2_0#1: {x, <N>b__1}", "Program.<>c: {<>9__2_0, <N>b__2_0}");
+            diff1.VerifySynthesizedMembers("Program: {<>c__DisplayClass2_0, <>c}", "Program.<>c__DisplayClass2_0: {x, <N>b__1}", "Program.<>c: {<>9__2_0, <N>b__2_0}");
 
             diff1.VerifyIL("Program.N()", @"
 {
@@ -9779,28 +9773,27 @@ public class Program
 {
   // Code size       37 (0x25)
   .maxstack  3
-  .locals init ([unchanged] V_0,
-                Program.<>c__DisplayClass2_0#1 V_1) //CS$<>8__locals0
-  IL_0000:  newobj     ""Program.<>c__DisplayClass2_0#1..ctor()""
-  IL_0005:  stloc.1
+  .locals init (Program.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""Program.<>c__DisplayClass2_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  ldarg.1
-  IL_0007:  ldloc.1
-  IL_0008:  ldflda     ""int Program.<>c__DisplayClass2_0#1.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int Program.<>c__DisplayClass2_0.x""
   IL_000d:  call       ""int Program.M(int, out int)""
-  IL_0012:  ldloc.1
-  IL_0013:  ldftn      ""int Program.<>c__DisplayClass2_0#1.<N>b__1()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int Program.<>c__DisplayClass2_0.<N>b__1()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int Program.M2(System.Func<int>)""
   IL_0023:  add
   IL_0024:  ret
 }
 ");
-            diff1.VerifyIL("Program.<>c__DisplayClass2_0#1.<N>b__1()", @"
+            diff1.VerifyIL("Program.<>c__DisplayClass2_0.<N>b__1()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int Program.<>c__DisplayClass2_0#1.x""
+  IL_0001:  ldfld      ""int Program.<>c__DisplayClass2_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  sub
   IL_0008:  ret
@@ -9812,10 +9805,7 @@ public class Program
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, n1, n2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
 
-            diff2.VerifySynthesizedMembers("Program.<>c: {<>9__2_0, <N>b__2_0}", 
-                "Program.<>c__DisplayClass2_0#2: {x, <N>b__1}", 
-                "Program.<>c__DisplayClass2_0#1: {x, <N>b__1}", 
-                "Program: {<>c__DisplayClass2_0#2, <>c, <>c__DisplayClass2_0#1}");
+            diff2.VerifySynthesizedMembers("Program.<>c__DisplayClass2_0: {x, <N>b__1}", "Program: {<>c__DisplayClass2_0, <>c}", "Program.<>c: {<>9__2_0, <N>b__2_0}");
 
             diff2.VerifyIL("Program.N()", @"
 {
@@ -9851,29 +9841,27 @@ public class Program
 {
   // Code size       37 (0x25)
   .maxstack  3
-  .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                Program.<>c__DisplayClass2_0#2 V_2) //CS$<>8__locals0
-  IL_0000:  newobj     ""Program.<>c__DisplayClass2_0#2..ctor()""
-  IL_0005:  stloc.2
+  .locals init (Program.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""Program.<>c__DisplayClass2_0..ctor()""
+  IL_0005:  stloc.0
   IL_0006:  ldarg.1
-  IL_0007:  ldloc.2
-  IL_0008:  ldflda     ""int Program.<>c__DisplayClass2_0#2.x""
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int Program.<>c__DisplayClass2_0.x""
   IL_000d:  call       ""int Program.M(int, out int)""
-  IL_0012:  ldloc.2
-  IL_0013:  ldftn      ""int Program.<>c__DisplayClass2_0#2.<N>b__1()""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int Program.<>c__DisplayClass2_0.<N>b__1()""
   IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_001e:  call       ""int Program.M2(System.Func<int>)""
   IL_0023:  add
   IL_0024:  ret
 }
 ");
-            diff2.VerifyIL("Program.<>c__DisplayClass2_0#2.<N>b__1()", @"
+            diff2.VerifyIL("Program.<>c__DisplayClass2_0.<N>b__1()", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int Program.<>c__DisplayClass2_0#2.x""
+  IL_0001:  ldfld      ""int Program.<>c__DisplayClass2_0.x""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
