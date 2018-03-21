@@ -74,7 +74,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Examples:
             // in `expr == (..., ...)` we need to save `expr` because it's not a tuple literal
             // in `(..., expr) == (..., (..., ...))` we need to save `expr` because it is used in a simple comparison
-            return EvaluateSideEffectingArgumentToTemp(VisitExpression(expr), initEffects, ref temps);
+            BoundExpression loweredExpr = VisitExpression(expr);
+            if ((bool)(loweredExpr.Type != null) && NullableAlwaysHasValue((BoundExpression)loweredExpr) is var value && value != null)
+            {
+                // Optimization: if the nullable expression always has a value, we'll save the value to a temp and wrap
+                // that temp so it can be recognized as always having a value later on.
+                var savedValue = EvaluateSideEffectingArgumentToTemp(value, initEffects, ref temps);
+                SyntaxNode syntax = loweredExpr.Syntax;
+                _ = TryGetSpecialTypeMethod(syntax, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor);
+
+                return new BoundObjectCreationExpression(syntax, nullableCtor, ImmutableArray.Create(savedValue),
+                    argumentNamesOpt: default, argumentRefKindsOpt: default, expanded: false, argsToParamsOpt: default,
+                    constantValueOpt: null, initializerExpressionOpt: null, binderOpt: null, type: loweredExpr.Type);
+            }
+
+            return EvaluateSideEffectingArgumentToTemp(loweredExpr, initEffects, ref temps);
         }
 
         private BoundExpression RewriteTupleOperator(TupleBinaryOperatorInfo @operator,
@@ -129,12 +143,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftHasValue;
             BoundExpression leftValue;
 
-            // Note: left and right are either temps or `null`, so we don't have detailed information to tell us a nullable always has a value
             var isLeftNullable = left.Kind != BoundKind.TupleLiteral && left.Type.IsNullableType();
             if (isLeftNullable)
             {
-                leftHasValue = MakeHasValueTemp(left, temps, outerEffects);
-                leftValue = MakeValueOrDefaultTemp(left, temps, innerEffects);
+                BoundExpression value = NullableAlwaysHasValue(left);
+                if (value is null)
+                {
+                    leftHasValue = MakeHasValueTemp(left, temps, outerEffects);
+                    leftValue = MakeValueOrDefaultTemp(left, temps, innerEffects);
+                }
+                else
+                {
+                    leftHasValue = MakeBooleanConstant(left.Syntax, true);
+                    leftValue = value;
+                }
             }
             else
             {
@@ -148,8 +170,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isRightNullable = right.Kind != BoundKind.TupleLiteral && right.Type.IsNullableType();
             if (isRightNullable)
             {
-                rightHasValue = MakeNullableHasValue(right.Syntax, right); // no need for local for right.HasValue since used once
-                rightValue = MakeValueOrDefaultTemp(right, temps, innerEffects);
+                BoundExpression value = NullableAlwaysHasValue(right);
+                if (value is null)
+                {
+                    rightHasValue = MakeNullableHasValue(right.Syntax, right); // no need for local for right.HasValue since used once
+                    rightValue = MakeValueOrDefaultTemp(right, temps, innerEffects);
+                }
+                else
+                {
+                    rightHasValue = MakeBooleanConstant(right.Syntax, true);
+                    rightValue = value;
+                }
             }
             else
             {

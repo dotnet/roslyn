@@ -398,6 +398,41 @@ class C
         }
 
         [Fact]
+        public void TestILForAlwaysValuedNullable()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""{(new int?(Identity(42)), 2) == (new int?(42), 2)} "");
+    }
+    static int Identity(int x) => x;
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "True");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main", @"{
+  // Code size       39 (0x27)
+  .maxstack  3
+  IL_0000:  ldstr      ""{0} ""
+  IL_0005:  ldc.i4.s   42
+  IL_0007:  call       ""int C.Identity(int)""
+  IL_000c:  ldc.i4.s   42
+  IL_000e:  bne.un.s   IL_0016
+  IL_0010:  ldc.i4.2
+  IL_0011:  ldc.i4.2
+  IL_0012:  ceq
+  IL_0014:  br.s       IL_0017
+  IL_0016:  ldc.i4.0
+  IL_0017:  box        ""bool""
+  IL_001c:  call       ""string string.Format(string, object)""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
         public void TestILForNullableElementsEqualsToNull()
         {
             var source = @"
@@ -3056,7 +3091,179 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "True");
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0,
+                System.ValueTuple<int, int> V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0013:  br.s       IL_0015
+  IL_0015:  br.s       IL_0017
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_001d:  ldloc.1
+  IL_001e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0023:  bne.un.s   IL_0035
+  IL_0025:  ldloc.0
+  IL_0026:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002b:  ldloc.1
+  IL_002c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0031:  ceq
+  IL_0033:  br.s       IL_0036
+  IL_0035:  ldc.i4.0
+  IL_0036:  call       ""void System.Console.Write(bool)""
+  IL_003b:  nop
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_OneSideNeverNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?) (1, 2) == (1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  br.s       IL_000c
+  IL_000c:  br.s       IL_000e
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0014:  ldc.i4.1
+  IL_0015:  bne.un.s   IL_0022
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001d:  ldc.i4.2
+  IL_001e:  ceq
+  IL_0020:  br.s       IL_0023
+  IL_0022:  ldc.i4.0
+  IL_0023:  call       ""void System.Console.Write(bool)""
+  IL_0028:  nop
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_TupleAlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?)null == ((int, int)?)null);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size      110 (0x6e)
+  .maxstack  3
+  .locals init (bool V_0,
+                System.ValueTuple<int, int> V_1,
+                System.ValueTuple<int, int> V_2,
+                (int, int)? V_3)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_3
+  IL_0003:  dup
+  IL_0004:  initobj    ""(int, int)?""
+  IL_000a:  call       ""bool (int, int)?.HasValue.get""
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  dup
+  IL_0014:  initobj    ""(int, int)?""
+  IL_001a:  call       ""bool (int, int)?.HasValue.get""
+  IL_001f:  beq.s      IL_0024
+  IL_0021:  ldc.i4.0
+  IL_0022:  br.s       IL_0067
+  IL_0024:  ldloc.0
+  IL_0025:  brtrue.s   IL_002a
+  IL_0027:  ldc.i4.1
+  IL_0028:  br.s       IL_0067
+  IL_002a:  ldloca.s   V_3
+  IL_002c:  dup
+  IL_002d:  initobj    ""(int, int)?""
+  IL_0033:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+  IL_0038:  stloc.1
+  IL_0039:  ldloca.s   V_3
+  IL_003b:  dup
+  IL_003c:  initobj    ""(int, int)?""
+  IL_0042:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+  IL_0047:  stloc.2
+  IL_0048:  ldloc.1
+  IL_0049:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_004e:  ldloc.2
+  IL_004f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0054:  bne.un.s   IL_0066
+  IL_0056:  ldloc.1
+  IL_0057:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_005c:  ldloc.2
+  IL_005d:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0062:  ceq
+  IL_0064:  br.s       IL_0067
+  IL_0066:  ldc.i4.0
+  IL_0067:  call       ""void System.Console.Write(bool)""
+  IL_006c:  nop
+  IL_006d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_ElementAlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write((null, null) == (new int?(), new int?()));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
         }
 
         [Fact]
