@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            // PROTOTYPE: we might want to delegate to the module in the future
+            // PROTOTYPE(SkipLocalsInitAttribute): we might want to delegate to the module in the future
             get { return true; }
         }
 

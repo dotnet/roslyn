@@ -10116,7 +10116,7 @@ public class C
 }");
         }
 
-        // PROTOTYPE: we might want to update this test once SkipLocalsInitAttribute on classes is enabled
+        // PROTOTYPE(SkipLocalsInitAttribute): we might want to update this test once SkipLocalsInitAttribute on classes is enabled
         [Fact]
         public void SourceMemberMethodSymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
         {
