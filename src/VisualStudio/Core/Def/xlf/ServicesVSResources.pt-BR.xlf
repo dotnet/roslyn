@@ -1399,7 +1399,7 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
-        <target state="translated">Preferir usar função local em vez de anônima</target>
+        <target state="translated">Preferir usar função anônima em vez de local</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1498,14 +1498,24 @@ Eu concordo com todo o conteúdo supracitado:</target>
         <target state="translated">As configurações definidas aqui se aplicam somente a seu computador. Para definir essas configurações para viajar com sua solução, use arquivos .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Análise de código ao vivo</target>
+      <trans-unit id="Snippet_Command_Handler">
+        <source>Snippet Command Handler</source>
+        <target state="new">Snippet Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View_Command_Handler">
+        <source>Sync Class View Command Handler</source>
+        <target state="new">Sync Class View Command Handler</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="translated">Analisando '{0}'</target>
+        <target state="new">Analyzing '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
     </body>

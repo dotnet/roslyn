@@ -211,6 +211,20 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
+    UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
+    dependencies so they are not used unintentionally within the Roslyn code base.
+  -->
+  <Target Name="HideSlowAutomationAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'UIAutomationClient' OR
+                                '%(FileName)' == 'UIAutomationTypes'">
+        <Aliases>slowautomation</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
 
