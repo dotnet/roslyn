@@ -12,21 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDecisionDag DecisionDag { get; }
 
         public BoundPatternSwitchStatement(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, BoundDecisionDag decisionDag, bool hasErrors = false)
-            : base(BoundKind.PatternSwitchStatement, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || defaultLabel.HasErrors() || decisionDag.HasErrors())
+            : this(syntax, expression, innerLocals, innerLocalFunctions, switchSections, defaultLabel, breakLabel, hasErrors)
         {
 
-            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(!innerLocals.IsDefault, "Field 'innerLocals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(!innerLocalFunctions.IsDefault, "Field 'innerLocalFunctions' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(!switchSections.IsDefault, "Field 'switchSections' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(breakLabel != null, "Field 'breakLabel' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.Expression = expression;
-            this.InnerLocals = innerLocals;
-            this.InnerLocalFunctions = innerLocalFunctions;
-            this.SwitchSections = switchSections;
-            this.DefaultLabel = defaultLabel;
-            this.BreakLabel = breakLabel;
             this.DecisionDag = decisionDag;
         }
 

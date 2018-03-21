@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis
         public string OutputFilePath => _projectState.OutputFilePath;
 
         /// <summary>
+        /// The path to the reference assembly output file, or null if it is not known.
+        /// </summary>
+        public string OutputRefFilePath => _projectState.OutputRefFilePath;
+
+        /// <summary>
         /// <code>true</code> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 

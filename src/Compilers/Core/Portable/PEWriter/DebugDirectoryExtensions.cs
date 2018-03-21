@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
-namespace System.Reflection.PortableExecutable
+namespace Roslyn.Reflection.PortableExecutable
 {
     // TODO: move to SRM: https://github.com/dotnet/roslyn/issues/24712
     internal static class DebugDirectoryExtensions
@@ -21,7 +25,9 @@ namespace System.Reflection.PortableExecutable
             {
                 var type = typeof(DebugDirectoryBuilder).GetTypeInfo();
                 s_dataBuilderField = type.GetDeclaredField("_dataBuilder");
-                s_addEntry = (Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)type.GetDeclaredMethod("AddEntry").CreateDelegate(typeof(Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>));
+                s_addEntry = (Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)
+                    type.GetDeclaredMethod("AddEntry", typeof(DebugDirectoryEntryType), typeof(uint), typeof(uint), typeof(int)).
+                    CreateDelegate(typeof(Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>));
             }
         }
 

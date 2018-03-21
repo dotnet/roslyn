@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     bool isVar;
-                    type = binder.BindType(typeSyntax, diagnostics, out isVar);
+                    type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
                     Debug.Assert((object)type != null || isVar);
 
