@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Windows.Threading;
@@ -45,6 +43,7 @@ namespace Roslyn.Test.Utilities
                 PropertyInfo fullNameProperty = typeof(MethodBase).GetProperty("FullName", BindingFlags.NonPublic | BindingFlags.Instance);
                 lock (s_lock)
                 {
+                    s_delegateInfos.Reverse();
                     foreach (var info in s_delegateInfos)
                     {
                         methodInfoBuilder.Append($"{info.ReturnType.Name} {fullNameProperty.GetValue(info)} (");
@@ -68,7 +67,7 @@ namespace Roslyn.Test.Utilities
         private readonly static object s_lock = new object();
         private static bool s_hooked = false;
 
-        private readonly static Stack<MethodInfo> s_delegateInfos = new Stack<MethodInfo>();
+        private readonly static List<MethodInfo> s_delegateInfos = new List<MethodInfo>();
 
         private static void EnsureHooked()
         {
@@ -88,8 +87,7 @@ namespace Roslyn.Test.Utilities
             var invokedDelegate = (Delegate)methodField.GetValue(e.Operation);
             lock (s_lock)
             {
-                var topInfo = s_delegateInfos.Pop();
-                Debug.Assert(topInfo == invokedDelegate.Method);
+                s_delegateInfos.Remove(invokedDelegate.Method);
             }
         }
 
@@ -99,7 +97,7 @@ namespace Roslyn.Test.Utilities
             var invokedDelegate = (Delegate)methodField.GetValue(e.Operation);
             lock (s_lock)
             {
-                s_delegateInfos.Push(invokedDelegate.Method);
+                s_delegateInfos.Add(invokedDelegate.Method);
             }
         }
         #endregion
