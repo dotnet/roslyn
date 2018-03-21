@@ -1,5 +1,6 @@
 Notation for null-state: `?` means top-level may be `null`, `!` means top-level isn't `null`, and `~` means oblivious.
 
+
 ### Local declaration
 
 Ex: `type local = expr;`
@@ -13,6 +14,7 @@ Ex: `var local = expr;`
 Null-state of `local` is passed through from `expr`.
 
 Declared type of `local` has nullability from `expr`.
+
 
 ### Assignment
 
@@ -33,6 +35,7 @@ Produce a warning if top-level nullability of `expr2` is `?` but type is `!`:
 
 What about ref locals? They could be point to "an API".
 
+
 ### Null-coalescing operator
 Ex: `expr1 ?? expr2`
 
@@ -42,7 +45,9 @@ Open issue: should this warn if `expr1` is declared with type non-nullable?
 
 Warn if no best nullability between `expr1` and `expr2` (nested nullability)
 
-### Cast
+
+### Cast and conversions
+
 Ex: `(type)expr`
 
 Produce a `W` warning if top-level nullability of `expr` is `?` but `type` is `!`. 
@@ -53,7 +58,15 @@ Otherwise, the top-level nullability is passed through from `expr` and the type 
 
 You can only cast away nested nullability when there is an implicit conversion.
 
-Open issue: what if the user-defined conversion operator returns a nullable?
+
+#### User-defined conversion operator
+
+If a conversion operator takes a `!` as input, but it receives a null-state `?` then produce a real warning.
+
+If a conversion operator returns a `?`, but the cast uses a `!` type then produce a `W` warning.
+
+We need to define the nullability of built-in operators (we should add the correct annotations).
+
 
 ### Array creation
 
