@@ -478,6 +478,115 @@ class Test
         }
 
         [Fact]
+        public void TestForTernary()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    static void Method1(bool b)
+    {
+        for (var p = b ? stackalloc int[3] { 1, 2, 3 } : default; false;) {}
+        for (var p = b ? stackalloc int[ ] { 1, 2, 3 } : default; false;) {}
+        for (var p = b ? stackalloc    [ ] { 1, 2, 3 } : default; false;) {}
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestLock()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    static void Method1()
+    {
+        lock (stackalloc int[3] { 1, 2, 3 }) {}
+        lock (stackalloc int[ ] { 1, 2, 3 }) {}
+        lock (stackalloc    [ ] { 1, 2, 3 }) {} 
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1525: Invalid expression term 'stackalloc'
+                //         lock (stackalloc int[3] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 15),
+                // (6,15): error CS0185: 'stackalloc int[3]' is not a reference type as required by the lock statement
+                //         lock (stackalloc int[3] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[3] { 1, 2, 3 }").WithArguments("stackalloc int[3]").WithLocation(6, 15),
+                // (7,15): error CS1525: Invalid expression term 'stackalloc'
+                //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 15),
+                // (7,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(7, 15),
+                // (8,15): error CS1525: Invalid expression term 'stackalloc'
+                //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 15),
+                // (8,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void TestSelect()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System.Linq;
+class Test
+{
+    static void Method1(int[] array)
+    {
+        var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
+        var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
+        var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,44): error CS1525: Invalid expression term 'stackalloc'
+                //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 44),
+                // (8,44): error CS1525: Invalid expression term 'stackalloc'
+                //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 44),
+                // (9,44): error CS1525: Invalid expression term 'stackalloc'
+                //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 44)
+                );
+        }
+
+        [Fact]
+        public void TestLet()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System.Linq;
+class Test
+{
+    static void Method1(int[] array)
+    {
+        var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
+        var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
+        var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,45): error CS1525: Invalid expression term 'stackalloc'
+                //         var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 45),
+                // (8,45): error CS1525: Invalid expression term 'stackalloc'
+                //         var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 45),
+                // (9,45): error CS1525: Invalid expression term 'stackalloc'
+                //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 45)
+                );
+        }
+
+        [Fact]
         public void TestAwait_Pointer()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
