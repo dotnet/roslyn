@@ -18236,6 +18236,9 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new S<object>()").WithArguments("S<object>", "bool").WithLocation(6, 18));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report CS8600 for
+        // `(C)b` since the user-defined conversion is defined from A to C and we're
+        // already reporting a warning on the argument to the conversion method.
         [Fact]
         public void MultipleConversions_Explicit_01()
         {
@@ -18271,6 +18274,49 @@ class C
 
         [Fact]
         public void MultipleConversions_Explicit_02()
+        {
+            var source =
+@"class A
+{
+    public static explicit operator C?(A? a) => new D();
+}
+class B : A { }
+class C { }
+class D : C { }
+class P
+{
+    static void F(A? a, B? b)
+    {
+        C? c;
+        c = (C)a; // (ExplicitUserDefined)
+        c = (C?)a; // (ExplicitUserDefined)
+        c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C?)b; // (ExplicitUserDefined)(ImplicitReference)
+        D? d;
+        d = (D)a; // (ExplicitReference)(ExplicitUserDefined)
+        d = (D?)a; // (ExplicitReference)(ExplicitUserDefined)
+        d = (D)b; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+        d = (D?)b; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)a; // (ExplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a").WithLocation(13, 13),
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b").WithLocation(15, 13),
+                // (18,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)a; // (ExplicitReference)(ExplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a").WithLocation(18, 13),
+                // (20,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)b; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b").WithLocation(20, 13));
+        }
+
+        [Fact]
+        public void MultipleConversions_Explicit_03()
         {
             var source =
 @"class A
