@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             new string[] { typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName }.ToImmutableArray();
 
         protected abstract SyntaxNode GetForEachStatement(TextSpan selelction, SyntaxToken token);
+        protected abstract bool ValidLocation(ForEachInfo foreachInfo);
         protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(SyntaxNode foreachStatement);
         protected abstract void ConvertToForStatement(SemanticModel model, ForEachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
 
@@ -55,6 +56,11 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             var semanticFact = document.GetLanguageService<ISemanticFactsService>();
             var foreachInfo = GetForeachInfo(semanticFact, model, foreachStatement, cancellationToken);
             if (foreachInfo == null)
+            {
+                return;
+            }
+
+            if (!ValidLocation(foreachInfo))
             {
                 return;
             }

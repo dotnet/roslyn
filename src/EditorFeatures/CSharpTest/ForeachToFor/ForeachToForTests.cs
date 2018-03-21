@@ -1313,5 +1313,53 @@ namespace NS
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
+        public async Task EmbededStatement()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        if (true)
+            foreach [||] (var a in new int[] {});
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
+        public async Task EmbededStatement2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        if (true)
+            foreach [||] (var a in array) Console.WriteLine(a);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        if (true)
+            for (var {|Rename:i|} = 0; i < array.Length; i++)
+            {
+                var a = array[i];
+                Console.WriteLine(a);
+            }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }

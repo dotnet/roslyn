@@ -53,6 +53,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
             return foreachStatement;
         }
 
+        protected override bool ValidLocation(ForEachInfo foreachInfo)
+        {
+            if (!foreachInfo.RequireCollectionStatement)
+            {
+                return true;
+            }
+
+            // for now, we don't support converting in embeded statement if 
+            // new local declaration for collection is required.
+            // we can support this by using Introduce local variable service
+            // but the service is not currently written in a way that can be
+            // easily reused here.
+            return foreachInfo.ForEachStatement.Parent.IsKind(SyntaxKind.Block);
+        }
+
         protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(SyntaxNode node)
         {
             var foreachStatement = (ForEachStatementSyntax)node;

@@ -52,6 +52,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
             Return foreachBlock
         End Function
 
+        Protected Overrides Function ValidLocation(foreachInfo As ForEachInfo) As Boolean
+            ' all places where for each can appear is valid location for vb
+            Return True
+        End Function
+
         Protected Overrides Function GetForEachBody(node As SyntaxNode) As (start As SyntaxNode, [end] As SyntaxNode)
             Dim foreachBlock = DirectCast(node, ForEachBlockSyntax)
             If foreachBlock.Statements.Count = 0 Then
