@@ -2709,7 +2709,7 @@ public class Publisher
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnExtensionMethod()
         {
-            await TestWithOptionsAsync(Options.Regular, 
+            await TestWithOptionsAsync(Options.Regular,
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2738,7 +2738,7 @@ public static class MyExtensions
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnExtensionMethodOverloads()
         {
-            await TestWithOptionsAsync(Options.Regular, 
+            await TestWithOptionsAsync(Options.Regular,
 @"using System;
 using System.Linq;
 
@@ -2770,7 +2770,7 @@ public static class Ex
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnExtensionMethodOverloads2()
         {
-            await TestWithOptionsAsync(Options.Regular, 
+            await TestWithOptionsAsync(Options.Regular,
 @"using System;
 using System.Linq;
 
@@ -3013,6 +3013,517 @@ class C
     }
 }",
                 MainDescription($"({FeaturesResources.range_variable}) int y"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoSelectMappedEnumerable()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Select<int, int>(Func<int, int> selector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoSelectMappedQueryable()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0].AsQueryable()
+                $$select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IQueryable<int> IQueryable<int>.Select<int, int>(System.Linq.Expressions.Expression<Func<int, int>> selector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoSelectMappedCustom()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Linq;
+
+namespace N {
+    public static class LazyExt
+    {
+        public static Lazy<U> Select<T, U>(this Lazy<T> source, Func<T, U> selector) => new Lazy<U>(() => selector(source.Value));
+    }
+    public class C
+    {
+        public void M()
+        {
+            var lazy = new Lazy<object>();
+            var q = from i in lazy
+                    $$select i;
+        }
+    }
+}
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) Lazy<object> Lazy<object>.Select<object, object>(Func<object, object> selector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoSelectNotMapped()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                where true
+                $$select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoLet()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$let j = true
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
+            AnonymousTypes($@"
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} new {{ int i, bool j }}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoWhere()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$where true
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Where<int>(Func<int, bool> predicate)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByOneProperty()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$orderby i
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByOnePropertyWithOrdering1()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i $$ascending
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByOnePropertyWithOrdering2()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$orderby i ascending
+                select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithComma1()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i$$, i
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithComma2()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$orderby i, i
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrdering1()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$orderby i, i ascending
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrdering2()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i,$$ i ascending
+                select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrdering3()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i, i $$ascending
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach1()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                $$orderby i ascending, i ascending
+                select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach2()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i $$ascending, i ascending
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach3()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i ascending ,$$ i ascending
+                select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach4()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                orderby i ascending, i $$ascending
+                select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoOrderByIncomplete()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i in new int[0]
+                where i > 0
+                orderby$$ 
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, ?>(Func<int, ?> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoSelectMany1()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i1 in new int[0]
+                $$from i2 in new int[0]
+                select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoSelectMany2()
+        {
+            await TestInMethodAsync(
+@"
+        var q = from i1 in new int[0]
+                from i2 $$in new int[0]
+                select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoGroupBy1()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i in new int[0]
+                    $$group i by i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoGroupBy2()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i in new int[0]
+                    group i $$by i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoGroupByInto()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i in new int[0]
+                    $$group i by i into g
+                    select g;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoJoin1()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    $$join i2 in new int[0] on i1 equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoJoin2()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join i2 $$in new int[0] on i1 equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoJoin3()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join i2 in new int[0] $$on i1 equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoJoin4()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join i2 in new int[0] on i1 $$equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoJoinInto1()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    $$join i2 in new int[0] on i1 equals i2 into g
+                    select g;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IEnumerable<int>> IEnumerable<int>.GroupJoin<int, int, int, IEnumerable<int>>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, IEnumerable<int>, IEnumerable<int>> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoJoinInto2()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join i2 in new int[0] on i1 equals i2 $$into g
+                    select g;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoFromMissing()
+        {
+            await TestInMethodAsync(
+@"
+            var q = $$from i in new int[0]
+                    select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableSimple1()
+        {
+            await TestInMethodAsync(
+@"
+            var q = $$from double i in new int[0]
+                    select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableSimple2()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from double i $$in new int[0]
+                    select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableSelectMany1()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i in new int[0]
+                    $$from double d in new int[0]
+                    select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, double, int>(Func<int, IEnumerable<double>> collectionSelector, Func<int, double, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableSelectMany2()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i in new int[0]
+                    from double d $$in new int[0]
+                    select i;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableJoin1()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    $$join int i2 in new double[0] on i1 equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableJoin2()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join int i2 $$in new double[0] on i1 equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> System.Collections.IEnumerable.Cast<int>()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableJoin3()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join int i2 in new double[0] $$on i1 equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoRangeVariableJoin4()
+        {
+            await TestInMethodAsync(
+@"
+            var q = from i1 in new int[0]
+                    join int i2 in new double[0] on i1 $$equals i2
+                    select i1;
+",
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
         }
 
         [WorkItem(543205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543205")]
