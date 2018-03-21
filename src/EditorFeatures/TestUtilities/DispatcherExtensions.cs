@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Threading;
@@ -43,8 +44,8 @@ namespace Roslyn.Test.Utilities
                 PropertyInfo fullNameProperty = typeof(MethodBase).GetProperty("FullName", BindingFlags.NonPublic | BindingFlags.Instance);
                 lock (s_lock)
                 {
-                    s_delegateInfos.Reverse();
-                    foreach (var (info, args, numArgs) in s_delegateInfos)
+                    var orderedInfos = s_delegateInfos.Select(kvp => (kvp.Key, kvp.Value)).OrderByDescending(tuple => tuple.Value.startedTime);
+                    foreach (var (info, (args, numArgs, started, startedTime)) in orderedInfos)
                     {
                         methodInfoBuilder.Append($"{info.ReturnType.Name} {fullNameProperty.GetValue(info)} (");
                         var useComma = false;
@@ -56,6 +57,7 @@ namespace Roslyn.Test.Utilities
                         methodInfoBuilder.AppendLine(")");
                         methodInfoBuilder.AppendLine($"\tNum Args: {numArgs}");
                         methodInfoBuilder.AppendLine($"\tArgs: {args}");
+                        methodInfoBuilder.AppendLine($"\tStarted: {started} Time: {startedTime.ToShortTimeString()}");
                     }
                     s_delegateInfos.Clear();
                 }
@@ -69,7 +71,7 @@ namespace Roslyn.Test.Utilities
         private readonly static object s_lock = new object();
         private static bool s_hooked = false;
 
-        private readonly static List<(MethodInfo info, object args, int numArgs)> s_delegateInfos = new List<(MethodInfo, object, int)>();
+        private readonly static Dictionary<MethodInfo, (object args, int numArgs, bool started, DateTime startedTime)> s_delegateInfos = new Dictionary<MethodInfo, (object, int, bool, DateTime)>();
 
         private static void EnsureHooked()
         {
@@ -80,15 +82,23 @@ namespace Roslyn.Test.Utilities
                 s_hooked = true;
                 Dispatcher.CurrentDispatcher.Hooks.OperationPosted += Hooks_OperationPosted;
                 Dispatcher.CurrentDispatcher.Hooks.OperationCompleted += Hooks_OperationCompleted;
+                Dispatcher.CurrentDispatcher.Hooks.OperationStarted += Hooks_OperationStarted;
             }
+        }
+
+        private static void Hooks_OperationStarted(object sender, DispatcherHookEventArgs e)
+        {
+            var (info, _, _) = GetFields(e.Operation);
+            (object args, int numArgs, _, _) = s_delegateInfos[info];
+            s_delegateInfos[info] = (args, numArgs, true, DateTime.UtcNow);
         }
 
         private static void Hooks_OperationPosted(object sender, DispatcherHookEventArgs e)
         {
-            var methodInfo = GetFields(e.Operation);
+            var (info, args, numArgs) = GetFields(e.Operation);
             lock (s_lock)
             {
-                s_delegateInfos.Add(methodInfo);
+                s_delegateInfos[info] = (args, numArgs, false, DateTime.UtcNow);
             }
         }
 
@@ -106,10 +116,10 @@ namespace Roslyn.Test.Utilities
 
         private static void Hooks_OperationCompleted(object sender, DispatcherHookEventArgs e)
         {
-            var methodInfo = GetFields(e.Operation);
+            var (info, _, _) = GetFields(e.Operation);
             lock (s_lock)
             {
-                s_delegateInfos.Remove(methodInfo);
+                s_delegateInfos.Remove(info);
             }
         }
 
