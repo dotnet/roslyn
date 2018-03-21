@@ -45,7 +45,7 @@ namespace Roslyn.Test.Utilities
                 lock (s_lock)
                 {
                     var orderedInfos = s_delegateInfos.Select(kvp => (kvp.Key, kvp.Value)).OrderByDescending(tuple => tuple.Value.startedTime);
-                    foreach (var (info, (args, numArgs, started, startedTime)) in orderedInfos)
+                    foreach (var (info, (args, numArgs, posted, startedTime)) in orderedInfos)
                     {
                         methodInfoBuilder.Append($"{info.ReturnType.Name} {fullNameProperty.GetValue(info)} (");
                         var useComma = false;
@@ -57,7 +57,7 @@ namespace Roslyn.Test.Utilities
                         methodInfoBuilder.AppendLine(")");
                         methodInfoBuilder.AppendLine($"\tNum Args: {numArgs}");
                         methodInfoBuilder.AppendLine($"\tArgs: {args}");
-                        methodInfoBuilder.AppendLine($"\tStarted: {started} Time: {startedTime.ToShortTimeString()}");
+                        methodInfoBuilder.AppendLine($"\tPosted: {posted} Time: {startedTime.ToShortTimeString()}");
                     }
                     s_delegateInfos.Clear();
                 }
@@ -71,7 +71,7 @@ namespace Roslyn.Test.Utilities
         private readonly static object s_lock = new object();
         private static bool s_hooked = false;
 
-        private readonly static Dictionary<MethodInfo, (object args, int numArgs, bool started, DateTime startedTime)> s_delegateInfos = new Dictionary<MethodInfo, (object, int, bool, DateTime)>();
+        private readonly static Dictionary<MethodInfo, (object args, int numArgs, bool posted, DateTime startedTime)> s_delegateInfos = new Dictionary<MethodInfo, (object, int, bool, DateTime)>();
 
         private static void EnsureHooked()
         {
@@ -86,14 +86,13 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static void Hooks_OperationStarted(object sender, DispatcherHookEventArgs e)
+        private static void Hooks_OperationPosted(object sender, DispatcherHookEventArgs e)
         {
-            var (info, _, _) = GetFields(e.Operation);
-            (object args, int numArgs, _, _) = s_delegateInfos[info];
+            var (info, args, numArgs) = GetFields(e.Operation);
             s_delegateInfos[info] = (args, numArgs, true, DateTime.UtcNow);
         }
 
-        private static void Hooks_OperationPosted(object sender, DispatcherHookEventArgs e)
+        private static void Hooks_OperationStarted(object sender, DispatcherHookEventArgs e)
         {
             var (info, args, numArgs) = GetFields(e.Operation);
             lock (s_lock)
