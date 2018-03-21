@@ -267,10 +267,6 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CSharpAnalyzerDriver", "src
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CommandLine", "src\Compilers\Core\CommandLine\CommandLine.shproj", "{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PortableServer", "src\Compilers\Server\PortableServer\PortableServer.csproj", "{06B26DCB-7A12-48EF-AE50-708593ABD05F}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ServerShared", "src\Compilers\Server\ServerShared\ServerShared.shproj", "{32691768-AF9C-4CAE-9D0F-10721091B9AA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerExtension", "src\Compilers\Extension\CompilerExtension.csproj", "{43026D51-3083-4850-928D-07E1883D5B1A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualStudioIntegrationTestSetup", "src\VisualStudio\IntegrationTest\TestSetup\VisualStudioIntegrationTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
@@ -366,7 +362,6 @@ Global
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{3140fe61-0856-4367-9aa3-8081b9a80e35}*SharedItemsImports = 13
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{3140fe61-0856-4367-9aa3-8081b9a80e36}*SharedItemsImports = 13
-		src\Compilers\Server\ServerShared\ServerShared.projitems*{32691768-af9c-4cae-9d0f-10721091b9aa}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{54e08bf5-f819-404f-a18d-0ab9ea81ea04}*SharedItemsImports = 13
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{60db272a-21c9-4e8d-9803-ff4e132392c8}*SharedItemsImports = 4
@@ -783,10 +778,6 @@ Global
 		{E2E889A5-2489-4546-9194-47C63E49EAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2E889A5-2489-4546-9194-47C63E49EAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2E889A5-2489-4546-9194-47C63E49EAEB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Any CPU.Build.0 = Debug|x64
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Any CPU.ActiveCfg = Release|x64
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Any CPU.Build.0 = Release|x64
 		{43026D51-3083-4850-928D-07E1883D5B1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{43026D51-3083-4850-928D-07E1883D5B1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43026D51-3083-4850-928D-07E1883D5B1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1084,8 +1075,6 @@ Global
 		{E8F0BAA5-7327-43D1-9A51-644E81AE55F1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{54E08BF5-F819-404F-A18D-0AB9EA81EA04} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F} = {7E907718-0B33-45C8-851F-396CEFDC1AB6}
-		{32691768-AF9C-4CAE-9D0F-10721091B9AA} = {7E907718-0B33-45C8-851F-396CEFDC1AB6}
 		{43026D51-3083-4850-928D-07E1883D5B1A} = {3F40F71B-7DCF-44A1-B15C-38CA34824143}
 		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
 		{E5A55C16-A5B9-4874-9043-A5266DC02F58} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
