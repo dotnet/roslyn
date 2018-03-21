@@ -239,7 +239,7 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
         }
       }
 
