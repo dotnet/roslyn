@@ -243,113 +243,145 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestKeepTriviaWithinExpression()
         {
-            await TestFixOneAsync(
-@"[||]if (a ||
-    b &&
-    c < // comment
-    d)
+            await TestInRegularAndScriptAsync(
+@"class A
 {
-    a();
-}
-else
-{
-    b();
+    void Goo()
+    {
+        [||]if (a ||
+        b &&
+        c < // comment
+        d)
+        {
+            a();
+        }
+        else
+        {
+            b();
+        }
+    }
 }",
-@"if (!a &&
-    (!b ||
-    c >= // comment
-    d))
+@"class A
 {
-    b();
-}
-else
-{
-    a();
+    void Goo()
+    {
+        if (!a &&
+        (!b ||
+        c >= // comment
+        d))
+        {
+            b();
+        }
+        else
+        {
+            a();
+        }
+    }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestMultiLineElseIf()
         {
-            await TestFixOneAsync(
-@"[||]if (a)
+            await TestInRegularAndScriptAsync(
+@"class A
 {
-    a();
-}
-else if (b)
-{
-    b();
-}
-else
-{
-    c();
+    void Goo()
+    {
+        [||]if (a)
+        {
+            a();
+        }
+        else if (b)
+        {
+            b();
+        }
+        else
+        {
+            c();
+        }
+    }
 }",
-@"if (!a)
+@"class A
 {
-    if (b)
+    void Goo()
     {
-        b();
+        if (!a)
+        {
+            if (b)
+            {
+                b();
+            }
+            else
+            {
+                c();
+            }
+        }
+        else
+        {
+            a();
+        }
     }
-    else
-    {
-        c();
-    }
-}
-else
-{
-    a()
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestMultiLineTrivia()
         {
-            await TestFixOneAsync(
-@"/*1*/
-[||]if (a) /*2*/
-{ /*3*/
-    /*4*/
-    goo(); /*5*/
-    /*6*/
-} /*7*/
-else if (b) /*8*/
-{ /*9*/
-    /*10*/
-    goo(); /*11*/
-    /*12*/
-} /*13*/
-else /*14*/
-{ /*15*/
-    /*16*/
-    goo(); /*17*/
-    /*18*/
-} /*19*/
-/*20*/
-",
-@"/*1*/
-if (!a) /*2*/
+            await TestInRegularAndScriptAsync(
+@"class A
 {
-    if (b) /*8*/
-{ /*9*/
-    /*10*/
-    goo(); /*11*/
-    /*12*/
-} /*13*/
-else /*14*/
-{ /*15*/
-    /*16*/
-    goo(); /*17*/
-    /*18*/
-} /*19*/
-}
-else             { /*3*/
-    /*4*/
-    goo(); /*5*/
-    /*6*/
-} /*7*/
-/*20*/
-");
+    void Goo()
+    { /*1*/
+        [||]if (a) /*2*/
+        { /*3*/
+            /*4*/
+            goo(); /*5*/
+            /*6*/
+        } /*7*/
+        else if (b) /*8*/
+        { /*9*/
+            /*10*/
+            goo(); /*11*/
+            /*12*/
+        } /*13*/
+        else /*14*/
+        { /*15*/
+            /*16*/
+            goo(); /*17*/
+            /*18*/
+        } /*19*/
+        /*20*/
+    }
+}",
+@"class A
+{
+    void Goo()
+    { /*1*/
+        if (!a) /*2*/
+        {
+            if (b) /*8*/
+            { /*9*/
+              /*10*/
+                goo(); /*11*/
+                       /*12*/
+            } /*13*/
+            else /*14*/
+            { /*15*/
+              /*16*/
+                goo(); /*17*/
+                       /*18*/
+            } /*19*/
+        }
+        else
+        { /*3*/
+            /*4*/
+            goo(); /*5*/
+            /*6*/
+        } /*7*/
+        /*20*/
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
