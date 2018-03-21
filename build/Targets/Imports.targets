@@ -300,8 +300,8 @@
   </PropertyGroup>
 
   <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
-             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+      <Error Text="Toolset packages have not been restored, run Restore.cmd before building. Expected '$(RoslynToolsetPropsFilePath)' to exist."
+             Condition="!Exists('$(RoslynToolsetPropsFilePath)')" />
       <Error Text="Analyzer packages have not been restored, run Restore.cmd before building. File not found: '$(RoslynDiagnosticsPropsFilePath)'"
              Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
   </Target>
@@ -309,7 +309,7 @@
   <Target Name="CheckBootstrapState"
           Condition="'$(BootstrapBuildPath)' != ''"
           AfterTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
+    <ValidateBootstrap BootstrapPath="$(RoslynToolsetDirectory)" />
   </Target>
 
   <!--
