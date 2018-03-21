@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -34,6 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);
+
+            ProjectCodeModel = new ProjectCodeModel(this.Id, new CPSCodeModelInstanceFactory(this), (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
         }
 
         private void NormalizeAndSetBinOutputPathAndRelatedData(string binOutputPath)
@@ -68,20 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (IsForeground())
             {
-                DisconnectCore();
+                base.Disconnect();
             }
             else
             {
-                InvokeBelowInputPriority(DisconnectCore);
+                InvokeBelowInputPriority(base.Disconnect);
             }
-        }
-
-        private void DisconnectCore()
-        {
-            // clear code model cache and shutdown instances, if any exists.
-            _projectCodeModel?.OnProjectClosed();
-
-            base.Disconnect();
         }
     }
 }

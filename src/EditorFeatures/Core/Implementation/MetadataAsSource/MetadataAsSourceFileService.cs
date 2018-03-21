@@ -3,17 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.CSharp.Transforms;
 using ICSharpCode.Decompiler.TypeSystem;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -224,15 +224,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
 
             // Load the assembly.
-            var ad = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
+            var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(assemblyDefinition.MainModule, new DecompilerSettings());
+            // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
+            // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
+            decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
+
             var fullTypeName = new FullTypeName(fullName);
+
+            var decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
+
+            // Add header to match output of metadata-only view.
+            // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
+            var header = $"#region {FeaturesResources.Assembly} {assemblyDefinition.FullName}" + Environment.NewLine
+                + $"// {assemblyDefinition.MainModule.FileName}" + Environment.NewLine
+                + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
+                + "#endregion" + Environment.NewLine;
 
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
-            return temporaryDocument.WithText(SourceText.From(text));
+            return temporaryDocument.WithText(SourceText.From(header + text));
         }
 
         private class RoslynAssemblyResolver : IAssemblyResolver

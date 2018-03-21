@@ -15,6 +15,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SpanStackSafetyTests : CompilingTestBase
     {
         [Fact]
+        public void SpanAssignmentExpression()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M()
+    {
+        Span<int> s1 = stackalloc int[1];
+        Span<int> s2 = new Span<int>();
+
+        s2 = (s2 = new Span<int>());
+        s2 = (s1 = s2);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         s2 = (s1 = s2);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
+        }
+
+        [Fact]
         public void SpanToSpanSwitch()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeSyntax != null)
             {
-                type = binder.BindType(typeSyntax, diagnostics, out isVar);
+                type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
             }
             else
             {

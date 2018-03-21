@@ -1,18 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias VBCSCompiler;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using VBCSCompiler.Microsoft.CodeAnalysis.CompilerServer;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using System.Reflection;
 
@@ -196,53 +193,6 @@ public class C { }").Path;
                                     touchedBase);
 
             CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [ConditionalFact(typeof(WindowsOnly))]
-        public void TrivialMetadataCaching()
-        {
-            List<String> filelist = new List<string>();
-
-            // Do the following compilation twice.
-            // The compiler server API should hold on to the mscorlib bits
-            // in memory, but the file tracker should still map that it was
-            // touched.
-            for (int i = 0; i < 2; i++)
-            {
-                var source1 = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-                var touchedDir = Temp.CreateDirectory();
-                var touchedBase = Path.Combine(touchedDir.Path, "touched");
-
-                filelist.Add(source1);
-                var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(
-                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
-                    new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(null, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
-                    s_libDirectory,
-                    new TestAnalyzerAssemblyLoader());
-
-                List<string> expectedReads;
-                List<string> expectedWrites;
-                BuildTouchedFiles(cmd,
-                                  Path.ChangeExtension(source1, "exe"),
-                                  out expectedReads,
-                                  out expectedWrites);
-
-                var exitCode = cmd.Run(outWriter);
-
-                Assert.Equal(string.Empty, outWriter.ToString().Trim());
-                Assert.Equal(0, exitCode);
-
-                AssertTouchedFilesEqual(expectedReads,
-                                        expectedWrites,
-                                        touchedBase);
-            }
-
-            foreach (String f in filelist)
-            {
-                CleanupAllGeneratedFiles(f);
-            }
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Identifier("BAR"),
                 PPKeyword("#"),
                 PPKeyword("endif"));
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAR"),
                 PPKeyword("#"),
                 PPKeyword("endif"));
@@ -205,9 +206,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Identifier("BAR"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAZ"),
                 PPKeyword("#"),
                 PPKeyword("endif"));
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Identifier("BAR"),
                 Punctuation.CloseParen,
                 PPKeyword("#"),
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("GOO"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAR"),
                 Punctuation.CloseParen,
                 PPKeyword("#"),
@@ -262,10 +263,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Punctuation.OpenParen,
                 Identifier("BAR"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAZ"),
                 Punctuation.CloseParen,
                 PPKeyword("#"),
