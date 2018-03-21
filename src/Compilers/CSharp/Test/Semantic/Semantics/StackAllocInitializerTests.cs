@@ -273,6 +273,54 @@ unsafe class Test
                 //         var obj2 = stackalloc[] { new {} };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 20)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
+            Assert.Equal(3, expressions.Length);
+
+            var @stackalloc = expressions[0];
+            var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.String*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.String", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.String", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("<empty anonymous type>*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("<empty anonymous type>..ctor()", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[2];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("Test.S*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("Test.S*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("Test.S s", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
         }
 
         [Fact]
@@ -301,6 +349,54 @@ unsafe class Test
                 //         var obj3 = c ? default : stackalloc[] { s };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "stackalloc[] { s }").WithArguments("Test.S").WithLocation(9, 34)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
+            Assert.Equal(3, expressions.Length);
+
+            var @stackalloc = expressions[0];
+            var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.String>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.String>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.String", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.String", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<<empty anonymous type>>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<<empty anonymous type>>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("<empty anonymous type>..ctor()", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[2];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<Test.S>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<Test.S>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("Test.S s", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
         }
 
         [Fact]
