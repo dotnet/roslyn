@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -46,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (listenerProvider != null)
                 {
                     var stopwatch = Stopwatch.StartNew();
+
+                    var foregroundNotificationService = exportProvider?.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
+                    foregroundNotificationService?.ReleaseCancelledItems();
+
                     var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
                     var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout);
                     Func<CancellationToken, Task<bool>> continueUntilAsync =
