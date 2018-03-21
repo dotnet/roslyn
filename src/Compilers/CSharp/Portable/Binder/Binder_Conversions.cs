@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
                     explicitCastInCode: isCast,
+                    // PROTOTYPE(NullableReferenceTypes): Should use `isExplicitlyNullable` from
+                    // the caller at the point in the conversion chain where nullable is introduced.
                     isExplicitlyNullable: false,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionReturnType)
@@ -263,6 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    // PROTOTYPE(NullableReferenceTypes): Should use `isExplicitlyNullable` from
+                    // the caller at the point in the conversion chain where nullable is introduced.
                     isExplicitlyNullable: isExplicitlyNullable,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionToType)
