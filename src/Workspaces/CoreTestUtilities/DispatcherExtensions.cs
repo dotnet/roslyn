@@ -20,7 +20,7 @@ namespace Roslyn.Test.Utilities
             // complete mark the frame as complete so the dispatcher loop
             // pops out (stops).
             var operation = dispatcher.BeginInvoke(
-                DispatcherPriority.SystemIdle, callback, frame);
+                DispatcherPriority.ApplicationIdle, callback, frame);
 
             // Start the loop.  It will process all items in the queue, then 
             // will process the above callback.  That callback will tell the
@@ -55,7 +55,7 @@ namespace Roslyn.Test.Utilities
                 }
 
                 continueAsync.ContinueWith(
-                    t => dispatcher.BeginInvoke(DispatcherPriority.SystemIdle, callback, frame),
+                    t => dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, callback, frame),
                     CancellationToken.None,
                     TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default);
@@ -65,7 +65,7 @@ namespace Roslyn.Test.Utilities
             // complete mark the frame as complete so the dispatcher loop
             // pops out (stops).
             var operation = dispatcher.BeginInvoke(
-                DispatcherPriority.SystemIdle, callback, frame);
+                DispatcherPriority.ApplicationIdle, callback, frame);
 
             // Start the loop.  It will process all items in the queue, then 
             // will process the above callback.  That callback will tell the
