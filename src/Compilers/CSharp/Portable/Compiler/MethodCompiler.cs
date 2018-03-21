@@ -1629,10 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Delegate constructors and invokes have no body
-            if (method.IsExtern ||
-                method.MethodKind == MethodKind.DelegateInvoke ||
-                (method.MethodKind == MethodKind.Constructor &&
-                method.ContainingType?.IsDelegateType() == true))
+            if (method.IsExtern || method.ContainingType?.IsDelegateType() == true)
             {
                 return null;
             }
