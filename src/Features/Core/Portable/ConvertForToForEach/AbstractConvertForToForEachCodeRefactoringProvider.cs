@@ -332,7 +332,6 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             //      var x = list[i]   or
             //
             // If so, we'll use those as the iteration variables for the new foreach statement.
-            var bodyStatements = GetBodyStatements(forStatement);
             var (typeNode, foreachIdentifier, declarationStatement) = tryDeconstructInitialDeclaration();
 
             if (typeNode == null)
@@ -383,6 +382,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // local functions
             (TTypeNode, SyntaxToken, TStatementSyntax) tryDeconstructInitialDeclaration()
             {
+                var bodyStatements = GetBodyStatements(forStatement);
+
                 if (bodyStatements.Count >= 1)
                 {
                     var firstStatement = bodyStatements[0];
