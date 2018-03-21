@@ -238,7 +238,7 @@ class C
 
         private static void CompileAndCheckInitializers(string source, IEnumerable<ExpectedInitializer> expectedInstanceInitializers, IEnumerable<ExpectedInitializer> expectedStaticInitializers)
         {
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var syntaxTree = compilation.SyntaxTrees.First();
             var typeSymbol = (SourceNamedTypeSymbol)compilation.GlobalNamespace.GetMembers("C").Single();
 
@@ -267,12 +267,12 @@ class C
                 foreach (var expectedInitializer in expectedInitializers)
                 {
                     var boundInit = boundInitializers[i++];
-                    Assert.Equal(BoundKind.FieldInitializer, boundInit.Kind);
+                    Assert.Equal(BoundKind.FieldEqualsValue, boundInit.Kind);
 
-                    var boundFieldInit = (BoundFieldInitializer)boundInit;
+                    var boundFieldInit = (BoundFieldEqualsValue)boundInit;
 
-                    var initValueSyntax = boundFieldInit.InitialValue.Syntax;
-                    Assert.Same(initValueSyntax, boundInit.Syntax);
+                    var initValueSyntax = boundFieldInit.Value.Syntax;
+                    Assert.Same(initValueSyntax.Parent, boundInit.Syntax);
                     Assert.Equal(expectedInitializer.InitialValue, initValueSyntax.ToFullString());
 
                     var initValueLineNumber = syntaxTree.GetLineSpan(initValueSyntax.Span).StartLinePosition.Line;

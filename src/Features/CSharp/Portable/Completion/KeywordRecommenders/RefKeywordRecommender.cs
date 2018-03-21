@@ -114,17 +114,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     return true;
 
                 // {
-                //     for(ref var x ...
-                // 
+                //     for (ref var x ...
+                //
+                //     foreach (ref var x ...
+                //
                 case SyntaxKind.OpenParenToken:
                     var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword);
+                    return previous.IsKind(SyntaxKind.ForKeyword)
+                        || previous.IsKind(SyntaxKind.ForEachKeyword);
 
                 // {
                 //     ref var x = ref
                 // 
                 case SyntaxKind.EqualsToken:
-                    return token.Parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+                    var parent = token.Parent;
+                    return parent?.Kind() == SyntaxKind.SimpleAssignmentExpression
+                        || parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
 
                 // {
                 //     var x = true ?

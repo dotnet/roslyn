@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _isWritable = isWritable;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             get { return _isWritable; }
         }

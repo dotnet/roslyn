@@ -71,10 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 Assert.True(buffer.CurrentSnapshot.Version.ReiteratedVersionNumber == 1);
 
                 var newText = buffer.CurrentSnapshot.AsText();
-                Assert.Same(text, newText);
+
+                // different buffer snapshot should never return same roslyn text snapshot
+                Assert.NotSame(text, newText);
 
                 Document newDocument = newText.GetRelatedDocumentsWithChanges().First();
-                Assert.Same(document, newDocument);
+
+                // different text snapshot never gives back same roslyn snapshot
+                Assert.NotSame(document, newDocument);
             }
         }
     }

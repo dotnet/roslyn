@@ -726,7 +726,7 @@ End Module
         <Fact()>
         Public Sub TestLocalConstCycleDetection()
 
-            Dim verifier = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim verifier = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System

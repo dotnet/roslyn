@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
                 var bindableParent = syntaxFacts.GetBindableParent(token);
                 type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
-
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
+
                 allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken)
-                                              .GetBestOrAllSymbols()
-                                              .WhereAsArray(s => !s.Equals(declaredSymbol))
-                                              .SelectAsArray(s => MapSymbol(s, type));
+                    .GetBestOrAllSymbols()
+                    .WhereAsArray(s => !s.Equals(declaredSymbol))
+                    .SelectAsArray(s => MapSymbol(s, type));
             }
 
             // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
@@ -262,10 +262,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<ISymbol> GetExistingSymbols(
             this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
         {
-            // Ignore an annonymous type property or tuple field.  It's ok if they have a name that 
+            // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
             // matches the name of the local we're introducing.
             return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
+                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private static void GetAllDeclaredSymbols(
