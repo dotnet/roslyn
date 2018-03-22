@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#define original
 // #define darkmerged1
-#define lightmerged1
+// #define lightmerged1
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
