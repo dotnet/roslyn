@@ -18236,8 +18236,8 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new S<object>()").WithArguments("S<object>", "bool").WithLocation(6, 18));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should not report CS8600 for
-        // `(C)b` since the user-defined conversion is defined from A to C and we're
+        // PROTOTYPE(NullableReferenceTypes): Should not report CS8600 for `(C)b2`
+        // since the user-defined conversion is defined from A to C and we're
         // already reporting a warning on the argument to the conversion method.
         [Fact]
         public void MultipleConversions_Explicit_01()
@@ -18252,24 +18252,30 @@ class B : A
 }
 class C
 {
-    static void F(B? b)
+    static void F1(B b1)
     {
         C? c;
-        c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
-        c = (C?)b; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C)b1; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C?)b1; // (ExplicitUserDefined)(ImplicitReference)
+    }
+    static void F2(B? b2)
+    {
+        C? c;
+        c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C?)b2; // (ExplicitUserDefined)(ImplicitReference)
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (13,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
-                //         c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator C(A a)").WithLocation(13, 16),
-                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b").WithLocation(13, 13),
-                // (14,17): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
-                //         c = (C?)b; // (ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator C(A a)").WithLocation(14, 17));
+                // (19,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
+                //         c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b2").WithArguments("a", "A.explicit operator C(A a)").WithLocation(19, 16),
+                // (19,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b2").WithLocation(19, 13),
+                // (20,17): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
+                //         c = (C?)b2; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b2").WithArguments("a", "A.explicit operator C(A a)").WithLocation(20, 17));
         }
 
         [Fact]
@@ -18285,34 +18291,47 @@ class C { }
 class D : C { }
 class P
 {
-    static void F(A? a, B? b)
+    static void F1(A a1, B b1)
     {
         C? c;
-        c = (C)a; // (ExplicitUserDefined)
-        c = (C?)a; // (ExplicitUserDefined)
-        c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
-        c = (C?)b; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C)a1; // (ExplicitUserDefined)
+        c = (C?)a1; // (ExplicitUserDefined)
+        c = (C)b1; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C?)b1; // (ExplicitUserDefined)(ImplicitReference)
         D? d;
-        d = (D)a; // (ExplicitReference)(ExplicitUserDefined)
-        d = (D?)a; // (ExplicitReference)(ExplicitUserDefined)
-        d = (D)b; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
-        d = (D?)b; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+        d = (D)a1; // (ExplicitReference)(ExplicitUserDefined)
+        d = (D?)a1; // (ExplicitReference)(ExplicitUserDefined)
+        d = (D)b1; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+        d = (D?)b1; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+    }
+    static void F2(A? a2, B? b2)
+    {
+        C? c;
+        c = (C)a2; // (ExplicitUserDefined)
+        c = (C?)a2; // (ExplicitUserDefined)
+        c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C?)b2; // (ExplicitUserDefined)(ImplicitReference)
+        D? d;
+        d = (D)a2; // (ExplicitReference)(ExplicitUserDefined)
+        d = (D?)a2; // (ExplicitReference)(ExplicitUserDefined)
+        d = (D)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+        d = (D?)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         c = (C)a; // (ExplicitUserDefined)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a").WithLocation(13, 13),
-                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         c = (C)b; // (ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b").WithLocation(15, 13),
-                // (18,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         d = (D)a; // (ExplicitReference)(ExplicitUserDefined)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a").WithLocation(18, 13),
-                // (20,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         d = (D)b; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b").WithLocation(20, 13));
+                // (26,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)a2; // (ExplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a2").WithLocation(26, 13),
+                // (28,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b2").WithLocation(28, 13),
+                // (31,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)a2; // (ExplicitReference)(ExplicitUserDefined)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a2").WithLocation(31, 13),
+                // (33,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b2").WithLocation(33, 13));
         }
 
         [Fact]
