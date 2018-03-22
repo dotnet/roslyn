@@ -90,3 +90,10 @@ Doesn't affect nested nullability.
 Open issue: confirm null-state when `expr` is oblivious top-level null-state.
 
 Open issue: confirm warning on unnecessary `!`.
+
+
+### Null tests
+
+We should list the expressions that inform the flow state.
+
+No warning for testing something that is already expected to be non-null. This allows for checking input parameters, regardless of annotations.
