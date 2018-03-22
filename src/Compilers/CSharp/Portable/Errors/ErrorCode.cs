@@ -1570,6 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnmanagedBoundWithClass = 8380,
 
         ERR_InvalidStackAllocArray = 8381,
+        ERR_InvalidObjectCreation = 8382,
 
         ERR_ExpressionTreeContainsTupleBinOp = 8382,
         WRN_TupleBinopLiteralNameMismatch = 8383,

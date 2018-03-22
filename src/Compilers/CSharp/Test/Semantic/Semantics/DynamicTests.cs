@@ -2372,6 +2372,7 @@ class C
         #region Collection and Object initializers
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void DynamicNew()
         {
             string source = @"
@@ -2379,22 +2380,55 @@ class C
 {
     static void M()
     {
-		var x = new dynamic
+		var x = /*<bind>*/ new dynamic
         {
             a = 1,
             b = 
             {
                 c = f()
             }
-        };
+        } /*</bind>*/ ;
     }
 } 
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (6,15): error CS0143: The type 'dynamic' has no constructors defined
-                Diagnostic(ErrorCode.ERR_NoConstructors, "dynamic").WithArguments("dynamic"),
-                // (11,21): error CS0103: The name 'f' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f"));
+
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'new dynamic ... }')
+  Children(1):
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic, IsInvalid) (Syntax: '{ ... }')
+        Initializers(2):
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'a = 1')
+              Left: 
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'a')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic, IsInvalid) (Syntax: 'b = ... }')
+              InitializedMember: 
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'b')
+              Initializer: 
+                IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic, IsInvalid) (Syntax: '{ ... }')
+                  Initializers(1):
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic, IsInvalid) (Syntax: 'c = f()')
+                        Left: 
+                          IOperation:  (OperationKind.None, Type: null) (Syntax: 'c')
+                        Right: 
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'f()')
+                            Children(1):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'f')
+                                  Children(0)
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(11,21): error CS0103: The name 'f' does not exist in the current context
+                //                 c = f()
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(11, 21),
+                // file.cs(6,26): error CS8382: Invalid object creation
+                // 		var x = /*<bind>*/ new dynamic
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(6, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]

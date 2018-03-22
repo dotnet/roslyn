@@ -3129,18 +3129,35 @@ public class C
 {
     public static void Main()
     {
-        _ = new ref[];
+        _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,20): error CS1031: Type expected
-                //         _ = new ref[];
-                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 20),
-                // (6,22): error CS1526: A new expression requires (), [], or {} after type
-                //         _ = new ref[];
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(6, 22)
-                );
+
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[] { 1 }')
+  Children(1):
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?[]) (Syntax: '{ 1 }')
+        Initializers(1):
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: '1')
+              Children(2):
+                  IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '1')
+                    Children(1):
+                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ?[], IsInvalid, IsImplicit) (Syntax: 'ref[]')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,31): error CS1031: Type expected
+                //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 31),
+                // file.cs(6,28): error CS8382: Invalid object creation
+                //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "ref[]").WithArguments("?[]").WithLocation(6, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(text, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
