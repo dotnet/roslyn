@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public void AssociateFileExtensionWithLanguage(string projectFileExtension, string language)
         {
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
             if (projectFileExtension == null)
             {
                 throw new ArgumentNullException(nameof(projectFileExtension));
+            }
+
+            if (language == null)
+            {
+                throw new ArgumentNullException(nameof(language));
             }
 
             _projectFileLoaderRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
