@@ -2364,7 +2364,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): local slot mapping is not yet supported for new pattern switch")]
+        [Fact]
         public void Switch_Patterns()
         {
             var source = @"
@@ -2402,15 +2402,14 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <encLocalSlotMap>
-          <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""11"" />
           <slot kind=""0"" offset=""106"" />
           <slot kind=""0"" offset=""162"" />
           <slot kind=""0"" offset=""273"" />
           <slot kind=""0"" offset=""323"" />
+          <slot kind=""35"" offset=""19"" />
+          <slot kind=""35"" offset=""19"" />
+          <slot kind=""35"" offset=""19"" />
           <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
     </method>
@@ -2419,107 +2418,95 @@ class C
 
             v0.VerifyIL("C.M", @"
 {
-  // Code size      200 (0xc8)
+  // Code size      197 (0xc5)
   .maxstack  2
-  .locals init (object V_0,
-                int V_1,
-                byte V_2,
-                byte V_3, //b
-                int V_4, //i
-                int V_5, //j
-                object V_6, //o
-                object V_7,
-                object V_8)
+  .locals init (byte V_0, //b
+                int V_1, //i
+                int V_2, //j
+                object V_3, //o
+                object V_4,
+                int V_5,
+                byte V_6,
+                object V_7)
   IL_0000:  nop
   IL_0001:  call       ""object C.F()""
   IL_0006:  stloc.s    V_7
   IL_0008:  ldloc.s    V_7
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  brtrue.s   IL_0010
-  IL_000e:  br.s       IL_0063
-  IL_0010:  ldloc.0
-  IL_0011:  dup
-  IL_0012:  stloc.s    V_8
-  IL_0014:  isinst     ""int""
-  IL_0019:  brfalse.s  IL_002b
-  IL_001b:  ldloc.s    V_8
-  IL_001d:  unbox.any  ""int""
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.1
-  IL_0024:  ldc.i4.1
-  IL_0025:  beq.s      IL_0029
-  IL_0027:  br.s       IL_002b
-  IL_0029:  br.s       IL_0065
-  IL_002b:  ldloc.0
-  IL_002c:  dup
-  IL_002d:  stloc.s    V_8
-  IL_002f:  isinst     ""byte""
-  IL_0034:  brfalse.s  IL_0048
-  IL_0036:  ldloc.s    V_8
-  IL_0038:  unbox.any  ""byte""
-  IL_003d:  stloc.2
-  IL_003e:  br.s       IL_0072
-  IL_0040:  ldloc.2
-  IL_0041:  ldc.i4.1
-  IL_0042:  beq.s      IL_0046
-  IL_0044:  br.s       IL_0048
-  IL_0046:  br.s       IL_009c
-  IL_0048:  ldloc.0
-  IL_0049:  dup
-  IL_004a:  stloc.s    V_8
-  IL_004c:  isinst     ""int""
-  IL_0051:  brfalse.s  IL_005f
-  IL_0053:  ldloc.s    V_8
-  IL_0055:  unbox.any  ""int""
-  IL_005a:  stloc.1
-  IL_005b:  br.s       IL_0086
-  IL_005d:  br.s       IL_00a9
-  IL_005f:  ldloc.0
-  IL_0060:  stloc.0
-  IL_0061:  br.s       IL_00b8
-  IL_0063:  br.s       IL_00c7
-  IL_0065:  ldstr      ""int 1""
-  IL_006a:  call       ""void System.Console.WriteLine(string)""
-  IL_006f:  nop
-  IL_0070:  br.s       IL_00c7
-  IL_0072:  ldloc.2
-  IL_0073:  stloc.3
+  IL_000a:  stloc.s    V_4
+  IL_000c:  ldloc.s    V_4
+  IL_000e:  brfalse    IL_00c4
+  IL_0013:  ldloc.s    V_4
+  IL_0015:  isinst     ""int""
+  IL_001a:  brfalse.s  IL_0040
+  IL_001c:  ldloc.s    V_4
+  IL_001e:  unbox.any  ""int""
+  IL_0023:  stloc.s    V_5
+  IL_0025:  ldc.i4.1
+  IL_0026:  ldloc.s    V_5
+  IL_0028:  beq.s      IL_0064
+  IL_002a:  ldloc.s    V_4
+  IL_002c:  isinst     ""int""
+  IL_0031:  brfalse.s  IL_0062
+  IL_0033:  br.s       IL_0086
+  IL_0035:  ldloc.s    V_4
+  IL_0037:  isinst     ""int""
+  IL_003c:  brfalse.s  IL_0062
+  IL_003e:  br.s       IL_00a8
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  isinst     ""byte""
+  IL_0047:  brfalse.s  IL_0062
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  unbox.any  ""byte""
+  IL_0050:  stloc.s    V_6
+  IL_0052:  br.s       IL_0071
+  IL_0054:  ldloc.s    V_4
+  IL_0056:  isinst     ""byte""
+  IL_005b:  brfalse.s  IL_0062
+  IL_005d:  ldc.i4.1
+  IL_005e:  ldloc.s    V_6
+  IL_0060:  beq.s      IL_009b
+  IL_0062:  br.s       IL_00b6
+  IL_0064:  ldstr      ""int 1""
+  IL_0069:  call       ""void System.Console.WriteLine(string)""
+  IL_006e:  nop
+  IL_006f:  br.s       IL_00c4
+  IL_0071:  ldloc.s    V_6
+  IL_0073:  stloc.0
   IL_0074:  call       ""bool C.P()""
   IL_0079:  brtrue.s   IL_007d
-  IL_007b:  br.s       IL_0040
-  IL_007d:  ldloc.3
+  IL_007b:  br.s       IL_0054
+  IL_007d:  ldloc.0
   IL_007e:  call       ""void System.Console.WriteLine(int)""
   IL_0083:  nop
-  IL_0084:  br.s       IL_00c7
-  IL_0086:  ldloc.1
-  IL_0087:  stloc.s    V_4
+  IL_0084:  br.s       IL_00c4
+  IL_0086:  ldloc.s    V_5
+  IL_0088:  stloc.1
   IL_0089:  call       ""bool C.P()""
   IL_008e:  brtrue.s   IL_0092
-  IL_0090:  br.s       IL_005d
-  IL_0092:  ldloc.s    V_4
-  IL_0094:  call       ""void System.Console.WriteLine(int)""
-  IL_0099:  nop
-  IL_009a:  br.s       IL_00c7
-  IL_009c:  ldstr      ""byte 1""
-  IL_00a1:  call       ""void System.Console.WriteLine(string)""
-  IL_00a6:  nop
-  IL_00a7:  br.s       IL_00c7
-  IL_00a9:  ldloc.1
-  IL_00aa:  stloc.s    V_5
-  IL_00ac:  br.s       IL_00ae
-  IL_00ae:  ldloc.s    V_5
-  IL_00b0:  call       ""void System.Console.WriteLine(int)""
-  IL_00b5:  nop
-  IL_00b6:  br.s       IL_00c7
-  IL_00b8:  ldloc.0
-  IL_00b9:  stloc.s    V_6
-  IL_00bb:  br.s       IL_00bd
-  IL_00bd:  ldloc.s    V_6
-  IL_00bf:  call       ""void System.Console.WriteLine(object)""
-  IL_00c4:  nop
-  IL_00c5:  br.s       IL_00c7
-  IL_00c7:  ret
+  IL_0090:  br.s       IL_0035
+  IL_0092:  ldloc.1
+  IL_0093:  call       ""void System.Console.WriteLine(int)""
+  IL_0098:  nop
+  IL_0099:  br.s       IL_00c4
+  IL_009b:  ldstr      ""byte 1""
+  IL_00a0:  call       ""void System.Console.WriteLine(string)""
+  IL_00a5:  nop
+  IL_00a6:  br.s       IL_00c4
+  IL_00a8:  ldloc.s    V_5
+  IL_00aa:  stloc.2
+  IL_00ab:  br.s       IL_00ad
+  IL_00ad:  ldloc.2
+  IL_00ae:  call       ""void System.Console.WriteLine(int)""
+  IL_00b3:  nop
+  IL_00b4:  br.s       IL_00c4
+  IL_00b6:  ldloc.s    V_4
+  IL_00b8:  stloc.3
+  IL_00b9:  br.s       IL_00bb
+  IL_00bb:  ldloc.3
+  IL_00bc:  call       ""void System.Console.WriteLine(object)""
+  IL_00c1:  nop
+  IL_00c2:  br.s       IL_00c4
+  IL_00c4:  ret
 }");
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -2532,108 +2519,98 @@ class C
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size      200 (0xc8)
+  // Code size      197 (0xc5)
   .maxstack  2
-  .locals init (object V_0,
-                int V_1,
-                byte V_2,
-                byte V_3, //b
-                int V_4, //i
-                int V_5, //j
-                object V_6, //o
+  .locals init (byte V_0, //b
+                int V_1, //i
+                int V_2, //j
+                object V_3, //o
+                [object] V_4,
+                [int] V_5,
+                [unchanged] V_6,
                 object V_7,
-                [object] V_8,
-                object V_9)
+                object V_8,
+                int V_9,
+                byte V_10)
   IL_0000:  nop
   IL_0001:  call       ""object C.F()""
   IL_0006:  stloc.s    V_7
   IL_0008:  ldloc.s    V_7
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  brtrue.s   IL_0010
-  IL_000e:  br.s       IL_0063
-  IL_0010:  ldloc.0
-  IL_0011:  dup
-  IL_0012:  stloc.s    V_9
-  IL_0014:  isinst     ""int""
-  IL_0019:  brfalse.s  IL_002b
-  IL_001b:  ldloc.s    V_9
-  IL_001d:  unbox.any  ""int""
-  IL_0022:  stloc.1
-  IL_0023:  ldloc.1
-  IL_0024:  ldc.i4.1
-  IL_0025:  beq.s      IL_0029
-  IL_0027:  br.s       IL_002b
-  IL_0029:  br.s       IL_0065
-  IL_002b:  ldloc.0
-  IL_002c:  dup
-  IL_002d:  stloc.s    V_9
-  IL_002f:  isinst     ""byte""
-  IL_0034:  brfalse.s  IL_0048
-  IL_0036:  ldloc.s    V_9
-  IL_0038:  unbox.any  ""byte""
-  IL_003d:  stloc.2
-  IL_003e:  br.s       IL_0072
-  IL_0040:  ldloc.2
-  IL_0041:  ldc.i4.1
-  IL_0042:  beq.s      IL_0046
-  IL_0044:  br.s       IL_0048
-  IL_0046:  br.s       IL_009c
-  IL_0048:  ldloc.0
-  IL_0049:  dup
-  IL_004a:  stloc.s    V_9
-  IL_004c:  isinst     ""int""
-  IL_0051:  brfalse.s  IL_005f
-  IL_0053:  ldloc.s    V_9
-  IL_0055:  unbox.any  ""int""
-  IL_005a:  stloc.1
-  IL_005b:  br.s       IL_0086
-  IL_005d:  br.s       IL_00a9
-  IL_005f:  ldloc.0
-  IL_0060:  stloc.0
-  IL_0061:  br.s       IL_00b8
-  IL_0063:  br.s       IL_00c7
-  IL_0065:  ldstr      ""int 1""
-  IL_006a:  call       ""void System.Console.WriteLine(string)""
-  IL_006f:  nop
-  IL_0070:  br.s       IL_00c7
-  IL_0072:  ldloc.2
-  IL_0073:  stloc.3
+  IL_000a:  stloc.s    V_8
+  IL_000c:  ldloc.s    V_8
+  IL_000e:  brfalse    IL_00c4
+  IL_0013:  ldloc.s    V_8
+  IL_0015:  isinst     ""int""
+  IL_001a:  brfalse.s  IL_0040
+  IL_001c:  ldloc.s    V_8
+  IL_001e:  unbox.any  ""int""
+  IL_0023:  stloc.s    V_9
+  IL_0025:  ldc.i4.1
+  IL_0026:  ldloc.s    V_9
+  IL_0028:  beq.s      IL_0064
+  IL_002a:  ldloc.s    V_8
+  IL_002c:  isinst     ""int""
+  IL_0031:  brfalse.s  IL_0062
+  IL_0033:  br.s       IL_0086
+  IL_0035:  ldloc.s    V_8
+  IL_0037:  isinst     ""int""
+  IL_003c:  brfalse.s  IL_0062
+  IL_003e:  br.s       IL_00a8
+  IL_0040:  ldloc.s    V_8
+  IL_0042:  isinst     ""byte""
+  IL_0047:  brfalse.s  IL_0062
+  IL_0049:  ldloc.s    V_8
+  IL_004b:  unbox.any  ""byte""
+  IL_0050:  stloc.s    V_10
+  IL_0052:  br.s       IL_0071
+  IL_0054:  ldloc.s    V_8
+  IL_0056:  isinst     ""byte""
+  IL_005b:  brfalse.s  IL_0062
+  IL_005d:  ldc.i4.1
+  IL_005e:  ldloc.s    V_10
+  IL_0060:  beq.s      IL_009b
+  IL_0062:  br.s       IL_00b6
+  IL_0064:  ldstr      ""int 1""
+  IL_0069:  call       ""void System.Console.WriteLine(string)""
+  IL_006e:  nop
+  IL_006f:  br.s       IL_00c4
+  IL_0071:  ldloc.s    V_10
+  IL_0073:  stloc.0
   IL_0074:  call       ""bool C.P()""
   IL_0079:  brtrue.s   IL_007d
-  IL_007b:  br.s       IL_0040
-  IL_007d:  ldloc.3
+  IL_007b:  br.s       IL_0054
+  IL_007d:  ldloc.0
   IL_007e:  call       ""void System.Console.WriteLine(int)""
   IL_0083:  nop
-  IL_0084:  br.s       IL_00c7
-  IL_0086:  ldloc.1
-  IL_0087:  stloc.s    V_4
+  IL_0084:  br.s       IL_00c4
+  IL_0086:  ldloc.s    V_9
+  IL_0088:  stloc.1
   IL_0089:  call       ""bool C.P()""
   IL_008e:  brtrue.s   IL_0092
-  IL_0090:  br.s       IL_005d
-  IL_0092:  ldloc.s    V_4
-  IL_0094:  call       ""void System.Console.WriteLine(int)""
-  IL_0099:  nop
-  IL_009a:  br.s       IL_00c7
-  IL_009c:  ldstr      ""byte 1""
-  IL_00a1:  call       ""void System.Console.WriteLine(string)""
-  IL_00a6:  nop
-  IL_00a7:  br.s       IL_00c7
-  IL_00a9:  ldloc.1
-  IL_00aa:  stloc.s    V_5
-  IL_00ac:  br.s       IL_00ae
-  IL_00ae:  ldloc.s    V_5
-  IL_00b0:  call       ""void System.Console.WriteLine(int)""
-  IL_00b5:  nop
-  IL_00b6:  br.s       IL_00c7
-  IL_00b8:  ldloc.0
-  IL_00b9:  stloc.s    V_6
-  IL_00bb:  br.s       IL_00bd
-  IL_00bd:  ldloc.s    V_6
-  IL_00bf:  call       ""void System.Console.WriteLine(object)""
-  IL_00c4:  nop
-  IL_00c5:  br.s       IL_00c7
-  IL_00c7:  ret
+  IL_0090:  br.s       IL_0035
+  IL_0092:  ldloc.1
+  IL_0093:  call       ""void System.Console.WriteLine(int)""
+  IL_0098:  nop
+  IL_0099:  br.s       IL_00c4
+  IL_009b:  ldstr      ""byte 1""
+  IL_00a0:  call       ""void System.Console.WriteLine(string)""
+  IL_00a5:  nop
+  IL_00a6:  br.s       IL_00c4
+  IL_00a8:  ldloc.s    V_9
+  IL_00aa:  stloc.2
+  IL_00ab:  br.s       IL_00ad
+  IL_00ad:  ldloc.2
+  IL_00ae:  call       ""void System.Console.WriteLine(int)""
+  IL_00b3:  nop
+  IL_00b4:  br.s       IL_00c4
+  IL_00b6:  ldloc.s    V_8
+  IL_00b8:  stloc.3
+  IL_00b9:  br.s       IL_00bb
+  IL_00bb:  ldloc.3
+  IL_00bc:  call       ""void System.Console.WriteLine(object)""
+  IL_00c1:  nop
+  IL_00c2:  br.s       IL_00c4
+  IL_00c4:  ret
 }");
         }
 
@@ -3606,7 +3583,7 @@ class C
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality")]
+        [Fact]
         public void PatternVariable()
         {
             var source = @"
@@ -3632,21 +3609,21 @@ class C
             diff1.VerifyIL("C.F", @"
 {
   // Code size       42 (0x2a)
-  .maxstack  2
+  .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
-                [object] V_2,
+                [int] V_2,
                 [int] V_3,
-                object V_4,
+                int V_4,
                 int V_5)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.s    V_4
-  IL_0005:  isinst     ""int""
-  IL_000a:  brfalse.s  IL_0017
-  IL_000c:  ldloc.s    V_4
-  IL_000e:  unbox.any  ""int""
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0017
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.s    V_4
+  IL_0011:  ldloc.s    V_4
   IL_0013:  stloc.0
   IL_0014:  ldc.i4.1
   IL_0015:  br.s       IL_0018
@@ -3773,7 +3750,7 @@ class C
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality")]
+        [Fact]
         public void PatternMatching_Variable()
         {
             var source = @"
@@ -3799,21 +3776,21 @@ class C
             diff1.VerifyIL("C.F", @"
 {
   // Code size       42 (0x2a)
-  .maxstack  2
+  .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
-                [object] V_2,
+                [int] V_2,
                 [int] V_3,
-                object V_4,
+                int V_4,
                 int V_5)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.s    V_4
-  IL_0005:  isinst     ""int""
-  IL_000a:  brfalse.s  IL_0017
-  IL_000c:  ldloc.s    V_4
-  IL_000e:  unbox.any  ""int""
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0017
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.s    V_4
+  IL_0011:  ldloc.s    V_4
   IL_0013:  stloc.0
   IL_0014:  ldc.i4.1
   IL_0015:  br.s       IL_0018
@@ -3833,7 +3810,7 @@ class C
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality")]
+        [Fact]
         public void PatternMatching_NoVariable()
         {
             var source = @"
@@ -3858,33 +3835,42 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       39 (0x27)
+  // Code size       52 (0x34)
   .maxstack  2
   .locals init (bool V_0,
                 [int] V_1,
-                int V_2)
+                [int] V_2,
+                int V_3,
+                int V_4)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  isinst     ""bool""
-  IL_0007:  brtrue.s   IL_0017
-  IL_0009:  ldc.i4.0
-  IL_000a:  box        ""int""
-  IL_000f:  ldarg.0
-  IL_0010:  call       ""bool object.Equals(object, object)""
-  IL_0015:  br.s       IL_0018
-  IL_0017:  ldc.i4.1
-  IL_0018:  stloc.0
- ~IL_0019:  ldloc.0
-  IL_001a:  brfalse.s  IL_0021
- -IL_001c:  nop
- -IL_001d:  ldc.i4.0
-  IL_001e:  stloc.2
-  IL_001f:  br.s       IL_0025
- -IL_0021:  ldc.i4.1
-  IL_0022:  stloc.2
-  IL_0023:  br.s       IL_0025
- -IL_0025:  ldloc.2
-  IL_0026:  ret
+  IL_0007:  brtrue.s   IL_0021
+  IL_0009:  ldarg.0
+  IL_000a:  isinst     ""int""
+  IL_000f:  brfalse.s  IL_001e
+  IL_0011:  ldarg.0
+  IL_0012:  unbox.any  ""int""
+  IL_0017:  stloc.3
+  IL_0018:  ldloc.3
+  IL_0019:  ldc.i4.0
+  IL_001a:  ceq
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldc.i4.0
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldc.i4.1
+  IL_0022:  stloc.0
+ ~IL_0023:  ldloc.0
+  IL_0024:  brfalse.s  IL_002c
+ -IL_0026:  nop
+ -IL_0027:  ldc.i4.0
+  IL_0028:  stloc.s    V_4
+  IL_002a:  br.s       IL_0031
+ -IL_002c:  ldc.i4.1
+  IL_002d:  stloc.s    V_4
+  IL_002f:  br.s       IL_0031
+ -IL_0031:  ldloc.s    V_4
+  IL_0033:  ret
 }
 ", methodToken: diff1.UpdatedMethods.Single());
         }

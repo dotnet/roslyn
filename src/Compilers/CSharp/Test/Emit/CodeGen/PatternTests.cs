@@ -142,7 +142,6 @@ static class C {
                 );
         }
 
-        // PROTOTYPE(patterns2): code quality has regressed for this test because the lowering strategy reifies the boolean result of the if expression.
         [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
         public void DoubleEvaluation01()
         {
@@ -200,6 +199,28 @@ public class C
   IL_002a:  nop
   IL_002b:  ret
 }");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.Main",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (int V_0, //index
+                int? V_1)
+  IL_0000:  call       ""int? C.TryGet()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       ""bool int?.HasValue.get""
+  IL_000d:  brfalse.s  IL_001d
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       ""int int?.GetValueOrDefault()""
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ret
+}");
         }
 
         [Fact, WorkItem(19122, "https://github.com/dotnet/roslyn/issues/19122")]
@@ -248,7 +269,7 @@ class IdentityAccessor<T>
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
 @"{
-  // Code size       71 (0x47)
+  // Code size       63 (0x3f)
   .maxstack  3
   .locals init (U V_0, //u
                 bool V_1,
@@ -264,26 +285,23 @@ class IdentityAccessor<T>
   IL_0018:  stloc.2
   IL_0019:  ldloc.2
   IL_001a:  box        ""T""
-  IL_001f:  brfalse.s  IL_003f
-  IL_0021:  ldloc.2
-  IL_0022:  box        ""T""
-  IL_0027:  isinst     ""U""
-  IL_002c:  brfalse.s  IL_003f
-  IL_002e:  ldloc.2
-  IL_002f:  box        ""T""
-  IL_0034:  unbox.any  ""U""
-  IL_0039:  stloc.3
-  IL_003a:  ldloc.3
-  IL_003b:  stloc.0
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  stloc.1
-  IL_0041:  ldloc.1
-  IL_0042:  brfalse.s  IL_0046
-  IL_0044:  nop
-  IL_0045:  nop
-  IL_0046:  ret
+  IL_001f:  isinst     ""U""
+  IL_0024:  brfalse.s  IL_0037
+  IL_0026:  ldloc.2
+  IL_0027:  box        ""T""
+  IL_002c:  unbox.any  ""U""
+  IL_0031:  stloc.3
+  IL_0032:  ldloc.3
+  IL_0033:  stloc.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  br.s       IL_0038
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.1
+  IL_0039:  ldloc.1
+  IL_003a:  brfalse.s  IL_003e
+  IL_003c:  nop
+  IL_003d:  nop
+  IL_003e:  ret
 }");
         }
 
@@ -327,7 +345,7 @@ True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size      113 (0x71)
+  // Code size      106 (0x6a)
   .maxstack  2
   .locals init (Base<object> V_0, //x
                 Derived V_1, //y
@@ -346,47 +364,43 @@ True";
   IL_0010:  call       ""void System.Console.WriteLine(bool)""
   IL_0015:  nop
   IL_0016:  ldloc.0
-  IL_0017:  brfalse.s  IL_002d
-  IL_0019:  ldloc.0
-  IL_001a:  isinst     ""Derived""
-  IL_001f:  brfalse.s  IL_002d
-  IL_0021:  ldloc.0
-  IL_0022:  castclass  ""Derived""
-  IL_0027:  stloc.2
-  IL_0028:  ldloc.2
-  IL_0029:  stloc.1
-  IL_002a:  ldc.i4.1
-  IL_002b:  br.s       IL_002e
-  IL_002d:  ldc.i4.0
-  IL_002e:  call       ""void System.Console.WriteLine(bool)""
-  IL_0033:  nop
-  IL_0034:  ldloc.0
-  IL_0035:  stloc.s    V_6
-  IL_0037:  ldloc.s    V_6
-  IL_0039:  stloc.s    V_4
-  IL_003b:  ldloc.s    V_4
-  IL_003d:  brfalse.s  IL_0061
-  IL_003f:  ldloc.s    V_4
-  IL_0041:  isinst     ""Derived""
-  IL_0046:  brfalse.s  IL_0061
-  IL_0048:  ldloc.s    V_4
-  IL_004a:  castclass  ""Derived""
-  IL_004f:  stloc.s    V_5
-  IL_0051:  br.s       IL_0053
-  IL_0053:  ldloc.s    V_5
-  IL_0055:  stloc.3
-  IL_0056:  br.s       IL_0058
-  IL_0058:  ldc.i4.1
-  IL_0059:  call       ""void System.Console.WriteLine(bool)""
-  IL_005e:  nop
-  IL_005f:  br.s       IL_0061
-  IL_0061:  ldloc.0
-  IL_0062:  isinst     ""Derived""
-  IL_0067:  ldnull
-  IL_0068:  cgt.un
-  IL_006a:  call       ""void System.Console.WriteLine(bool)""
-  IL_006f:  nop
-  IL_0070:  ret
+  IL_0017:  isinst     ""Derived""
+  IL_001c:  brfalse.s  IL_002a
+  IL_001e:  ldloc.0
+  IL_001f:  castclass  ""Derived""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  stloc.1
+  IL_0027:  ldc.i4.1
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldc.i4.0
+  IL_002b:  call       ""void System.Console.WriteLine(bool)""
+  IL_0030:  nop
+  IL_0031:  ldloc.0
+  IL_0032:  stloc.s    V_6
+  IL_0034:  ldloc.s    V_6
+  IL_0036:  stloc.s    V_4
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  isinst     ""Derived""
+  IL_003f:  brfalse.s  IL_005a
+  IL_0041:  ldloc.s    V_4
+  IL_0043:  castclass  ""Derived""
+  IL_0048:  stloc.s    V_5
+  IL_004a:  br.s       IL_004c
+  IL_004c:  ldloc.s    V_5
+  IL_004e:  stloc.3
+  IL_004f:  br.s       IL_0051
+  IL_0051:  ldc.i4.1
+  IL_0052:  call       ""void System.Console.WriteLine(bool)""
+  IL_0057:  nop
+  IL_0058:  br.s       IL_005a
+  IL_005a:  ldloc.0
+  IL_005b:  isinst     ""Derived""
+  IL_0060:  ldnull
+  IL_0061:  cgt.un
+  IL_0063:  call       ""void System.Console.WriteLine(bool)""
+  IL_0068:  nop
+  IL_0069:  ret
 }");
         }
 
@@ -472,7 +486,7 @@ class Program
 }");
             compVerifier.VerifyIL("Program.P5",
 @"{
-  // Code size      125 (0x7d)
+  // Code size      122 (0x7a)
   .maxstack  2
   .locals init (object V_0,
                 double V_1,
@@ -485,7 +499,7 @@ class Program
   IL_0003:  ldloc.3
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
-  IL_0006:  brfalse.s  IL_0075
+  IL_0006:  brfalse.s  IL_0072
   IL_0008:  ldloc.0
   IL_0009:  isinst     ""double""
   IL_000e:  brfalse.s  IL_0035
@@ -494,49 +508,47 @@ class Program
   IL_0016:  stloc.1
   IL_0017:  ldloc.1
   IL_0018:  call       ""bool double.IsNaN(double)""
-  IL_001d:  brtrue.s   IL_0061
+  IL_001d:  brtrue.s   IL_005e
   IL_001f:  ldloc.0
   IL_0020:  isinst     ""double""
-  IL_0025:  brfalse.s  IL_0075
+  IL_0025:  brfalse.s  IL_0072
   IL_0027:  ldc.r8     3.14
   IL_0030:  ldloc.1
-  IL_0031:  beq.s      IL_006b
-  IL_0033:  br.s       IL_0075
+  IL_0031:  beq.s      IL_0068
+  IL_0033:  br.s       IL_0072
   IL_0035:  ldloc.0
-  IL_0036:  brfalse.s  IL_0075
-  IL_0038:  ldloc.0
-  IL_0039:  isinst     ""float""
-  IL_003e:  brfalse.s  IL_0075
-  IL_0040:  ldloc.0
-  IL_0041:  unbox.any  ""float""
-  IL_0046:  stloc.2
-  IL_0047:  ldloc.2
-  IL_0048:  call       ""bool float.IsNaN(float)""
-  IL_004d:  brtrue.s   IL_0066
-  IL_004f:  ldloc.0
-  IL_0050:  isinst     ""float""
-  IL_0055:  brfalse.s  IL_0075
-  IL_0057:  ldc.r4     3.14
-  IL_005c:  ldloc.2
-  IL_005d:  beq.s      IL_0070
-  IL_005f:  br.s       IL_0075
-  IL_0061:  ldc.i4.1
-  IL_0062:  stloc.s    V_4
-  IL_0064:  br.s       IL_007a
-  IL_0066:  ldc.i4.1
-  IL_0067:  stloc.s    V_4
-  IL_0069:  br.s       IL_007a
-  IL_006b:  ldc.i4.1
-  IL_006c:  stloc.s    V_4
-  IL_006e:  br.s       IL_007a
-  IL_0070:  ldc.i4.1
-  IL_0071:  stloc.s    V_4
-  IL_0073:  br.s       IL_007a
-  IL_0075:  ldc.i4.0
-  IL_0076:  stloc.s    V_4
-  IL_0078:  br.s       IL_007a
-  IL_007a:  ldloc.s    V_4
-  IL_007c:  ret
+  IL_0036:  isinst     ""float""
+  IL_003b:  brfalse.s  IL_0072
+  IL_003d:  ldloc.0
+  IL_003e:  unbox.any  ""float""
+  IL_0043:  stloc.2
+  IL_0044:  ldloc.2
+  IL_0045:  call       ""bool float.IsNaN(float)""
+  IL_004a:  brtrue.s   IL_0063
+  IL_004c:  ldloc.0
+  IL_004d:  isinst     ""float""
+  IL_0052:  brfalse.s  IL_0072
+  IL_0054:  ldc.r4     3.14
+  IL_0059:  ldloc.2
+  IL_005a:  beq.s      IL_006d
+  IL_005c:  br.s       IL_0072
+  IL_005e:  ldc.i4.1
+  IL_005f:  stloc.s    V_4
+  IL_0061:  br.s       IL_0077
+  IL_0063:  ldc.i4.1
+  IL_0064:  stloc.s    V_4
+  IL_0066:  br.s       IL_0077
+  IL_0068:  ldc.i4.1
+  IL_0069:  stloc.s    V_4
+  IL_006b:  br.s       IL_0077
+  IL_006d:  ldc.i4.1
+  IL_006e:  stloc.s    V_4
+  IL_0070:  br.s       IL_0077
+  IL_0072:  ldc.i4.0
+  IL_0073:  stloc.s    V_4
+  IL_0075:  br.s       IL_0077
+  IL_0077:  ldloc.s    V_4
+  IL_0079:  ret
 }");
         }
     }
