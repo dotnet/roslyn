@@ -4769,7 +4769,7 @@ unsafe class C
 
     void M()
     {
-        S1 p = deafult;
+        S1 p = default;
 
         p.f[i] = 123;
     }
@@ -4826,7 +4826,7 @@ unsafe class C
         public fixed int f[10];
     }
 
-    S1 p = deafult;
+    S1 p = default;
     void M()
     {
         p.f[i] = 123;

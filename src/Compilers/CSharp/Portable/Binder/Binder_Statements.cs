@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    // if the feature was enabled, but something went wrong with the method, report that, otherwide don't. 
+                    // if the feature was enabled, but something went wrong with the method, report that, otherwise don't. 
                     // If feature is not enabled, aditional errors would be just noise.
                     bool extensibleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
                     if (extensibleFixedEnabled)
