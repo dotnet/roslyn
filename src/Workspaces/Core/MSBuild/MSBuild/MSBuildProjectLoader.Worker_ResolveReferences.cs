@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private partial class Worker
         {
-            private struct ResolvedReferences
+            private readonly struct ResolvedReferences
             {
                 public ImmutableArray<ProjectReference> ProjectReferences { get; }
                 public ImmutableArray<MetadataReference> MetadataReferences { get; }

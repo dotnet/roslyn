@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal struct DiagnosticReportingOptions
+    internal readonly struct DiagnosticReportingOptions
     {
         public DiagnosticReportingMode OnPathFailure { get; }
         public DiagnosticReportingMode OnLoaderFailure { get; }
