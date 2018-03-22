@@ -126,6 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
 
+        // Closures in the same method share the same SynthesizedClosureEnvironment. We must
+        // always return true because two closures in the same method might have different
+        // AreLocalsZeroed flags.
+        public sealed override bool AreLocalsZeroed => true;
+
         // The lambda method contains user code from the lambda
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 

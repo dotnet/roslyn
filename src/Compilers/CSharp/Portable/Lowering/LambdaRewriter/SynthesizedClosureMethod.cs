@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
 
-        public override bool AreLocalsZeroed => _topLevelMethod.AreLocalsZeroed;
+        public sealed override bool AreLocalsZeroed => _topLevelMethod.AreLocalsZeroed;
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 

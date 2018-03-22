@@ -107,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSerializable => false;
 
+        public sealed override bool AreLocalsZeroed => true;
+
         internal override TypeLayout Layout => default(TypeLayout);
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;

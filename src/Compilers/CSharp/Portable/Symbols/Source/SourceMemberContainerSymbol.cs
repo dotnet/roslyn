@@ -753,6 +753,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get

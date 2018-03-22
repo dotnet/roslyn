@@ -248,6 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         internal override TypeLayout Layout
         {
             get { return default(TypeLayout); }

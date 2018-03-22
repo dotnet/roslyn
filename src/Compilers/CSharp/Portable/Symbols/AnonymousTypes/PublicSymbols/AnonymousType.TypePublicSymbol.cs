@@ -319,6 +319,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public sealed override bool AreLocalsZeroed
+            {
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
             internal override bool HasDeclarativeSecurity
             {
                 get { return false; }

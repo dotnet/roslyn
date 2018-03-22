@@ -3943,5 +3943,68 @@ class C
             }
             Assert.Equal(count, locals.Count);
         }
+
+        [Fact]
+        public void EENamedTypeSymbolNeverSkipsLocalsInit()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M<T>()
+    {
+        var t = default(T);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+
+                Assert.Equal(locals.Count, 3);
+                VerifyLocal(testData, "<>x", locals[0], "<>m0<T>", "this", expectedILOpt: @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}",
+                    expectedGeneric: true);
+
+                VerifyLocal(testData, "<>x", locals[1], "<>m1<T>", "t", expectedILOpt: @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}",
+                    expectedGeneric: true);
+
+                VerifyLocal(testData, "<>x", locals[2], "<>m2<T>", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  newobj     ""<>c__TypeVariables<T>..ctor()""
+  IL_0005:  ret
+}",
+                        expectedGeneric: true);
+            });
+        }
     }
 }
