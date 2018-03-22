@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 foreach (var additionalFile in additionalFiles)
                 {
-                    builder.Add("/additionalfile:\"" + this.GetDocumentFilePath(additionalFile) + "\"");
+                    builder.Add($"/additionalfile:\"{this.GetDocumentFilePath(additionalFile)}\"");
                 }
             }
 
@@ -154,26 +154,26 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 foreach (var analyzer in analyzers)
                 {
-                    builder.Add("/analyzer:\"" + this.GetDocumentFilePath(analyzer) + "\"");
+                    builder.Add($"/analyzer:\"{this.GetDocumentFilePath(analyzer)}\"");
                 }
             }
 
             var baseAddress = project.ReadPropertyString("BaseAddress");
             if (!string.IsNullOrWhiteSpace(baseAddress))
             {
-                builder.Add("/baseaddress:" + baseAddress);
+                builder.Add($"/baseaddress:{baseAddress}");
             }
 
             var codeAnalysisRulSet = project.ReadPropertyString("ResolvedCodeAnalysisRuleSet");
             if (!string.IsNullOrWhiteSpace(codeAnalysisRulSet))
             {
-                builder.Add("/ruleset:\"" + codeAnalysisRulSet + "\"");
+                builder.Add($"/ruleset:\"{codeAnalysisRulSet}\"");
             }
 
             var codePath = project.ReadPropertyInt("CodePage");
             if (codePath != 0)
             {
-                builder.Add("/codepage:" + codePath);
+                builder.Add($"/codepage:{codePath}");
             }
 
             var emitDebugInformation = project.ReadPropertyBool("DebugSymbols");
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             var defineConstants = project.ReadPropertyString("FinalDefineConstants");
             if (!string.IsNullOrWhiteSpace(defineConstants))
             {
-                builder.Add("/define:" + defineConstants);
+                builder.Add($"/define:{defineConstants}");
             }
 
             var delaySign = project.ReadPropertyBool("DelaySign");
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             var errorReport = project.ReadPropertyString("ErrorReport");
             if (!string.IsNullOrWhiteSpace(errorReport))
             {
-                builder.Add("/errorreport:" + errorReport.ToLower());
+                builder.Add($"/errorreport:{errorReport.ToLower()}");
             }
 
             var features = project.ReadPropertyString("Features");
@@ -226,12 +226,12 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
                 {
-                    builder.Add("/features:" + feature);
+                    builder.Add($"/features:{feature}");
                 }
             }
 
             var fileAlignment = project.ReadPropertyString("FileAlignment");
-            builder.Add("/filealign:" + fileAlignment);
+            builder.Add($"/filealign:{fileAlignment}");
 
             var documentationFile = project.ReadPropertyString("DocFileItem");
             var generateDocumentation = project.ReadPropertyBool("GenerateDocumentation");
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 if (hasDocumentationFile)
                 {
-                    builder.Add("/doc:\"" + documentationFile + "\"");
+                    builder.Add($"/doc:\"{documentationFile}\"");
                 }
                 else
                 {
@@ -260,25 +260,25 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             if (imports != null)
             {
                 var importsString = string.Join(",", imports.Select(item => item.ItemSpec.Trim()));
-                builder.Add("/imports:" + importsString);
+                builder.Add($"/imports:{importsString}");
             }
 
             var languageVersion = project.ReadPropertyString("LangVersion");
             if (!string.IsNullOrWhiteSpace(languageVersion))
             {
-                builder.Add("/langversion:" + languageVersion);
+                builder.Add($"/langversion:{languageVersion}");
             }
 
             var mainEntryPoint = project.ReadPropertyString("StartupObject");
             if (!string.IsNullOrWhiteSpace(mainEntryPoint))
             {
-                builder.Add("/main:\"" + mainEntryPoint + "\"");
+                builder.Add($"/main:\"{mainEntryPoint}\"");
             }
 
             var moduleAssemblyName = project.ReadPropertyString("ModuleAssemblyName");
             if (!string.IsNullOrWhiteSpace(moduleAssemblyName))
             {
-                builder.Add("/moduleassemblyname:\"" + moduleAssemblyName + "\"");
+                builder.Add($"/moduleassemblyname:\"{moduleAssemblyName}\"");
             }
 
             var noStandardLib = project.ReadPropertyBool("NoCompilerStandardLib");
@@ -329,13 +329,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             var optionStrictType = project.ReadPropertyString("OptionStrictType");
             if (!string.IsNullOrWhiteSpace(optionStrictType))
             {
-                builder.Add("/optionstrict:" + optionStrictType);
+                builder.Add($"/optionstrict:{optionStrictType}");
             }
 
             var outputAssembly = this.GetItemString(project, "IntermediateAssembly");
             if (!string.IsNullOrWhiteSpace(outputAssembly))
             {
-                builder.Add("/out:\"" + outputAssembly + "\"");
+                builder.Add($"/out:\"{outputAssembly}\"");
             }
 
             var signAssembly = project.ReadPropertyBool("SignAssembly");
@@ -344,13 +344,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 var keyFile = project.ReadPropertyString("KeyOriginatorFile");
                 if (!string.IsNullOrWhiteSpace(keyFile))
                 {
-                    builder.Add("/keyfile:\"" + keyFile + "\"");
+                    builder.Add($"/keyfile:\"{keyFile}\"");
                 }
 
                 var keyContainer = project.ReadPropertyString("KeyContainerName");
                 if (!string.IsNullOrWhiteSpace(keyContainer))
                 {
-                    builder.Add("/keycontainer:\"" + keyContainer + "\"");
+                    builder.Add($"/keycontainer:\"{keyContainer}\"");
                 }
             }
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 foreach (var reference in references)
                 {
-                    builder.Add("/reference:\"" + this.GetDocumentFilePath(reference) + "\"");
+                    builder.Add($"/reference:\"{this.GetDocumentFilePath(reference)}\"");
                 }
             }
 
@@ -372,19 +372,19 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             var rootNamespace = project.ReadPropertyString("RootNamespace");
             if (!string.IsNullOrWhiteSpace(rootNamespace))
             {
-                builder.Add("/rootnamespace:\"" + rootNamespace + "\"");
+                builder.Add($"/rootnamespace:\"{rootNamespace}\"");
             }
 
             var sdkPath = project.ReadPropertyString("FrameworkPathOverride");
             if (!string.IsNullOrWhiteSpace(sdkPath))
             {
-                builder.Add("/sdkpath:\"" + sdkPath + "\"");
+                builder.Add($"/sdkpath:\"{sdkPath}\"");
             }
 
             var subsystemVersion = project.ReadPropertyString("SubsystemVersion");
             if (!string.IsNullOrWhiteSpace(subsystemVersion))
             {
-                builder.Add("/subsystemversion:" + subsystemVersion);
+                builder.Add($"/subsystemversion:{subsystemVersion}");
             }
 
             var targetCompactFramework = project.ReadPropertyBool("TargetCompactFramework");
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             var targetType = project.ReadPropertyString("OutputType");
             if (!string.IsNullOrWhiteSpace(targetType))
             {
-                builder.Add("/target:" + targetType);
+                builder.Add($"/target:{targetType}");
             }
 
             var platform = project.ReadPropertyString("PlatformTarget");
@@ -408,13 +408,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             if (!string.IsNullOrWhiteSpace(platform))
             {
-                builder.Add("/platform:" + platform);
+                builder.Add($"/platform:{platform}");
             }
 
             var disabledWarnings = project.ReadPropertyString("NoWarn");
             if (!string.IsNullOrWhiteSpace(disabledWarnings))
             {
-                builder.Add("/nowarn:" + disabledWarnings);
+                builder.Add($"/nowarn:{disabledWarnings}");
             }
 
             var noWarnings = project.ReadPropertyBool("_NoWarnings");
@@ -446,20 +446,20 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 }
                 else
                 {
-                    builder.Add("/vbruntime:\"" + vbRuntime + "\"");
+                    builder.Add($"/vbruntime:\"{vbRuntime}\"");
                 }
             }
 
             var warningsAsErrors = project.ReadPropertyString("WarningsAsErrors");
             if (!string.IsNullOrWhiteSpace(warningsAsErrors))
             {
-                builder.Add("/warnaserror+:" + warningsAsErrors);
+                builder.Add($"/warnaserror+:{warningsAsErrors}");
             }
 
             var warningsNotAsErrors = project.ReadPropertyString("WarningsNotAsErrors");
             if (!string.IsNullOrWhiteSpace(warningsNotAsErrors))
             {
-                builder.Add("/warnaserror-:" + warningsNotAsErrors);
+                builder.Add($"/warnaserror-:{warningsNotAsErrors}");
             }
 
             return builder.ToImmutable();
