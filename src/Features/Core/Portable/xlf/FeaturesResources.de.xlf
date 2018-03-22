@@ -2000,6 +2000,11 @@ Diese Version wird verwendet in: {2}</target>
         <target state="new">Warning: Iteration variable crossed function boundary.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
+        <source>Warning: Collection may be modified during iteration.</source>
+        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

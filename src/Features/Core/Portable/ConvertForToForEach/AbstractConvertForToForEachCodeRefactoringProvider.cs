@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var bodyStatements = GetBodyStatements(forStatement);
             foreach (var statement in bodyStatements)
             {
-                if (iterationVariableIsUsedForMoreThanCollectionIndex(statement))
+                if (IterationVariableIsUsedForMoreThanCollectionIndex(statement))
                 {
                     return;
                 }
@@ -173,8 +173,10 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     document, forStatement, iterationVariable, collectionExpression,
                     containingType, collectionType.Type, iterationType, c)));
 
+            return;
+
             // local functions
-            bool iterationVariableIsUsedForMoreThanCollectionIndex(SyntaxNode current)
+            bool IterationVariableIsUsedForMoreThanCollectionIndex(SyntaxNode current)
             {
                 if (syntaxFacts.IsIdentifierName(current))
                 {
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 {
                     if (child.IsNode)
                     {
-                        if (iterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()))
+                        if (IterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()))
                         {
                             return true;
                         }
@@ -327,7 +329,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             //      var x = list[i]   or
             //
             // If so, we'll use those as the iteration variables for the new foreach statement.
-            var (typeNode, foreachIdentifier, declarationStatement) = tryDeconstructInitialDeclaration();
+            var (typeNode, foreachIdentifier, declarationStatement) = TryDeconstructInitialDeclaration();
 
             if (typeNode == null)
             {
@@ -355,7 +357,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var foreachIdentifierReference = foreachIdentifier.WithoutAnnotations(RenameAnnotation.Kind).WithoutTrivia();
 
             // Walk the for statement, replacing any matches we find.
-            findAndReplaceMatches(forStatement);
+            FindAndReplaceMatches(forStatement);
 
             // Finally, remove the declaration statement if we found one.  Move all its leading
             // trivia to the next statement.
@@ -375,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             return document.WithSyntaxRoot(editor.GetChangedRoot());
 
             // local functions
-            (TTypeNode, SyntaxToken, TStatementSyntax) tryDeconstructInitialDeclaration()
+            (TTypeNode, SyntaxToken, TStatementSyntax) TryDeconstructInitialDeclaration()
             {
                 var bodyStatements = GetBodyStatements(forStatement);
 
@@ -407,40 +409,65 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return default;
             }
 
-            void findAndReplaceMatches(SyntaxNode current)
+            void FindAndReplaceMatches(SyntaxNode current)
             {
-                if (syntaxFacts.AreEquivalent(current, indexExpression))
+                if (SemanticEquivalence.AreEquivalent(semanticModel, current, collectionExpression))
                 {
-                    // Found a match.  replace with iteration variable.
-                    var replacementToken = foreachIdentifierReference;
-
-                    if (semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken))
+                    if (syntaxFacts.AreEquivalent(current.Parent, indexExpression))
                     {
-                        replacementToken = replacementToken.WithAdditionalAnnotations(
-                            WarningAnnotation.Create(FeaturesResources.Warning_colon_Collection_was_modified_during_iteration));
+                        var indexMatch = current.Parent;
+                        // Found a match.  replace with iteration variable.
+                        var replacementToken = foreachIdentifierReference;
+
+                        if (semanticFacts.IsWrittenTo(semanticModel, indexMatch, cancellationToken))
+                        {
+                            replacementToken = replacementToken.WithAdditionalAnnotations(
+                                WarningAnnotation.Create(FeaturesResources.Warning_colon_Collection_was_modified_during_iteration));
+                        }
+
+                        if (CrossesFunctionBoundary(current))
+                        {
+                            replacementToken = replacementToken.WithAdditionalAnnotations(
+                                WarningAnnotation.Create(FeaturesResources.Warning_colon_Iteration_variable_crossed_function_boundary));
+                        }
+
+                        editor.ReplaceNode(
+                            indexMatch,
+                            generator.IdentifierName(replacementToken).WithTriviaFrom(indexMatch));
+                    }
+                    else
+                    {
+                        // Collection was used for some other purpose.  If it's passed as an argument
+                        // to something, or is written to, or has a method invoked on it, we'll warn
+                        // that it's potentially changing and may break if you switch to a foreach loop.
+                        var shouldWarn = syntaxFacts.IsArgument(current.Parent);
+                        shouldWarn |= semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken);
+                        shouldWarn |=
+                            syntaxFacts.IsAnyMemberAccessExpression(current.Parent) &&
+                            syntaxFacts.IsInvocationExpression(current.Parent.Parent);
+
+                        if (shouldWarn)
+                        {
+                            editor.ReplaceNode(
+                                current,
+                                (node, _) => node.WithAdditionalAnnotations(
+                                    WarningAnnotation.Create(FeaturesResources.Warning_colon_Iteration_variable_crossed_function_boundary)));
+                        }
                     }
 
-                    if (crossesFunctionBoundary(current))
-                    {
-                        replacementToken = replacementToken.WithAdditionalAnnotations(
-                            WarningAnnotation.Create(FeaturesResources.Warning_colon_Iteration_variable_crossed_function_boundary));
-                    }
-
-                    var replacement = generator.IdentifierName(replacementToken).WithTriviaFrom(current);
-
-                    editor.ReplaceNode(current, replacement);
+                    return;
                 }
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
                     if (child.IsNode)
                     {
-                        findAndReplaceMatches(child.AsNode());
+                        FindAndReplaceMatches(child.AsNode());
                     }
                 }
             }
 
-            bool crossesFunctionBoundary(SyntaxNode node)
+            bool CrossesFunctionBoundary(SyntaxNode node)
             {
                 var containingFunction = node.AncestorsAndSelf().FirstOrDefault(
                     n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunction(n));

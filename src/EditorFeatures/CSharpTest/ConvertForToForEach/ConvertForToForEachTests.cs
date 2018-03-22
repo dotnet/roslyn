@@ -92,6 +92,108 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWarnIfCollectionPotentiallyMutated1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            Console.WriteLine(list[i]);
+            list.Add(null);
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (string {|Rename:v|} in list)
+        {
+            Console.WriteLine(v);
+            {|Warning:list|}.Add(null);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWarnIfCollectionPotentiallyMutated2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            Console.WriteLine(list[i]);
+            list = null;
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (string {|Rename:v|} in list)
+        {
+            Console.WriteLine(v);
+            {|Warning:list|} = null;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNoWarnIfCollectionPropertyAccess()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            Console.WriteLine(list[i]);
+            Console.WriteLine(list.Count);
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (string {|Rename:v|} in list)
+        {
+            Console.WriteLine(v);
+            Console.WriteLine(list.Count);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestNoWarnIfDoesNotCrossFunctionBoundary()
         {
             await TestInRegularAndScript1Async(

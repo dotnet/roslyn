@@ -3699,6 +3699,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Collection may be modified during iteration..
+        /// </summary>
+        internal static string Warning_colon_Collection_may_be_modified_during_iteration {
+            get {
+                return ResourceManager.GetString("Warning_colon_Collection_may_be_modified_during_iteration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Collection was modified during iteration..
         /// </summary>
         internal static string Warning_colon_Collection_was_modified_during_iteration {

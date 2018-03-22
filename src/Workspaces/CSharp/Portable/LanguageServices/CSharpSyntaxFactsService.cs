@@ -691,6 +691,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => (node as ArgumentSyntax).GetRefKind();
 
+        public bool IsArgument(SyntaxNode node)
+            => node.Kind() == SyntaxKind.Argument;
+
         public bool IsSimpleArgument(SyntaxNode node)
         {
             var argument = node as ArgumentSyntax;

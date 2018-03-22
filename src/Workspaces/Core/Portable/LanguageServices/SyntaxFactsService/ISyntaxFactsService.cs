@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// no named params, no omitted args).
         /// </summary>
         bool IsSimpleArgument(SyntaxNode node);
+        bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
