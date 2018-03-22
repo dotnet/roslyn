@@ -739,7 +739,9 @@ namespace System
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
-            CompileAndVerify(comp, verify: Verification.Fails).
+
+            // PROTOTYPE(verification) Internal.TypeSystem.TypeSystemException + TypeLoadException : [TEMPORARY EXCEPTION MESSAGE] ClassLoadGeneral: System.String, 699fa24e-4ae5-4965-b7a7-166da051a9a9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify).
                 VerifyIL("program.Main()",
 @"
 {
@@ -867,7 +869,8 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            CompileAndVerify(comp, verify: Verification.Fails).
+            // PROTOTYPE(verification) Internal.TypeSystem.TypeSystemException+TypeLoadException : [TEMPORARY EXCEPTION MESSAGE] ClassLoadGeneral: System.String, cb9df1f8-9e67-4084-a523-059b000cf4b6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)

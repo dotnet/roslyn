@@ -255,7 +255,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"");
+            // PROTOTYPE(verification) Unexpected type on the stack.
+            var compilation = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, expectedOutput: @"");
 
             compilation.VerifyIL("S1.Equals(object)",
 @"
@@ -444,7 +445,8 @@ namespace NS
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // PROTOTYPE(verification) Unexpected type on the stack.
+            var compilation = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, expectedOutput: @"
 Abc
 255
 q");
@@ -2349,8 +2351,8 @@ public class Test
     }
 
 ";
-
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
+            // PROTOTYPE(verification) Unexpected type on the stack.
+            var compilation = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"

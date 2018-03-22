@@ -134,8 +134,8 @@ public class Test
     public void M<T>() where T : unmanaged { }
 }
 ";
-
-            CompileAndVerify(text, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            // PROTOTYPE(verification)
+            CompileAndVerify(text, verify: Verification.FailsPeVerify | Verification.PassesIlVerify, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -160,8 +160,8 @@ public class Test<T> where T : unmanaged
 {
 }
 ";
-
-            CompileAndVerify(text, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            // PROTOTYPE(verification)
+            CompileAndVerify(text, verify: Verification.FailsPeVerify | Verification.PassesIlVerify, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);

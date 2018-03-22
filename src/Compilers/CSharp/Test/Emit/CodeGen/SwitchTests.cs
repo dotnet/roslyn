@@ -4196,8 +4196,8 @@ class Program
                 source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
 
-
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            // PROTOTYPE(verification)
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPeVerify | Verification.PassesIlVerify);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)

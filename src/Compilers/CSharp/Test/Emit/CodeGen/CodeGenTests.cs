@@ -53,7 +53,8 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // PROTOTYPE(verification) Unexpected type on the stack.
+            var result = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -140,7 +141,8 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // PROTOTYPE(verification) Unexpected type on the stack.
+            var result = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -5140,7 +5142,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.UnexpectedTypeOnStack);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
 
             compilation.VerifyIL("Program.Main(string[])",
 @"

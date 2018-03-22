@@ -3014,7 +3014,7 @@ unsafe class Test
 
             var c = CompileAndVerifyUtil(text,
                 options: TestOptions.UnsafeReleaseDll,
-                verify: Verification.Fails);
+                verify: Verification.FailsPeVerify | Verification.PassesIlVerify); // PROTOTYPE(verification)
 
             c.VerifyDiagnostics();
         }

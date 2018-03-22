@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
         UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.
-        InvalidLocale = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about invalid locale string
         UnableToResolveToken = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about "unable to resolve token"
         TypeDevNotNil = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
         ClassLayout = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.

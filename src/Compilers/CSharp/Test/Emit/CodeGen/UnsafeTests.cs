@@ -8532,8 +8532,8 @@ No overflow from (S15*)0 + sizeof(S15)
 No overflow from (S15*)0 + sizeof(S16)
 No overflow from (S16*)0 + sizeof(S15)";
             }
-
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            // PROTOTYPE(verification)
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.FailsPeVerify | Verification.PassesIlVerify);
         }
 
         [Fact]
