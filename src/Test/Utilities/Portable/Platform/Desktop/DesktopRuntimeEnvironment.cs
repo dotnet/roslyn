@@ -335,37 +335,40 @@ namespace Roslyn.Test.Utilities.Desktop
 
 #if NET461
             // IL Verify
-            var resolver = new Resolver(emitData);
-            var verifier = new ILVerify.Verifier(resolver);
-            if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
+            if ((verification & (Verification.PassesIlVerify | Verification.FailsIlVerify)) != 0)
             {
-                verifier.SetSystemModuleName(new AssemblyName("mscorlib"));
-            }
-            else
-            {
-                // auto-detect which module is the "corlib"
-                foreach (var module in emitData.AllModuleData)
+                var resolver = new Resolver(emitData);
+                var verifier = new ILVerify.Verifier(resolver);
+                if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
                 {
-                    var name = new AssemblyName(module.SimpleName);
-                    var metadataReader = resolver.Resolve(name).GetMetadataReader();
-                    if (metadataReader.AssemblyReferences.Count == 0)
+                    verifier.SetSystemModuleName(new AssemblyName("mscorlib"));
+                }
+                else
+                {
+                    // auto-detect which module is the "corlib"
+                    foreach (var module in emitData.AllModuleData)
                     {
-                        verifier.SetSystemModuleName(name);
+                        var name = new AssemblyName(module.SimpleName);
+                        var metadataReader = resolver.Resolve(name).GetMetadataReader();
+                        if (metadataReader.AssemblyReferences.Count == 0)
+                        {
+                            verifier.SetSystemModuleName(name);
+                        }
                     }
                 }
-            }
 
-            var result = verifier.Verify(resolver.Resolve(new AssemblyName(emitData.MainModule.FullName)));
-            if (result.Count() > 0)
-            {
-                if ((verification & Verification.PassesIlVerify) != 0)
+                var result = verifier.Verify(resolver.Resolve(new AssemblyName(emitData.MainModule.FullName)));
+                if (result.Count() > 0)
                 {
-                    throw new Exception("IL Verify failed");
+                    if ((verification & Verification.PassesIlVerify) != 0)
+                    {
+                        throw new Exception("IL Verify failed: \r\n" + string.Join("\r\n", result.Select(r => r.Message)));
+                    }
                 }
-            }
-            else if ((verification & Verification.FailsIlVerify) != 0)
-            {
-                throw new Exception("IL Verify succeeded unexpectedly");
+                else if ((verification & Verification.FailsIlVerify) != 0)
+                {
+                    throw new Exception("IL Verify succeeded unexpectedly");
+                }
             }
 #endif
 

@@ -1150,7 +1150,7 @@ class C
             comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
-            CompileAndVerify(comp, verify: Verification.Fails);
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify); // PROTOTYPE(verification) Internal.TypeSystem.TypeSystemException+TypeLoadException : [TEMPORARY EXCEPTION MESSAGE] ClassLoadGeneral: System.String, 71b2955e-695c-48f1-86db-7ace51a3dc36, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
         }
 
         [Fact]
@@ -1184,7 +1184,7 @@ class C
             comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
-            CompileAndVerify(comp, verify: Verification.Fails);
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify); // PROTOTYPE(verification) Internal.TypeSystem.TypeSystemException+TypeLoadException : [TEMPORARY EXCEPTION MESSAGE] ClassLoadGeneral: System.String, 71b2955e-695c-48f1-86db-7ace51a3dc36, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
         }
 
         [Fact]
