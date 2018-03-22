@@ -40,10 +40,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             var assemblyNames = new string[]
             {
-                "Microsoft.CodeAnalysis.Workspaces.MSBuild",
+                typeof(MSBuildMefHostServices).Assembly.GetName().Name,
             };
 
-            return MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));
+            return MefHostServices.DefaultAssemblies.Concat(
+                MefHostServices.LoadNearbyAssemblies(assemblyNames));
         }
     }
 }
