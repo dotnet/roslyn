@@ -275,6 +275,8 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
             Instance Receiver: 
               ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S1) (Syntax: 's')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
