@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// #define darkmerged1
+#define lightmerged1
+
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
@@ -371,7 +374,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
+#if original
                 this.ForegroundColor = Color.FromRgb(192, 192, 192);
+#elif darkmerged1
+                this.ForegroundColor = Color.FromRgb(214, 157, 133);
+#elif lightmerged1
+                this.ForegroundColor = Color.FromRgb(128, 0, 0);
+#else
+#error
+#endif
             }
         }
 
@@ -387,7 +398,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_class;
+#if original
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
+#elif darkmerged1
+                this.ForegroundColor = Color.FromRgb(202, 121, 236);
+#endif
             }
         }
 
@@ -403,7 +418,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexQuantifierFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
+
+                // same as keywords
+#if original
                 this.ForegroundColor = Color.FromRgb(95, 149, 250);
+#elif lightmerged1
+                this.ForegroundColor = Color.FromRgb(0, 0, 255);
+#else
+#error
+#endif
             }
         }
 
@@ -419,7 +442,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+#if original
                 this.ForegroundColor = Color.FromRgb(202, 121, 236);
+#elif darkmerged1
+                // same as quantifier
+                this.ForegroundColor = Color.FromRgb(95, 149, 250);
+#elif lightmerged1
+                this.ForegroundColor = Color.FromRgb(0, 0, 255);
+#else
+#error
+#endif
             }
         }
 
@@ -435,7 +467,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAlternationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+#if original
                 this.ForegroundColor = Color.FromRgb(255, 255, 0);
+#elif darkmerged1
+                // same as grouping by default.
+                this.ForegroundColor = Color.FromRgb(78, 201, 176);
+#elif lightmerged1
+                this.ForegroundColor = Color.FromRgb(43, 145, 175);
+#else
+#error
+#endif
             }
         }
          
@@ -467,13 +508,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
+
+                // same as user types
+#if original
                 this.ForegroundColor = Color.FromRgb(78, 201, 176);
+#elif lightmerged1
+                this.ForegroundColor = Color.FromRgb(43, 145, 175);
+#else
+#error
+#endif
             }
         }
-        #endregion
+#endregion
 
 
-        #region VB XML Literals - Attribute Name 
+#region VB XML Literals - Attribute Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeName)]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]
@@ -487,8 +536,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
             }
         }
-        #endregion
-        #region VB XML Literals - Attribute Quotes 
+#endregion
+#region VB XML Literals - Attribute Quotes 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeQuotes)]
         [Name(ClassificationTypeNames.XmlLiteralAttributeQuotes)]
@@ -502,8 +551,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
             }
         }
-        #endregion
-        #region VB XML Literals - Attribute Value 
+#endregion
+#region VB XML Literals - Attribute Value 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeValue)]
         [Name(ClassificationTypeNames.XmlLiteralAttributeValue)]
@@ -517,8 +566,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
             }
         }
-        #endregion
-        #region VB XML Literals - CData Section 
+#endregion
+#region VB XML Literals - CData Section 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralCDataSection)]
         [Name(ClassificationTypeNames.XmlLiteralCDataSection)]
@@ -532,8 +581,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
             }
         }
-        #endregion
-        #region VB XML Literals - Comment 
+#endregion
+#region VB XML Literals - Comment 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralComment)]
         [Name(ClassificationTypeNames.XmlLiteralComment)]
@@ -547,8 +596,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(98, 151, 85); // HC_LIGHTGREEN
             }
         }
-        #endregion
-        #region VB XML Literals - Delimiter 
+#endregion
+#region VB XML Literals - Delimiter 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralDelimiter)]
         [Name(ClassificationTypeNames.XmlLiteralDelimiter)]
@@ -562,8 +611,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
             }
         }
-        #endregion
-        #region VB XML Literals - Embedded Expression 
+#endregion
+#region VB XML Literals - Embedded Expression 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralEmbeddedExpression)]
         [Name(ClassificationTypeNames.XmlLiteralEmbeddedExpression)]
@@ -578,8 +627,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.BackgroundColor = Color.FromRgb(255, 254, 191); // HC_LIGHTYELLOW
             }
         }
-        #endregion
-        #region VB XML Literals - Entity Reference 
+#endregion
+#region VB XML Literals - Entity Reference 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralEntityReference)]
         [Name(ClassificationTypeNames.XmlLiteralEntityReference)]
@@ -593,8 +642,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
             }
         }
-        #endregion
-        #region VB XML Literals - Name 
+#endregion
+#region VB XML Literals - Name 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralName)]
         [Name(ClassificationTypeNames.XmlLiteralName)]
@@ -608,8 +657,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(132, 70, 70); // HC_LIGHTMAROON
             }
         }
-        #endregion
-        #region VB XML Literals - Processing Instruction 
+#endregion
+#region VB XML Literals - Processing Instruction 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralProcessingInstruction)]
         [Name(ClassificationTypeNames.XmlLiteralProcessingInstruction)]
@@ -623,8 +672,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
             }
         }
-        #endregion
-        #region VB XML Literals - Text 
+#endregion
+#region VB XML Literals - Text 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralText)]
         [Name(ClassificationTypeNames.XmlLiteralText)]
@@ -638,6 +687,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
             }
         }
-        #endregion
+#endregion
     }
 }
