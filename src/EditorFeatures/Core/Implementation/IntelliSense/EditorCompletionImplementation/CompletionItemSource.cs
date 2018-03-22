@@ -236,11 +236,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public CommitBehavior GetDefaultCommitBehavior(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
         {
-            // TODO: Handle Enter in VB
-
             if (PassEnterThroughToBuffer() && typeChar == '\n')
             {
                 return CommitBehavior.RaiseFurtherCommandHandlers;
+            }
+
+            if (item.InsertText.EndsWith(":") && typeChar == ':')
+            {
+                return CommitBehavior.SuppressFurtherCommandHandlers;
             }
 
             return CommitBehavior.None;
