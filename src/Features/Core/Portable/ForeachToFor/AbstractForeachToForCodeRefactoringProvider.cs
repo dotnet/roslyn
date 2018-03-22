@@ -82,17 +82,6 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                name => model.LookupSymbols(contextNode.SpanStart, /*container*/null, name).Length == 0);
         }
 
-        protected T AddRenameAnnotation<T>(T node, string name) where T : SyntaxNode
-        {
-            var token = node.DescendantTokens().FirstOrDefault(t => t.Text == name);
-            if (token == default)
-            {
-                return node;
-            }
-
-            return node.ReplaceToken(token, token.WithAdditionalAnnotations(RenameAnnotation.Create()));
-        }
-
         protected SyntaxNode GetCollectionVariableName(
             SemanticModel model, SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression)
         {
@@ -116,16 +105,18 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             // TODO: refactor introduce variable refactoring to real service and use that service here to introduce local variable
             var generator = editor.Generator;
 
+            // 
+            var collectionVariableToken = generator.Identifier(collectionVariable.ToString()).WithAdditionalAnnotations(RenameAnnotation.Create());
+
             // this expression is from user code. don't simplify this.
-            var collectionVariableName = collectionVariable.ToString();
             var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
             var collectionStatement = generator.LocalDeclarationStatement(
-                collectionVariableName,
+                collectionVariableToken,
                 foreachInfo.RequireExplicitCastInterface
                     ? generator.CastExpression(foreachInfo.ExplicitCastInterface, expression) : expression);
 
-            collectionStatement = AddRenameAnnotation(
-                collectionStatement.WithLeadingTrivia(foreachInfo.ForEachStatement.GetFirstToken().LeadingTrivia), collectionVariableName);
+            // attach trivia to right place
+            collectionStatement = collectionStatement.WithLeadingTrivia(foreachInfo.ForEachStatement.GetFirstToken().LeadingTrivia);
 
             editor.InsertBefore(foreachInfo.ForEachStatement, collectionStatement);
         }
