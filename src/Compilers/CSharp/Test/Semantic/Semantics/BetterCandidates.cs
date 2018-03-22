@@ -115,6 +115,40 @@ class B {}
 
         //When a method group contains both instance and static members, we discard the static members if invoked with an instance receiver.
         [Fact]
+        public void TestInstanceReceiver02b()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        D d = new D();
+        d.Main2();
+    }
+    public static void M(A a) { System.Console.WriteLine(1); }
+    public void M(B b) { System.Console.WriteLine(2); }
+}
+class D : Program
+{
+    public void Main2()
+    {
+        base.M(null);
+    }
+}
+class A {}
+class B {}
+";
+            CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (15,14): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(A)' and 'Program.M(B)'
+                //         base.M(null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A)", "Program.M(B)").WithLocation(15, 14)
+                );
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "2");
+        }
+
+        //When a method group contains both instance and static members, we discard the static members if invoked with an instance receiver.
+        [Fact]
         public void TestInstanceReceiver03()
         {
             var source =
