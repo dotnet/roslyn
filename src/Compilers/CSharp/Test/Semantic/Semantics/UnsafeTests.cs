@@ -4756,6 +4756,123 @@ unsafe class C
             Assert.Equal(0, accessSummary.MethodGroup.Length);
         }
 
+        [Fact]
+        public void PointerElementAccessSemanticModelAPIs_Fixed_Unmovable()
+        {
+            var text = @"
+unsafe class C
+{
+    struct S1
+    {
+        public fixed int f[10];
+    }
+
+    void M()
+    {
+        S1 p = deafult;
+
+        p.f[i] = 123;
+    }
+}
+";
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
+
+            var receiverSyntax = syntax.Expression;
+            var indexSyntax = syntax.ArgumentList.Arguments.Single().Expression;
+            var accessSyntax = syntax;
+
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var intPointerType = new PointerTypeSymbol(intType);
+
+            var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
+            var receiverSymbol = receiverSummary.Symbol;
+            Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal("f", receiverSymbol.Name);
+            Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
+            Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
+            Assert.Equal(intPointerType, receiverSummary.Type);
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, receiverSummary.MethodGroup.Length);
+
+            var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
+            var indexSymbol = indexSummary.Symbol;
+            Assert.Null(indexSymbol);
+
+            var accessSummary = model.GetSemanticInfoSummary(accessSyntax);
+            Assert.Null(accessSummary.Symbol);
+            Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
+            Assert.Equal(0, accessSummary.CandidateSymbols.Length);
+            Assert.Equal(intType, accessSummary.Type);
+            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, accessSummary.MethodGroup.Length);
+        }
+
+        [Fact]
+        public void PointerElementAccessSemanticModelAPIs_Fixed_Movable()
+        {
+            var text = @"
+unsafe class C
+{
+    struct S1
+    {
+        public fixed int f[10];
+    }
+
+    S1 p = deafult;
+    void M()
+    {
+        p.f[i] = 123;
+    }
+}
+";
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
+
+            var receiverSyntax = syntax.Expression;
+            var indexSyntax = syntax.ArgumentList.Arguments.Single().Expression;
+            var accessSyntax = syntax;
+
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var intPointerType = new PointerTypeSymbol(intType);
+
+            var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
+            var receiverSymbol = receiverSummary.Symbol;
+            Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal("f", receiverSymbol.Name);
+            Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
+            Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
+            Assert.Equal(intPointerType, receiverSummary.Type);
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, receiverSummary.MethodGroup.Length);
+
+            var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
+            var indexSymbol = indexSummary.Symbol;
+            Assert.Null(indexSymbol);
+
+            var accessSummary = model.GetSemanticInfoSummary(accessSyntax);
+            Assert.Null(accessSummary.Symbol);
+            Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
+            Assert.Equal(0, accessSummary.CandidateSymbols.Length);
+            Assert.Equal(intType, accessSummary.Type);
+            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, accessSummary.MethodGroup.Length);
+        }
+
         #endregion PointerElementAccess SemanticModel tests
 
         #region Pointer conversion tests

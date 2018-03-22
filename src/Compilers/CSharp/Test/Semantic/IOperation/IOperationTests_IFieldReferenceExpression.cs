@@ -247,6 +247,66 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void IFieldReferenceExpression_IndexingFixed_Unmovable()
+        {
+            string source = @"
+
+unsafe struct S1
+{
+    public fixed int field[10];
+}
+
+unsafe class C
+{
+    void M()
+    {
+        S1 s = default;
+
+        /*<bind>*/ s.field[3] = 1; /*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S1) (Syntax: 's')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics,compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_IndexingFixed_Movable()
+        {
+            string source = @"
+
+unsafe struct S1
+{
+    public fixed int field[10];
+}
+
+unsafe class C
+{
+    S1 s = default;
+
+    void M()
+    {
+        /*<bind>*/ s.field[3] = 1; /*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IFieldReferenceOperation: S1 C.s (OperationKind.FieldReference, Type: S1) (Syntax: 's')
+  Instance Receiver: 
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 's')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void IFieldReference_StaticFieldWithInstanceReceiver()
         {
             string source = @"
