@@ -466,6 +466,9 @@ function Test-XUnitCoreClr() {
 # Core function for running our unit / integration tests tests
 function Test-XUnit() { 
 
+    # Used by tests to locate dotnet CLI
+    $env:DOTNET_INSTALL_DIR = Split-Path $dotnet    
+
     if ($testCoreClr) {
         Test-XUnitCoreClr
         return

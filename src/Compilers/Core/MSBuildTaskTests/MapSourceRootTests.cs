@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                         { "ContainingRoot", @"c:\MyProjects\MyProject\" },
                         { "some metadata", "some value" },
                     }),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -81,7 +82,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                         { "NestedRoot", "|||:;" },
                         { "ContainingRoot", @"****/" },
                     }),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -117,7 +119,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     new TaskItem(@"C:/"),
                     new TaskItem(@"C:"),
                     new TaskItem(@"C"),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -155,7 +158,8 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
                         { "NestedRoot", @"a\c" },
                         { "ContainingRoot", @"c:\MyProjects\MyProject\" },
                     }),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -191,7 +195,8 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
                     new TaskItem(@"c:\packages\SourcePackage1\"),
                     new TaskItem(@"C:\packages\SourcePackage1\"),
                     new TaskItem(@"c:\packages\SourcePackage2\"),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -224,7 +229,8 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
                     new TaskItem(@"c:\packages\SourcePackage1\"),
                     new TaskItem(@"c:\packages\SourcePackage1\"),
                     new TaskItem(@"c:\packages\SourcePackage2\"),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -254,7 +260,8 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
                         { "NestedRoot", "a/b" },
                         { "ContainingRoot", @"c:\MyProjects\MyProject\" },
                     }),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
@@ -282,7 +289,8 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
                         { "SourceControl", "Git" },
                         { "NestedRoot", "a/b" },
                     }),
-                }
+                },
+                Deterministic = true
             };
 
             bool result = task.Execute();
