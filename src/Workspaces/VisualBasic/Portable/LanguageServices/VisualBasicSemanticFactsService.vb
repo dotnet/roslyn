@@ -294,5 +294,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFactsService.FindParameterForArgument
             Return DirectCast(argumentNode, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
         End Function
+
+        Public Function GetSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFactsService.GetSymbolInfo
+            Return semanticModel.GetSymbolInfo(node, cancellationToken)
+        End Function
     End Class
 End Namespace
