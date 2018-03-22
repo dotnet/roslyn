@@ -153,9 +153,8 @@ namespace RunTests
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var resultsDir = testResult.ResultsDirectory;
-            var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
-            File.WriteAllText(outputLogPath, testResult.StandardOutput);
+            var outputLogPath = Path.Combine(_options.LogsDirectory, $"{testResult.DisplayName}.out.log");
+            File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);

@@ -1408,5 +1408,29 @@ End Class
                 Diagnostic("ID", "FieldForPropertyReturnType").WithArguments("FieldForPropertyReturnType", "30").WithLocation(72, 43),
                 Diagnostic("ID", "FieldForIndexerReturnType").WithArguments("FieldForIndexerReturnType", "31").WithLocation(83, 101))
         End Sub
+
+        <Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")>
+        Public Sub TestMethodBodyOperationAnalyzer()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Friend Class C
+    Sub New()
+    End Sub
+
+    Sub M()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.VerifyDiagnostics()
+
+            ' VB methods/constructors don't have an IMethodBodyOperation or an IConstructorBodyOperation.
+            comp.VerifyAnalyzerDiagnostics({New MethodOrConstructorBodyOperationAnalyzer()})
+        End Sub
+
     End Class
 End Namespace
