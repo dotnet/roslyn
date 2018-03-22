@@ -18278,6 +18278,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b2").WithArguments("a", "A.explicit operator C(A a)").WithLocation(20, 17));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `(C)a1`,
+        // `(C)b1`, etc. since the user-defined conversion is defined from A? to C?.
         [Fact]
         public void MultipleConversions_Explicit_02()
         {
