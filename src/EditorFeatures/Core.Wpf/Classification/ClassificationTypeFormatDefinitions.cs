@@ -467,7 +467,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
-
                 this.ForegroundColor = Color.FromRgb(78, 201, 176);
             }
         }
