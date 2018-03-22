@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             // TODO: refactor introduce variable refactoring to real service and use that service here to introduce local variable
             var generator = editor.Generator;
 
-            // 
+            // attach rename annotation to control variable
             var collectionVariableToken = generator.Identifier(collectionVariable.ToString()).WithAdditionalAnnotations(RenameAnnotation.Create());
 
             // this expression is from user code. don't simplify this.
