@@ -9051,8 +9051,8 @@ tryAgain:
                     if (isAssignmentOperator)
                     {
                         ExpressionSyntax rhs = opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword
-                            ? rhs = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
-                            : rhs = this.ParseSubExpression(newPrecedence);
+                            ? CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
+                            : this.ParseSubExpression(newPrecedence);
                         leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rhs);
                     }
                     else
