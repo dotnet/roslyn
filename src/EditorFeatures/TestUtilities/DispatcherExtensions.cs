@@ -37,7 +37,7 @@ namespace Roslyn.Test.Utilities
                     operation.Abort();
                 }
             }
-            catch (TargetParameterCountException ex)
+            catch (TargetParameterCountException ex) when (Environment.FailFast("Target Parameter Count Exception", ex))
             {
                 var methodInfoBuilder = new StringBuilder();
                 methodInfoBuilder.AppendLine("Caught TargetParameterCountException in DoEvents. Printing MethodInfos in reverse execution order.");
@@ -76,6 +76,12 @@ namespace Roslyn.Test.Utilities
                     s_delegateInfos.Clear();
                 }
                 throw new TargetParameterCountException(methodInfoBuilder.ToString(), ex);
+            }
+
+            bool IfTargetParameterCountExceptionFailFast(TargetParameterCountException ex)
+            {
+                Environment.FailFast("Target Parameter Count Exception", ex);
+                return true;
             }
         }
 
