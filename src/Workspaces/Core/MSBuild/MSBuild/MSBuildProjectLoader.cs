@@ -39,7 +39,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _diagnosticReporter = diagnosticReporter ?? new DiagnosticReporter(workspace);
             _pathResolver = new PathResolver(_diagnosticReporter);
             _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspace, _diagnosticReporter);
-            _properties = properties ?? ImmutableDictionary<string, string>.Empty;
+
+            _properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (properties != null)
+            {
+                _properties = _properties.AddRange(properties);
+            }
 
             BuildManager = new ProjectBuildManager();
         }
