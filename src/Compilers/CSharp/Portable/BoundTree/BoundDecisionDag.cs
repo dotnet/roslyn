@@ -10,24 +10,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class BoundDecisionDag
+    internal partial class BoundDecisionDag
     {
-        public IEnumerable<BoundDecisionDag> Successors()
+        private HashSet<LabelSymbol> _reachableLabels;
+        private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
+
+        private static IEnumerable<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
         {
-            switch (this)
+            switch (node)
             {
-                case BoundEvaluationPoint p:
+                case BoundEvaluationDecisionDagNode p:
                     yield return p.Next;
                     yield break;
-                case BoundDecisionPoint p:
+                case BoundTestDecisionDagNode p:
                     Debug.Assert(p.WhenFalse != null);
                     yield return p.WhenFalse;
                     Debug.Assert(p.WhenTrue != null);
                     yield return p.WhenTrue;
                     yield break;
-                case BoundDecision d:
+                case BoundLeafDecisionDagNode d:
                     yield break;
-                case BoundWhenClause w:
+                case BoundWhenDecisionDagNode w:
                     Debug.Assert(w.WhenTrue != null);
                     yield return w.WhenTrue;
                     if (w.WhenFalse != null)
@@ -37,11 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     yield break;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(this.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
         }
-
-        private HashSet<LabelSymbol> _reachableLabels;
 
         public HashSet<LabelSymbol> ReachableLabels
         {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // PROTOTYPE(patterns2): avoid linq?
                     _reachableLabels = new HashSet<LabelSymbol>(
-                        this.TopologicallySortedNodes().OfType<BoundDecision>().Select(d => d.Label));
+                        this.TopologicallySortedNodes.OfType<BoundLeafDecisionDagNode>().Select(d => d.Label));
                 }
 
                 return _reachableLabels;
@@ -59,12 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return a list of all the nodes reachable from this one, in a topologically sorted order.
+        /// A list of all the nodes reachable from this one, in a topologically sorted order.
         /// </summary>
-        public ImmutableArray<BoundDecisionDag> TopologicallySortedNodes()
+        public ImmutableArray<BoundDecisionDagNode> TopologicallySortedNodes
         {
-            // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-            return TopologicalSort.IterativeSort<BoundDecisionDag>(new[] { this }, d => d.Successors());
+            get
+            {
+                if (_topologicallySortedNodes.IsDefault)
+                {
+                    // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
+                    _topologicallySortedNodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors);
+                }
+
+                return _topologicallySortedNodes;
+            }
         }
 
         /// <summary>
@@ -72,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// tests that are unnecessary due to that constant value. This simplification affects flow analysis (reachability
         /// and definite assignment) and permits us to simplify the generated code.
         /// </summary>
-        internal BoundDecisionDag SimplifyDecisionDagForConstantInput(
+        public BoundDecisionDag SimplifyDecisionDagForConstantInput(
             BoundExpression input,
             Conversions conversions,
             DiagnosticBag diagnostics)
@@ -83,44 +92,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, we topologically sort the nodes of the dag so that we can translate the nodes bottom-up.
             // This will avoid overflowing the compiler's runtime stack which would occur for a large switch
             // statement if we were using a recursive strategy.
-            ImmutableArray<BoundDecisionDag> sortedNodes = this.TopologicallySortedNodes();
+            ImmutableArray<BoundDecisionDagNode> sortedNodes = this.TopologicallySortedNodes;
 
             // Cache simplified/translated replacement for each translated dag node. Since we always visit
             // a node's successors before the node, the replacement should always be in the cache when we need it.
-            var replacement = PooledDictionary<BoundDecisionDag, BoundDecisionDag>.GetInstance();
+            var replacement = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
 
             // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
             for (int i = sortedNodes.Length - 1; i >= 0; i--)
             {
-                BoundDecisionDag node = sortedNodes[i];
+                BoundDecisionDagNode node = sortedNodes[i];
                 Debug.Assert(!replacement.ContainsKey(node));
-                BoundDecisionDag newNode = makeReplacement(node);
+                BoundDecisionDagNode newNode = makeReplacement(node);
                 replacement.Add(node, newNode);
             }
 
-            var result = replacement[this];
+            // Return the computed replacement root node
+            var newRoot = replacement[this.RootNode];
             replacement.Free();
-            return result;
+            return this.Update(newRoot);
 
             // Make a replacement for a given node, using the precomputed replacements for its successors.
-            BoundDecisionDag makeReplacement(BoundDecisionDag dag)
+            BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag)
             {
                 switch (dag)
                 {
-                    case BoundEvaluationPoint p:
+                    case BoundEvaluationDecisionDagNode p:
                         return p.Update(p.Evaluation, replacement[p.Next]);
-                    case BoundDecisionPoint p:
+                    case BoundTestDecisionDagNode p:
                         // This is the key to the optimization. The result of a top-level test might be known if the input is constant.
-                        switch (knownResult(p.Decision))
+                        switch (knownResult(p.Test))
                         {
                             case true:
                                 return replacement[p.WhenTrue];
                             case false:
                                 return replacement[p.WhenFalse];
                             default:
-                                return p.Update(p.Decision, replacement[p.WhenTrue], replacement[p.WhenFalse]);
+                                return p.Update(p.Test, replacement[p.WhenTrue], replacement[p.WhenFalse]);
                         }
-                    case BoundWhenClause p:
+                    case BoundWhenDecisionDagNode p:
                         if (p.WhenExpression == null || p.WhenExpression.ConstantValue == ConstantValue.True)
                         {
                             return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], null);
@@ -136,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], replacement[p.WhenFalse]);
                         }
-                    case BoundDecision p:
+                    case BoundLeafDecisionDagNode p:
                         return p;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(dag);
@@ -144,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is the decision's result known because the input is a constant?
-            bool? knownResult(BoundDagDecision choice)
+            bool? knownResult(BoundDagTest choice)
             {
                 if (choice.Input.Source != null)
                 {
@@ -154,13 +164,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (choice)
                 {
-                    case BoundNullValueDecision d:
+                    case BoundDagNullTest d:
                         return inputConstant.IsNull;
-                    case BoundNonNullDecision d:
+                    case BoundDagNonNullTest d:
                         return !inputConstant.IsNull;
-                    case BoundNonNullValueDecision d:
+                    case BoundDagValueTest d:
                         return d.Value == inputConstant;
-                    case BoundTypeDecision d:
+                    case BoundDagTypeTest d:
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         bool? known = Binder.ExpressionOfTypeMatchesPatternType(conversions, input.Type, d.Type, ref useSiteDiagnostics, out Conversion conversion, inputConstant, inputConstant.IsNull);
                         diagnostics.Add(d.Syntax, useSiteDiagnostics);

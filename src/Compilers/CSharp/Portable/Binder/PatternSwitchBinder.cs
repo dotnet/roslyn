@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
             ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDag(
+            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
                 compilation: this.Compilation,
                 syntax: node,
                 switchGoverningExpression: boundSwitchGoverningExpression,

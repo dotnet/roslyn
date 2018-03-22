@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class PatternSwitchLocalRewriter : BasePatternSwitchLocalRewriter
         {
-            public static BoundNode Rewrite(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
+            public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
             {
                 var rewriter = new PatternSwitchLocalRewriter(node, localRewriter);
                 BoundStatement result = rewriter.LowerPatternSwitchStatement(node);
@@ -41,20 +41,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
             /// <summary>
-            /// We revise the returned label for a decision so that all decisions in the same switch section are given the same label.
-            /// This permits all the decisions in a
+            /// We revise the returned label for a leaf so that all leafs in the same switch section are given the same label.
+            /// This permits all the leafs in a
             /// section to share the label, which enables the switch emitter to produce better code.
             /// </summary>
-            protected override LabelSymbol GetDagNodeLabel(BoundDecisionDag dag)
+            protected override LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
             {
                 var result = base.GetDagNodeLabel(dag);
-                if (dag is BoundDecision d)
+                if (dag is BoundLeafDecisionDagNode d)
                 {
                     SyntaxNode section = d.Syntax.Parent;
 
-                    // It is possible that the decision represents a compiler-generated default for a switch statement in the EE.
+                    // It is possible that the leaf represents a compiler-generated default for a switch statement in the EE.
                     // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
-                    // in decisions that result from explicit switch case labels in a switch section.
+                    // in leafs that result from explicit switch case labels in a switch section.
                     if (section?.Kind() == SyntaxKind.SwitchSection)
                     {
                         if (_sectionLabels.TryGetValue(section, out LabelSymbol replacementLabel))
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // If the expression is a constant, we leave it alone (the decision tree lowering code needs
+                        // If the expression is a constant, we leave it alone (the decision dag lowering code needs
                         // to see that constant). But we add an additional leading statement with the instrumented expression.
                         result.Add(_factory.ExpressionStatement(instrumentedExpression));
                     }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.Add(_factory.Block(this._loweredDecisionDag.ToImmutable()));
 
                 // A branch to the default label when no switch case matches is included in the
-                // decision tree, so the code in `result` is unreachable at this point.
+                // decision dag, so the code in `result` is unreachable at this point.
 
                 // Lower each switch section.
                 foreach (BoundPatternSwitchSection section in node.SwitchSections)
