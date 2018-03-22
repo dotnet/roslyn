@@ -166,11 +166,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var reportingMode = GetReportingModeForUnrecognizedProjects();
 
-            var requestedProjectOptions = new DiagnosticReportingOptions(
-                onPathFailure: reportingMode,
-                onLoaderFailure: reportingMode);
-
-            var discoveredProjectOptions = new DiagnosticReportingOptions(
+            var reportingOptions = new DiagnosticReportingOptions(
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
@@ -198,8 +194,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _properties,
                 projectMap: null,
                 progress,
-                requestedProjectOptions,
-                discoveredProjectOptions,
+                requestedProjectOptions: reportingOptions,
+                discoveredProjectOptions: reportingOptions,
                 preferMetadataForReferencedProjects: false);
 
             var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
