@@ -267,11 +267,18 @@ unsafe class C
 }
 ";
             string expectedOperationTree = @"
-ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S1) (Syntax: 's')
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
+  Left: 
+    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+      Children(2):
+          IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
+            Instance Receiver: 
+              ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S1) (Syntax: 's')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics,compilationOptions: TestOptions.UnsafeDebugDll);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,compilationOptions: TestOptions.UnsafeDebugDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -296,13 +303,22 @@ unsafe class C
 }
 ";
             string expectedOperationTree = @"
-IFieldReferenceOperation: S1 C.s (OperationKind.FieldReference, Type: S1) (Syntax: 's')
-  Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 's')
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
+  Left: 
+    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+      Children(2):
+          IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
+            Instance Receiver: 
+              IFieldReferenceOperation: S1 C.s (OperationKind.FieldReference, Type: S1) (Syntax: 's')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 's')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
