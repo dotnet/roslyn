@@ -338,8 +338,8 @@ class Test
     void Method()
     {
         // test
-        var {|Rename:list|} = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < list.Length; i++)
+        var {|Rename:array|} = new int[] { 1, 3, 4 };
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
         {
         }
     }
@@ -416,10 +416,10 @@ class Test
 {
     void Method()
     {
-        var {|Rename:list|} = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < list.Length; i++)
+        var {|Rename:array|} = new int[] { 1, 3, 4 };
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
         {
-            var a = list[i];
+            var a = array[i];
             Console.WriteLine(a);
         }
     }
@@ -436,7 +436,7 @@ class Test
 {
     void Method()
     {
-        var list = 1;
+        var array = 1;
 
         foreach[||](var a in new int[] { 1, 3, 4 })
         {
@@ -450,12 +450,12 @@ class Test
 {
     void Method()
     {
-        var list = 1;
+        var array = 1;
 
-        var {|Rename:list1|} = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < list1.Length; i++)
+        var {|Rename:array1|} = new int[] { 1, 3, 4 };
+        for (var {|Rename:i|} = 0; i < array1.Length; i++)
         {
-            var a = list1[i];
+            var a = array1[i];
             Console.WriteLine(a);
         }
     }
@@ -1449,10 +1449,10 @@ class Test
 {
     void Method()
     {
-        var {|Rename:list|} = ""test"";
-        for (var {|Rename:i|} = 0; i < list.Length; i++)
+        var {|Rename:str|} = ""test"";
+        for (var {|Rename:i|} = 0; i < str.Length; i++)
         {
-            int a = list[i];
+            int a = str[i];
             Console.WriteLine(a);
         }
     }

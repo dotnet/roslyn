@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
         {
             if (foreachInfo.RequireCollectionStatement)
             {
-                return generator.IdentifierName(CreateUniqueName(model, foreachInfo.ForEachStatement, "list"));
+                return generator.IdentifierName(
+                    CreateUniqueName(model, foreachInfo.ForEachStatement, foreachInfo.CollectionNameSuggestion));
             }
 
             return foreachCollectionExpression.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
@@ -184,21 +185,22 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
 
             GetInterfaceInfo(semanticFact, model, foreachVariable, foreachCollection,
-                out var explicitCastInterface, out var countName);
+                out var explicitCastInterface, out var collectionNameSuggestion, out var countName);
             if (countName == null)
             {
                 return null;
             }
 
             var requireCollectionStatement = CheckRequireCollectionStatement(foreachCollection);
-            return new ForEachInfo(countName, explicitCastInterface, foreachVariable.Type, requireCollectionStatement, foreachStatement);
+            return new ForEachInfo(collectionNameSuggestion, countName, explicitCastInterface, foreachVariable.Type, requireCollectionStatement, foreachStatement);
         }
 
         private static void GetInterfaceInfo(
             ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
-            out ITypeSymbol explicitCastInterface, out string countName)
+            out ITypeSymbol explicitCastInterface, out string collectionNameSuggestion, out string countName)
         {
             explicitCastInterface = default;
+            collectionNameSuggestion = default;
             countName = default;
 
             // go through list of types and interfaces to find out right set;
@@ -224,6 +226,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                     return;
                 }
 
+                collectionNameSuggestion = "array";
                 explicitCastInterface = null;
                 countName = Length;
                 return;
@@ -238,6 +241,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                     return;
                 }
 
+                collectionNameSuggestion = "str";
                 explicitCastInterface = null;
                 countName = Length;
                 return;
@@ -254,6 +258,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                         return;
                     }
 
+                    collectionNameSuggestion = "array";
                     explicitCastInterface = null;
                     countName = Length;
                     return;
@@ -263,6 +268,9 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             // go through all known interfaces we support next.
             var knownCollectionInterfaces = s_KnownInterfaceNames.Select(
                 s => model.Compilation.GetTypeByMetadataName(s)).Where(t => !IsNullOrErrorType(t));
+
+            // for all interfaces, we suggest collection name as "list"
+            collectionNameSuggestion = "list";
 
             // check type itself is interface case
             if (collectionType.TypeKind == TypeKind.Interface && knownCollectionInterfaces.Contains(collectionType.OriginalDefinition))
@@ -412,9 +420,10 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
         protected class ForEachInfo
         {
             public ForEachInfo(
-                string countName, ITypeSymbol explicitCastInterface, ITypeSymbol forEachElementType,
+                string collectionNameSuggestion, string countName, ITypeSymbol explicitCastInterface, ITypeSymbol forEachElementType,
                 bool requireCollectionStatement, TForEachStatement forEachStatement)
             {
+                CollectionNameSuggestion = collectionNameSuggestion;
                 CountName = countName;
 
                 // order of setting properties is important here
@@ -428,6 +437,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
             public bool RequireExplicitCastInterface => ExplicitCastInterface != null;
 
+            public string CollectionNameSuggestion { get; }
             public string CountName { get; }
             public ITypeSymbol ExplicitCastInterface { get; }
             public ITypeSymbol ForEachElementType { get; }
