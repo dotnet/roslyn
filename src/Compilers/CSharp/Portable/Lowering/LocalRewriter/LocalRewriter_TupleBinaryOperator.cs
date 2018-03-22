@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in `expr == (..., ...)` we need to save `expr` because it's not a tuple literal
             // in `(..., expr) == (..., (..., ...))` we need to save `expr` because it is used in a simple comparison
             BoundExpression loweredExpr = VisitExpression(expr);
-            if ((bool)(loweredExpr.Type != null) && NullableAlwaysHasValue((BoundExpression)loweredExpr) is var value && value != null)
+            if ((object)loweredExpr.Type != null)
             {
-                // Optimization: if the nullable expression always has a value, we'll save the value to a temp and wrap
-                // that temp so it can be recognized as always having a value later on.
-                var savedValue = EvaluateSideEffectingArgumentToTemp(value, initEffects, ref temps);
-                SyntaxNode syntax = loweredExpr.Syntax;
-                _ = TryGetSpecialTypeMethod(syntax, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor);
-
-                return new BoundObjectCreationExpression(syntax, nullableCtor, ImmutableArray.Create(savedValue),
-                    argumentNamesOpt: default, argumentRefKindsOpt: default, expanded: false, argsToParamsOpt: default,
-                    constantValueOpt: null, initializerExpressionOpt: null, binderOpt: null, type: loweredExpr.Type);
+                BoundExpression value = NullableAlwaysHasValue(loweredExpr);
+                if (value != null)
+                {
+                    // Optimization: if the nullable expression always has a value, we'll replace that value
+                    // with a temp saving that value
+                    BoundExpression savedValue = EvaluateSideEffectingArgumentToTemp(value, initEffects, ref temps);
+                    var objectCreation = (BoundObjectCreationExpression)loweredExpr;
+                    return objectCreation.UpdateArgumentsAndInitializer(ImmutableArray.Create(savedValue), objectCreation.ArgumentRefKindsOpt, objectCreation.InitializerExpressionOpt);
+                }
             }
 
             return EvaluateSideEffectingArgumentToTemp(loweredExpr, initEffects, ref temps);
