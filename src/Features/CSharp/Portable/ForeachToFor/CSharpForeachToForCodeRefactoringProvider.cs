@@ -7,15 +7,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ForeachToFor;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpForEachToForCodeRefactoringProvider)), Shared]
-    internal sealed class CSharpForEachToForCodeRefactoringProvider : AbstractForEachToForCodeRefactoringProvider
+    internal sealed class CSharpForEachToForCodeRefactoringProvider :
+        AbstractForEachToForCodeRefactoringProvider<ForEachStatementSyntax>
     {
-        protected override SyntaxNode GetForEachStatement(TextSpan selection, SyntaxToken token)
+        protected override ForEachStatementSyntax GetForEachStatement(TextSpan selection, SyntaxToken token)
         {
             var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
             if (foreachStatement == null)
@@ -66,9 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
             return foreachInfo.ForEachStatement.Parent.IsKind(SyntaxKind.Block);
         }
 
-        protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(SyntaxNode node)
+        protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(ForEachStatementSyntax foreachStatement)
         {
-            var foreachStatement = (ForEachStatementSyntax)node;
             return (foreachStatement.Statement, foreachStatement.Statement);
         }
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
             cancellationToken.ThrowIfCancellationRequested();
 
             var generator = editor.Generator;
-            var foreachStatement = (ForEachStatementSyntax)foreachInfo.ForEachStatement;
+            var foreachStatement = foreachInfo.ForEachStatement;
 
             var foreachCollectionExpression = foreachStatement.Expression;
             var collectionVariableName = GetCollectionVariableName(model, foreachInfo, foreachCollectionExpression);
@@ -98,30 +99,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             generator.Identifier(indexString).WithAdditionalAnnotations(RenameAnnotation.Create()),
-                            default,
+                            argumentList: default,
                             SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0))))),
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(
                     generator.IdentifierName(indexString),
                     generator.MemberAccessExpression(
                         generator.IdentifierName(collectionVariableName), foreachInfo.CountName)),
-                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexString))),
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PostfixUnaryExpression(
+                        SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexString))),
                 bodyStatement);
 
             // let leading and trailing trivia set
             if (!foreachInfo.RequireCollectionStatement)
             {
-                forStatement = forStatement.WithLeadingTrivia(foreachStatement.ForEachKeyword.LeadingTrivia);
+                forStatement = forStatement.WithLeadingTrivia(foreachStatement.GetLeadingTrivia());
             }
 
-            forStatement = forStatement.ReplaceToken(forStatement.CloseParenToken, forStatement.CloseParenToken.WithTrailingTrivia(foreachStatement.CloseParenToken.TrailingTrivia));
+            forStatement = forStatement.WithCloseParenToken(foreachStatement.CloseParenToken);
 
             editor.ReplaceNode(foreachStatement, forStatement);
         }
 
         private StatementSyntax GetForLoopBody(SyntaxGenerator generator, ForEachInfo foreachInfo, string collectionVariableName, string indexString)
         {
-            var foreachStatement = (ForEachStatementSyntax)foreachInfo.ForEachStatement;
+            var foreachStatement = foreachInfo.ForEachStatement;
             if (foreachStatement.Statement is EmptyStatementSyntax)
             {
                 return foreachStatement.Statement;
@@ -133,11 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
                 // use original text
                 var foreachVariableString = foreachStatement.Identifier.ToString();
 
-                // create varialbe statement
-                var variableStatement = AddItemVariableDeclaration(generator, foreachVariableString, collectionVariableName, indexString);
+                // create variable statement
+                var variableStatement = AddItemVariableDeclaration(
+                    generator, foreachStatement.Type, foreachVariableString, foreachInfo.ExplicitCastElementType, collectionVariableName, indexString);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(
-                    bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(variableStatement));
+                    bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(
+                        variableStatement.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)));
             }
 
             return bodyBlock;

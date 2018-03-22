@@ -146,7 +146,7 @@ namespace Roslyn.Test.Utilities
             public const string ExtractMethod = "Refactoring.ExtractMethod";
             public const string FindReferences = nameof(FindReferences);
             public const string F1Help = nameof(F1Help);
-            public const string ForeachToFor = nameof(ForeachToFor);
+            public const string ConvertForEachToFor = nameof(ConvertForEachToFor);
             public const string Formatting = nameof(Formatting);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);

@@ -12,28 +12,28 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicForEachToForCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicForEachToForCodeRefactoringProvider
-        Inherits AbstractForEachToForCodeRefactoringProvider
+        Inherits AbstractForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
 
-        Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As SyntaxNode
-            Dim foreachBlock = token.Parent.FirstAncestorOrSelf(Of ForEachBlockSyntax)()
-            If foreachBlock Is Nothing Then
+        Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As ForEachBlockSyntax
+            Dim forEachBlock = token.Parent.FirstAncestorOrSelf(Of ForEachBlockSyntax)()
+            If forEachBlock Is Nothing Then
                 Return Nothing
             End If
 
             ' support refactoring only if caret Is on for each statement
-            Dim scope = foreachBlock.ForEachStatement.Span
+            Dim scope = forEachBlock.ForEachStatement.Span
             If Not scope.IntersectsWith(selection) Then
                 Return Nothing
             End If
 
             ' we don't support colon seperated statements
-            If foreachBlock.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
+            If forEachBlock.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
                 Return Nothing
             End If
 
             ' check whether there Is any comments or line continuation within foreach statement
             ' if they do, we don't support conversion.
-            For Each trivia In foreachBlock.ForEachStatement.DescendantTrivia()
+            For Each trivia In forEachBlock.ForEachStatement.DescendantTrivia()
                 If trivia.Span.End <= scope.Start OrElse
                    scope.End <= trivia.Span.Start Then
                     Continue For
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
                 End If
             Next
 
-            Return foreachBlock
+            Return forEachBlock
         End Function
 
         Protected Overrides Function ValidLocation(foreachInfo As ForEachInfo) As Boolean
@@ -55,8 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
             Return True
         End Function
 
-        Protected Overrides Function GetForEachBody(node As SyntaxNode) As (start As SyntaxNode, [end] As SyntaxNode)
-            Dim foreachBlock = DirectCast(node, ForEachBlockSyntax)
+        Protected Overrides Function GetForEachBody(foreachBlock As ForEachBlockSyntax) As (start As SyntaxNode, [end] As SyntaxNode)
             If foreachBlock.Statements.Count = 0 Then
                 Return Nothing
             End If
@@ -68,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
             cancellationToken.ThrowIfCancellationRequested()
 
             Dim generator = editor.Generator
-            Dim forEachBlock = DirectCast(foreachInfo.ForEachStatement, ForEachBlockSyntax)
+            Dim forEachBlock = foreachInfo.ForEachStatement
 
             ' trailing triva of expression will be attached to for statement below
             Dim foreachCollectionExpression = forEachBlock.ForEachStatement.Expression
@@ -79,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
                     foreachCollectionExpression.GetTrailingTrivia().Where(Function(t) t.IsWhitespaceOrEndOfLine()))
 
             ' and remove all trailing trivia if it is used for cast
-            If foreachInfo.RequireExplicitCast Then
+            If foreachInfo.RequireExplicitCastInterface Then
                 expression = expression.WithoutTrailingTrivia()
             End If
 
@@ -108,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
             End If
 
             ' create for statement from foreach statement
-            Dim forStatement = SyntaxFactory.ForBlock(
+            Dim forBlock = SyntaxFactory.ForBlock(
                 SyntaxFactory.ForStatement(
                     DirectCast(generator.IdentifierName(generator.Identifier(indexString).WithAdditionalAnnotations(RenameAnnotation.Create())), VisualBasicSyntaxNode),
                     DirectCast(generator.LiteralExpression(0), ExpressionSyntax),
@@ -120,29 +119,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
 
             ' let leading And trailing trivia set
             If foreachInfo.RequireCollectionStatement Then
-                forStatement = forStatement.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                forBlock = forBlock.WithLeadingTrivia(SyntaxFactory.TriviaList())
             Else
-                forStatement = forStatement.WithLeadingTrivia(forEachBlock.ForEachStatement.ForKeyword.LeadingTrivia)
+                forBlock = forBlock.WithLeadingTrivia(forEachBlock.GetLeadingTrivia())
             End If
 
-            forStatement = forStatement.WithForStatement(forStatement.ForStatement.WithTrailingTrivia(forEachBlock.ForEachStatement.GetLastToken().TrailingTrivia))
+            forBlock = forBlock.WithForStatement(forBlock.ForStatement.WithTrailingTrivia(forEachBlock.ForEachStatement.GetLastToken().TrailingTrivia))
 
-            editor.ReplaceNode(forEachBlock, forStatement)
+            editor.ReplaceNode(forEachBlock, forBlock)
         End Sub
 
         Private Function GetForLoopBody(generator As SyntaxGenerator, foreachInfo As ForEachInfo, collectionVariableName As String, indexString As String) As SyntaxList(Of StatementSyntax)
-            Dim foreachStatement = DirectCast(foreachInfo.ForEachStatement, ForEachBlockSyntax)
-            If foreachStatement.Statements.Count = 0 Then
-                Return foreachStatement.Statements
+            Dim forEachBlock = foreachInfo.ForEachStatement
+            If forEachBlock.Statements.Count = 0 Then
+                Return forEachBlock.Statements
             End If
 
+            Dim foreachVariable As SyntaxNode = Nothing
+            Dim type As SyntaxNode = Nothing
+            GetVariableNameAndType(forEachBlock.ForEachStatement, foreachVariable, type)
+
             ' use original text
-            Dim foreachVariableString = foreachStatement.ForEachStatement.ControlVariable.ToString()
+            Dim foreachVariableString = foreachVariable.ToString()
 
             ' create varialbe statement
-            Dim variableStatement = AddItemVariableDeclaration(generator, foreachVariableString, collectionVariableName, indexString)
+            Dim variableStatement = AddItemVariableDeclaration(
+                generator, type, foreachVariableString, foreachInfo.ExplicitCastElementType, collectionVariableName, indexString)
 
-            Return foreachStatement.Statements.Insert(0, DirectCast(variableStatement, StatementSyntax))
+            Return forEachBlock.Statements.Insert(0, DirectCast(variableStatement, StatementSyntax))
         End Function
+
+        Private Sub GetVariableNameAndType(
+            forEachStatement As ForEachStatementSyntax, ByRef foreachVariable As SyntaxNode, ByRef type As SyntaxNode)
+
+            Dim controlVariable = forEachStatement.ControlVariable
+
+            Dim declarator = TryCast(controlVariable, VariableDeclaratorSyntax)
+            If declarator IsNot Nothing Then
+                foreachVariable = declarator.Names(0)
+                type = declarator.AsClause.Type
+            Else
+                foreachVariable = controlVariable
+                type = Nothing
+            End If
+        End Sub
     End Class
 End Namespace
