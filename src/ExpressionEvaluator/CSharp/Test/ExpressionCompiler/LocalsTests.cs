@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "PROOTYPE(patterns2): switch code gen is in flux.")]
+        [Fact(Skip = "PROTOTYPE(patterns2): switch code gen is in flux.")]
         public void LocalsInSwitch()
         {
             var source =
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "PROOTYPE(patterns2): switch code gen is in flux.")]
+        [Fact(Skip = "PROTOTYPE(patterns2): switch code gen is in flux.")]
         [WorkItem(16594, "https://github.com/dotnet/roslyn/issues/16594")]
         public void LocalsInSwitchWithLambda()
         {
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "PROOTYPE(patterns2): switch code gen is in flux.")]
+        [Fact(Skip = "PROTOTYPE(patterns2): switch code gen is in flux.")]
         public void LocalsInSwitchWithAwait()
         {
             var source =

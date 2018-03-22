@@ -1623,19 +1623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
-        {
-            DeclareVariables(node.InnerLocals);
-            var result = base.VisitPatternSwitchStatement(node);
-            ReportUnusedVariables(node.InnerLocals);
-            ReportUnusedVariables(node.InnerLocalFunctions);
-            return result;
-        }
-
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             DeclareVariables(node.Locals);
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

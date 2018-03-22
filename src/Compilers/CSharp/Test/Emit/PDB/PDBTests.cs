@@ -2966,7 +2966,7 @@ public class C
 
         #region Switch
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.")]
         public void SwitchWithPattern_01()
         {
             string source = @"
@@ -3058,7 +3058,7 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.")]
         public void SwitchWithPattern_02()
         {
             string source = @"
@@ -3154,7 +3154,7 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.")]
         public void SwitchWithPatternAndLocalFunctions()
         {
             string source = @"
@@ -3308,13 +3308,15 @@ class Program
 expectedIL: @"{
   // Code size       15 (0xf)
   .maxstack  1
-  .locals init (int V_0)
+  .locals init (int V_0,
+                int V_1)
   // sequence point: {
   IL_0000:  nop
   // sequence point: switch ...           (1
   IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  br.s       IL_0005
+  IL_0002:  stloc.1
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
   // sequence point: Console.Write(1);
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""void System.Console.Write(int)""
@@ -3326,23 +3328,25 @@ expectedIL: @"{
 }");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       23 (0x17)
+  // Code size       27 (0x1b)
   .maxstack  1
-  .locals init (string V_0)
+  .locals init (string V_0,
+                string V_1)
   // sequence point: {
   IL_0000:  nop
   // sequence point: switch ...  (nameof(M2)
   IL_0001:  ldstr      ""M2""
-  IL_0006:  stloc.0
-  IL_0007:  br.s       IL_0009
+  IL_0006:  stloc.1
+  IL_0007:  ldstr      ""M2""
+  IL_000c:  stloc.0
   // sequence point: Console.Write(nameof(M2));
-  IL_0009:  ldstr      ""M2""
-  IL_000e:  call       ""void System.Console.Write(string)""
-  IL_0013:  nop
+  IL_000d:  ldstr      ""M2""
+  IL_0012:  call       ""void System.Console.Write(string)""
+  IL_0017:  nop
   // sequence point: break;
-  IL_0014:  br.s       IL_0016
+  IL_0018:  br.s       IL_001a
   // sequence point: }
-  IL_0016:  ret
+  IL_001a:  ret
 }");
 
             // Check the release code generation too.
@@ -3368,7 +3372,8 @@ expectedIL: @"{
 }");
         }
 
-        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        [Fact(Skip = "PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.")]
+        [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
         public void SwitchWithConstantGenericPattern_01()
         {
             string source = @"
@@ -3652,15 +3657,15 @@ class Program
 expectedIL: @"{
   // Code size       15 (0xf)
   .maxstack  1
-  .locals init (T V_0, //t
-                string V_1, //s
-                string V_2)
+  .locals init (string V_0,
+                string V_1)
   // sequence point: {
   IL_0000:  nop
   // sequence point: switch (x)
   IL_0001:  ldnull
-  IL_0002:  stloc.2
-  IL_0003:  br.s       IL_0005
+  IL_0002:  stloc.1
+  IL_0003:  ldnull
+  IL_0004:  stloc.0
   // sequence point: Console.Write(6);
   IL_0005:  ldc.i4.6
   IL_0006:  call       ""void System.Console.Write(int)""

@@ -1363,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PatternNullableType = 8116,
         ERR_BadPatternExpression = 8117,
         ERR_SwitchExpressionValueExpected = 8119,
-        ERR_PatternIsSubsumed = 8120,
+        ERR_SwitchCaseSubsumed = 8120,
         ERR_PatternWrongType = 8121,
         ERR_ExpressionTreeContainsIsMatch = 8122,
         #endregion diagnostics for pattern-matching introduced in C# 7
@@ -1588,6 +1588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SwitchExpressionNoBestType = 8406,
         ERR_SingleElementPositionalPatternRequiresType = 8407,
         ERR_VarMayNotBindToType = 8408,
+        WRN_SwitchExpressionNotExhaustive = 8409,
+        ERR_SwitchArmSubsumed = 8410,
         #endregion diagnostics introduced for recursive patterns
 
     }

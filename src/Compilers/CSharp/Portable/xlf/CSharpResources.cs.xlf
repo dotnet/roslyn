@@ -8125,11 +8125,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Výraz switch musí být hodnota. Bylo nalezeno: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PatternIsSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">Větev příkazu switch se už zpracovala předchozí větví.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PatternWrongType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</source>
         <target state="translated">Výraz typu {0} nelze zpracovat vzorem typu {1}.</target>
@@ -8753,6 +8748,26 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_VarMayNotBindToType">
         <source>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</source>
         <target state="new">The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchCaseSubsumed">
+        <source>The switch case has already been handled by a previous case.</source>
+        <target state="new">The switch case has already been handled by a previous case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchArmSubsumed">
+        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
+        <target state="new">The pattern has already been handled by a previous arm of the switch expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
         <note />
       </trans-unit>
     </body>

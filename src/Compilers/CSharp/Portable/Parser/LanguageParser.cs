@@ -9153,7 +9153,7 @@ tryAgain:
                     var commaToken = this.EatToken();
                     if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                     {
-                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken);
+                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken, this.CurrentToken.Text);
                     }
 
                     arms.AddSeparator(commaToken);
