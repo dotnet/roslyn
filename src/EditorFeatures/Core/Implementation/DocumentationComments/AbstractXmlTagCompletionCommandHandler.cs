@@ -2,36 +2,37 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
-    internal abstract class AbstractXmlTagCompletionCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    internal abstract class AbstractXmlTagCompletionCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistory;
-        private readonly IWaitIndicator _waitIndicator;
 
-        public AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory, IWaitIndicator waitIndicator)
+        public string DisplayName => EditorFeaturesResources.Xml_Tag_Completion_Command_Handler;
+
+        public AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
         {
             _undoHistory = undoHistory;
-            _waitIndicator = waitIndicator;
         }
 
         protected abstract void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken);
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // Ensure completion and any other buffer edits happen first.
             nextHandler();
@@ -41,31 +42,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.XML_End_Tag_Completion,
-                message: EditorFeaturesResources.Completing_Tag,
-                allowCancel: true,
-                action: w =>
-                    {
-                        var buffer = args.SubjectBuffer;
+            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
+            {
+                var buffer = args.SubjectBuffer;
 
-                        var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        if (document == null)
-                        {
-                            return;
-                        }
+                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    return;
+                }
 
-                        // We actually want the caret position after any operations
-                        var position = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                // We actually want the caret position after any operations
+                var position = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
-                        // No caret position? No edit!
-                        if (!position.HasValue)
-                        {
-                            return;
-                        }
+                // No caret position? No edit!
+                if (!position.HasValue)
+                {
+                    return;
+                }
 
-                        TryCompleteTag(args.TextView, args.SubjectBuffer, document, position.Value, w.CancellationToken);
-                    });
+                TryCompleteTag(args.TextView, args.SubjectBuffer, document, position.Value, context.WaitContext.UserCancellationToken);
+            }
         }
 
         protected void InsertTextAndMoveCaret(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint position, string insertionText, int? finalCaretPosition)

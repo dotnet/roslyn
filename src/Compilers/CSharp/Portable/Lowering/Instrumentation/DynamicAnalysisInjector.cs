@@ -342,9 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentExpressionStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentExpressionStatement(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentFieldOrPropertyInitializer(original, rewritten));
         }
 
         public override BoundStatement InstrumentGotoStatement(BoundGotoStatement original, BoundStatement rewritten)
