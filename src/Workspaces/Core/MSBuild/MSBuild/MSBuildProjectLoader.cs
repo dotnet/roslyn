@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Create a new instance of an <see cref="MSBuildProjectLoader"/>.
         /// </summary>
+        /// <param name="workspace">The workspace whose services this <see cref="MSBuildProjectLoader"/> should use.</param>
+        /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
+        /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
             : this(workspace, diagnosticReporter: null, projectFileLoaderRegistry: null, properties)
         {
@@ -87,6 +90,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Associates a project file extension with a language name.
         /// </summary>
+        /// <param name="projectFileExtension">The project file extension to associate with <paramref name="language"/>.</param>
+        /// <param name="language">The language to associate with <paramref name="projectFileExtension"/>. This value
+        /// should typically be taken from <see cref="LanguageNames"/>.</param>
         public void AssociateFileExtensionWithLanguage(string projectFileExtension, string language)
         {
             if (projectFileExtension == null)
@@ -131,6 +137,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and 
         /// all the projects referenced by the project files.
         /// </summary>
+        /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
             IProgress<ProjectLoadProgress> progress = null,
@@ -206,6 +216,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// Loads the <see cref="ProjectInfo"/> from the specified project file and all referenced projects.
         /// The first <see cref="ProjectInfo"/> in the result corresponds to the specified project file.
         /// </summary>
+        /// <param name="projectFilePath">The path to the project file to be loaded. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="projectMap">An optional <see cref="ProjectMap"/> that will be used to resolve project references to existing projects.
+        /// This is useful when populating a custom <see cref="Workspace"/>.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is loaded.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
             ProjectMap projectMap = null,
