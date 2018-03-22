@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -98,8 +99,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // If the for-variable is an identifier, then make sure it's declaring a variable
-            // at the for-statement, and not referencing some previously declared symbol.  i.e
+            // Make sure it's a single-variable for loop and that we're not a loop where we're
+            // referencing some previously declared symbol.  i.e
             // VB allows:
             //
             //      dim i as integer
@@ -109,16 +110,10 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
-            var iterationSymbol = semanticModel.GetSymbolInfo(iterationVariable.Parent, cancellationToken).GetAnySymbol();
-            if (iterationSymbol != null)
+            var operation = semanticModel.GetOperation(forStatement, cancellationToken) as ILoopOperation;
+            if (operation == null || operation.Locals.Length != 1)
             {
-                if (iterationSymbol.Locations.Length != 1 ||
-                    !iterationSymbol.Locations[0].IsInSource ||
-                    iterationVariable != iterationSymbol.Locations[0].FindToken(cancellationToken))
-                {
-                    // was a reference to some other variable.
-                    return;
-                }
+                return;
             }
 
             // Make sure we're starting at 0.
