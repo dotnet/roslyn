@@ -12744,6 +12744,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting null literal or possible null value to non-nullable type..
+        /// </summary>
+        internal static string WRN_ConvertingNullableToNonNullable {
+            get {
+                return ResourceManager.GetString("WRN_ConvertingNullableToNonNullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Converting null literal or possible null value to non-nullable type..
+        /// </summary>
+        internal static string WRN_ConvertingNullableToNonNullable_Title {
+            get {
+                return ResourceManager.GetString("WRN_ConvertingNullableToNonNullable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The fully qualified name for &apos;{0}&apos; is too long for debug information. Compile without &apos;/debug&apos; option..
         /// </summary>
         internal static string WRN_DebugFullNameTooLong {
@@ -14307,7 +14325,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null to non-nullable reference..
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference..
         /// </summary>
         internal static string WRN_NullAsNonNullable {
             get {
@@ -14316,7 +14334,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null to non-nullable reference..
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference..
         /// </summary>
         internal static string WRN_NullAsNonNullable_Title {
             get {

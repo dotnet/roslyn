@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: false,
                 explicitCastInCode: false,
+                isExplicitlyNullable: false,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -218,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
+            bool isExplicitlyNullable,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -227,7 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand,
                 conversion,
                 @checked,
-                explicitCastInCode,
+                explicitCastInCode: explicitCastInCode,
+                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt,
                 type,
                 hasErrors || !conversion.IsValid)
@@ -242,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
+            bool isExplicitlyNullable,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -252,10 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
+                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt: constantValueOpt,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         {
+            // PROTOTYPE(NullableReferenceTypes): Move assert to Validate method
+            // (add HasValidate="true" in BoundNodes.xml).
+            Debug.Assert(explicitCastInCode || !isExplicitlyNullable);
             OriginalUserDefinedConversionsOpt = conversion.OriginalUserDefinedConversions;
         }
     }

@@ -1865,7 +1865,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            TypeSymbol targetType = this.BindType(node.Type, diagnostics).TypeSymbol;
+            TypeSymbolWithAnnotations targetTypeWithNullability = this.BindType(node.Type, diagnostics);
+            TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
 
             if (targetType.IsNullableType() &&
                 !operand.HasAnyErrors &&
@@ -1876,11 +1877,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindExplicitNullableCastFromNonNullable(node, operand, targetType, diagnostics);
             }
 
-            return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+            return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, isExplicitlyNullable: targetTypeWithNullability.IsNullable.GetValueOrDefault(), diagnostics: diagnostics);
         }
 
-        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics)
+        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, bool isExplicitlyNullable, DiagnosticBag diagnostics)
         {
+            Debug.Assert(!targetType.IsNullableType() || isExplicitlyNullable);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteDiagnostics, forCast: true);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -1894,12 +1896,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: true,
+                    isExplicitlyNullable: isExplicitlyNullable,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: targetType,
                     hasErrors: true);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
+            return CreateConversion(node, operand, conversion, isCast: true, isExplicitlyNullable: isExplicitlyNullable, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -2048,13 +2051,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var underlyingConversion = Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetType, ref unused);
             if (!underlyingConversion.Exists)
             {
-                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, isExplicitlyNullable: true, diagnostics: diagnostics);
             }
 
             var bag = DiagnosticBag.GetInstance();
             try
             {
-                var underlyingExpr = BindCastCore(node, operand, targetType.GetNullableUnderlyingType(), wasCompilerGenerated: false, diagnostics: bag);
+                var underlyingExpr = BindCastCore(node, operand, targetType.GetNullableUnderlyingType(), wasCompilerGenerated: false, isExplicitlyNullable: false, diagnostics: bag);
                 if (underlyingExpr.HasErrors || bag.HasAnyErrors())
                 {
                     Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetType);
@@ -2065,6 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.NoConversion,
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: true,
+                        isExplicitlyNullable: true,
                         constantValueOpt: ConstantValue.NotAvailable,
                         type: targetType,
                         hasErrors: true);
@@ -2076,10 +2080,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingExpr.ConstantValue != null)
                 {
                     underlyingExpr.WasCompilerGenerated = true;
-                    return BindCastCore(node, underlyingExpr, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+                    return BindCastCore(node, underlyingExpr, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, isExplicitlyNullable: true, diagnostics: diagnostics);
                 }
 
-                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, isExplicitlyNullable: true, diagnostics: diagnostics);
             }
             finally
             {
@@ -2547,7 +2551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //CONSIDER: Return a bad expression so that HasErrors is true?
                     }
 
-                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, false, type, diagnostics);
+                    arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, isExplicitlyNullable: false, type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -6068,6 +6072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.ImplicitNumeric,
                         @checked: true,
                         explicitCastInCode: false,
+                        isExplicitlyNullable: false,
                         constantValueOpt: expr.ConstantValue,
                         type: underlyingType);
                 }
@@ -6508,7 +6513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(index.Syntax, index, failedConversion, isCast: false, destination: int32, diagnostics: new DiagnosticBag());
+                return CreateConversion(index.Syntax, index, failedConversion, isCast: false, isExplicitlyNullable: false, destination: int32, diagnostics: new DiagnosticBag());
             }
 
             return result;
@@ -6537,7 +6542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, destination: type, diagnostics: attemptDiagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, isExplicitlyNullable: false, destination: type, diagnostics: attemptDiagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
 
             diagnostics.AddRange(attemptDiagnostics);

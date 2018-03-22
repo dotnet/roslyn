@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
+                            isExplicitlyNullable: oldNode.IsExplicitlyNullable,
                             constantValueOpt: constantValueOpt,
                             type: rewrittenType);
                     }
@@ -365,6 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: oldNode.IsBaseConversion,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
+                    isExplicitlyNullable: oldNode.IsExplicitlyNullable,
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType) :
                 new BoundConversion(
@@ -374,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: false,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
+                    isExplicitlyNullable: false, // BoundConversion.IsExplicitlyNullable is not used in lowered tree
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType);
         }
@@ -477,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversion,             
                             @checked: @checked,
                             explicitCastInCode: false,
+                            isExplicitlyNullable: false,
                             constantValueOpt: default(ConstantValue),
                             type: type,
                             hasErrors: !conversion.IsValid) { WasCompilerGenerated = true };
@@ -774,6 +778,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenOperandType = rewrittenOperand.Type;
             Debug.Assert(rewrittenType.IsNullableType() || rewrittenOperandType.IsNullableType());
 
+            const bool isExplicitlyNullable = false; // BoundConversion.IsExplicitlyNullable is not used in lowered tree
+
             TypeSymbol typeFrom = rewrittenOperandType.StrippedType();
             TypeSymbol typeTo = rewrittenType.StrippedType();
             if (typeFrom != typeTo && (typeFrom.SpecialType == SpecialType.System_Decimal || typeTo.SpecialType == SpecialType.System_Decimal))
@@ -798,12 +804,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(DecimalConversionMethod(typeFromUnderlying, typeToUnderlying));
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode, default(ConstantValue), rewrittenType);
+                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, isExplicitlyNullable: isExplicitlyNullable, default(ConstantValue), rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode, default(ConstantValue), rewrittenType);
+                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, isExplicitlyNullable: isExplicitlyNullable, default(ConstantValue), rewrittenType);
             }
         }
 
@@ -1016,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result =
                 _inExpressionLambda
-                ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, true, default(ConstantValue), rewrittenType)
+                ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, isExplicitlyNullable: false, default(ConstantValue), rewrittenType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
             Debug.Assert(result.Type == rewrittenType);
             return result;
@@ -1043,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 Conversion conv = TryMakeConversion(syntax, conversion, rewrittenOperand.Type, rewrittenType);
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, true, default(ConstantValue), rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, isExplicitlyNullable: false, default(ConstantValue), rewrittenType);
             }
 
             // DELIBERATE SPEC VIOLATION: 
@@ -1159,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode, constantValueOpt, rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, isExplicitlyNullable: false, constantValueOpt, rewrittenType);
             }
 
             var rewrittenCall = MakeCall(
@@ -1345,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind conversionKind = isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
-                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, constantValueOpt: constantValueOpt, type: toType);
+                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, isExplicitlyNullable: false, constantValueOpt: constantValueOpt, type: toType);
             }
             else
             {

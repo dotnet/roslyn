@@ -397,8 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionExpr.Syntax,
                 collectionExpr,
                 builder.CollectionConversion,
-                CheckOverflowAtRuntime,
-                false,
+                @checked: CheckOverflowAtRuntime,
+                explicitCastInCode: false,
+                isExplicitlyNullable: false,
                 ConstantValue.NotAvailable,
                 builder.CollectionType);
 

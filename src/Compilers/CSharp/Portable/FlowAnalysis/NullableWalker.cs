@@ -348,12 +348,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeOpt ?? (object)"<null>";
         }
 
-        /// <summary>
-        /// Report nullable mismatch warnings and optionally update tracked value on assignment.
-        /// </summary>
-        private void TrackNullableStateForAssignment(BoundNode node, int targetSlot, TypeSymbolWithAnnotations targetType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
+        private void ReportAssignmentWarnings(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
         {
+            Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
+
+            if (this.State.Reachable)
+            {
+                if (targetType is null || valueType is null)
+                {
+                    return;
+                }
+
+                if (targetType.IsReferenceType && targetType.IsNullable == false && valueType.IsNullable == true)
+                {
+                    if (useLegacyWarnings)
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, value.Syntax);
+                    }
+                    else if (!CheckNullAsNonNullableReference(value))
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+                    }
+                }
+
+                ReportNullabilityMismatchInAssignmentIfNecessary(value, valueType.TypeSymbol, targetType.TypeSymbol);
+            }
+        }
+
+        /// <summary>
+        /// Update tracked value on assignment.
+        /// </summary>
+        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot)
+        {
+            Debug.Assert(value != null);
+            Debug.Assert(!IsConditionalState);
+
             if (this.State.Reachable)
             {
                 if ((object)targetType == null)
@@ -361,63 +391,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                bool isByRefTarget = IsByRefTarget(targetSlot);
-                if (targetSlot > 0)
+                if (targetSlot <= 0)
                 {
-                    if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
-
-                    this.State[targetSlot] = isByRefTarget ?
-                        // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
-                        // regardless of what value is being assigned. 
-                        (targetType.IsNullable == true) ? (bool?)false : null :
-                        !valueType?.IsNullable;
-
-                    // PROTOTYPE(NullableReferenceTypes): Might this clear state that
-                    // should be copied in InheritNullableStateOfTrackableType?
-                    InheritDefaultState(targetSlot);
+                    return;
                 }
+
+                bool isByRefTarget = IsByRefTarget(targetSlot);
+                if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
+
+                this.State[targetSlot] = isByRefTarget ?
+                    // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
+                    // regardless of what value is being assigned. 
+                    (targetType.IsNullable == true) ? (bool?)false : null :
+                    !valueType?.IsNullable;
+
+                // PROTOTYPE(NullableReferenceTypes): Might this clear state that
+                // should be copied in InheritNullableStateOfTrackableType?
+                InheritDefaultState(targetSlot);
 
                 if (targetType.IsReferenceType)
                 {
-                    if (targetType.IsNullable == false)
+                    // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
+                    // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
+                    // assignment to C.F below. See also StaticNullChecking_Members.FieldCycle_01.)
+                    // class C
+                    // {
+                    //     C? F;
+                    //     C() { F = this; }
+                    // }
+                    // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
+                    if ((value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
+                        targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything)) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
                     {
-                        if (valueType?.IsNullable == true && (value == null || !CheckNullAsNonNullableReference(value)))
+                        if (valueSlot > 0)
                         {
-                            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, (value ?? node).Syntax);
-                        }
-                    }
-
-                    if (targetSlot > 0)
-                    {
-                        // PROTOTYPE(NullableReferenceTypes): We should copy all tracked state from `value`,
-                        // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
-                        // assignment to C.F below. See also StaticNullChecking_Members.FieldCycle_01.)
-                        // class C
-                        // {
-                        //     C? F;
-                        //     C() { F = this; }
-                        // }
-                        // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
-                        if (value != null &&
-                            (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                            targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything)) // PROTOTYPE(NullableReferenceTypes): Allow assignment to base type.
-                        {
-                            if (valueSlot > 0)
-                            {
-                                InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
-                            }
+                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
                         }
                     }
                 }
-                else if (targetSlot > 0 && EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                        (value == null || targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything)))
+                else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
+                        targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything))
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
-                }
-
-                if ((object)valueType?.TypeSymbol != null && IsNullabilityMismatch(targetType.TypeSymbol, valueType.TypeSymbol))
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, (value ?? node).Syntax, valueType.TypeSymbol, targetType.TypeSymbol);
                 }
             }
         }
@@ -685,13 +700,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if ((object)node.ExpressionOpt.Type != null && IsNullabilityMismatch(returnType.TypeSymbol, node.ExpressionOpt.Type))
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.ExpressionOpt.Syntax, node.ExpressionOpt.Type, returnType.TypeSymbol);
-                }
+                ReportNullabilityMismatchInAssignmentIfNecessary(node.ExpressionOpt, node.ExpressionOpt.Type, returnType.TypeSymbol);
             }
 
             return result;
+        }
+
+        private void ReportNullabilityMismatchInAssignmentIfNecessary(BoundExpression node, TypeSymbol sourceType, TypeSymbol destinationType)
+        {
+            if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, sourceType, destinationType);
+            }
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -719,7 +739,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = valueType;
                 }
 
-                TrackNullableStateForAssignment(node, slot, type, initializer, valueType, value.Slot);
+                ReportAssignmentWarnings(initializer, type, valueType, useLegacyWarnings: true);
+                TrackNullableStateForAssignment(initializer, type, slot, valueType, value.Slot);
             }
 
             return null;
@@ -839,7 +860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)containingSymbol != null)
                     {
                         var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(containingSymbol);
-                        TrackNullableStateForAssignment(node, containingSlot, type, node, result.Type, result.Slot);
+                        ReportAssignmentWarnings(node, type, result.Type, useLegacyWarnings: false);
+                        TrackNullableStateForAssignment(node, type, containingSlot, result.Type, result.Slot);
                     }
                     break;
             }
@@ -940,7 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverSlot = GetOrCreateSlot(implicitReceiver);
                 }
 
-                TrackNullableStateForAssignment(argument, GetOrCreateSlot(property, receiverSlot), property.Type, argument, argumentResult.Type, argumentResult.Slot);
+                ReportAssignmentWarnings(argument, property.Type, argumentResult.Type, useLegacyWarnings: false);
+                TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentResult.Type, argumentResult.Slot);
             }
 
             // PROTOTYPE(NullableReferenceType): Result.Type may need to be a new anonymous
@@ -1020,8 +1043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (elementTypeIsReferenceType)
                     {
-                        Result result = InferResultNullability(element, conversion, destinationType, resultType);
-                        TrackNullableStateForAssignment(element, -1, elementType, element, result.Type, result.Slot);
+                        resultType = InferResultNullability(element, conversion, destinationType, resultType);
+                        ReportAssignmentWarnings(element, elementType, resultType, useLegacyWarnings: false);
                     }
                 }
             }
@@ -1603,7 +1626,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = results[i];
                 if (refKind != RefKind.None)
                 {
-                    TrackNullableStateForAssignment(argument, result.Slot, result.Type, null, parameter?.Type, -1);
+                    var parameterType = parameter?.Type;
+                    ReportAssignmentWarnings(argument, result.Type, parameterType, useLegacyWarnings: false);
+                    TrackNullableStateForAssignment(argument, result.Type, result.Slot, parameterType, -1);
                 }
                 if (refKind != RefKind.Out && (object)parameter != null)
                 {
@@ -1839,6 +1864,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var operand = node.Operand;
             Visit(operand);
+            var operandType = _result.Type;
+            var targetType = node.Type;
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
@@ -1848,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ImplicitUserDefined:
                         if ((object)node.SymbolOpt != null && node.SymbolOpt.ParameterCount == 1)
                         {
-                            WarnOnNullReferenceArgument(operand, _result.Type, node.SymbolOpt.Parameters[0], expanded: false);
+                            WarnOnNullReferenceArgument(operand, operandType, node.SymbolOpt.Parameters[0], expanded: false);
                         }
                         break;
 
@@ -1856,23 +1883,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!node.ExplicitCastInCode && operand.Kind == BoundKind.Lambda)
                         {
                             var lambda = (BoundLambda)operand;
-                            ReportNullabilityMismatchWithTargetDelegate(operand.Syntax, node.Type.GetDelegateType(), lambda.Symbol);
+                            ReportNullabilityMismatchWithTargetDelegate(operand.Syntax, targetType.GetDelegateType(), lambda.Symbol);
                         }
                         break;
 
                     case ConversionKind.MethodGroup:
                         if (!node.ExplicitCastInCode)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(operand.Syntax, node.Type.GetDelegateType(), node.SymbolOpt);
+                            ReportNullabilityMismatchWithTargetDelegate(operand.Syntax, targetType.GetDelegateType(), node.SymbolOpt);
                         }
                         break;
                 }
 
-                var operandType = _result.Type;
+                if (node.ExplicitCastInCode &&
+                    !node.IsExplicitlyNullable &&
+                    targetType.IsReferenceType &&
+                    (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Should not report warning for explicit
+                    // user-defined conversion if the operator is defined from nullable to
+                    // non-nullable. See StaticNullChecking.ExplicitCast_UserDefined.
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
+                }
+
                 TypeSymbolWithAnnotations resultType;
                 if (operand.Kind == BoundKind.Literal && (object)operand.Type == null && operand.ConstantValue.IsNull)
                 {
-                    resultType = TypeSymbolWithAnnotations.Create(node.Type, true);
+                    resultType = TypeSymbolWithAnnotations.Create(targetType, true);
                 }
                 else if (node.ConversionKind == ConversionKind.Identity && !node.ExplicitCastInCode)
                 {
@@ -1880,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultType = InferResultNullability(operand, node.Conversion, node.Type, operandType, fromConversionNode: true);
+                    resultType = InferResultNullability(operand, node.Conversion, targetType, operandType, fromConversionNode: true);
                 }
                 _result = resultType;
             }
@@ -2160,7 +2197,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TrackNullableStateForAssignment(node.Left, left.Slot, left.Type, node.Right, right.Type, right.Slot);
+                var leftKind = node.Left.Kind;
+                ReportAssignmentWarnings(node.Right, left.Type, right.Type, useLegacyWarnings: leftKind == BoundKind.Local || leftKind == BoundKind.Parameter);
+                TrackNullableStateForAssignment(node.Right, left.Type, left.Slot, right.Type, right.Slot);
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 _result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : left;
             }
@@ -2244,7 +2283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _result = (op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement) ? resultOfIncrementType : operandResult;
                     setResult = true;
 
-                    TrackNullableStateForAssignment(node.Operand, operandResult.Slot, operandResult.Type, value: node, valueType: resultOfIncrementType, valueSlot: -1);
+                    ReportAssignmentWarnings(node, operandResult.Type, valueType: resultOfIncrementType, useLegacyWarnings: false);
+                    TrackNullableStateForAssignment(node, operandResult.Type, operandResult.Slot, valueType: resultOfIncrementType, valueSlot: -1);
                 }
             }
 
@@ -2312,7 +2352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = null;
                 }
 
-                TrackNullableStateForAssignment(node, left.Slot, left.Type, node, resultType, -1);
+                ReportAssignmentWarnings(node, left.Type, resultType, useLegacyWarnings: false);
+                TrackNullableStateForAssignment(node, left.Type, left.Slot, resultType, -1);
                 _result = resultType;
             }
             //else

@@ -5166,11 +5166,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStaticNullChecking" xml:space="preserve">
     <value>static null checking</value>
   </data>
-  <data name="WRN_NullAsNonNullable" xml:space="preserve">
-    <value>Cannot convert null to non-nullable reference.</value>
+  <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
+    <value>Converting null literal or possible null value to non-nullable type.</value>
   </data>
-  <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
-    <value>Cannot convert null to non-nullable reference.</value>
+  <data name="WRN_ConvertingNullableToNonNullable_Title" xml:space="preserve">
+    <value>Converting null literal or possible null value to non-nullable type.</value>
   </data>
   <data name="WRN_NullReferenceAssignment" xml:space="preserve">
     <value>Possible null reference assignment.</value>
@@ -5303,6 +5303,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
+  </data>
+  <data name="WRN_NullAsNonNullable" xml:space="preserve">
+    <value>Cannot convert null literal to non-nullable reference.</value>
+  </data>
+  <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
+    <value>Cannot convert null literal to non-nullable reference.</value>
   </data>
   <data name="WRN_NoBestNullabilityConditionalExpression" xml:space="preserve">
     <value>No best nullability for operands of conditional expression '{0}' and '{1}'.</value>

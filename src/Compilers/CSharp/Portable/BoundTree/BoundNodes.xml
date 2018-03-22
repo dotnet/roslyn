@@ -549,6 +549,10 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
+  <!--
+    PROTOTYPE(NullableReferenceTypes): Add HasValidate="true" and check
+    ExplicitCastInCode || !IsExplicitlyNullable in the Validate() method.
+    -->
   <Node Name="BoundConversion" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -559,7 +563,9 @@
     <Field Name="IsBaseConversion" Type="Boolean"/>
     <Field Name="Checked" Type="Boolean"/>
     <Field Name="ExplicitCastInCode" Type="Boolean"/>
-    
+    <!-- True for explicit casts with top-level `?`. Used by NullableWalker. -->
+    <Field Name="IsExplicitlyNullable" Type="bool" Null="allow"/>
+
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 

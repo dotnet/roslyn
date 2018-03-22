@@ -241,6 +241,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundPropertyAccess)expr).PropertySymbol.Type.IsNullable;
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.IsNullable;
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expr;
+                        if (conversion.ExplicitCastInCode)
+                        {
+                            return conversion.IsExplicitlyNullable;
+                        }
+                        Debug.Assert(!conversion.IsExplicitlyNullable);
+                        return null;
+                    }
                 case BoundKind.BinaryOperator:
                     return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
                 case BoundKind.NullCoalescingOperator:
