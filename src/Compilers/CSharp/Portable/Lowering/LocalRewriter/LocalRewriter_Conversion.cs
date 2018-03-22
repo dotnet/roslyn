@@ -694,7 +694,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // If the nullable expression always has a value, returns the value, otherwise null.
+        /// <summary>
+        /// If the nullable expression always has a value, returns the value, otherwise null.
+        /// If this method is updated to recognize more complex patterns, callers should be reviewed.
+        /// </summary>
         private static BoundExpression NullableAlwaysHasValue(BoundExpression expression)
         {
             if (expression.Type.IsNullableType() && expression.Kind == BoundKind.ObjectCreationExpression)

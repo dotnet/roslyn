@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     leftHasValue = MakeBooleanConstant(left.Syntax, true);
                     leftValue = value;
+                    isLeftNullable = false;
                 }
             }
             else
@@ -180,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     rightHasValue = MakeBooleanConstant(right.Syntax, true);
                     rightValue = value;
+                    isRightNullable = false;
                 }
             }
             else

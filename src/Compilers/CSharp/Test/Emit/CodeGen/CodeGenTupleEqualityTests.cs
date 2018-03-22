@@ -405,7 +405,7 @@ class C
 {
     static void Main()
     {
-        System.Console.Write($""{(new int?(Identity(42)), 2) == (new int?(42), 2)} "");
+        System.Console.Write($""{(new int?(Identity(42)), (int?)2) == (new int?(42), new int?(2))} "");
     }
     static int Identity(int x) => x;
 }";
