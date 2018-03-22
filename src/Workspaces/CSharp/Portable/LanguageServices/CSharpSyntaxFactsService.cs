@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
 
-        public bool SupportsIndexingInitializer(ParseOptions options) 
+        public bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
         public bool SupportsThrowExpression(ParseOptions options)
@@ -285,10 +285,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStatement(SyntaxNode node)
             => node is StatementSyntax;
- 
+
         public bool IsParameter(SyntaxNode node)
             => node is ParameterSyntax;
- 
+
         public bool IsVariableDeclarator(SyntaxNode node)
             => node is VariableDeclaratorSyntax;
 
@@ -321,6 +321,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsQueryExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.QueryExpression;
+
+        public bool IsQueryKeyword(SyntaxToken token)
+        {
+            switch (token.Kind())
+            {
+                case SyntaxKind.FromKeyword:
+                case SyntaxKind.GroupKeyword:
+                case SyntaxKind.JoinKeyword:
+                case SyntaxKind.IntoKeyword:
+                case SyntaxKind.LetKeyword:
+                case SyntaxKind.ByKeyword:
+                case SyntaxKind.SelectKeyword:
+                case SyntaxKind.OrderByKeyword:
+                case SyntaxKind.OnKeyword:
+                case SyntaxKind.EqualsKeyword:
+                case SyntaxKind.AscendingKeyword:
+                case SyntaxKind.DescendingKeyword:
+                    return true;
+                case SyntaxKind.InKeyword:
+                    switch (token.Parent.Kind())
+                    {
+                        case SyntaxKind.FromClause:
+                        case SyntaxKind.JoinClause:
+                        case SyntaxKind.JoinIntoClause:
+                            return true;
+                        default:
+                            return false;
+                    }
+                case SyntaxKind.WhereKeyword:
+                    return token.Parent.Kind() == SyntaxKind.WhereClause; // false for e.g. type parameter constraint
+                default:
+                    return false;
+            }
+        }
 
         public bool IsThrowExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.ThrowExpression;
@@ -589,6 +623,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                 }
 
+                return true;
+            }
+
+            // In the order by clause a comma might be bound to ThenBy or ThenByDescending
+            if (token.Kind() == SyntaxKind.CommaToken && token.Parent.Kind() == SyntaxKind.OrderByClause)
+            {
                 return true;
             }
 
@@ -1448,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         public void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode)
         {
             // First, annotate the context node in the tree so that we can find it again
@@ -1613,9 +1653,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
+        private class AddFirstMissingCloseBaceRewriter : CSharpSyntaxRewriter
         {
-            private readonly SyntaxNode _contextNode; 
+            private readonly SyntaxNode _contextNode;
             private bool _seenContextNode = false;
             private bool _addedFirstCloseCurly = false;
 
@@ -1652,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then still ask to format its close curly to make sure all the 
                 // curlies up the stack are properly formatted.
                 var braces = rewritten.GetBraces();
-                if (braces.openBrace.Kind() == SyntaxKind.None && 
+                if (braces.openBrace.Kind() == SyntaxKind.None &&
                     braces.closeBrace.Kind() == SyntaxKind.None)
                 {
                     // Not an item with braces.  Just pass it up.
