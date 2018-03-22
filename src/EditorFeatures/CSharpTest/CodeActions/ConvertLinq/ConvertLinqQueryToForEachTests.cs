@@ -9,8 +9,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
     public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest
     {
+     
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
           => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertLinqQueryToLinqMethodProvider();
+
+        // TODO test case within array initialization
+        // TODO test case within a list/struct initializator
+        // TODO test case within a ctor
+        // TODO add test for from x in XX where XX is not IEnumerable, i.e. requires AsEnumerable.
+        // TODO unit test with mutliple selects
 
         [Fact]
         public async Task AnonymousType()
@@ -22,7 +29,7 @@ class C
 {
     bool M(IEnumerable<int> nums)
     {
-        var q = [||]from a in nums from b in nums select new { a, b };
+        var q = [|from a in nums from b in nums select new { a, b }|];
     }
 }
 ";
@@ -40,9 +47,9 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return [||]from int n1 in nums 
+        return [|from int n1 in nums 
                  from int n2 in nums
-                 select n1;
+                 select n1|];
     }
 }
 ";
@@ -80,7 +87,7 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         IEnumerable<int> q1, q2;
-        q1 = q2 = [||]from x in nums select x + 1;
+        q1 = q2 = [|from x in nums select x + 1|];
     }
 }";
 
@@ -120,7 +127,7 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         var c = new C();
-        c.A = [||]from x in nums select x + 1;
+        c.A = [|from x in nums select x + 1|];
     }
 
     class C
@@ -158,7 +165,6 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-
         [Fact]
         public async Task PropertyAssignmentInInvocation()
         {
@@ -171,7 +177,7 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         var c = new C();
-        c.A = ([||]from x in nums select x + 1).ToList();
+        c.A = ([|from x in nums select x + 1|]).ToList();
     }
 
     class C
@@ -216,7 +222,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        IEnumerable<int> q1 = [||]from x in nums select x + 1, q2 = from x in nums select x + 1;
+        IEnumerable<int> q1 = [|from x in nums select x + 1|], q2 = from x in nums select x + 1;
     }
 }";
 
@@ -254,7 +260,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        IEnumerable<int> q1 = from x in nums select x + 1, q2 = [||]from x in nums select x + 1;
+        IEnumerable<int> q1 = from x in nums select x + 1, q2 = [|from x in nums select x + 1|];
     }
 }";
 
@@ -281,7 +287,8 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact]
+        // TODO support tuples in the test class, follow CodeGenTupleTests
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
         public async Task TupleDeclaration()
         {
             string source = @"
@@ -292,7 +299,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        var q = ([||]from x in nums select x + 1, from x in nums select x + 1);
+        var q = ([|from x in nums select x + 1|], from x in nums select x + 1);
     }
 }";
 
@@ -312,10 +319,42 @@ public class Test
             }
         }
 
-        var q1 = (localFunction(), q2 = from x in nums select x + 1);
+        var q = (localFunction(), from x in nums select x + 1);
     }
 }";
-            // TODO how to include a ref to { ValueTupleRef }?
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task ExtraParenthesis()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    IEnumerable<int> M()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        return ([|from x in nums select x + 1|]);
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    IEnumerable<int> M()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        foreach (var x in nums)
+        {
+            yield return x + 1;
+        }
+    }
+}";
             await TestInRegularAndScriptAsync(source, output);
         }
 
@@ -329,9 +368,9 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        var q = [||]from int n1 in nums
+        var q = [|from int n1 in nums
                 from int n2 in nums
-                select n1;
+                select n1|];
         return q;
     }
 }
@@ -374,9 +413,51 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        var list = ([||]from int n1 in nums 
+        var list = ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).ToList();
+                 select n1|]).ToList();
+        return list;
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        var list = new List<int>();
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }
+
+        return list;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task AssignListWithTypeArgument()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        var list = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).ToList<int>();
         return list;
     }
 }
@@ -416,9 +497,9 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        return ([||]from int n1 in nums 
+        return ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).ToList();
+                 select n1|]).ToList();
     }
 }
 ";
@@ -458,9 +539,9 @@ class C
     List<int> M(IEnumerable<int> nums)
     {
         var list = new List<int>();
-        return ([||]from int n1 in nums 
+        return ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).ToList();
+                 select n1|]).ToList();
     }
 }
 ";
@@ -500,9 +581,9 @@ class C
 {
     int M(IEnumerable<int> nums)
     {
-        var cnt = ([||]from int n1 in nums 
+        var cnt = ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).Count();
+                 select n1|]).Count();
         return cnt;
     }
 }
@@ -542,9 +623,9 @@ class C
 {
     int M(IEnumerable<int> nums)
     {
-        return ([||]from int n1 in nums 
+        return ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).Count();
+                 select n1|]).Count();
     }
 }
 ";
@@ -584,9 +665,9 @@ class C
     int M(IEnumerable<int> nums)
     {
         int count = 1;
-        return ([||]from int n1 in nums 
+        return ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).Count();
+                 select n1|]).Count();
     }
 }
 ";
@@ -627,9 +708,9 @@ class C
 {
     int M(IEnumerable<int> nums)
     {
-        var cnt = ([||]from int n1 in nums 
+        var cnt = ([|from int n1 in nums 
                  from int n2 in nums
-                 select n1).Count(x => x > 2);
+                 select n1|]).Count(x => x > 2);
         return cnt;
     }
 }
@@ -648,9 +729,9 @@ class C
 {
     T M<T>(IEnumerable<T> nums)
     {
-        return ([||]from n1 in nums 
+        return ([|from n1 in nums 
                  from n2 in nums
-                 select n1).FirstOrDefault();
+                 select n1|]).FirstOrDefault();
     }
 }
 ";
@@ -692,9 +773,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        var q = [||]from int n1 in nums 
+        var q = [|from int n1 in nums 
                 from int n2 in nums
-                select n1;
+                select n1|];
         foreach (var b in q)
         {
             Console.WriteLine(b);
@@ -745,9 +826,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        var q = [||]from int n1 in nums 
+        var q = [|from int n1 in nums 
                 from int n2 in nums
-                select n1;
+                select n1|];
         foreach(var n1 in q)
         {
             Console.WriteLine(n1);
@@ -797,9 +878,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        foreach(var b in [||]from int n1 in nums 
+        foreach(var b in [|from int n1 in nums 
                 from int n2 in nums
-                select n1)
+                select n1|])
         {
             Console.WriteLine(b);
         }
@@ -841,9 +922,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        foreach(var n1 in [||]from int n1 in nums 
+        foreach(var n1 in [|from int n1 in nums 
                           from int n2 in nums
-                          select n1)
+                          select n1|])
         {
             Console.WriteLine(n1);
         }
@@ -883,9 +964,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        var q = [||]from int n1 in nums 
+        var q = [|from int n1 in nums 
                 from int n2 in nums
-                select n1;
+                select n1|];
         N(q);
     }
 
@@ -935,9 +1016,9 @@ class C
     void M(IEnumerable<int> nums)
     {
         IEnumerable<int> q;
-        q = [||]from int n1 in nums 
+        q = [|from int n1 in nums 
                 from int n2 in nums
-                select n1;
+                select n1|];
 
         N(q);
     }
@@ -989,7 +1070,7 @@ class Query
     public static void Main(string[] args)
     {
         List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
-        var r = [||]from i in c select i+1;
+        var r = [|from i in c select i+1|];
     }
 }";
             string output = @"
@@ -1026,7 +1107,7 @@ class Query
     public static void Main(string[] args)
     {
         List<int> c = new List<int>(1, 2, 3, 4, 5, 6, 7);
-        var r = [||]from i in c group i by i % 2;
+        var r = [|from i in c group i by i % 2|];
         Console.WriteLine(r);
     }
 }";
@@ -1046,7 +1127,7 @@ class Query
     public static void Main(string[] args)
     {
         List<int> c = new List<int>(1, 2, 3, 4, 5, 6, 7);
-        var r = [||]from i in c group 10+i by i % 2;
+        var r = [|from i in c group 10+i by i % 2|];
         Console.WriteLine(r);
     }
 }";
@@ -1067,9 +1148,9 @@ class Query
     {
         List<int> c1 = new List<int>{1, 2, 3, 4, 5, 7};
         List<int> c2 = new List<int>{10, 30, 40, 50, 60, 70};
-        var r = [||]from x1 in c1
+        var r = [|from x1 in c1
                       join x2 in c2 on x1 equals x2/10
-                      select x1+x2;
+                      select x1+x2|];
     }
 }
 ";
@@ -1115,9 +1196,9 @@ class Query
     {
         List<int> c = new List<int>(28, 51, 27, 84, 27, 27, 72, 64, 55, 46, 39);
         var r =
-            [||]from i in c
+            [|from i in c
             orderby i/10 descending, i%10
-            select i;
+            select i|];
         Console.WriteLine(r);
     }
 }";
@@ -1126,7 +1207,7 @@ class Query
         }
 
         [Fact]
-        public async Task Let01()
+        public async Task Let()
         {
             string source = @"
 using System;
@@ -1138,10 +1219,11 @@ class Query
     {
         List<int> c1 = new List<int>{ 1, 2, 3 };
         List<int> r1 =
-            ([||]from int x in c1
+            ([|from int x in c1
             let g = x * 10
             let z = g + x*100
-            select x + z).ToList();
+            let a = 5 + z
+            select x + z - a|]).ToList();
             Console.WriteLine(r1);
     }
 }";
@@ -1159,7 +1241,8 @@ class Query
         {
             var g = x * 10;
             var z = g + x*100;
-            r1.Add(x + z);
+            var a = 5 + z;
+            r1.Add(x + z - a);
         }
 
         Console.WriteLine(r1);
@@ -1167,7 +1250,6 @@ class Query
 }";
             await TestInRegularAndScriptAsync(source, output);
         }
-
 
         [Fact]
         public async Task TransparentIdentifiers_FromLet()
@@ -1183,12 +1265,12 @@ class Query
         C c1 = new C { 1, 2, 3 };
         C c2 = new C { 10, 20, 30 };
         C c3 = new C { 100, 200, 300 };
-        C r1 = ([||]from int x in c1
+        C r1 = ([|from int x in c1
                 from int y in c2
                 from int z in c3
                 let g = x + y + z
                 where (x + y / 10 + z / 100) < 6
-                select g).ToList();
+                select g|]).ToList();
         Console.WriteLine(r1);
     }
 }
@@ -1204,7 +1286,7 @@ class Query
         C c1 = new C { 1, 2, 3 };
         C c2 = new C { 10, 20, 30 };
         C c3 = new C { 100, 200, 300 };
-        C r1 = new List<int>();
+        C r1 = new C();
         foreach (int x in c1)
         {
             foreach (int y in c2)
@@ -1228,7 +1310,7 @@ class Query
         }
 
         [Fact]
-        public async Task TransparentIdentifiers_Join01()
+        public async Task TransparentIdentifiers_Join()
         {
             string source = @"
 using System.Linq;
@@ -1241,10 +1323,10 @@ class Query
         C c1 = new C { 1, 2, 3 };
         C c2 = new C { 10, 20, 30 };
         C r1 =
-            ([||]from int x in c1
+            ([|from int x in c1
              join y in c2 on x equals y / 10
              let z = x + y
-             select z).ToList();
+             select z|]).ToList();
         Console.WriteLine(r1);
     }
 }
@@ -1259,7 +1341,7 @@ class Query
     {
         C c1 = new C { 1, 2, 3 };
         C c2 = new C { 10, 20, 30 };
-        C r1 = new List<int>();
+        C r1 = new C();
         foreach (int x in c1)
         {
             foreach (var y in c2)
@@ -1280,7 +1362,7 @@ class Query
         }
 
         [Fact]
-        public async Task Join02()
+        public async Task Join()
         {
             string source = @"
 using System;
@@ -1292,10 +1374,10 @@ class Query
     {
         List<int> c1 = new List<int> { 1, 2, 3, 4, 5, 7 };
         List<int> c2 = new List<int> { 12, 34, 42, 51, 52, 66, 75 };
-        List<string> r1 = ([||]from x1 in c1
+        List<string> r1 = ([|from x1 in c1
                       join x2 in c2 on x1 equals x2 / 10 into g
                       where x1 < 7
-                      select x1 + "":"" + g.ToString()).ToList();
+                      select x1 + "":"" + g.ToString()|]).ToList();
         Console.WriteLine(r1);
     }
 }
@@ -1347,10 +1429,10 @@ class Query
         var c2 = new int[] {10, 20, 30};
         var c3 = new int[] {100, 200, 300};
         var r1 =
-            [||]from int x in c1
+            [|from int x in c1
             from int y in c2
             from int z in c3
-            select x + y + z;
+            select x + y + z|];
         Console.WriteLine(r1);
     }
 }";
@@ -1386,7 +1468,7 @@ class Query
         }
 
         [Fact]
-        public async Task JoinClauseTest() 
+        public async Task JoinClauseTest()
         {
             string source = @"
 using System;
@@ -1396,16 +1478,14 @@ class Program
     static void Main()
     {
         var q2 =
-           [||]from a in Enumerable.Range(1, 13)
+           [|from a in Enumerable.Range(1, 13)
            join b in Enumerable.Range(1, 13) on 4 * a equals b
-           select a;
+           select a|];
 
-        string serializer = String.Empty;
         foreach (var q in q2)
         {
-            serializer = serializer + q + "" "";
+            System.Console.Write(q);
         }
-        System.Console.Write(serializer.Trim());
     }
 }";
             string output = @"
@@ -1431,12 +1511,10 @@ class Program
 
         var q2 = localFunction();
 
-        string serializer = String.Empty;
         foreach (var q in q2)
         {
-            serializer = serializer + q + "" "";
+            System.Console.Write(q);
         }
-        System.Console.Write(serializer.Trim());
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -1454,9 +1532,9 @@ class Program
     {
         var nums = new int[] { 1, 2, 3, 4 };
 
-        var q2 = [||]from x in nums
+        var q2 = [|from x in nums
                 where (x > 2)
-                select x;
+                select x|];
 
         string serializer = String.Empty;
         foreach (var q in q2)
@@ -1518,9 +1596,9 @@ class P
     static void Main()
     {
         var src = new Y();
-        var query = [||]from x in src
+        var query = [|from x in src
                 where x > 0
-                select x;
+                select x|]];
 
         Console.Write(query);
     }
@@ -1541,9 +1619,9 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
 
-        var q2 = [||]from x in nums
+        var q2 = [|from x in nums
                  select x into w
-                 select w;
+                 select w|];
     }
 }";
             string output = @"
@@ -1581,9 +1659,9 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
 
-        var q2 = [||]from x in nums
+        var q2 = [|from x in nums
                  select x+1 into w
-                 select w+1;
+                 select w+1|];
     }
 }";
             string output = @"
@@ -1620,8 +1698,8 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
 
-        var q2 = [||]from x in nums
-                 select 5;
+        var q2 = [|from x in nums
+                 select 5|];
     }
 }";
             string output = @"
@@ -1656,9 +1734,9 @@ static class Test
 {
     static void Main()
     {
-        var qie = [||]from x3 in new int[] { 0 }
+        var qie = [|from x3 in new int[] { 0 }
                       join x7 in (new int[] { 0 }) on 5 equals 5 into x8
-                      select x8;
+                      select x8|];
     }
 }";
             string output = @"
@@ -1700,9 +1778,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        var q1 = [||]from num in new int[] { 4, 5 }
+        var q1 = [|from num in new int[] { 4, 5 }
                  join x1 in new int[] { 4, 5 } on num equals x1
-                 select x1 + 5;
+                 select x1 + 5|];
     }
 }";
             string output = @"
@@ -1733,7 +1811,7 @@ class Program
         }
 
         [Fact]
-        public async Task EmitIncompleteQueryWithSyntaxErrors()
+        public async Task IncompleteQueryWithSyntaxErrors()
         {
             string source = @"
 using System.Linq;
@@ -1743,9 +1821,9 @@ class Program
     static int Main()
     {
         int [] goo = new int [] {1};
-        var q = [||]from x in goo
+        var q = [|from x in goo
                 select x + 1 into z
-                    select z.T
+                    select z.T|]
     }
 }
 ";
@@ -1763,7 +1841,7 @@ class C
 {
     IEnumerable<int> M()
     {
-        return [||]from int n1 in nums select n1;
+        return [|from int n1 in nums select n1|];
     }
 }
 ";
@@ -1781,9 +1859,9 @@ class Program
     static void Main()
     {
         int[] nums = { 0, 1, 2, 3, 4, 5 };
-        var query = [||]from num in nums
+        var query = [|from num in nums
                     let num = 3
-                    select num; 
+                    select num|]; 
     }
 }";
 
@@ -1801,7 +1879,7 @@ class C
 {
     static void Main()
     {
-        var q = [||]from x in C select x;
+        var q = [|from x in C select x|];
     }
 
     static IEnumerable<int> Select<T>(Func<int, T> f) { return null; }
@@ -1839,7 +1917,7 @@ class C
 {
     static void Main()
     {
-        var q = [||]from x in C select x;
+        var q = [|from x in C select x|];
     }
 
     static Func<Func<int, object>, IEnumerable<object>> Select = null;
@@ -1868,31 +1946,10 @@ class C
         }
 
         [Fact]
-        public async Task QueryOnSourceWithGroupByMethod()
-        {
-            string source = @"
-
-class Test
-{
-    static int Main()
-    {
-        Y<int> src = new Y<int>(2);
-        string q1 = src.GroupBy(x => x.GetType().Name); // ok
-        string q2 = [||]from x in src group x by x.GetType().Name;
-        return 0;
-    }
-}
-";
-            // group by is not supported
-            await TestMissingAsync(source);
-        }
-
-        [Fact]
-        public async Task GetSymbolInfoOfSelectNodeWhenTypeOfRangeVariableIsErrorType()
+        public async Task SelectFromVoid()
         {
             string source = @"
 using System.Linq;
-
 class Test
 {
     static void V()
@@ -1901,7 +1958,7 @@ class Test
 
     public static int Main()
     {
-        var e1 = [||]from i in V() select i;
+        var e1 = [|from i in V() select i|];
     }
 }
 ";
@@ -1918,7 +1975,7 @@ using System.Linq;
 public class Test
 {
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public IEnumerable<int> Query => [||]from x in _nums select x + 1;
+    public IEnumerable<int> Query => [|from x in _nums select x + 1|];
 }
 ";
             // Cannot convert in expression bodied property
@@ -1935,7 +1992,7 @@ using System.Linq;
 public class Test
 {
     private static readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public List<int> Query = ([||]from x in _nums select x + 1).ToList();
+    public List<int> Query = ([|from x in _nums select x + 1|]).ToList();
 }
 ";
             await TestMissingAsync(source);
@@ -1951,7 +2008,7 @@ using System.Linq;
 public class Test
 {
     private static readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public IEnumerable<int> Query = [||]from x in _nums select x + 1;
+    public IEnumerable<int> Query = [|from x in _nums select x + 1|];
 }
 ";
             await TestMissingAsync(source);
@@ -1966,14 +2023,15 @@ using System.Linq;
 public class Test
 {
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public IEnumerable<int> Query() => [||]from x in _nums select x + 1;
+    public IEnumerable<int> Query() => [|from x in _nums select x + 1|];
 }
 ";
             // Cannot convert in expression bodied method
             await TestMissingAsync(source);
         }
 
-        [Fact]
+        // TODO support tuples in the test class
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
         public async Task InReturningTuple()
         {
             string source = @"
@@ -1983,15 +2041,34 @@ public class Test
 {
     (IEnumerable<int>, int) M(IEnumerable<int> q)
     {
-        return (([||]from a in q select a * a), 1);
+        return (([|from a in q select a * a|]), 1);
     }
 }
 ";
-            // Cannot convert in expression bodied method
-            await TestMissingAsync(source);
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    (IEnumerable<int>, int) M(IEnumerable<int> q)
+    {
+        IEnumerable<int> localFunction()
+        {
+            foreach(var a in q)
+            {
+                yield return a * a;
+            }
+        }
+        return (localFunction(), 1);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, output);
         }
 
-        [Fact]
+        // TODO support tuples in the test class
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25639")]
         public async Task InInvocationReturningInTuple()
         {
             string source = @"
@@ -2001,12 +2078,32 @@ public class Test
 {
     (int, int) M(IEnumerable<int> q)
     {
-        return (([||]from a in q select a * a).Count(), 1);
+        return (([|from a in q select a * a|]).Count(), 1);
     }
 }
 ";
-            // Cannot convert in expression bodied method
-            await TestMissingAsync(source);
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    (int, int) M(IEnumerable<int> q)
+    {
+        IEnumerable<int> localFunction()
+        {
+            foreach(var a in q)
+            {
+                yield return a * a;
+            }
+        }
+
+        return (localFunction().Count(), 1);
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
         }
 
         [Fact]
@@ -2018,7 +2115,7 @@ using System.Linq;
 public class Test
 {
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public List<int> Query() => ([||]from x in _nums select x + 1).ToList();
+    public List<int> Query() => ([|from x in _nums select x + 1|]).ToList();
 }
 ";
             // Cannot convert in expression bodied method
@@ -2036,7 +2133,7 @@ public class Test
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
     public void M()
     {
-        IEnumerable<int> Query() => [||]from x in _nums select x + 1;
+        IEnumerable<int> Query() => [|from x in _nums select x + 1|];
     }
 }
 ";
@@ -2053,7 +2150,7 @@ using System.Linq;
 public class Test
 {
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public IEnumerable<int> Query { get => [||]from x in _nums select x + 1; }
+    public IEnumerable<int> Query { get => [|from x in _nums select x + 1|]; }
 }
 ";
             // Cannot convert in expression bodied property
@@ -2069,7 +2166,7 @@ using System.Linq;
 public class Test
 {
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public IEnumerable<int> Query1 { get { return [||]from x in _nums select x + 1; } }
+    public IEnumerable<int> Query1 { get { return [|from x in _nums select x + 1|]; } }
 }
 ";
 
@@ -2095,9 +2192,9 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return [||]from int n1 in /* comment */ nums 
+        return [|from int n1 in /* comment */ nums 
                  from int n2 in nums
-                 select n1;
+                 select n1|];
     }
 }";
             // Cannot convert expressions with comments
@@ -2114,9 +2211,9 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return [||]from int n1 in nums // comment
+        return [|from int n1 in nums // comment
                  from int n2 in nums
-                 select n1;
+                 select n1|];
     }
 }";
             // Cannot convert expressions with comments
@@ -2134,11 +2231,11 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return [||]from int n1 in nums
+        return [|from int n1 in nums
 #if (true)
                  from int n2 in nums
 #endif
-                 select n1;
+                 select n1|];
     }
 }";
 

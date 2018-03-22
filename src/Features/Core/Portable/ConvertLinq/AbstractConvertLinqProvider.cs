@@ -8,23 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
+    /// <summary>
+    /// This is a base class for LINQ related conversions between LINQ queries, LINQ methods and foreach loops.
+    /// </summary>
     internal abstract class AbstractConvertLinqProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                return;
-            }
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
 
             await CreateAnalyzer(semanticModel, context.CancellationToken)
@@ -58,24 +53,19 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 var cancellationToken = context.CancellationToken;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var refactor = FindNodeToRefactor(root, context);
-                if (refactor == null)
+                var nodeToRefactor = FindNodeToRefactor(root, context);
+                if (nodeToRefactor == null)
                 {
                     return;
                 }
 
-                if (refactor.ContainsDiagnostics)
+                if (nodeToRefactor.ContainsDiagnostics)
                 {
                     return;
                 }
 
-                if (TryConvert(refactor, out var result))
+                if (TryConvert(nodeToRefactor, out var result))
                 {
-                    if (!result.IsValid())
-                    {
-                        return;
-                    }
-
                     context.RegisterRefactoring(new MyCodeAction(Title, c => UpdateDocumentAsync(root, document, result)));
                 }
             }
@@ -83,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             protected abstract bool TryConvert(TRefactor refactor, out DocumentUpdate documentUpdate);
 
             protected virtual TRefactor FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context) =>
-                root.FindNode(context.Span).FirstAncestorOrSelf<TRefactor>();
+                root.FindNode(context.Span) as TRefactor ?? default;
 
             protected abstract string Title { get; }
 
@@ -99,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
         protected sealed class DocumentUpdate
         {
-            private ImmutableArray<(SyntaxNode Source, ImmutableArray<SyntaxNode> Destinations)> _updates;
+            private ImmutableArray<(SyntaxNode source, ImmutableArray<SyntaxNode> destinations)> _updates;
 
             public DocumentUpdate(SyntaxNode source, SyntaxNode destination)
                 => _updates = ImmutableArray.Create((source, ImmutableArray.Create(destination)));
@@ -107,24 +97,17 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             public DocumentUpdate(SyntaxNode source, IEnumerable<SyntaxNode> destination)
                 => _updates = ImmutableArray.Create((source, ImmutableArray.CreateRange(destination)));
 
-            public bool IsValid()
-            {
-                return _updates.Any() && _updates.All(item => item.Source != null && item.Destinations != null);
-            }
-
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {
-                foreach (var updateItem in _updates.OrderByDescending(update => update.Source.Span.End))
+                foreach (var updateItem in _updates)
                 {
-                    if (updateItem.Destinations.Any())
+                    if (updateItem.destinations.Any())
                     {
-                        // TODO do we need to find node?
-                        // TODO consider using SyntaxEditor
-                        root = root.ReplaceNode(root.FindNode(updateItem.Source.Span), updateItem.Destinations.Select(node => node.WithAdditionalAnnotations(Simplifier.Annotation)));
+                        root = root.ReplaceNode(updateItem.source, updateItem.destinations.Select(node => node.WithAdditionalAnnotations(Simplifier.Annotation)));
                     }
                     else
                     {
-                        root = root.RemoveNode(updateItem.Source, SyntaxRemoveOptions.AddElasticMarker);
+                        root = root.RemoveNode(updateItem.source, SyntaxRemoveOptions.AddElasticMarker);
                     }
                 }
 
