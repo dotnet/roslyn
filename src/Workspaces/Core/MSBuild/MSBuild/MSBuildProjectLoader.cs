@@ -113,11 +113,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // use MSBuildProjectDirectory which is always defined).
             if (!string.IsNullOrEmpty(solutionFilePath))
             {
-                var solutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
-                {
-                    solutionDirectory += @"\";
-                }
+                var solutionDirectory = PathUtilities.GetDirectoryName(solutionFilePath) + PathUtilities.DirectorySeparatorChar;
 
                 if (Directory.Exists(solutionDirectory))
                 {
