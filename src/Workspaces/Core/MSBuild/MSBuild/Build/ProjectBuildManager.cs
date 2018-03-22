@@ -54,18 +54,25 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 return null;
             }
 
+            // We need to walk through all of the projects that have been previously loaded from this path and
+            // find the one that has the given set of global properties, plus the default global properties that
+            // we load every project with.
+
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
             var totalGlobalProperties = _projectCollection.GlobalProperties.Count + globalProperties.Count;
 
             foreach (var loadedProject in loadedProjects)
             {
+                // If this project has a different number of global properties than we expect, it's not the
+                // one we're looking for.
                 if (loadedProject.GlobalProperties.Count != totalGlobalProperties)
                 {
                     continue;
                 }
 
-                // All projects in the collection should have the default global properties, so
-                // there's no need to check collection.GlobalProperties.
+                // Since we loaded all of them, the projects in this collection should all have the default
+                // global properties (i.e. the ones in _projectCollection.GlobalProperties). So, we just need to
+                // check the extra global properties.
 
                 var found = true;
                 foreach (var globalProp in globalProperties)
@@ -83,6 +90,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
+            // We couldn't find a project with this path and the set of global properties we expect.
             return null;
         }
 
