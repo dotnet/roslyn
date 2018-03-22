@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             public void DisconnectFromWorkspace()
             {
+                _reportChangeCancellationSource.Cancel();
+
                 if (_workspace != null)
                 {
                     _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;

@@ -6,7 +6,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp,
+        Name = PredefinedCodeRefactoringProviderNames.AddFileBanner), Shared]
     internal class CSharpAddFileBannerCodeRefactoringProvider : AbstractAddFileBannerCodeRefactoringProvider
     {
         protected override bool IsCommentStartCharacter(char ch)
