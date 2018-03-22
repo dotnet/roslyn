@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A number that is distinct for each case and monotonically increasing from earlier to later cases.
             /// Since we always keep the cases in order, this is only used to assist with debugging (e.g.
-            /// <see cref="DecisionDag.Dump()"/>).
+            /// see DecisionDag.Dump()).
             /// </summary>
             public readonly int Index;
             public readonly SyntaxNode Syntax;
