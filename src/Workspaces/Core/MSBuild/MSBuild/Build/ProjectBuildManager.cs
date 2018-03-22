@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             // only allow one build to use the default build manager at a time
-            using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false))
+            using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, cancellationToken).ConfigureAwait(false);
             }
         }
 
