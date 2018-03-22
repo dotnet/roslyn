@@ -10158,6 +10158,631 @@ public class C
 }");
         }
 
+        [Fact]
+        public void SkipLocalsInitAttributeOnPropertyPropagatesToBothAccessors()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P_skip
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    public int P_init
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.P_skip.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P_init.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P_skip.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C.P_init.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.4
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAccessor()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public int P1
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    public int P2
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+
+    public int P3
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 5;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 6;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.P1.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P1.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C.P2.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P2.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.4
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C.P3.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P3.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.6
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnIteratorGetAccessor()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public System.Collections.IEnumerable P
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            yield return 1;
+            yield return 2;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.<get_P>d__1.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       92 (0x5c)
+  .maxstack  2
+  .locals (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<get_P>d__1.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0037,
+        IL_0053)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      ""int C.<get_P>d__1.<>1__state""
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        ""int""
+  IL_0029:  stfld      ""object C.<get_P>d__1.<>2__current""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  stfld      ""int C.<get_P>d__1.<>1__state""
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldarg.0
+  IL_0038:  ldc.i4.m1
+  IL_0039:  stfld      ""int C.<get_P>d__1.<>1__state""
+  IL_003e:  ldarg.0
+  IL_003f:  ldc.i4.2
+  IL_0040:  box        ""int""
+  IL_0045:  stfld      ""object C.<get_P>d__1.<>2__current""
+  IL_004a:  ldarg.0
+  IL_004b:  ldc.i4.2
+  IL_004c:  stfld      ""int C.<get_P>d__1.<>1__state""
+  IL_0051:  ldc.i4.1
+  IL_0052:  ret
+  IL_0053:  ldarg.0
+  IL_0054:  ldc.i4.m1
+  IL_0055:  stfld      ""int C.<get_P>d__1.<>1__state""
+  IL_005a:  ldc.i4.0
+  IL_005b:  ret
+}");
+
+            comp.VerifyIL("C.<get_P>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals (C.<get_P>d__1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<get_P>d__1.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0022
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<get_P>d__1.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_0022
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  stfld      ""int C.<get_P>d__1.<>1__state""
+  IL_001e:  ldarg.0
+  IL_001f:  stloc.0
+  IL_0020:  br.s       IL_0029
+  IL_0022:  ldc.i4.0
+  IL_0023:  newobj     ""C.<get_P>d__1..ctor(int)""
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnPropertyAndAccessor()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P1
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P2
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P3
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 5;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 6;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.P1.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P1.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C.P2.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P2.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.4
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C.P3.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P3.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.6
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        // PROTOTYPE(SkipLocalsInitAttribute): we might want to update this test once SkipLocalsInitAttribute on classes is enabled
+        [Fact]
+        public void SourcePropertySymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public int P
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            comp.VerifyIL("C.P.get", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P.set", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAutoProperty()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P
+    {
+        get; set;
+    }
+}
+";
+
+            // No locals are expected. We are just making sure it still works.
+            var comp = CompileAndVerify(source);
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]

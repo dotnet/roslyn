@@ -688,6 +688,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                if (data == null)
+                {
+                    return ContainingType.AreLocalsZeroed;
+                }
+
+                return !data.HasSkipLocalsInitAttribute && ContainingType.AreLocalsZeroed;
+            }
+        }
+
         internal bool IsAutoProperty
         {
             get { return _isAutoProperty; }
@@ -1252,6 +1266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSkipLocalsInitAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
