@@ -78,6 +78,40 @@ public class Test2
         }
 
         [Fact]
+        public void EnumConstraint_Compilation_Interface()
+        {
+            CreateCompilation(@"
+public class Test<T> where T : System.Enum, System.IDisposable
+{
+}
+public enum E1
+{
+    A
+}
+public class Test2
+{
+    public void M<U>() where U : System.IDisposable
+    {
+        var a = new Test<E1>();             // not disposable
+        var b = new Test<U>();              // not enum
+        var c = new Test<int>();            // neither disposable nor enum
+    }
+}").VerifyDiagnostics(
+                // (13,26): error CS0315: The type 'E1' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'E1' to 'System.IDisposable'.
+                //         var a = new Test<E1>();             // not disposable
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "E1").WithArguments("Test<T>", "System.IDisposable", "T", "E1").WithLocation(13, 26),
+                // (14,26): error CS0314: The type 'U' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion or type parameter conversion from 'U' to 'System.Enum'.
+                //         var b = new Test<U>();              // not enum
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "U").WithArguments("Test<T>", "System.Enum", "T", "U").WithLocation(14, 26),
+                // (15,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         var c = new Test<int>();            // neither disposable nor enum
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.Enum", "T", "int").WithLocation(15, 26),
+                // (15,26): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no boxing conversion from 'int' to 'System.IDisposable'.
+                //         var c = new Test<int>();            // neither disposable nor enum
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "int").WithArguments("Test<T>", "System.IDisposable", "T", "int").WithLocation(15, 26));
+        }
+
+        [Fact]
         public void EnumConstraint_Compilation_ValueType()
         {
             CreateCompilation(@"
@@ -310,10 +344,32 @@ public class Test<T> where T : System.Enum
 {
 }";
 
-            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+            var oldOptions = new CSharpParseOptions(LanguageVersion.CSharp7_2);
+
+            CreateCompilation(code, parseOptions: oldOptions).VerifyDiagnostics(
                 // (2,32): error CS8320: Feature 'enum generic type constraints' is not available in C# 7.2. Please use language version 7.3 or greater.
                 // public class Test<T> where T : System.Enum
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "System.Enum").WithArguments("enum generic type constraints", "7.3").WithLocation(2, 32));
+
+            var reference = CreateCompilation(code).EmitToImageReference();
+
+            var legacyCode = @"
+enum E
+{
+}
+class Legacy
+{
+    void M()
+    {
+        var a = new Test<E>();          // valid
+        var b = new Test<Legacy>();     // invalid
+    }
+}";
+
+            CreateCompilation(legacyCode, parseOptions: oldOptions, references: new[] { reference }).VerifyDiagnostics(
+                // (10,26): error CS0311: The type 'Legacy' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'Legacy' to 'System.Enum'.
+                //         var b = new Test<Legacy>();     // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Legacy").WithArguments("Test<T>", "System.Enum", "T", "Legacy").WithLocation(10, 26));
         }
 
         [Theory]
@@ -609,6 +665,41 @@ UInt32");
         }
 
         [Fact]
+        public void EnumConstraint_InheritingFromEnum()
+        {
+            var code = @"
+public class Child : System.Enum
+{
+}
+
+public enum E
+{
+    A
+}
+
+public class Test
+{
+    public void M<T>(T arg) where T : System.Enum
+    {
+    }
+
+    public void N()
+    {
+        M(E.A);             // valid
+        M(new Child());     // invalid
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (2,14): error CS0644: 'Child' cannot derive from special class 'Enum'
+                // public class Child : System.Enum
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Child").WithArguments("Child", "System.Enum").WithLocation(2, 14),
+                // (20,9): error CS0311: The type 'Child' cannot be used as type parameter 'T' in the generic type or method 'Test.M<T>(T)'. There is no implicit reference conversion from 'Child' to 'System.Enum'.
+                //         M(new Child());     // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Test.M<T>(T)", "System.Enum", "T", "Child").WithLocation(20, 9));
+        }
+
+        [Fact]
         public void DelegateConstraint_Compilation_Alone()
         {
             CreateCompilation(@"
@@ -802,11 +893,31 @@ public class Test2
 public class Test<T> where T : System.Delegate
 {
 }";
+            var oldOptions = new CSharpParseOptions(LanguageVersion.CSharp7_2);
 
-            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+            CreateCompilation(code, parseOptions: oldOptions).VerifyDiagnostics(
                 // (2,32): error CS8320: Feature 'delegate generic type constraints' is not available in C# 7.2. Please use language version 7.3 or greater.
                 // public class Test<T> where T : System.Delegate
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "System.Delegate").WithArguments("delegate generic type constraints", "7.3").WithLocation(2, 32));
+
+            var reference = CreateCompilation(code).EmitToImageReference();
+
+            var legacyCode = @"
+delegate void D();
+
+class Legacy
+{
+    void M()
+    {
+        var a = new Test<D>();          // valid
+        var b = new Test<Legacy>();     // invalid
+    }
+}";
+
+            CreateCompilation(legacyCode, parseOptions: oldOptions, references: new[] { reference }).VerifyDiagnostics(
+                // (9,26): error CS0311: The type 'Legacy' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'Legacy' to 'System.Delegate'.
+                //         var b = new Test<Legacy>();     // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Legacy").WithArguments("Test<T>", "System.Delegate", "T", "Legacy").WithLocation(9, 26));
         }
 
         [Fact]
@@ -1264,10 +1375,31 @@ public class Test<T> where T : System.MulticastDelegate
 {
 }";
 
-            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+            var oldOptions = new CSharpParseOptions(LanguageVersion.CSharp7_2);
+
+            CreateCompilation(code, parseOptions: oldOptions).VerifyDiagnostics(
                 // (2,32): error CS8320: Feature 'delegate generic type constraints' is not available in C# 7.2. Please use language version 7.3 or greater.
                 // public class Test<T> where T : System.MulticastDelegate
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "System.MulticastDelegate").WithArguments("delegate generic type constraints", "7.3").WithLocation(2, 32));
+
+            var reference = CreateCompilation(code).EmitToImageReference();
+
+            var legacyCode = @"
+delegate void D();
+
+class Legacy
+{
+    void M()
+    {
+        var a = new Test<D>();          // valid
+        var b = new Test<Legacy>();     // invalid
+    }
+}";
+
+            CreateCompilation(legacyCode, parseOptions: oldOptions, references: new[] { reference }).VerifyDiagnostics(
+                // (9,26): error CS0311: The type 'Legacy' cannot be used as type parameter 'T' in the generic type or method 'Test<T>'. There is no implicit reference conversion from 'Legacy' to 'System.MulticastDelegate'.
+                //         var b = new Test<Legacy>();     // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Legacy").WithArguments("Test<T>", "System.MulticastDelegate", "T", "Legacy").WithLocation(9, 26));
         }
 
         [Fact]
@@ -1924,10 +2056,29 @@ public class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+            var oldOptions = new CSharpParseOptions(LanguageVersion.CSharp7_2);
+
+            CreateCompilation(code, parseOptions: oldOptions).VerifyDiagnostics(
                 // (2,32): error CS8320: Feature 'unmanaged generic type constraints' is not available in C# 7.2. Please use language version 7.3 or greater.
                 // public class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "unmanaged").WithArguments("unmanaged generic type constraints", "7.3").WithLocation(2, 32));
+
+            var reference = CreateCompilation(code).EmitToImageReference();
+
+            var legacyCode = @"
+class Legacy
+{
+    void M()
+    {
+        var a = new Test<int>();        // valid
+        var b = new Test<Legacy>();     // invalid
+    }
+}";
+
+            CreateCompilation(legacyCode, parseOptions: oldOptions, references: new[] { reference }).VerifyDiagnostics(
+                // (7,26): error CS8377: The type 'Legacy' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var b = new Test<Legacy>();     // invalid
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Legacy").WithArguments("Test<T>", "T", "Legacy").WithLocation(7, 26));
         }
 
         [Fact]
@@ -2687,6 +2838,104 @@ public unsafe class C<U> where U : unmanaged
                 // (4,35): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     public void M1<T>() where T : T* { }
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(4, 35));
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_EnumWithUnmanaged()
+        {
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+
+                Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                Assert.True(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);
+
+                Assert.Equal("Enum", typeParameter.ConstraintTypes().Single().Name);
+
+                Assert.True(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
+            };
+
+            CompileAndVerify(
+                source: "public class Test<T> where T : unmanaged, System.Enum {}",
+                sourceSymbolValidator: validator,
+                symbolValidator: validator);
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_NestedInGenericType()
+        {
+            var code = @"
+public class Wrapper<T>
+{
+    public enum E
+    {
+    }
+
+    public struct S
+    {
+    }
+}
+public class Test
+{
+    void IsUnmanaged<T>() where T : unmanaged { }
+    void IsEnum<T>() where T : System.Enum { }
+    void IsStruct<T>() where T : struct { }
+    void IsNew<T>() where T : new() { }
+    
+
+    void User()
+    {
+        IsUnmanaged<Wrapper<int>.E>();
+        IsEnum<Wrapper<int>.E>();
+        IsStruct<Wrapper<int>.E>();
+        IsNew<Wrapper<int>.E>();
+
+        IsUnmanaged<Wrapper<int>.S>();          // Invalid
+        IsEnum<Wrapper<int>.S>();               // Invalid
+        IsStruct<Wrapper<int>.S>();
+        IsNew<Wrapper<int>.S>();
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (27,9): error CS8377: The type 'Wrapper<int>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
+                //         IsUnmanaged<Wrapper<int>.S>();          // Invalid
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<int>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<int>.S").WithLocation(27, 9),
+                // (28,9): error CS0315: The type 'Wrapper<int>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<int>.S' to 'System.Enum'.
+                //         IsEnum<Wrapper<int>.S>();               // Invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<int>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<int>.S").WithLocation(28, 9));
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_PointerInsideStruct()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public int a;
+    public int* b;
+
+    public S(int a, int* b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+}
+unsafe class Test
+{
+    static void M<T>() where T : unmanaged
+    {
+        T* ar = stackalloc T [10];
+    }
+    static void Main()
+    {
+        M<S>();
+    }
+}",
+    options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
     }
 }
