@@ -109,8 +109,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     return (project, log);
                 }
 
-                using (var stream = await ReadFileAsync(path, cancellationToken).ConfigureAwait(false))
-                using (var xmlReader = XmlReader.Create(stream, s_xmlReaderSettings))
+                using (var stream = FileUtilities.OpenAsyncRead(path))
+                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
+                using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
                 {
                     var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
 
@@ -128,44 +129,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 log.Add(e, path);
                 return (project: null, log);
             }
-        }
-
-        private static async Task<MemoryStream> ReadFileAsync(string path, CancellationToken cancellationToken)
-        {
-            var buffer = new byte[1024];
-
-            using (var stream = FileUtilities.OpenAsyncRead(path))
-            {
-                var totalBytesRead = 0;
-
-                int bytesRead;
-                while ((bytesRead = await stream.ReadAsync(buffer, totalBytesRead, buffer.Length - totalBytesRead, cancellationToken).ConfigureAwait(false)) > 0)
-                {
-                    totalBytesRead += bytesRead;
-
-                    // If we're at the end of the buffer, check the next byte to see if we're done.
-                    if (totalBytesRead == buffer.Length)
-                    {
-                        var nextByte = stream.ReadByte();
-                        if (nextByte == -1)
-                        {
-                            break;
-                        }
-
-                        // We're not done yet. Resize the buffer and write the byte we just read.
-                        Array.Resize(ref buffer, buffer.Length * 2);
-                        buffer[totalBytesRead] = (byte)nextByte;
-                        totalBytesRead++;
-                    }
-                }
-
-                if (totalBytesRead != buffer.Length)
-                {
-                    Array.Resize(ref buffer, totalBytesRead);
-                }
-            }
-
-            return new MemoryStream(buffer);
         }
 
         public async Task<string> TryGetOutputFilePathAsync(
