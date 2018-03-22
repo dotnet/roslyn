@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ForeachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 

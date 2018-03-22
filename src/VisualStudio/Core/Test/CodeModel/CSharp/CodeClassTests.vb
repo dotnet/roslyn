@@ -3,11 +3,11 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CodeClassTests

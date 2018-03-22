@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
+        internal void ReleaseCancelledItems() => _workQueue.ReleaseCancelledItems();
+
         public bool IsEmpty_TestOnly => _workQueue.IsEmpty;
 
         private async Task ProcessAsync()
@@ -361,6 +363,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 s_pool.Free(entry);
 
                 return work;
+            }
+
+            internal void ReleaseCancelledItems()
+            {
+                var removedItems = new LinkedList<PendingWork>();
+
+                lock (_gate)
+                {
+                    for (LinkedListNode<PendingWork> current = _list.First, next = current?.Next;
+                        current != null;
+                        current = next, next = current?.Next)
+                    {
+                        if (current.Value.CancellationToken.IsCancellationRequested)
+                        {
+                            _list.Remove(current);
+                            removedItems.AddLast(current);
+                        }
+                    }
+                }
+
+                // Dispose of the async tokens outside the lock
+                foreach (var pendingWork in removedItems)
+                {
+                    pendingWork.AsyncToken?.Dispose();
+                }
             }
         }
     }

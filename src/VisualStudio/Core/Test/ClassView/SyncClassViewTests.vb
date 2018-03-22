@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities

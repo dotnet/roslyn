@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal static class PredefinedCodeRefactoringProviderNames
     {
+        public const string AddFileBanner = "Add Banner To File Code Action Provider";
         public const string AddConstructorParametersFromMembers = "Add Parameters From Members Code Action Provider";
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string EncapsulateField = "Encapsulate Field";
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string SimplifyLambda = "Simplify Lambda Code Action Provider";
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string MoveTypeToFile = "Move Type To File Code Action Provider";
+        public const string ReplaceDocCommentTextWithTag = "Replace Documentation Comment Text With Tag Code Action Provider";
         public const string UseExplicitType = "Use Explicit Type Code Action Provider";
+        public const string UseExpressionBody = "Use Expression Body Code Action Provider";
     }
 }
