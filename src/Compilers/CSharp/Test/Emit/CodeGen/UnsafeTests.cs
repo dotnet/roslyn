@@ -4000,16 +4000,25 @@ unsafe class C
             System.Console.WriteLine(p[1]);
         }
     }
+}
 
-    class Fixable
+class Fixable
+{
+    public ref int GetPinnableReference()
     {
-        public ref int GetPinnableReference()
-        {
-            return ref (new int[]{1,2,3})[0];
-        }
+        return ref (new int[]{1,2,3})[0];
     }
+}
 
-}";
+static class FixableExt
+{
+    public static ref int GetPinnableReference(this Fixable self)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
 
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
 
@@ -4018,14 +4027,14 @@ unsafe class C
   // Code size       33 (0x21)
   .maxstack  2
   .locals init (pinned int& V_0)
-  IL_0000:  newobj     ""C.Fixable..ctor()""
+  IL_0000:  newobj     ""Fixable..ctor()""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_000d
   IL_0008:  pop
   IL_0009:  ldc.i4.0
   IL_000a:  conv.u
   IL_000b:  br.s       IL_0015
-  IL_000d:  call       ""ref int C.Fixable.GetPinnableReference()""
+  IL_000d:  call       ""ref int Fixable.GetPinnableReference()""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
   IL_0014:  conv.u
@@ -4040,6 +4049,70 @@ unsafe class C
 }
 ");
         }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedExt()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable
+{
+    public ref int GetPinnableReference<T>()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+static class FixableExt
+{
+    public static ref int GetPinnableReference<T>(this T self)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  newobj     ""Fixable..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000d
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  br.s       IL_0015
+  IL_000d:  call       ""ref int FixableExt.GetPinnableReference<Fixable>(Fixable)""
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  conv.u
+  IL_0015:  ldc.i4.4
+  IL_0016:  add
+  IL_0017:  ldind.i4
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.0
+  IL_0020:  ret
+}
+");
+        }
+
 
         [Fact]
         public void SimpleCaseOfCustomFixed_oldVersion()
@@ -4545,6 +4618,7 @@ static class FixAllExt
         public void CustomFixedClassSideeffects()
         {
             var text = @"
+    using System;
     unsafe class C
     {
         public static void Main()
@@ -4567,6 +4641,7 @@ static class FixAllExt
     {
         public int x;
 
+        [Obsolete]
         public ref int GetPinnableReference()
         {
             x = 456;
@@ -4576,6 +4651,13 @@ static class FixAllExt
 ";
 
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            compVerifier.VerifyDiagnostics(
+                // (14,29): warning CS0612: 'FixableClass.GetPinnableReference()' is obsolete
+                //             fixed (int* p = arg)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "arg").WithArguments("FixableClass.GetPinnableReference()").WithLocation(14, 29)
+                );
+
 
             // note that defensive copy is created
             compVerifier.VerifyIL("C.Test(ref FixableClass)", @"
@@ -5115,6 +5197,262 @@ public struct Fixable
                 //         fixed (int* p = new Fixable(1))
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
                 );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr04()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref int GetPinnableReference<T>() => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS0411: The type arguments for method 'Fixable.GetPinnableReference<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference<T>()").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr05_Obsolete()
+        {
+            var text = @"
+using System;
+
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    [Obsolete(""hi"", true)]
+    public ref int GetPinnableReference() => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (8,25): error CS0619: 'Fixable.GetPinnableReference()' is obsolete: 'hi'
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference()", "hi").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr06_UseSite()
+        {
+            var missing_cs = "public struct Missing { }";
+            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+
+            var lib_cs = @"
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref Missing GetPinnableReference() => throw null;
+}
+";
+
+            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+
+            var source =
+@"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (void* p = new Fixable(1))
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (void* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Fixable(1)").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 26),
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (void* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr07_Optional()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref int GetPinnableReference(int x = 0) => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): warning CS0280: 'Fixable' does not implement the 'fixed' pattern. 'Fixable.GetPinnableReference(int)' has the wrong signature.
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "new Fixable(1)").WithArguments("Fixable", "fixed", "Fixable.GetPinnableReference(int)").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void FixStringMissingAllHelpers()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (char* p = string.Empty)
+        {
+        }
+    }
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.get_OffsetToStringData'
+                //         fixed (char* p = string.Empty)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "string.Empty").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "get_OffsetToStringData").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void FixStringArrayExtensionHelpersIgnored()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (char* p = ""A"")
+        {
+            *p = default;
+        }
+
+        fixed (char* p = new char[1])
+        {
+            *p = default;
+        }
+    }
+}
+
+public static class FixableExt
+{
+    public static ref char GetPinnableReference(this string self) => throw null;
+    public static ref char GetPinnableReference(this char[] self) => throw null;
+}
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"");
+
+            compVerifier.VerifyIL("C.Main()", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (char* V_0, //p
+                pinned string V_1,
+                char* V_2, //p
+                pinned char[] V_3)
+  IL_0000:  ldstr      ""A""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  conv.u
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_0014
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.0
+  IL_0016:  stind.i2
+  IL_0017:  ldnull
+  IL_0018:  stloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  newarr     ""char""
+  IL_001f:  dup
+  IL_0020:  stloc.3
+  IL_0021:  brfalse.s  IL_0028
+  IL_0023:  ldloc.3
+  IL_0024:  ldlen
+  IL_0025:  conv.i4
+  IL_0026:  brtrue.s   IL_002d
+  IL_0028:  ldc.i4.0
+  IL_0029:  conv.u
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_0036
+  IL_002d:  ldloc.3
+  IL_002e:  ldc.i4.0
+  IL_002f:  ldelema    ""char""
+  IL_0034:  conv.u
+  IL_0035:  stloc.2
+  IL_0036:  ldloc.2
+  IL_0037:  ldc.i4.0
+  IL_0038:  stind.i2
+  IL_0039:  ldnull
+  IL_003a:  stloc.3
+  IL_003b:  ret
+}
+");
         }
 
         [Fact]
