@@ -141,71 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outerEffects = ArrayBuilder<BoundExpression>.GetInstance();
             var innerEffects = ArrayBuilder<BoundExpression>.GetInstance();
 
-            BoundExpression leftHasValue;
-            BoundExpression leftValue;
+            BoundExpression leftHasValue, leftValue;
+            bool isLeftNullable;
+            MakeNullableParts(left, temps, innerEffects, outerEffects, saveHasValue: true, out leftHasValue, out leftValue, out isLeftNullable);
 
-            var isLeftNullable = left.Kind != BoundKind.TupleLiteral && left.Type.IsNullableType();
-            if (isLeftNullable)
-            {
-                if (NullableNeverHasValue(left))
-                {
-                    leftHasValue = MakeBooleanConstant(left.Syntax, false);
-                    leftValue = MakeValueOrDefaultTemp(left, temps, innerEffects);
-                }
-                else
-                {
-                    BoundExpression value = NullableAlwaysHasValue(left);
-                    if (value is null)
-                    {
-                        leftHasValue = MakeHasValueTemp(left, temps, outerEffects);
-                        leftValue = MakeValueOrDefaultTemp(left, temps, innerEffects);
-                    }
-                    else
-                    {
-                        leftHasValue = MakeBooleanConstant(left.Syntax, true);
-                        leftValue = value;
-                        isLeftNullable = false;
-                    }
-                }
-            }
-            else
-            {
-                leftHasValue = MakeBooleanConstant(left.Syntax, true);
-                leftValue = left;
-            }
-
-            BoundExpression rightHasValue;
-            BoundExpression rightValue;
-
-            var isRightNullable = right.Kind != BoundKind.TupleLiteral && right.Type.IsNullableType();
-            if (isRightNullable)
-            {
-                if (NullableNeverHasValue(right))
-                {
-                    rightHasValue = MakeBooleanConstant(right.Syntax, false);
-                    rightValue = MakeValueOrDefaultTemp(right, temps, innerEffects);
-                }
-                else
-                {
-                    BoundExpression value = NullableAlwaysHasValue(right);
-                    if (value is null)
-                    {
-                        rightHasValue = MakeNullableHasValue(right.Syntax, right); // no need for local for right.HasValue since used once
-                        rightValue = MakeValueOrDefaultTemp(right, temps, innerEffects);
-                    }
-                    else
-                    {
-                        rightHasValue = MakeBooleanConstant(right.Syntax, true);
-                        rightValue = value;
-                        isRightNullable = false;
-                    }
-                }
-            }
-            else
-            {
-                rightHasValue = MakeBooleanConstant(right.Syntax, true);
-                rightValue = right;
-            }
+            BoundExpression rightHasValue, rightValue;
+            bool isRightNullable;
+            // no need for local for right.HasValue since used once
+            MakeNullableParts(right, temps, innerEffects, outerEffects, saveHasValue: false, out rightHasValue, out rightValue, out isRightNullable);
 
             // Produces:
             //     ... logical expression using leftValue and rightValue ...
@@ -237,6 +180,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boolType));
 
             return outerSequence;
+        }
+
+        /// <summary>
+        /// Produce a `.HasValue` and a `.GetValueOrDefault()` for nullable expressions that are neither always null or never null, and functionally equivalent parts for other cases.
+        /// </summary>
+        private void MakeNullableParts(BoundExpression expr, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> innerEffects,
+            ArrayBuilder<BoundExpression> outerEffects, bool saveHasValue, out BoundExpression hasValue, out BoundExpression value, out bool isNullable)
+        {
+            isNullable = expr.Kind != BoundKind.TupleLiteral && expr.Type.IsNullableType();
+            if (!isNullable)
+            {
+                hasValue = MakeBooleanConstant(expr.Syntax, true);
+                value = expr;
+                return;
+            }
+
+            // Optimization for nullable expressions that are always null
+            if (NullableNeverHasValue(expr))
+            {
+                hasValue = MakeBooleanConstant(expr.Syntax, false);
+                value = MakeValueOrDefaultTemp(expr, temps, innerEffects);
+                return;
+            }
+
+            // Optimization for nullable expressions that are never null
+            BoundExpression knownValue = NullableAlwaysHasValue(expr);
+            if (knownValue != null)
+            {
+                hasValue = MakeBooleanConstant(expr.Syntax, true);
+                value = knownValue;
+                isNullable = false;
+                return;
+            }
+
+            // Regular nullable expressions
+            if (saveHasValue)
+            {
+                hasValue = MakeHasValueTemp(expr, temps, outerEffects);
+            }
+            else
+            {
+                hasValue = MakeNullableHasValue(expr.Syntax, expr);
+            }
+
+            value = MakeValueOrDefaultTemp(expr, temps, innerEffects);
         }
 
         private BoundLocal MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
