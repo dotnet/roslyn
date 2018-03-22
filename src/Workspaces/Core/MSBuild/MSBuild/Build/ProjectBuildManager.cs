@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             };
         }
 
-        private MSB.Evaluation.Project FindProject(string path, IDictionary<string, string> globalProperties)
+        private MSB.Evaluation.Project FindProject(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             var loadedProjects = _projectCollection.GetLoadedProjects(path);
             if (loadedProjects == null || loadedProjects.Count == 0)
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             foreach (var loadedProject in loadedProjects)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // If this project has a different number of global properties than we expect, it's not the
                 // one we're looking for.
                 if (loadedProject.GlobalProperties.Count != totalGlobalProperties)
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             try
             {
-                var project = FindProject(path, globalProperties);
+                var project = FindProject(path, globalProperties, cancellationToken);
                 if (project != null)
                 {
                     return (project, log);
