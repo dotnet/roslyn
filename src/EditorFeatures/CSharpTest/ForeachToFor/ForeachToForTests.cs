@@ -611,7 +611,7 @@ class Test
 {
     void Method()
     {
-        var array = new int[][] { { 1, 3, 4 } };
+        var array = new int[][] { new int[] { 1, 3, 4 } };
         foreach [||] (var a in array[0])
         {
             Console.WriteLine(a);
@@ -624,7 +624,7 @@ class Test
 {
     void Method()
     {
-        var array = new int[][] { { 1, 3, 4 } };
+        var array = new int[][] { new int[] { 1, 3, 4 } };
         for (var {|Rename:i|} = 0; i < array[0].Length; i++)
         {
             var a = array[0][i];
@@ -1527,6 +1527,95 @@ class Test
 }
 ";
             await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        public async Task ElementExplicitCast()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new object[] { 1, 2, 3 };
+        foreach [||] (string a in array)
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new object[] { 1, 2, 3 };
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            string a = (string)array[i];
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        public async Task NotAssignable()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 2, 3 };
+        foreach [||] (string a in array)
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        public async Task ElementMissing()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 2, 3 };
+        foreach [||] (in array)
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        public async Task ElementMissing2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        foreach [||] (string a in )
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
         }
     }
 }

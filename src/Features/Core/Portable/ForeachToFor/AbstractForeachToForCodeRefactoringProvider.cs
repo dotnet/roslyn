@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -92,18 +93,19 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             return node.ReplaceToken(token, token.WithAdditionalAnnotations(RenameAnnotation.Create()));
         }
 
-        protected string GetCollectionVariableName(SemanticModel model, ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression)
+        protected SyntaxNode GetCollectionVariableName(
+            SemanticModel model, SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression)
         {
             if (foreachInfo.RequireCollectionStatement)
             {
-                return CreateUniqueName(model, foreachInfo.ForEachStatement, "list");
+                return generator.IdentifierName(CreateUniqueName(model, foreachInfo.ForEachStatement, "list"));
             }
 
-            return foreachCollectionExpression.ToString();
+            return foreachCollectionExpression.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected void IntroduceCollectionStatement(
-            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, SyntaxNode foreachCollectionExpression, string collectionVariableName)
+            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, SyntaxNode foreachCollectionExpression, SyntaxNode collectionVariable)
         {
             if (!foreachInfo.RequireCollectionStatement)
             {
@@ -114,6 +116,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             var generator = editor.Generator;
 
             // this expression is from user code. don't simplify this.
+            var collectionVariableName = collectionVariable.ToString();
             var expression = foreachCollectionExpression.WithoutAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
             var collectionStatement = generator.LocalDeclarationStatement(
                 collectionVariableName,
@@ -128,14 +131,13 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
         protected SyntaxNode AddItemVariableDeclaration(
             SyntaxGenerator generator, SyntaxNode type, string foreachVariableString,
-            ITypeSymbol castType, string collectionVariableName, string indexString)
+            ITypeSymbol castType, SyntaxNode collectionVariableName, string indexString)
         {
             var memberAccess = generator.ElementAccessExpression(
-                    generator.IdentifierName(collectionVariableName), generator.IdentifierName(indexString));
+                    collectionVariableName, generator.IdentifierName(indexString));
 
             return generator.LocalDeclarationStatement(
-                type, foreachVariableString,
-                castType != null ? generator.CastExpression(castType, memberAccess) : memberAccess);
+                type, foreachVariableString, generator.CastExpression(castType, memberAccess));
         }
 
         private ForEachInfo GetForeachInfo(ISemanticFactsService semanticFact, SemanticModel model, TForEachStatement foreachStatement, CancellationToken cancellationToken)
@@ -182,22 +184,21 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
 
             GetInterfaceInfo(semanticFact, model, foreachVariable, foreachCollection,
-                out var explicitCastInterface, out var explicitCastElementType, out var countName);
+                out var explicitCastInterface, out var countName);
             if (countName == null)
             {
                 return null;
             }
 
             var requireCollectionStatement = CheckRequireCollectionStatement(foreachCollection);
-            return new ForEachInfo(countName, explicitCastInterface, explicitCastElementType, requireCollectionStatement, foreachStatement);
+            return new ForEachInfo(countName, explicitCastInterface, foreachVariable.Type, requireCollectionStatement, foreachStatement);
         }
 
         private static void GetInterfaceInfo(
             ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
-            out ITypeSymbol explicitCastInterface, out ITypeSymbol explicitCastElementType, out string countName)
+            out ITypeSymbol explicitCastInterface, out string countName)
         {
             explicitCastInterface = default;
-            explicitCastElementType = default;
             countName = default;
 
             // go through list of types and interfaces to find out right set;
@@ -216,20 +217,27 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             // go through explicit types first.
 
             // check array case
-            if (collectionType is IArrayTypeSymbol array && array.Rank == 1 &&
-                TryGetElementTypeCast(semanticFact, array.ElementType, foreachType, model.Compilation, out explicitCastElementType))
+            if (collectionType is IArrayTypeSymbol array && array.Rank == 1)
             {
+                if (!IsExchangable(semanticFact, array.ElementType, foreachType, model.Compilation))
+                {
+                    return;
+                }
+
                 explicitCastInterface = null;
                 countName = Length;
                 return;
             }
 
             // check string case
-            if (collectionType.Equals(model.Compilation.GetSpecialType(SpecialType.System_String)) &&
-                TryGetElementTypeCast(
-                    semanticFact, model.Compilation.GetSpecialType(SpecialType.System_Char),
-                    foreachType, model.Compilation, out explicitCastElementType))
+            if (collectionType.Equals(model.Compilation.GetSpecialType(SpecialType.System_String)))
             {
+                var charType = model.Compilation.GetSpecialType(SpecialType.System_Char);
+                if (!IsExchangable(semanticFact, charType, foreachType, model.Compilation))
+                {
+                    return;
+                }
+
                 explicitCastInterface = null;
                 countName = Length;
                 return;
@@ -239,9 +247,13 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             if (collectionType.OriginalDefinition.Equals(model.Compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName)))
             {
                 var indexer = GetInterfaceMember(collectionType, get_Item);
-                if (indexer != null && TryGetElementTypeCast(
-                        semanticFact, indexer.ReturnType, foreachType, model.Compilation, out explicitCastElementType))
+                if (indexer != null)
                 {
+                    if (!IsExchangable(semanticFact, indexer.ReturnType, foreachType, model.Compilation))
+                    {
+                        return;
+                    }
+
                     explicitCastInterface = null;
                     countName = Length;
                     return;
@@ -256,8 +268,8 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             if (collectionType.TypeKind == TypeKind.Interface && knownCollectionInterfaces.Contains(collectionType.OriginalDefinition))
             {
                 var indexer = GetInterfaceMember(collectionType, get_Item);
-                if (indexer != null && TryGetElementTypeCast(
-                        semanticFact, indexer.ReturnType, foreachType, model.Compilation, out explicitCastElementType))
+                if (indexer != null &&
+                    IsExchangable(semanticFact, indexer.ReturnType, foreachType, model.Compilation))
                 {
                     explicitCastInterface = null;
                     countName = Count;
@@ -289,7 +301,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                     continue;
                 }
 
-                if (!TryGetElementTypeCast(semanticFact, indexerImpl.ReturnType, foreachType, model.Compilation, out explicitCastElementType))
+                if (!IsExchangable(semanticFact, indexerImpl.ReturnType, foreachType, model.Compilation))
                 {
                     continue;
                 }
@@ -317,22 +329,11 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
         }
 
-        private static bool TryGetElementTypeCast(ISemanticFactsService semanticFact, ITypeSymbol fromType, ITypeSymbol toType, Compilation compilation, out ITypeSymbol elementTypeCast)
+        private static bool IsExchangable(
+            ISemanticFactsService semanticFact, ITypeSymbol type1, ITypeSymbol type2, Compilation compilation)
         {
-            if (semanticFact.IsAssignableTo(fromType, toType, compilation))
-            {
-                elementTypeCast = null;
-                return true;
-            }
-
-            if (semanticFact.IsAssignableTo(toType, fromType, compilation))
-            {
-                elementTypeCast = toType;
-                return true;
-            }
-
-            elementTypeCast = null;
-            return false;
+            return semanticFact.IsAssignableTo(type1, type2, compilation) ||
+                   semanticFact.IsAssignableTo(type2, type1, compilation);
         }
 
         private static bool IsNullOrErrorType(ITypeSymbol type)
@@ -411,14 +412,14 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
         protected class ForEachInfo
         {
             public ForEachInfo(
-                string countName, ITypeSymbol explicitCastInterface, ITypeSymbol explicitCastElementType,
+                string countName, ITypeSymbol explicitCastInterface, ITypeSymbol forEachElementType,
                 bool requireCollectionStatement, TForEachStatement forEachStatement)
             {
                 CountName = countName;
 
                 // order of setting properties is important here
                 ExplicitCastInterface = explicitCastInterface;
-                ExplicitCastElementType = explicitCastElementType;
+                ForEachElementType = forEachElementType;
 
                 RequireCollectionStatement = requireCollectionStatement || RequireExplicitCastInterface;
 
@@ -429,7 +430,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
             public string CountName { get; }
             public ITypeSymbol ExplicitCastInterface { get; }
-            public ITypeSymbol ExplicitCastElementType { get; }
+            public ITypeSymbol ForEachElementType { get; }
             public bool RequireCollectionStatement { get; }
             public TForEachStatement ForEachStatement { get; }
         }

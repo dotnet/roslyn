@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ForeachToFor;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -81,16 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
             var foreachStatement = foreachInfo.ForEachStatement;
 
             var foreachCollectionExpression = foreachStatement.Expression;
-            var collectionVariableName = GetCollectionVariableName(model, foreachInfo, foreachCollectionExpression);
+            var collectionVariable = GetCollectionVariableName(model, generator, foreachInfo, foreachCollectionExpression);
 
             // first, see whether we need to introduce new statement to capture collection
-            IntroduceCollectionStatement(model, foreachInfo, editor, foreachCollectionExpression, collectionVariableName);
+            IntroduceCollectionStatement(model, foreachInfo, editor, foreachCollectionExpression, collectionVariable);
 
             // create new index varialbe name
             var indexString = CreateUniqueName(model, foreachStatement.Statement, "i");
 
             // put variable statement in body
-            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariableName, indexString);
+            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexString);
 
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
@@ -104,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(
                     generator.IdentifierName(indexString),
-                    generator.MemberAccessExpression(
-                        generator.IdentifierName(collectionVariableName), foreachInfo.CountName)),
+                    generator.MemberAccessExpression(collectionVariable, foreachInfo.CountName)),
                 SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                     SyntaxFactory.PostfixUnaryExpression(
                         SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexString))),
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
             editor.ReplaceNode(foreachStatement, forStatement);
         }
 
-        private StatementSyntax GetForLoopBody(SyntaxGenerator generator, ForEachInfo foreachInfo, string collectionVariableName, string indexString)
+        private StatementSyntax GetForLoopBody(SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, string indexString)
         {
             var foreachStatement = foreachInfo.ForEachStatement;
             if (foreachStatement.Statement is EmptyStatementSyntax)
@@ -138,11 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
 
                 // create variable statement
                 var variableStatement = AddItemVariableDeclaration(
-                    generator, foreachStatement.Type, foreachVariableString, foreachInfo.ExplicitCastElementType, collectionVariableName, indexString);
+                    generator, foreachStatement.Type, foreachVariableString, foreachInfo.ForEachElementType, collectionVariableName, indexString);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(
                     bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(
-                        variableStatement.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)));
+                        variableStatement.WithAdditionalAnnotations(Formatter.Annotation)));
             }
 
             return bodyBlock;

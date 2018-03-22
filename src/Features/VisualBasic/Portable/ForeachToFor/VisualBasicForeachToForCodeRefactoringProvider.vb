@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
 
             ' trailing triva of expression will be attached to for statement below
             Dim foreachCollectionExpression = forEachBlock.ForEachStatement.Expression
-            Dim collectionVariableName = GetCollectionVariableName(model, foreachInfo, foreachCollectionExpression)
+            Dim collectionVariable = GetCollectionVariableName(model, generator, foreachInfo, foreachCollectionExpression)
 
             ' make sure we get rid of all comments from expression since that will be re-attached to for statement
             Dim expression = foreachCollectionExpression.WithTrailingTrivia(
@@ -83,13 +83,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
             End If
 
             ' first, see whether we need to introduce New statement to capture collection
-            IntroduceCollectionStatement(model, foreachInfo, editor, expression, collectionVariableName)
+            IntroduceCollectionStatement(model, foreachInfo, editor, expression, collectionVariable)
 
             ' create New index varialbe name
             Dim indexString = If(forEachBlock.Statements.Count = 0, "i", CreateUniqueName(model, forEachBlock.Statements(0), "i"))
 
             ' put variable statement in body
-            Dim bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariableName, indexString)
+            Dim bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexString)
 
             Dim nextStatement = forEachBlock.NextStatement
 
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
                     DirectCast(generator.LiteralExpression(0), ExpressionSyntax),
                     DirectCast(generator.SubtractExpression(
                         generator.MemberAccessExpression(
-                            generator.IdentifierName(collectionVariableName), foreachInfo.CountName), generator.LiteralExpression(1)), ExpressionSyntax)),
+                            collectionVariable, foreachInfo.CountName), generator.LiteralExpression(1)), ExpressionSyntax)),
                 bodyStatement,
                 nextStatement)
 
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
             editor.ReplaceNode(forEachBlock, forBlock)
         End Sub
 
-        Private Function GetForLoopBody(generator As SyntaxGenerator, foreachInfo As ForEachInfo, collectionVariableName As String, indexString As String) As SyntaxList(Of StatementSyntax)
+        Private Function GetForLoopBody(generator As SyntaxGenerator, foreachInfo As ForEachInfo, collectionVariableName As SyntaxNode, indexString As String) As SyntaxList(Of StatementSyntax)
             Dim forEachBlock = foreachInfo.ForEachStatement
             If forEachBlock.Statements.Count = 0 Then
                 Return forEachBlock.Statements
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
 
             ' create varialbe statement
             Dim variableStatement = AddItemVariableDeclaration(
-                generator, type, foreachVariableString, foreachInfo.ExplicitCastElementType, collectionVariableName, indexString)
+                generator, type, foreachVariableString, foreachInfo.ForEachElementType, collectionVariableName, indexString)
 
             Return forEachBlock.Statements.Insert(0, DirectCast(variableStatement, StatementSyntax))
         End Function
