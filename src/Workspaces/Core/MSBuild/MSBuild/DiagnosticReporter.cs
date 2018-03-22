@@ -31,8 +31,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     break;
 
                 case DiagnosticReportingMode.Ignore:
-                default:
                     break;
+
+                default:
+                    throw new ArgumentException($"Invalid {nameof(DiagnosticReportingMode)} specified: {mode}", nameof(mode));
             }
         }
 
