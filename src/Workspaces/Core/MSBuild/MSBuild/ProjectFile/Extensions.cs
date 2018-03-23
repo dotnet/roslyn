@@ -1,12 +1,44 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal static class Extensions
     {
+        public static IEnumerable<MSB.Framework.ITaskItem> GetAdditionalFiles(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject.GetItems(ItemNames.AdditionalFiles);
+
+        public static IEnumerable<MSB.Framework.ITaskItem> GetAnalyzers(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject.GetItems(ItemNames.Analyzer);
+
+        public static IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject.GetItems(ItemNames.Compile);
+
+        public static IEnumerable<MSB.Framework.ITaskItem> GetMetadataReferences(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject.GetItems(ItemNames.ReferencePath);
+
+        public static IEnumerable<MSB.Framework.ITaskItem> GetProjectReferencesFromModel(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject.GetItems(ItemNames.ProjectReference);
+
+
+        public static bool IsReferenceOutputAssembly(this MSB.Framework.ITaskItem item)
+            => string.Equals(item.GetMetadata(MetadataNames.ReferenceOutputAssembly), bool.TrueString, StringComparison.OrdinalIgnoreCase);
+
+        public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
+        {
+            var aliasesText = item.GetMetadata(MetadataNames.Aliases);
+
+            return !string.IsNullOrWhiteSpace(aliasesText)
+                ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
+                : ImmutableArray<string>.Empty;
+        }
+
         public static string ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)
             => executedProject.GetProperty(propertyName)?.EvaluatedValue;
 
@@ -74,5 +106,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
+        public static string ReadItemsAsString(this MSB.Execution.ProjectInstance executedProject, string itemType)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            foreach (var item in executedProject.GetItems(itemType))
+            {
+                if (builder.Length > 0)
+                {
+                    builder.Append(" ");
+                }
+
+                builder.Append(item.EvaluatedInclude);
+            }
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        public static IEnumerable<MSB.Framework.ITaskItem> GetTaskItems(this MSB.Execution.ProjectInstance executedProject, string itemType)
+            => executedProject.GetItems(itemType);
     }
 }

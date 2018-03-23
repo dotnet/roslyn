@@ -108,9 +108,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 : ProjectFileInfo.CreateEmpty(this.Language, _loadedProject.FullPath, this.Log);
         }
 
-        protected static bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)
-            => string.Equals(item.GetMetadata(MetadataNames.ReferenceOutputAssembly), bool.TrueString, StringComparison.OrdinalIgnoreCase);
-
         protected static string GetProjectDirectory(MSB.Execution.ProjectInstance project)
         {
             var projectDirectory = project.Directory;
@@ -153,7 +150,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             return executedProject
                 .GetItems(ItemNames.ProjectReference)
-                .Where(i => !IsProjectReferenceOutputAssembly(i))
+                .Where(i => !i.IsReferenceOutputAssembly())
                 .Select(CreateProjectFileReference);
         }
 
@@ -169,56 +166,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCommandLineArgsFromModel(MSB.Execution.ProjectInstance executedProject);
 
-        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems(ItemNames.Compile);
-        }
-
-        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetMetadataReferencesFromModel(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems(ItemNames.ReferencePath);
-        }
-
-        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetProjectReferencesFromModel(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems(ItemNames.ProjectReference);
-        }
-
-        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetAnalyzerReferencesFromModel(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems(ItemNames.Analyzer);
-        }
-
-        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetAdditionalFilesFromModel(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems(ItemNames.AdditionalFiles);
-        }
-
         public MSB.Evaluation.ProjectProperty GetProperty(string name)
         {
             return _loadedProject.GetProperty(name);
-        }
-
-        protected IEnumerable<MSB.Framework.ITaskItem> GetTaskItems(MSB.Execution.ProjectInstance executedProject, string itemType)
-        {
-            return executedProject.GetItems(itemType);
-        }
-
-        protected string GetItemString(MSB.Execution.ProjectInstance executedProject, string itemType)
-        {
-            var text = "";
-
-            foreach (var item in executedProject.GetItems(itemType))
-            {
-                if (text.Length > 0)
-                {
-                    text = text + " ";
-                }
-
-                text = text + item.EvaluatedInclude;
-            }
-
-            return text;
         }
 
         /// <summary>

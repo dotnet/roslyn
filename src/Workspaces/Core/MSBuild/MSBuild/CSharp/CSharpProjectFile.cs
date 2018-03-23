@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
-using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
         {
             var filePath = reference.EvaluatedInclude;
-            var aliases = GetAliases(reference);
+            var aliases = reference.GetAliases();
 
             return new ProjectFileReference(filePath, aliases);
         }
@@ -82,12 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetFramework = null;
             }
 
-            var docs = this.GetDocumentsFromModel(project)
+            var docs = project.GetDocumentsFromModel()
                 .Where(s => !IsTemporaryGeneratedFile(s.ItemSpec))
                 .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                 .ToImmutableArray();
 
-            var additionalDocs = this.GetAdditionalFilesFromModel(project)
+            var additionalDocs = project.GetAdditionalFiles()
                 .Select(s => MakeAdditionalDocumentFileInfo(projectDirectory, s))
                 .ToImmutableArray();
 
@@ -140,301 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return commandLineArgs;
         }
 
-        private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
-        {
-            var aliasesText = item.GetMetadata(MetadataNames.Aliases);
-
-            if (string.IsNullOrEmpty(aliasesText))
-            {
-                return ImmutableArray<string>.Empty;
-            }
-
-            return ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries));
-        }
-
         private ImmutableArray<string> ReadCommandLineArguments(MSB.Execution.ProjectInstance project)
         {
-            var builder = ImmutableArray.CreateBuilder<string>();
-
-            var additionalFiles = this.GetAdditionalFilesFromModel(project);
-            if (additionalFiles != null)
-            {
-                foreach (var additionalFile in additionalFiles)
-                {
-                    builder.Add($"/additionalfile:\"{this.GetDocumentFilePath(additionalFile)}\"");
-                }
-            }
-
-            var allowUnsafeBlocks = project.ReadPropertyBool(PropertyNames.AllowUnsafeBlocks);
-            if (allowUnsafeBlocks)
-            {
-                builder.Add("/unsafe");
-            }
-
-            var analyzers = this.GetAnalyzerReferencesFromModel(project);
-            if (analyzers != null)
-            {
-                foreach (var analyzer in analyzers)
-                {
-                    builder.Add($"/analyzer:\"{this.GetDocumentFilePath(analyzer)}\"");
-                }
-            }
-
-            var applicationConfiguration = project.ReadPropertyString(PropertyNames.AppConfigForCompiler);
-            if (!string.IsNullOrWhiteSpace(applicationConfiguration))
-            {
-                builder.Add($"/appconfig:{applicationConfiguration}");
-            }
-
-            var baseAddress = project.ReadPropertyString(PropertyNames.BaseAddress);
-            if (!string.IsNullOrWhiteSpace(baseAddress))
-            {
-                builder.Add($"/baseaddress:{baseAddress}");
-            }
-
-            var checkForOverflowUnderflow = project.ReadPropertyBool(PropertyNames.CheckForOverflowUnderflow);
-            if (checkForOverflowUnderflow)
-            {
-                builder.Add("/checked");
-            }
-
-            var codePage = project.ReadPropertyInt(PropertyNames.CodePage);
-            if (codePage != 0)
-            {
-                builder.Add($"/codepage:{codePage}");
-            }
-
-            var emitDebugInformation = project.ReadPropertyBool(PropertyNames.DebugSymbols);
-            if (emitDebugInformation)
-            {
-                var debugType = project.ReadPropertyString(PropertyNames.DebugType);
-
-                if (string.Equals(debugType, "none", StringComparison.OrdinalIgnoreCase))
-                {
-                    builder.Add("/debug");
-                }
-                else if (string.Equals(debugType, "pdbonly", StringComparison.OrdinalIgnoreCase))
-                {
-                    builder.Add("/debug:pdbonly");
-                }
-                else if (string.Equals(debugType, "full", StringComparison.OrdinalIgnoreCase))
-                {
-                    builder.Add("/debug:full");
-                }
-                else if (string.Equals(debugType, "portable", StringComparison.OrdinalIgnoreCase))
-                {
-                    builder.Add("/debug:portable");
-                }
-                else if (string.Equals(debugType, "embedded", StringComparison.OrdinalIgnoreCase))
-                {
-                    builder.Add("/debug:embedded");
-                }
-            }
-
-            var defineConstants = project.ReadPropertyString(PropertyNames.DefineConstants);
-            if (!string.IsNullOrWhiteSpace(defineConstants))
-            {
-                builder.Add($"/define:{defineConstants}");
-            }
-
-            var delaySignProperty = project.GetProperty(PropertyNames.DelaySign);
-            if (delaySignProperty != null && !string.IsNullOrWhiteSpace(delaySignProperty.EvaluatedValue))
-            {
-                var delaySign = project.ReadPropertyBool(PropertyNames.DelaySign);
-                if (delaySign)
-                {
-                    builder.Add("/delaysign+");
-                }
-                else
-                {
-                    builder.Add("/delaysign-");
-                }
-            }
-
-            var errorReport = project.ReadPropertyString(PropertyNames.ErrorReport);
-            if (!string.IsNullOrWhiteSpace(errorReport))
-            {
-                builder.Add($"/errorreport:{errorReport.ToLower()}");
-            }
-
-            var features = project.ReadPropertyString(PropertyNames.Features);
-            if (!string.IsNullOrWhiteSpace(features))
-            {
-                foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
-                {
-                    builder.Add($"/features:{feature}");
-                }
-            }
-
-            var fileAlignment = project.ReadPropertyString(PropertyNames.FileAlignment);
-            builder.Add($"/filealign:{fileAlignment}");
-
-            var documentationFile = this.GetItemString(project, ItemNames.DocFileItem);
-            if (!string.IsNullOrWhiteSpace(documentationFile))
-            {
-                builder.Add($"/doc:\"{documentationFile}\"");
-            }
-
-            var generateFullPaths = project.ReadPropertyBool(PropertyNames.GenerateFullPaths);
-            if (generateFullPaths)
-            {
-                builder.Add("/fullpaths");
-            }
-
-            var highEntropyVA = project.ReadPropertyBool(PropertyNames.HighEntropyVA);
-            if (highEntropyVA)
-            {
-                builder.Add("/highentropyva");
-            }
-
-            var imports = this.GetTaskItems(project, ItemNames.Import);
-            if (imports != null)
-            {
-                var importsString = string.Join(",", imports.Select(item => item.ItemSpec.Trim()));
-                builder.Add($"/imports:{importsString}");
-            }
-
-            var languageVersion = project.ReadPropertyString(PropertyNames.LangVersion);
-            if (!string.IsNullOrWhiteSpace(languageVersion))
-            {
-                builder.Add($"/langversion:{languageVersion}");
-            }
-
-            var mainEntryPoint = project.ReadPropertyString(PropertyNames.StartupObject);
-            if (!string.IsNullOrWhiteSpace(mainEntryPoint))
-            {
-                builder.Add($"/main:\"{mainEntryPoint}\"");
-            }
-
-            var moduleAssemblyName = project.ReadPropertyString(PropertyNames.ModuleAssemblyName);
-            if (!string.IsNullOrWhiteSpace(moduleAssemblyName))
-            {
-                builder.Add($"/moduleassemblyname:\"{moduleAssemblyName}\"");
-            }
-
-            var noStandardLib = project.ReadPropertyBool(PropertyNames.NoCompilerStandardLib);
-            if (noStandardLib)
-            {
-                builder.Add("/nostdlib");
-            }
-
-            var optimize = project.ReadPropertyBool(PropertyNames.Optimize);
-            if (optimize)
-            {
-                builder.Add("/optimize");
-            }
-
-            var outputAssembly = this.GetItemString(project, PropertyNames.IntermediateAssembly);
-            if (!string.IsNullOrWhiteSpace(outputAssembly))
-            {
-                builder.Add($"/out:\"{outputAssembly}\"");
-            }
-
-            var pdbFile = project.ReadPropertyString(PropertyNames.PdbFile);
-            if (!string.IsNullOrWhiteSpace(pdbFile))
-            {
-                builder.Add($"/pdb:\"{pdbFile}\"");
-            }
-
-            var ruleSet = project.ReadPropertyString(PropertyNames.ResolvedCodeAnalysisRuleSet);
-            if (!string.IsNullOrWhiteSpace(ruleSet))
-            {
-                builder.Add($"/ruleset:\"{ruleSet}\"");
-            }
-
-            var signAssembly = project.ReadPropertyBool(PropertyNames.SignAssembly);
-            if (signAssembly)
-            {
-                var keyFile = project.ReadPropertyString(PropertyNames.KeyOriginatorFile);
-                if (!string.IsNullOrWhiteSpace(keyFile))
-                {
-                    builder.Add($"/keyfile:\"{keyFile}\"");
-                }
-
-                var keyContainer = project.ReadPropertyString(PropertyNames.KeyContainerName);
-                if (!string.IsNullOrWhiteSpace(keyContainer))
-                {
-                    builder.Add($"/keycontainer:\"{keyContainer}\"");
-                }
-            }
-
-            var references = this.GetMetadataReferencesFromModel(project);
-            if (references != null)
-            {
-                foreach (var reference in references)
-                {
-                    if (!IsProjectReferenceOutputAssembly(reference))
-                    {
-                        var filePath = this.GetDocumentFilePath(reference);
-
-                        var aliases = GetAliases(reference);
-                        if (aliases.IsDefaultOrEmpty)
-                        {
-                            builder.Add($"/reference:\"{filePath}\"");
-                        }
-                        else
-                        {
-                            foreach (var alias in aliases)
-                            {
-                                builder.Add($"/reference:{alias}=\"{filePath}\"");
-                            }
-                        }
-                    }
-                }
-            }
-
-            var subsystemVersion = project.ReadPropertyString(PropertyNames.SubsystemVersion);
-            if (!string.IsNullOrWhiteSpace(subsystemVersion))
-            {
-                builder.Add($"/subsystemversion:{subsystemVersion}");
-            }
-
-            var targetType = project.ReadPropertyString(PropertyNames.OutputType);
-            if (!string.IsNullOrWhiteSpace(targetType))
-            {
-                builder.Add($"/target:{targetType}");
-            }
-
-            var platform = project.ReadPropertyString(PropertyNames.PlatformTarget);
-            var prefer32bit = project.ReadPropertyBool(PropertyNames.Prefer32Bit);
-            if (prefer32bit && (string.IsNullOrWhiteSpace(platform) || string.Equals("anycpu", platform, StringComparison.OrdinalIgnoreCase)))
-            {
-                platform = "anycpu32bitpreferred";
-            }
-
-            if (!string.IsNullOrWhiteSpace(platform))
-            {
-                builder.Add($"/platform:{platform}");
-            }
-
-            var disabledWarnings = project.ReadPropertyString(PropertyNames.NoWarn);
-            if (!string.IsNullOrWhiteSpace(disabledWarnings))
-            {
-                builder.Add($"/nowarn:{disabledWarnings}");
-            }
-
-            var treatWarningsAsErrors = project.ReadPropertyBool(PropertyNames.TreatWarningsAsErrors);
-            if (treatWarningsAsErrors)
-            {
-                builder.Add("/warnaserror");
-            }
-
-            var warningLevel = project.ReadPropertyInt(PropertyNames.WarningLevel);
-            builder.Add("/warn:" + warningLevel);
-
-            var warningsAsErrors = project.ReadPropertyString(PropertyNames.WarningsAsErrors);
-            if (!string.IsNullOrWhiteSpace(warningsAsErrors))
-            {
-                builder.Add($"/warnaserror+:{warningsAsErrors}");
-            }
-
-            var warningsNotAsErrors = project.ReadPropertyString(PropertyNames.WarningsNotAsErrors);
-            if (!string.IsNullOrWhiteSpace(warningsNotAsErrors))
-            {
-                builder.Add($"/warnaserror-:{warningsNotAsErrors}");
-            }
-
-            return builder.ToImmutable();
+            return CSharpCommandLineArgumentReader.Read(project);
         }
     }
 }
