@@ -693,12 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var data = this.GetDecodedWellKnownAttributeData();
-                if (data == null)
-                {
-                    return ContainingType.AreLocalsZeroed;
-                }
-
-                return !data.HasSkipLocalsInitAttribute && ContainingType.AreLocalsZeroed;
+                return data?.HasSkipLocalsInitAttribute != true && ContainingType.AreLocalsZeroed;
             }
         }
 
