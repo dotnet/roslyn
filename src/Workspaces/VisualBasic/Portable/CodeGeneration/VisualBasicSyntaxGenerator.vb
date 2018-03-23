@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As String, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
-            Return LocalDeclarationStatement(type, identifier.ToIdentifierToken, initializer)
+            Return LocalDeclarationStatement(type, identifier.ToIdentifierToken, initializer, isConst)
         End Function
 
         Friend Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
