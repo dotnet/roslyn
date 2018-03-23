@@ -278,7 +278,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     projectName += "(" + projectFileInfo.TargetFramework + ")";
                 }
 
-                var version = GetProjectVersion(projectPath);
+                var version = VersionStamp.Create(
+                    FileUtilities.GetFileTimeStamp(projectPath));
 
                 if (projectFileInfo.IsEmpty)
                 {
@@ -377,11 +378,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         hostObjectType: null);
                 });
             }
-
-            private static VersionStamp GetProjectVersion(string projectFilePath)
-                => !string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath)
-                    ? VersionStamp.Create(FileUtilities.GetFileTimeStamp(projectFilePath))
-                    : VersionStamp.Create();
 
             private static string GetAssemblyNameFromProjectPath(string projectFilePath)
             {
