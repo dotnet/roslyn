@@ -276,27 +276,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return CommitChars.Contains(typedChar);
         }
 
-        public SnapshotSpan? ShouldTriggerCompletion(char edit, SnapshotPoint location)
-        {
-            var text = SourceText.From(location.Snapshot.GetText());
-            var service = GetCompletionService(location.Snapshot);
-            if (service == null)
-            {
-                return null;
-            }
-
-            // TODO: Edit of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better.
-            if (edit != 0 && !service.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)))
-            {
-                return null;
-            }
-
-            // TODO: Check CompletionOptions.TriggerOnTyping
-            // TODO: Check CompletionOptions.TriggerOnDeletion
-
-            return new SnapshotSpan(location.Snapshot, service.GetDefaultCompletionListSpan(text, location.Position).ToSpan());
-        }
-
         private CompletionServiceWithProviders GetCompletionService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -313,7 +292,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public bool TryGetApplicableSpan(char typeChar, SnapshotPoint triggerLocation, out SnapshotSpan applicableSpan)
         {
-            applicableSpan = default;
+            var text = SourceText.From(triggerLocation.Snapshot.GetText());
+            var service = GetCompletionService(triggerLocation.Snapshot);
+            if (service == null)
+            {
+                applicableSpan = default;
+                return false;
+            }
+
+            // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better.
+            if (typeChar != 0 && !service.ShouldTriggerCompletion(text, triggerLocation.Position, RoslynTrigger.CreateInsertionTrigger(typeChar)))
+            {
+                applicableSpan = default;
+                return false;
+            }
+
+            // TODO: Check CompletionOptions.TriggerOnTyping
+            // TODO: Check CompletionOptions.TriggerOnDeletion
+
+            applicableSpan = new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(text, triggerLocation.Position).ToSpan());
             return false;
         }
     }
