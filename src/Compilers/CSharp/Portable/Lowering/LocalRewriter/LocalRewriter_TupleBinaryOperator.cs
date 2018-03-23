@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (NullableNeverHasValue(expr))
             {
                 hasValue = MakeBooleanConstant(expr.Syntax, false);
-                value = MakeValueOrDefaultTemp(expr, temps, innerEffects);
+                // Since there is no value in this nullable expression, we don't need to construct a `.GetValueOrDefault()`, `default(T)` will suffice
+                value = new BoundDefaultExpression(expr.Syntax, expr.Type.StrippedType());
                 return;
             }
 

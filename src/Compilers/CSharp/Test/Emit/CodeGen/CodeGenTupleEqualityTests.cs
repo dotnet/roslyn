@@ -3167,7 +3167,7 @@ class C
         }
 
         [Fact]
-        public void TestEqualOnNullableVsNullableTuples_TupleAlwaysNull()
+        public void TestEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_AlwaysNull()
         {
             var source = @"
 class C
@@ -3184,9 +3184,6 @@ class C
             verifier.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
   .maxstack  2
-  .locals init (System.ValueTuple<int, int> V_0,
-                System.ValueTuple<int, int> V_1,
-                (int, int)? V_2)
   IL_0000:  nop
   IL_0001:  br.s       IL_0003
   IL_0003:  ldc.i4.1
@@ -3194,6 +3191,151 @@ class C
   IL_0006:  call       ""void System.Console.Write(bool)""
   IL_000b:  nop
   IL_000c:  ret
+}
+");
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_MaybeNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(t == ((int, int)?)null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init ((int, int)? V_0,
+                bool V_1,
+                System.ValueTuple<int, int> V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_0010
+  IL_000d:  ldc.i4.0
+  IL_000e:  br.s       IL_0032
+  IL_0010:  ldloc.1
+  IL_0011:  brtrue.s   IL_0016
+  IL_0013:  ldc.i4.1
+  IL_0014:  br.s       IL_0032
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+  IL_001d:  stloc.2
+  IL_001e:  ldloc.2
+  IL_001f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0024:  brtrue.s   IL_0031
+  IL_0026:  ldloc.2
+  IL_0027:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002c:  ldc.i4.0
+  IL_002d:  ceq
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.0
+  IL_0032:  call       ""void System.Console.Write(bool)""
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_NeverNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write((1, 2) == ((int, int)?)null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_MaybeNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(((int, int)?)null == t);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init ((int, int)? V_0,
+                System.ValueTuple<int, int> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  brfalse.s  IL_000e
+  IL_000b:  ldc.i4.0
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       ""void System.Console.Write(bool)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_NeverNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?)null == (1, 2));
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ret
 }
 ");
         }
