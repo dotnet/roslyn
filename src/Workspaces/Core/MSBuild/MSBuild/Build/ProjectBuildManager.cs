@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -29,13 +28,22 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         {
             var properties = new Dictionary<string, string>()
             {
-                { "DesignTimeBuild", "true" }, // this will tell msbuild to not build the dependent projects
-                { "BuildingInsideVisualStudio", "true" }, // this will force CoreCompile task to execute even if all inputs and outputs are up to date
-                { "BuildProjectReferences", "false" },
-                { "BuildingProject", "false" },
-                { "ProvideCommandLineArgs", "true" }, // retrieve the command-line arguments to the compiler
-                { "SkipCompilerExecution", "true" }, // don't actually run the compiler
-                { "ContinueOnError", "ErrorAndContinue" }
+                // this will tell msbuild to not build the dependent projects
+                { PropertyNames.DesignTimeBuild, bool.TrueString },
+
+                // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+                { PropertyNames.BuildingInsideVisualStudio, bool.TrueString },
+
+                { PropertyNames.BuildProjectReferences, bool.FalseString },
+                { PropertyNames.BuildingProject, bool.FalseString },
+
+                // retrieve the command-line arguments to the compiler
+                { PropertyNames.ProvideCommandLineArgs, bool.TrueString },
+
+                // don't actually run the compiler
+                { PropertyNames.SkipCompilerExecution, bool.TrueString },
+
+                { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue }
             };
 
             _projectCollection = new MSB.Evaluation.ProjectCollection(properties);
@@ -135,7 +143,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             var (project, _) = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
-            return project?.GetPropertyValue("TargetPath");
+            return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
 
         public void Start()
@@ -167,7 +175,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
-            var targets = new[] { "Compile", "CoreCompile" };
+            var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
 
             return BuildProjectAsync(project, targets, log, cancellationToken);
         }

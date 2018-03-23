@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static bool ConvertToBool(string value)
             => value != null
-                && (string.Equals("true", value, StringComparison.OrdinalIgnoreCase) ||
+                && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
 
         public static int ReadPropertyInt(this MSB.Execution.ProjectInstance executedProject, string propertyName)
