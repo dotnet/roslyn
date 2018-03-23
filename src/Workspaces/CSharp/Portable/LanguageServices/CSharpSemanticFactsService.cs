@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,9 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class CSharpSemanticFactsService : ISemanticFactsService
+    internal class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
         internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+
+        protected override ISyntaxFactsService SyntaxFactsService => CSharpSyntaxFactsService.Instance;
 
         private CSharpSemanticFactsService()
         {

@@ -1247,4 +1247,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Use_IsNot_Nothing_check" xml:space="preserve">
     <value>Use 'IsNot Nothing' check</value>
   </data>
+  <data name="Convert_For_to_For_Each" xml:space="preserve">
+    <value>Convert 'For' to 'For Each'</value>
+  </data>
 </root>

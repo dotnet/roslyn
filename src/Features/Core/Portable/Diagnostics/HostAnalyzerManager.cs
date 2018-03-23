@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 
-        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource), hostAnalyzerAssemblyLoader),
+        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace) :
+            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader),
                  hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
         {
         }
@@ -494,10 +494,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private class HostAnalyzerReferenceDiagnosticReporter
         {
             private readonly AbstractHostDiagnosticUpdateSource _hostUpdateSource;
+            private readonly PrimaryWorkspace _primaryWorkspace;
 
-            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource)
+            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource, PrimaryWorkspace primaryWorkspace)
             {
                 _hostUpdateSource = hostUpdateSource;
+                _primaryWorkspace = primaryWorkspace;
             }
 
             public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
@@ -513,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // diagnostic from host analyzer can never go away
                 var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
-                    workspace: PrimaryWorkspace.Workspace,
+                    workspace: _primaryWorkspace.Workspace,
                     solution: null,
                     projectId: null,
                     documentId: null,
