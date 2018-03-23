@@ -10860,8 +10860,118 @@ public class C
 }
 ";
 
-            // No locals are expected. We are just making sure it still works.
             var comp = CompileAndVerify(source);
+
+            // No locals are expected. We are just making sure it still works.
+
+            comp.VerifyIL("C.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}");
+
+            comp.VerifyIL("C.P.set", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExpressionBodiedProperty()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    int p;
+    int p2;
+    int p3;
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P
+    {
+        get => p;
+        set => p = value;
+    }
+
+    public int P2
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get => p2;
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set => p2 = value;
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P3 => p3;
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            // No locals are expected. We are just making sure it still works.
+
+            comp.VerifyIL("C.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.p""
+  IL_0006:  ret
+}");
+
+            comp.VerifyIL("C.P.set", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.p""
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P2.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.p2""
+  IL_0006:  ret
+}");
+
+            comp.VerifyIL("C.P2.set", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.p2""
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("C.P3.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.p3""
+  IL_0006:  ret
+}");
         }
 
         [Fact]
