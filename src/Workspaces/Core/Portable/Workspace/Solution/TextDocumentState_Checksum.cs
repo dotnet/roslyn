@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
 
-                var serializer = new Serializer(solutionServices.Workspace);
+                var serializer = solutionServices.Workspace.Services.GetService<ISerializerService>();
 
                 var infoChecksum = serializer.CreateChecksum(Info.Attributes, cancellationToken);
                 var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);

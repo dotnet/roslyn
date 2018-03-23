@@ -1,28 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class PrimaryWorkspace
+    [Export(typeof(PrimaryWorkspace)), Shared]
+    internal sealed class PrimaryWorkspace
     {
-        private static readonly ReaderWriterLockSlim s_registryGate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-        private static Workspace s_primaryWorkspace;
+        private readonly ReaderWriterLockSlim _registryGate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private Workspace _primaryWorkspace;
+
+        [ImportingConstructor]
+        public PrimaryWorkspace()
+        {
+        }
 
         /// <summary>
         /// The primary workspace, usually set by the host environment.
         /// </summary>
-        public static Workspace Workspace
+        public Workspace Workspace
         {
             get
             {
-                using (s_registryGate.DisposableRead())
+                using (_registryGate.DisposableRead())
                 {
-                    return s_primaryWorkspace;
+                    return _primaryWorkspace;
                 }
             }
         }
@@ -30,16 +35,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Register a workspace as the primary workspace. Only one workspace can be the primary.
         /// </summary>
-        public static void Register(Workspace workspace)
+        public void Register(Workspace workspace)
         {
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            using (s_registryGate.DisposableWrite())
+            using (_registryGate.DisposableWrite())
             {
-                s_primaryWorkspace = workspace;
+                _primaryWorkspace = workspace;
             }
         }
     }

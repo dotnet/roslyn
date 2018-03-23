@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SolutionService : ISolutionController
     {
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        public static readonly RemoteWorkspace PrimaryWorkspace = new RemoteWorkspace();
 
         private readonly AssetService _assetService;
 
@@ -23,9 +22,15 @@ namespace Microsoft.CodeAnalysis.Remote
         private volatile static Tuple<Checksum, Solution> s_primarySolution;
         private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
-        public SolutionService(AssetService assetService)
+        public SolutionService(AssetService assetService, RemoteWorkspace remoteWorkspace)
         {
             _assetService = assetService;
+            PrimaryWorkspace = remoteWorkspace;
+        }
+
+        public RemoteWorkspace PrimaryWorkspace
+        {
+            get;
         }
 
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
