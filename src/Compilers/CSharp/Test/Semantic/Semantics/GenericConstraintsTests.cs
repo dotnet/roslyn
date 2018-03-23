@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -1781,18 +1782,33 @@ public abstract class Test2<U, W> where U : unmanaged
         public void UnmanagedConstraint_Compilation_Alone_LocalFunction()
         {
             CreateCompilation(@"
-public abstract class Test2<U, W> where U : unmanaged
+public struct GoodType { public int I; }
+public struct BadType { public string S; }
+public class Test2
 {
-    public void M()
+    public void M<U, W>() where U : unmanaged
     {
-        void local<T>() where T : unmanaged { }
+        void M<T>() where T : unmanaged
+        {
+        }
 
-        local<int>();
+        M<GoodType>();                       // unmanaged struct
+        M<BadType>();                        // managed struct
+        M<string>();                         // reference type
+        M<int>();                            // value type
+        M<U>();                              // generic type constrained to unmanaged
+        M<W>();                              // unconstrained generic type
     }
 }").VerifyDiagnostics(
-                // (6,20): error CS8380: Using unmanaged constraint on local functions type parameters is not supported.
-                //         void local<T>() where T : unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintWithLocalFunctions, "T").WithLocation(6, 20));
+                // (13,9): error CS8377: The type 'BadType' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+                //         M<BadType>();                        // managed struct
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<BadType>").WithArguments("M<T>()", "T", "BadType").WithLocation(13, 9),
+                // (14,9): error CS8377: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+                //         M<string>();                         // reference type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<string>").WithArguments("M<T>()", "T", "string").WithLocation(14, 9),
+                // (17,9): error CS8377: The type 'W' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+                //         M<W>();                              // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<W>").WithArguments("M<T>()", "T", "W").WithLocation(17, 9));
         }
 
         [Fact]
@@ -2137,6 +2153,32 @@ public class Test
             };
 
             CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_LocalFunction()
+        {
+            var code = @"
+public class Test
+{
+    public void M()
+    {
+        void N<T>() where T : unmanaged
+        {
+        }
+    }
+}";
+
+            CompileAndVerify(code, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__N|0_0").TypeParameters.Single();
+
+                Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                Assert.True(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);
+                Assert.Empty(typeParameter.ConstraintTypes());
+            });
         }
 
         [Fact]
@@ -2763,6 +2805,29 @@ class Program
     static void Main()
     {
         new B<int>().M(5);
+    }
+}", expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_LocalFunctions()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    static void Main()
+    {
+        void A<T>(T arg) where T : struct
+        {
+            System.Console.WriteLine(arg);
+        }
+
+        void B<T>(T arg) where T : unmanaged
+        {
+            A(arg);
+        }
+
+        B(5);
     }
 }", expectedOutput: "5");
         }

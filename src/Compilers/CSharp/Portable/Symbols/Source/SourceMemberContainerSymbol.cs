@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (typeParameter.HasUnmanagedTypeConstraint)
                             {
                                 var diagnostics = DiagnosticBag.GetInstance();
-                                DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, locationOpt, modifyCompilationForIsUnmanaged: true);
+                                DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeParameter.GetNonNullSyntaxNode().Location, modifyCompilationForIsUnmanaged: true);
                                 AddDeclarationDiagnostics(diagnostics);
                                 diagnostics.Free();
                             }

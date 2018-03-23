@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (typeParam.HasUnmanagedTypeConstraint)
                 {
-                    addTo.Add(ErrorCode.ERR_UnmanagedConstraintWithLocalFunctions, typeParam.GetNonNullSyntaxNode().Location);
+                    DeclaringCompilation.EnsureIsUnmanagedAttributeExists(addTo, typeParam.GetNonNullSyntaxNode().Location, modifyCompilationForIsUnmanaged: false);
                 }
             }
 

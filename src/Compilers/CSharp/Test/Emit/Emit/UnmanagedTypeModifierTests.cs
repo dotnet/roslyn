@@ -402,6 +402,38 @@ public delegate void D<T>() where T : unmanaged;";
         }
 
         [Fact]
+        public void ProperErrorsArePropagatedIfModreqTypeIsNotAvailable_LocalFunction()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public class ValueType {}
+    public class IntPtr {}
+    public class MulticastDelegate {}
+}
+public class Test
+{
+    public struct S {}
+
+    public void M()
+    {
+        void N<T>() where T : unmanaged
+        {
+        }
+
+        N<S>();
+    }
+}";
+
+            CreateEmptyCompilation(code).VerifyDiagnostics(
+                // (16,31): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                //         void N<T>() where T : unmanaged
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(16, 31));
+        }
+
+        [Fact]
         public void ProperErrorsArePropagatedIfValueTypeIsNotAvailable_Class()
         {
             var code = @"
@@ -481,6 +513,45 @@ public delegate void M<T>() where T : unmanaged;";
                 // (17,39): error CS0518: Predefined type 'System.ValueType' is not defined or imported
                 // public delegate void M<T>() where T : unmanaged;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(17, 39));
+        }
+
+        [Fact]
+        public void ProperErrorsArePropagatedIfValueTypeIsNotAvailable_LocalFunctions()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public struct Int32 {}
+
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            public class UnmanagedType {}
+        }
+    }
+}
+class Test
+{
+    public void M()
+    {
+        void N<T>() where T : unmanaged
+        {
+        }
+
+        N<int>();
+    }
+}";
+
+            CreateEmptyCompilation(code).VerifyDiagnostics(
+                // (6,19): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //     public struct Int32 {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Int32").WithArguments("System.ValueType").WithLocation(6, 19),
+                // (20,31): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //         void N<T>() where T : unmanaged
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(20, 31));
         }
 
         [Fact]
