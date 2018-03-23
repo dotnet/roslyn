@@ -12,12 +12,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+
 using Roslyn.Utilities;
-using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
+using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         internal override bool PassEnterThroughToBuffer() => true;
     }
 
-    internal abstract class AbstractCompletionItemSource : IAsyncCompletionItemSource
+    internal abstract class AbstractCompletionItemSource : IAsyncCompletionSource
     {
         internal abstract bool PassEnterThroughToBuffer();
 
@@ -294,5 +295,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         }
 
         public Task HandleViewClosedAsync(ITextView view) => Task.CompletedTask;
+
+        public bool TryGetApplicableSpan(char typeChar, SnapshotPoint triggerLocation, out SnapshotSpan applicableSpan)
+        {
+            applicableSpan = default;
+            return false;
+        }
     }
 }
