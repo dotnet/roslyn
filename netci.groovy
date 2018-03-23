@@ -231,6 +231,27 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// VS Integration Tests
+commitPullList.each { isPr ->
+  ['debug', 'release'].each { configuration ->
+    ['vs-integration'].each { buildTarget ->
+      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+      def myJob = job(jobName) {
+        description("Windows ${configuration} tests on ${buildTarget}")
+        steps {
+          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
+        }
+      }
+
+      def triggerPhraseOnly = false
+      def triggerPhraseExtra = ""
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
+      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+    }
+  }
+}
+
 JobReport.Report.generateJobReport(out)
 
 // Make the call to generate the help job

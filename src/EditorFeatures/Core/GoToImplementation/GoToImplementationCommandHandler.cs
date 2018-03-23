@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
-
             var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return findUsagesService != null
                 ? VSCommanding.CommandState.Available
@@ -75,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         {
             var streamingPresenter = GetStreamingPresenter();
 
-
             if (streamingService != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
@@ -84,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
                 {
                     var userCancellationToken = context.OperationContext.UserCancellationToken;
-
                     StreamingGoToImplementation(
                         document, caretPosition,
                         streamingService, streamingPresenter,

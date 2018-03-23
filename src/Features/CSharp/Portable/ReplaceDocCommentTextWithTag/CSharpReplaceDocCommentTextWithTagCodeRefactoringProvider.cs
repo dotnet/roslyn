@@ -9,7 +9,8 @@ using Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp,
+        Name = PredefinedCodeRefactoringProviderNames.ReplaceDocCommentTextWithTag), Shared]
     internal class CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider :
         AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider
     {
