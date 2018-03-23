@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     () => projectFile.GetProjectFileInfosAsync(cancellationToken)
                 ).ConfigureAwait(false);
 
-                var results = ImmutableArray.CreateBuilder<ProjectFileInfo>();
+                var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(projectFileInfos.Length);
 
                 foreach (var projectFileInfo in projectFileInfos)
                 {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(projectFileInfo);
                 }
 
-                return results.ToImmutable();
+                return results.MoveToImmutable();
             }
 
             private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(
