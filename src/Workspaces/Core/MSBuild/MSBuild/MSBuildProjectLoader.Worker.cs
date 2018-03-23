@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     foreach (var projectPath in _requestedProjectPaths)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         if (!_pathResolver.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var absoluteProjectPath))
                         {
                             continue; // Failure should already be reported.
@@ -147,6 +149,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     foreach (var (projectPath, projectInfos) in _pathToDiscoveredProjectInfosMap)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         if (!processedPaths.Contains(projectPath))
                         {
                             results.AddRange(projectInfos);
