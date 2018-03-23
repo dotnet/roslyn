@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using MSB = Microsoft.Build;
 
@@ -17,15 +17,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IEnumerable<MSB.Framework.ITaskItem> GetAnalyzers(this MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.Analyzer);
 
-        public static IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(this MSB.Execution.ProjectInstance executedProject)
+        public static IEnumerable<MSB.Framework.ITaskItem> GetDocuments(this MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.Compile);
 
         public static IEnumerable<MSB.Framework.ITaskItem> GetMetadataReferences(this MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.ReferencePath);
 
-        public static IEnumerable<MSB.Framework.ITaskItem> GetProjectReferencesFromModel(this MSB.Execution.ProjectInstance executedProject)
-            => executedProject.GetItems(ItemNames.ProjectReference);
+        public static IEnumerable<ProjectFileReference> GetProjectReferences(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject
+                .GetItems(ItemNames.ProjectReference)
+                .Where(i => !i.IsReferenceOutputAssembly())
+                .Select(CreateProjectFileReference);
 
+        /// <summary>
+        /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
+        /// </summary>
+        private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
+            => new ProjectFileReference(reference.EvaluatedInclude, reference.GetAliases());
 
         public static bool IsReferenceOutputAssembly(this MSB.Framework.ITaskItem item)
             => string.Equals(item.GetMetadata(MetadataNames.ReferenceOutputAssembly), bool.TrueString, StringComparison.OrdinalIgnoreCase);

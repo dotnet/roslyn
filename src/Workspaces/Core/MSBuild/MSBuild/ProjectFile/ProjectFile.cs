@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
         private readonly ProjectBuildManager _buildManager;
+        private readonly string _projectDirectory;
 
         public DiagnosticLog Log { get; }
         public virtual string FilePath => _loadedProject.FullPath;
@@ -31,6 +32,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _loader = loader;
             _loadedProject = loadedProject;
             _buildManager = buildManager;
+
+            _projectDirectory = loadedProject != null
+                ? PathUtilities.EnsureTrailingSeparator(loadedProject.DirectoryPath)
+                : null;
+
             Log = log;
         }
 
@@ -48,7 +54,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
-        protected abstract ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project);
+        protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
+        protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
         public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
         {
@@ -101,74 +108,137 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
         {
-            var project = await _buildManager.BuildProjectAsync(_loadedProject, this.Log, cancellationToken).ConfigureAwait(false);
+            var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
                 ? CreateProjectFileInfo(project)
-                : ProjectFileInfo.CreateEmpty(this.Language, _loadedProject.FullPath, this.Log);
+                : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath, Log);
         }
 
-        protected static string GetProjectDirectory(MSB.Execution.ProjectInstance project)
+        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
         {
-            var projectDirectory = project.Directory;
-            var directorySeparator = Path.DirectorySeparatorChar.ToString();
-            if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
+            var commandLineArgs = GetCommandLineArgs(project);
+
+            var outputFilePath = project.ReadPropertyString(PropertyNames.TargetPath);
+            if (!string.IsNullOrWhiteSpace(outputFilePath))
             {
-                projectDirectory += directorySeparator;
+                outputFilePath = GetAbsolutePathRelativeToProject(outputFilePath);
             }
 
-            return projectDirectory;
+            var outputRefFilePath = project.ReadPropertyString(PropertyNames.TargetRefPath);
+            if (!string.IsNullOrWhiteSpace(outputRefFilePath))
+            {
+                outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
+            }
+
+            var targetFramework = project.ReadPropertyString(PropertyNames.TargetFramework);
+            if (string.IsNullOrWhiteSpace(targetFramework))
+            {
+                targetFramework = null;
+            }
+
+            var docs = project.GetDocuments()
+                .Where(IsNotTemporaryGeneratedFile)
+                .Select(MakeDocumentFileInfo)
+                .ToImmutableArray();
+
+            var additionalDocs = project.GetAdditionalFiles()
+                .Select(MakeAdditionalDocumentFileInfo)
+                .ToImmutableArray();
+
+            return ProjectFileInfo.Create(
+                Language,
+                project.FullPath,
+                outputFilePath,
+                outputRefFilePath,
+                targetFramework,
+                commandLineArgs,
+                docs,
+                additionalDocs,
+                project.GetProjectReferences(),
+                Log);
         }
 
-        protected static bool IsTemporaryGeneratedFile(string filePath)
+        private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
         {
-            return Path.GetFileName(filePath).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal);
+            var commandLineArgs = GetCompilerCommandLineArgs(project)
+                .Select(item => item.ItemSpec)
+                .Where(item => item.StartsWith("/"))
+                .ToImmutableArray();
+
+            if (commandLineArgs.Length == 0)
+            {
+                // We didn't get any command-line args, which likely means that the build
+                // was not successful. In that case, try to read the command-line args from
+                // the ProjectInstance that we have. This is a best effort to provide something
+                // meaningful for the user, though it will likely be incomplete.
+                commandLineArgs = ReadCommandLineArgs(project);
+            }
+
+            return AdjustPlatformCommandLineArg(commandLineArgs);
         }
 
-        protected DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
+        private static ImmutableArray<string> AdjustPlatformCommandLineArg(ImmutableArray<string> commandLineArgs)
         {
-            var filePath = GetDocumentFilePath(item);
-            var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
-            var isLinked = IsDocumentLinked(item);
-            var isGenerated = IsDocumentGenerated(item);
+            // If /tplatform is anycpu32bitpreferred, we may need to adjust it depending
+            // on the value of /target.
+
+            string platform = null, target = null;
+            var platformIndex = -1;
+
+            for (var i = 0; i < commandLineArgs.Length; i++)
+            {
+                var arg = commandLineArgs[i];
+
+                if (platform == null && arg.StartsWith("/platform:", StringComparison.OrdinalIgnoreCase))
+                {
+                    platform = arg.Substring("/platform:".Length);
+                    platformIndex = i;
+                }
+                else if (target == null && arg.StartsWith("/target:", StringComparison.OrdinalIgnoreCase))
+                {
+                    target = arg.Substring("/target:".Length);
+                }
+
+                if (platform != null && target != null)
+                {
+                    break;
+                }
+            }
+
+            if (string.Equals("anycpu32bitpreferred", platform, StringComparison.OrdinalIgnoreCase)
+                && (string.Equals("library", target, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals("module", target, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals("winmdobj", target, StringComparison.OrdinalIgnoreCase)))
+            {
+                return commandLineArgs.SetItem(platformIndex, "/platform:anycpu");
+            }
+
+            return commandLineArgs;
+        }
+
+        protected static bool IsNotTemporaryGeneratedFile(MSB.Framework.ITaskItem item)
+            => !Path.GetFileName(item.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal);
+
+        private DocumentFileInfo MakeDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
+        {
+            var filePath = GetDocumentFilePath(documentItem);
+            var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
+            var isLinked = IsDocumentLinked(documentItem);
+            var isGenerated = IsDocumentGenerated(documentItem);
             var sourceCodeKind = GetSourceCodeKind(filePath);
 
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
         }
 
-        protected DocumentFileInfo MakeAdditionalDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
+        private DocumentFileInfo MakeAdditionalDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
         {
-            var filePath = GetDocumentFilePath(item);
-            var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
-            var isLinked = IsDocumentLinked(item);
-            var isGenerated = IsDocumentGenerated(item);
+            var filePath = GetDocumentFilePath(documentItem);
+            var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
+            var isLinked = IsDocumentLinked(documentItem);
+            var isGenerated = IsDocumentGenerated(documentItem);
 
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular);
-        }
-
-        protected IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject
-                .GetItems(ItemNames.ProjectReference)
-                .Where(i => !i.IsReferenceOutputAssembly())
-                .Select(CreateProjectFileReference);
-        }
-
-        /// <summary>
-        /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
-        /// </summary>
-        protected virtual ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-        {
-            return new ProjectFileReference(
-                path: reference.EvaluatedInclude,
-                aliases: ImmutableArray<string>.Empty);
-        }
-
-        protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCommandLineArgsFromModel(MSB.Execution.ProjectInstance executedProject);
-
-        public MSB.Evaluation.ProjectProperty GetProperty(string name)
-        {
-            return _loadedProject.GetProperty(name);
         }
 
         /// <summary>
@@ -177,21 +247,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <remarks>
         /// The resulting path is absolute but might not be normalized.
         /// </remarks>
-        protected string GetAbsolutePath(string path)
+        private string GetAbsolutePathRelativeToProject(string path)
         {
             // TODO (tomat): should we report an error when drive-relative path (e.g. "C:goo.cs") is encountered?
-            return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, _loadedProject.DirectoryPath) ?? path);
+            var absolutePath = FileUtilities.ResolveRelativePath(path, _projectDirectory) ?? path;
+            return Path.GetFullPath(absolutePath);
         }
 
-        protected string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
-        {
-            return GetAbsolutePath(documentItem.ItemSpec);
-        }
+        private string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
+            => GetAbsolutePathRelativeToProject(documentItem.ItemSpec);
 
-        protected static bool IsDocumentLinked(MSB.Framework.ITaskItem documentItem)
-        {
-            return !string.IsNullOrEmpty(documentItem.GetMetadata(MetadataNames.Link));
-        }
+        private static bool IsDocumentLinked(MSB.Framework.ITaskItem documentItem)
+            => !string.IsNullOrEmpty(documentItem.GetMetadata(MetadataNames.Link));
 
         private IDictionary<string, MSB.Evaluation.ProjectItem> _documents;
 
@@ -202,11 +269,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _documents = new Dictionary<string, MSB.Evaluation.ProjectItem>();
                 foreach (var item in _loadedProject.GetItems(ItemNames.Compile))
                 {
-                    _documents[GetAbsolutePath(item.EvaluatedInclude)] = item;
+                    _documents[GetAbsolutePathRelativeToProject(item.EvaluatedInclude)] = item;
                 }
             }
 
-            return !_documents.ContainsKey(GetAbsolutePath(documentItem.ItemSpec));
+            return !_documents.ContainsKey(GetAbsolutePathRelativeToProject(documentItem.ItemSpec));
         }
 
         protected static string GetDocumentLogicalPath(MSB.Framework.ITaskItem documentItem, string projectDirectory)
@@ -250,8 +317,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Dictionary<string, string> metadata = null;
             if (logicalPath != null && relativePath != logicalPath)
             {
-                metadata = new Dictionary<string, string>();
-                metadata.Add(MetadataNames.Link, logicalPath);
+                metadata = new Dictionary<string, string>
+                {
+                    { MetadataNames.Link, logicalPath }
+                };
+
                 relativePath = filePath; // link to full path
             }
 
@@ -392,8 +462,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddProjectReference(string projectName, ProjectFileReference reference)
         {
-            var metadata = new Dictionary<string, string>();
-            metadata.Add(MetadataNames.Name, projectName);
+            var metadata = new Dictionary<string, string>
+            {
+                { MetadataNames.Name, projectName }
+            };
 
             if (!reference.Aliases.IsEmpty)
             {

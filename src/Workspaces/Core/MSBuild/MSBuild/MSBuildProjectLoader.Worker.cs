@@ -375,16 +375,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             private static VersionStamp GetProjectVersion(string projectFilePath)
-            {
-                if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
-                {
-                    return VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
-                }
-                else
-                {
-                    return VersionStamp.Create();
-                }
-            }
+                => !string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath)
+                    ? VersionStamp.Create(FileUtilities.GetFileTimeStamp(projectFilePath))
+                    : VersionStamp.Create();
 
             private static string GetAssemblyNameFromProjectPath(string projectFilePath)
             {
