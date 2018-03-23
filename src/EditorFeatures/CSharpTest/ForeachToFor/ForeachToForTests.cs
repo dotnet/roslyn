@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
 
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
+        private IDictionary<OptionKey, object> ImplicitTypeEverywhere => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
@@ -1628,6 +1628,98 @@ class Test
 }
 ";
             await TestMissingInRegularAndScriptAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        public async Task StringExplicitType()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        foreach [||] (int a in ""test"")
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        string {|Rename:str|} = ""test"";
+        for (int {|Rename:i|} = 0; i < str.Length; i++)
+        {
+            int a = str[i];
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        public async Task Var()
+        {
+            var text = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+class Test
+{
+    void Method()
+    {
+        var list = new Explicit();
+        foreach [||] (var a in list)
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+
+class Explicit : IReadOnlyList<int>
+{
+    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+}
+";
+
+            var expected = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+class Test
+{
+    void Method()
+    {
+        var list = new Explicit();
+        var {|Rename:list1|} = (IReadOnlyList<int>)list;
+        for (var {|Rename:i|} = 0; i < list1.Count; i++)
+        {
+            var a = list1[i];
+            Console.WriteLine(a);
+        }
+    }
+}
+
+class Explicit : IReadOnlyList<int>
+{
+    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
         }
     }
 }
