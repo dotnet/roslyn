@@ -39,43 +39,43 @@ namespace Roslyn.Test.Utilities
             }
             catch (TargetParameterCountException ex) when (IfTargetParameterCountExceptionFailFast(ex))
             {
-                var methodInfoBuilder = new StringBuilder();
-                methodInfoBuilder.AppendLine("Caught TargetParameterCountException in DoEvents. Printing MethodInfos in reverse execution order.");
-                PropertyInfo fullNameProperty = typeof(MethodBase).GetProperty("FullName", BindingFlags.NonPublic | BindingFlags.Instance);
-                lock (s_lock)
-                {
-                    var orderedInfos = s_delegateInfos.Select(kvp => (kvp.Key, kvp.Value)).OrderByDescending(tuple => tuple.Value.startedTime);
-                    foreach (var (info, (args, numArgs, posted, startedTime)) in orderedInfos)
-                    {
-                        methodInfoBuilder.Append($"{info.ReturnType.Name} {fullNameProperty.GetValue(info)} (");
-                        var useComma = false;
-                        foreach (var param in info.GetParameters())
-                        {
-                            methodInfoBuilder.Append($"{(useComma ? ", " : "")}{param.ParameterType.Name} {param.Name}");
-                            useComma = true;
-                        }
-                        methodInfoBuilder.AppendLine(")");
-                        methodInfoBuilder.AppendLine($"\tNum Args: {numArgs}");
-                        if (args is Array arr)
-                        {
-                            methodInfoBuilder.Append("\tArgs (array):");
-                            useComma = true;
-                            foreach (var el in arr)
-                            {
-                                methodInfoBuilder.Append($"{(useComma ? "," : "")} {el}");
+                //var methodInfoBuilder = new StringBuilder();
+                //methodInfoBuilder.AppendLine("Caught TargetParameterCountException in DoEvents. Printing MethodInfos in reverse execution order.");
+                //PropertyInfo fullNameProperty = typeof(MethodBase).GetProperty("FullName", BindingFlags.NonPublic | BindingFlags.Instance);
+                //lock (s_lock)
+                //{
+                //    var orderedInfos = s_delegateInfos.Select(kvp => (kvp.Key, kvp.Value)).OrderByDescending(tuple => tuple.Value.startedTime);
+                //    foreach (var (info, (args, numArgs, posted, startedTime)) in orderedInfos)
+                //    {
+                //        methodInfoBuilder.Append($"{info.ReturnType.Name} {fullNameProperty.GetValue(info)} (");
+                //        var useComma = false;
+                //        foreach (var param in info.GetParameters())
+                //        {
+                //            methodInfoBuilder.Append($"{(useComma ? ", " : "")}{param.ParameterType.Name} {param.Name}");
+                //            useComma = true;
+                //        }
+                //        methodInfoBuilder.AppendLine(")");
+                //        methodInfoBuilder.AppendLine($"\tNum Args: {numArgs}");
+                //        if (args is Array arr)
+                //        {
+                //            methodInfoBuilder.Append("\tArgs (array):");
+                //            useComma = true;
+                //            foreach (var el in arr)
+                //            {
+                //                methodInfoBuilder.Append($"{(useComma ? "," : "")} {el}");
 
-                            }
-                            methodInfoBuilder.AppendLine();
-                        }
-                        else
-                        {
-                            methodInfoBuilder.AppendLine($"\tArgs: {args}");
-                        }
-                        methodInfoBuilder.AppendLine($"\tPosted: {posted} Time: {startedTime.ToShortTimeString()}");
-                    }
-                    s_delegateInfos.Clear();
-                }
-                throw new TargetParameterCountException(methodInfoBuilder.ToString(), ex);
+                //            }
+                //            methodInfoBuilder.AppendLine();
+                //        }
+                //        else
+                //        {
+                //            methodInfoBuilder.AppendLine($"\tArgs: {args}");
+                //        }
+                //        methodInfoBuilder.AppendLine($"\tPosted: {posted} Time: {startedTime.ToShortTimeString()}");
+                //    }
+                //    s_delegateInfos.Clear();
+                //}
+                //throw new TargetParameterCountException(methodInfoBuilder.ToString(), ex);
             }
 
             bool IfTargetParameterCountExceptionFailFast(TargetParameterCountException ex)
@@ -95,15 +95,15 @@ namespace Roslyn.Test.Utilities
 
         private static void EnsureHooked()
         {
-            if (s_hooked) return;
-            lock (s_lock)
-            {
-                if (s_hooked) return;
-                s_hooked = true;
-                Dispatcher.CurrentDispatcher.Hooks.OperationPosted += Hooks_OperationPosted;
-                Dispatcher.CurrentDispatcher.Hooks.OperationCompleted += Hooks_OperationCompleted;
-                Dispatcher.CurrentDispatcher.Hooks.OperationStarted += Hooks_OperationStarted;
-            }
+            //if (s_hooked) return;
+            //lock (s_lock)
+            //{
+            //    if (s_hooked) return;
+            //    s_hooked = true;
+            //    Dispatcher.CurrentDispatcher.Hooks.OperationPosted += Hooks_OperationPosted;
+            //    Dispatcher.CurrentDispatcher.Hooks.OperationCompleted += Hooks_OperationCompleted;
+            //    Dispatcher.CurrentDispatcher.Hooks.OperationStarted += Hooks_OperationStarted;
+            //}
         }
 
         private static void Hooks_OperationPosted(object sender, DispatcherHookEventArgs e)
