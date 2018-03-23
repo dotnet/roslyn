@@ -40,13 +40,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _indecesToRemove = new HashSet<int>();
                 }
 
-                private static ImmutableDictionary<string, HashSet<int>> CreatePathToIndexMap(IEnumerable<MetadataReference> metadataReferences)
+                private static ImmutableDictionary<string, HashSet<int>> CreatePathToIndexMap(ImmutableArray<MetadataReference> metadataReferences)
                 {
                     var pathToIndexMap = ImmutableDictionary.CreateBuilder<string, HashSet<int>>(PathUtilities.Comparer);
 
-                    var index = 0;
-                    foreach (var metadataReference in metadataReferences)
+                    for (var index = 0; index < metadataReferences.Length; index++)
                     {
+                        var metadataReference = metadataReferences[index];
+
                         var filePath = GetFilePath(metadataReference);
                         if (!pathToIndexMap.TryGetValue(filePath, out var indeces))
                         {
@@ -55,8 +56,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
 
                         indeces.Add(index);
-
-                        index++;
                     }
 
                     return pathToIndexMap.ToImmutable();
