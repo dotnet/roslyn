@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         internal override bool PassEnterThroughToBuffer() => true;
     }
 
-    internal abstract class AbstractCompletionItemSource : IAsyncCompletionSource
+    internal abstract class AbstractCompletionItemSource : IAsyncCompletionSource, IAsyncCompletionCommitManager
     {
         internal abstract bool PassEnterThroughToBuffer();
 
@@ -198,6 +198,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
 
+        public CommitResult TryCommit(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
+        {
+            var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return new CommitResult(handled: false);
+            }
+
+            var completionService = document.GetLanguageService<CompletionService>();
+            var roslynItem = item.Properties.GetProperty<RoslynCompletionItem>(RoslynItem);
+            var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
+            if (needsCustomCommit)
+            {
+                CustomCommit(view, buffer, item, applicableSpan, typeChar, token);
+                return new CommitResult(handled: true, CommitBehavior.SuppressFurtherCommandHandlers);
+            }
+
+            if (PassEnterThroughToBuffer() && typeChar == '\n')
+            {
+                return new CommitResult(handled: false, CommitBehavior.RaiseFurtherCommandHandlers);
+            }
+
+            if (item.InsertText.EndsWith(":") && typeChar == ':')
+            {
+                return new CommitResult(handled: false, CommitBehavior.SuppressFurtherCommandHandlers);
+            }
+
+            return new CommitResult(handled: false);
+        }
+
         public CommitBehavior CustomCommit(
             ITextView view, 
             ITextBuffer buffer, 
@@ -233,21 +263,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             return CommitBehavior.SuppressFurtherCommandHandlers;
-        }
-
-        public CommitBehavior GetDefaultCommitBehavior(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
-        {
-            if (PassEnterThroughToBuffer() && typeChar == '\n')
-            {
-                return CommitBehavior.RaiseFurtherCommandHandlers;
-            }
-
-            if (item.InsertText.EndsWith(":") && typeChar == ':')
-            {
-                return CommitBehavior.SuppressFurtherCommandHandlers;
-            }
-
-            return CommitBehavior.None;
         }
 
         public ImmutableArray<char> GetPotentialCommitCharacters()
