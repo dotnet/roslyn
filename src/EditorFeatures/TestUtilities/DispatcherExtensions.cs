@@ -13,7 +13,7 @@ namespace Roslyn.Test.Utilities
     {
         public static void DoEvents(this Dispatcher dispatcher)
         {
-            EnsureHooked();
+            //EnsureHooked();
             // A DispatcherFrame represents a loop that processes pending work
             // items.
             var frame = new DispatcherFrame();
@@ -88,59 +88,59 @@ namespace Roslyn.Test.Utilities
         // Dispatcher hooks for troubleshooting DoEvents calls
         #region DispatcherHooks
 
-        private readonly static object s_lock = new object();
-        private static bool s_hooked = false;
+        //private readonly static object s_lock = new object();
+        //private static bool s_hooked = false;
 
-        private readonly static Dictionary<MethodInfo, (object args, int numArgs, bool posted, DateTime startedTime)> s_delegateInfos = new Dictionary<MethodInfo, (object, int, bool, DateTime)>();
+        //private readonly static Dictionary<MethodInfo, (object args, int numArgs, bool posted, DateTime startedTime)> s_delegateInfos = new Dictionary<MethodInfo, (object, int, bool, DateTime)>();
 
-        private static void EnsureHooked()
-        {
-            //if (s_hooked) return;
-            //lock (s_lock)
-            //{
-            //    if (s_hooked) return;
-            //    s_hooked = true;
-            //    Dispatcher.CurrentDispatcher.Hooks.OperationPosted += Hooks_OperationPosted;
-            //    Dispatcher.CurrentDispatcher.Hooks.OperationCompleted += Hooks_OperationCompleted;
-            //    Dispatcher.CurrentDispatcher.Hooks.OperationStarted += Hooks_OperationStarted;
-            //}
-        }
+        //private static void EnsureHooked()
+        //{
+        //    //if (s_hooked) return;
+        //    //lock (s_lock)
+        //    //{
+        //    //    if (s_hooked) return;
+        //    //    s_hooked = true;
+        //    //    Dispatcher.CurrentDispatcher.Hooks.OperationPosted += Hooks_OperationPosted;
+        //    //    Dispatcher.CurrentDispatcher.Hooks.OperationCompleted += Hooks_OperationCompleted;
+        //    //    Dispatcher.CurrentDispatcher.Hooks.OperationStarted += Hooks_OperationStarted;
+        //    //}
+        //}
 
-        private static void Hooks_OperationPosted(object sender, DispatcherHookEventArgs e)
-        {
-            var (info, args, numArgs) = GetFields(e.Operation);
-            s_delegateInfos[info] = (args, numArgs, true, DateTime.UtcNow);
-        }
+        //private static void Hooks_OperationPosted(object sender, DispatcherHookEventArgs e)
+        //{
+        //    var (info, args, numArgs) = GetFields(e.Operation);
+        //    s_delegateInfos[info] = (args, numArgs, true, DateTime.UtcNow);
+        //}
 
-        private static void Hooks_OperationStarted(object sender, DispatcherHookEventArgs e)
-        {
-            var (info, args, numArgs) = GetFields(e.Operation);
-            lock (s_lock)
-            {
-                s_delegateInfos[info] = (args, numArgs, false, DateTime.UtcNow);
-            }
-        }
+        //private static void Hooks_OperationStarted(object sender, DispatcherHookEventArgs e)
+        //{
+        //    var (info, args, numArgs) = GetFields(e.Operation);
+        //    lock (s_lock)
+        //    {
+        //        s_delegateInfos[info] = (args, numArgs, false, DateTime.UtcNow);
+        //    }
+        //}
 
-        private static (MethodInfo info, object args, int numArgs) GetFields(DispatcherOperation op)
-        {
+        //private static (MethodInfo info, object args, int numArgs) GetFields(DispatcherOperation op)
+        //{
 
-            FieldInfo methodField = typeof(DispatcherOperation).GetField("_method", BindingFlags.NonPublic | BindingFlags.Instance);
-            FieldInfo argsField = typeof(DispatcherOperation).GetField("_args", BindingFlags.NonPublic | BindingFlags.Instance);
-            FieldInfo numArgsField = typeof(DispatcherOperation).GetField("_numArgs", BindingFlags.NonPublic | BindingFlags.Instance);
-            var invokedDelegate = (Delegate)methodField.GetValue(op);
-            object args = argsField.GetValue(op);
-            var numArgs = (int)numArgsField.GetValue(op);
-            return (invokedDelegate.Method, args, numArgs);
-        }
+        //    FieldInfo methodField = typeof(DispatcherOperation).GetField("_method", BindingFlags.NonPublic | BindingFlags.Instance);
+        //    FieldInfo argsField = typeof(DispatcherOperation).GetField("_args", BindingFlags.NonPublic | BindingFlags.Instance);
+        //    FieldInfo numArgsField = typeof(DispatcherOperation).GetField("_numArgs", BindingFlags.NonPublic | BindingFlags.Instance);
+        //    var invokedDelegate = (Delegate)methodField.GetValue(op);
+        //    object args = argsField.GetValue(op);
+        //    var numArgs = (int)numArgsField.GetValue(op);
+        //    return (invokedDelegate.Method, args, numArgs);
+        //}
 
-        private static void Hooks_OperationCompleted(object sender, DispatcherHookEventArgs e)
-        {
-            var (info, _, _) = GetFields(e.Operation);
-            lock (s_lock)
-            {
-                s_delegateInfos.Remove(info);
-            }
-        }
+        //private static void Hooks_OperationCompleted(object sender, DispatcherHookEventArgs e)
+        //{
+        //    var (info, _, _) = GetFields(e.Operation);
+        //    lock (s_lock)
+        //    {
+        //        s_delegateInfos.Remove(info);
+        //    }
+        //}
 
         #endregion
     }
