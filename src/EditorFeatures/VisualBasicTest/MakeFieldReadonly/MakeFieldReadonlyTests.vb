@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
     Public Class MakeFieldReadonlyTests
@@ -297,6 +298,52 @@ End Class",
     Private y As Integer()
     Private z As String()
     Private ReadOnly w As String
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms11() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim [|x|] As New String("""".ToCharArray)
+End Class",
+"Class C
+    ReadOnly x As New String("""".ToCharArray)
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms12() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim [|x|], y As New String("""".ToCharArray)
+End Class",
+"Class C
+    Private ReadOnly x As String = New String("""".ToCharArray)
+    Private y As String = New String("""".ToCharArray)
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms13() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim x, [|y|] As New String("""".ToCharArray)
+End Class",
+"Class C
+    Private x As String = New String("""".ToCharArray)
+    Private ReadOnly y As String = New String("""".ToCharArray)
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_VBSpecialForms14() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim {|FixAllInDocument:x|}, y As New String("""".ToCharArray)
+End Class",
+"Class C
+    ReadOnly x, y As New String("""".ToCharArray)
 End Class")
         End Function
 

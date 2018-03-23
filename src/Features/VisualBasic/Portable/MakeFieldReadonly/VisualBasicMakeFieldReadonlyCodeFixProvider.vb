@@ -16,7 +16,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
         End Function
 
         Protected Overrides Function GetInitializerNode(declaration As ModifiedIdentifierSyntax) As SyntaxNode
-            Return CType(declaration.Parent, VariableDeclaratorSyntax).Initializer?.Value
+            Dim initializer = CType(declaration.Parent, VariableDeclaratorSyntax).Initializer?.Value
+            If initializer Is Nothing Then
+                initializer = TryCast(CType(declaration.Parent, VariableDeclaratorSyntax).AsClause, AsNewClauseSyntax)?.NewExpression
+            End If
+
+            Return initializer
         End Function
     End Class
 End Namespace
