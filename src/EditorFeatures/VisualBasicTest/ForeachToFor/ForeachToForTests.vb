@@ -2,7 +2,6 @@
 
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
@@ -191,9 +190,9 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list.Length - 1 ' test 
-            Dim a = list(i)
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1 ' test 
+            Dim a = array(i)
             Console.WriteLine(a)
         Next
     End Sub
@@ -218,8 +217,8 @@ End Class
 Class Test
     Sub Method()
         ' test
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list.Length - 1
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
         Next
     End Sub
 End Class
@@ -259,8 +258,8 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list.Length - 1
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
         Next
     End Sub
 End Class
@@ -282,8 +281,8 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list.Length - 1
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
         Next
     End Sub
 End Class
@@ -296,7 +295,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        Dim list = 1
+        Dim array = 1
 
         For Each [||] a In New Integer() {1, 2, 3}
             Console.WriteLine(a)
@@ -308,11 +307,11 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim list = 1
+        Dim array = 1
 
-        Dim {|Rename:list1|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list1.Length - 1
-            Dim a = list1(i)
+        Dim {|Rename:array1|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array1.Length - 1
+            Dim a = array1(i)
             Console.WriteLine(a)
         Next
     End Sub
@@ -337,9 +336,9 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i1|} = 0 To list.Length - 1
-            Dim a = list(i1)
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i1|} = 0 To array.Length - 1
+            Dim a = array(i1)
             Dim i = 1
             Console.WriteLine(a)
         Next
@@ -600,8 +599,8 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list.Length - 1
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
         Next i
     End Sub
 End Class
@@ -624,9 +623,9 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i1|} = 0 To list.Length - 1
-            Dim i = list(i1)
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i1|} = 0 To array.Length - 1
+            Dim i = array(i1)
             Console.WriteLine(a)
         Next
     End Sub
@@ -650,9 +649,9 @@ End Class
             Dim expected = "
 Class Test
     Sub Method()
-        Dim {|Rename:list|} = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To list.Length - 1
-            Dim a As Integer = list(i)
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+            Dim a As Integer = array(i)
             Console.WriteLine(a)
         Next
     End Sub

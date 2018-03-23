@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             return (foreachStatement.Statement, foreachStatement.Statement);
         }
 
-        protected override void ConvertToForStatement(SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override void ConvertToForStatement(
+            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -83,16 +84,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var foreachStatement = foreachInfo.ForEachStatement;
 
             var foreachCollectionExpression = foreachStatement.Expression;
-            var collectionVariable = GetCollectionVariableName(model, generator, foreachInfo, foreachCollectionExpression);
+            var collectionVariable = GetCollectionVariableName(
+                model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
             // first, see whether we need to introduce new statement to capture collection
             IntroduceCollectionStatement(model, foreachInfo, editor, foreachCollectionExpression, collectionVariable);
 
             // create new index varialbe name
-            var indexString = CreateUniqueName(model, foreachStatement.Statement, "i");
+            var indexVariable = CreateUniqueName(foreachInfo.SemanticFacts, model, foreachStatement.Statement, "i", cancellationToken);
 
             // put variable statement in body
-            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexString);
+            var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable);
 
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
@@ -100,16 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                     SyntaxFactory.IdentifierName("var"),
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
-                            generator.Identifier(indexString).WithAdditionalAnnotations(RenameAnnotation.Create()),
+                            indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
                             argumentList: default,
                             SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0))))),
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(
-                    generator.IdentifierName(indexString),
+                    generator.IdentifierName(indexVariable),
                     generator.MemberAccessExpression(collectionVariable, foreachInfo.CountName)),
                 SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                     SyntaxFactory.PostfixUnaryExpression(
-                        SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexString))),
+                        SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexVariable))),
                 bodyStatement);
 
             if (!foreachInfo.RequireCollectionStatement)
@@ -125,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             editor.ReplaceNode(foreachStatement, forStatement);
         }
 
-        private StatementSyntax GetForLoopBody(SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, string indexString)
+        private StatementSyntax GetForLoopBody(
+            SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable)
         {
             var foreachStatement = foreachInfo.ForEachStatement;
             if (foreachStatement.Statement is EmptyStatementSyntax)
@@ -136,12 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var bodyBlock = foreachStatement.Statement is BlockSyntax block ? block : SyntaxFactory.Block(foreachStatement.Statement);
             if (bodyBlock.Statements.Count > 0)
             {
-                // use original text
-                var foreachVariableString = foreachStatement.Identifier.ToString();
-
                 // create variable statement
                 var variableStatement = AddItemVariableDeclaration(
-                    generator, foreachStatement.Type, foreachVariableString, foreachInfo.ForEachElementType, collectionVariableName, indexString);
+                    generator, foreachStatement.Type,
+                    foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(
                     bodyBlock.Statements[0], SpecializedCollections.SingletonEnumerable(

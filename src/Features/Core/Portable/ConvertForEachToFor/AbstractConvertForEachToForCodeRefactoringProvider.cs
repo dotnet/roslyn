@@ -74,22 +74,25 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                     c => ConvertForeachToForAsync(document, foreachInfo, c)));
         }
 
-        protected string CreateUniqueName(SemanticModel model, SyntaxNode contextNode, string baseName)
+        protected SyntaxToken CreateUniqueName(
+            ISemanticFactsService semanticFacts,
+            SemanticModel model,
+            SyntaxNode location,
+            string baseName,
+            CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(contextNode);
-            Contract.ThrowIfNull(baseName);
-
-            return NameGenerator.GenerateUniqueName(baseName, string.Empty,
-               name => model.LookupSymbols(contextNode.SpanStart, /*container*/null, name).Length == 0);
+            return semanticFacts.GenerateUniqueName(model, location, containerOpt: null, baseName, cancellationToken);
         }
 
         protected SyntaxNode GetCollectionVariableName(
-            SemanticModel model, SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression)
+            SemanticModel model, SyntaxGenerator generator,
+            ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression, CancellationToken cancellationToken)
         {
             if (foreachInfo.RequireCollectionStatement)
             {
                 return generator.IdentifierName(
-                    CreateUniqueName(model, foreachInfo.ForEachStatement, foreachInfo.CollectionNameSuggestion));
+                    CreateUniqueName(foreachInfo.SemanticFacts, 
+                    model, foreachInfo.ForEachStatement, foreachInfo.CollectionNameSuggestion, cancellationToken));
             }
 
             return foreachCollectionExpression.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
@@ -123,14 +126,14 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         protected SyntaxNode AddItemVariableDeclaration(
-            SyntaxGenerator generator, SyntaxNode type, string foreachVariableString,
-            ITypeSymbol castType, SyntaxNode collectionVariableName, string indexString)
+            SyntaxGenerator generator, SyntaxNode type, SyntaxToken foreachVariable,
+            ITypeSymbol castType, SyntaxNode collectionVariable, SyntaxToken indexVariable)
         {
             var memberAccess = generator.ElementAccessExpression(
-                    collectionVariableName, generator.IdentifierName(indexString));
+                    collectionVariable, generator.IdentifierName(indexVariable));
 
             return generator.LocalDeclarationStatement(
-                type, foreachVariableString, generator.CastExpression(castType, memberAccess));
+                type, foreachVariable, generator.CastExpression(castType, memberAccess));
         }
 
         private ForEachInfo GetForeachInfo(ISemanticFactsService semanticFact, SemanticModel model, TForEachStatement foreachStatement, CancellationToken cancellationToken)
@@ -184,7 +187,9 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             }
 
             var requireCollectionStatement = CheckRequireCollectionStatement(foreachCollection);
-            return new ForEachInfo(collectionNameSuggestion, countName, explicitCastInterface, foreachVariable.Type, requireCollectionStatement, foreachStatement);
+            return new ForEachInfo(
+                semanticFact, collectionNameSuggestion, countName,
+                explicitCastInterface, foreachVariable.Type, requireCollectionStatement, foreachStatement);
         }
 
         private static void GetInterfaceInfo(
@@ -418,9 +423,10 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         protected class ForEachInfo
         {
             public ForEachInfo(
-                string collectionNameSuggestion, string countName, ITypeSymbol explicitCastInterface, ITypeSymbol forEachElementType,
-                bool requireCollectionStatement, TForEachStatement forEachStatement)
+                ISemanticFactsService semanticFacts, string collectionNameSuggestion, string countName,
+                ITypeSymbol explicitCastInterface, ITypeSymbol forEachElementType, bool requireCollectionStatement, TForEachStatement forEachStatement)
             {
+                SemanticFacts = semanticFacts;
                 CollectionNameSuggestion = collectionNameSuggestion;
                 CountName = countName;
 
@@ -435,6 +441,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             public bool RequireExplicitCastInterface => ExplicitCastInterface != null;
 
+            public ISemanticFactsService SemanticFacts { get; }
             public string CollectionNameSuggestion { get; }
             public string CountName { get; }
             public ITypeSymbol ExplicitCastInterface { get; }
