@@ -467,7 +467,7 @@ function Test-XUnitCoreClr() {
 function Test-XUnit() { 
 
     # Used by tests to locate dotnet CLI
-    $env:DOTNET_INSTALL_DIR = Split-Path $dotnet    
+    $env:DOTNET_INSTALL_DIR = Split-Path $dotnet -Parent
 
     if ($testCoreClr) {
         Test-XUnitCoreClr

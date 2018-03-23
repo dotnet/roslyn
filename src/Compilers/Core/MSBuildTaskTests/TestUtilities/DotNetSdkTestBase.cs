@@ -146,6 +146,11 @@ $@"<Project>
             Project = ProjectDir.CreateFile(ProjectFileName).WriteAllText(s_projectSource);
             ProjectDir.CreateFile("TestClass.cs").WriteAllText(s_classSource);
 
+            // avoid accidental dependency on files outside of the project directory:
+            ProjectDir.CreateFile("Directory.Build.props").WriteAllText("<Project/>");
+            ProjectDir.CreateFile("Directory.Build.targets").WriteAllText("<Project/>");
+            ProjectDir.CreateFile(".editorconfig").WriteAllText("root = true");
+
             Assert.True(File.Exists(Path.Combine(testBinDirectory, "Microsoft.CSharp.Core.targets")));
             Assert.True(File.Exists(Path.Combine(testBinDirectory, "Microsoft.VisualBasic.Core.targets")));
 
