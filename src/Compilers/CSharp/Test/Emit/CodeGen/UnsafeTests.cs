@@ -4067,10 +4067,7 @@ unsafe class C
 
 class Fixable
 {
-    public ref int GetPinnableReference<T>()
-    {
-        return ref (new int[]{1,2,3})[0];
-    }
+    public ref int GetPinnableReference<T>() => throw null;
 }
 
 static class FixableExt
@@ -4657,7 +4654,6 @@ static class FixAllExt
                 //             fixed (int* p = arg)
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "arg").WithArguments("FixableClass.GetPinnableReference()").WithLocation(14, 29)
                 );
-
 
             // note that defensive copy is created
             compVerifier.VerifyIL("C.Test(ref FixableClass)", @"

@@ -988,7 +988,10 @@ unsafe internal class program
         {
             *p = default;
         }
+    }
 
+    public static void Main1()
+    {
         fixed (char* p = new char[1])
         {
             *p = default;
@@ -1000,15 +1003,13 @@ unsafe internal class program
 
             comp.VerifyDiagnostics();
 
+            var c = CompileAndVerify(comp, verify: Verification.Skipped);
 
-            CompileAndVerify(comp, verify: Verification.Skipped).
-                VerifyIL("program.Main()", @"
+            c.VerifyIL("program.Main()", @"
 {
-  // Code size       53 (0x35)
+  // Code size       19 (0x13)
   .maxstack  2
-  .locals init (pinned char& V_0,
-                char* V_1, //p
-                pinned char[] V_2)
+  .locals init (pinned char& V_0)
   IL_0000:  ldstr      ""A""
   IL_0005:  call       ""ref char string.GetPinnableReference()""
   IL_000a:  stloc.0
@@ -1019,33 +1020,43 @@ unsafe internal class program
   IL_000f:  ldc.i4.0
   IL_0010:  conv.u
   IL_0011:  stloc.0
-  IL_0012:  ldc.i4.1
-  IL_0013:  newarr     ""char""
-  IL_0018:  dup
-  IL_0019:  stloc.2
-  IL_001a:  brfalse.s  IL_0021
-  IL_001c:  ldloc.2
-  IL_001d:  ldlen
-  IL_001e:  conv.i4
-  IL_001f:  brtrue.s   IL_0026
-  IL_0021:  ldc.i4.0
-  IL_0022:  conv.u
-  IL_0023:  stloc.1
-  IL_0024:  br.s       IL_002f
-  IL_0026:  ldloc.2
-  IL_0027:  ldc.i4.0
-  IL_0028:  ldelema    ""char""
-  IL_002d:  conv.u
-  IL_002e:  stloc.1
-  IL_002f:  ldloc.1
-  IL_0030:  ldc.i4.0
-  IL_0031:  stind.i2
-  IL_0032:  ldnull
-  IL_0033:  stloc.2
-  IL_0034:  ret
+  IL_0012:  ret
 }
 "
                 );
+
+            c.VerifyIL("program.Main1()", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (char* V_0, //p
+                pinned char[] V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""char""
+  IL_0006:  dup
+  IL_0007:  stloc.1
+  IL_0008:  brfalse.s  IL_000f
+  IL_000a:  ldloc.1
+  IL_000b:  ldlen
+  IL_000c:  conv.i4
+  IL_000d:  brtrue.s   IL_0014
+  IL_000f:  ldc.i4.0
+  IL_0010:  conv.u
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_001d
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldelema    ""char""
+  IL_001b:  conv.u
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.0
+  IL_001f:  stind.i2
+  IL_0020:  ldnull
+  IL_0021:  stloc.1
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]
@@ -1107,7 +1118,6 @@ unsafe internal class program
             var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics();
-
 
             CompileAndVerify(comp, verify: Verification.Skipped).
                 VerifyIL("program.Main()", @"
