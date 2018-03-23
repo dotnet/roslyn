@@ -75,15 +75,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var results = ImmutableArray.CreateBuilder<MetadataReference>(initialCapacity: _metadataReferences.Length);
 
-                    var index = 0;
-                    foreach (var metadataReference in _metadataReferences)
+                    for (var index = 0; index < _metadataReferences.Length; index++)
                     {
                         if (!_indecesToRemove.Contains(index))
                         {
-                            results.Add(metadataReference);
+                            results.Add(_metadataReferences[index]);
                         }
-
-                        index++;
                     }
 
                     return results.ToImmutable();
