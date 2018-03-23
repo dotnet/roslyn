@@ -25,27 +25,87 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         protected abstract bool IsWrittenTo(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
         protected abstract bool IsMemberOfThisInstance(SyntaxNode node);
 
+        protected abstract void AddCandidateTypesInCompilationUnit(SemanticModel semanticModel, SyntaxNode compilationUnit, PooledHashSet<(ITypeSymbol, SyntaxNode)> candidateTypes, CancellationToken cancellationToken);
+
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        protected void AnalyzeType(SyntaxNodeAnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+
+        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var optionSet = context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = context.SemanticModel;
+
+            // Early return if user disables the feature
+            var optionSet = context.Options.GetDocumentOptionSetAsync(semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
             }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferReadonly, context.Node.Language);
+            var option = optionSet.GetOption(CodeStyleOptions.PreferReadonly, semanticModel.Language);
             if (!option.Value)
             {
                 return;
             }
 
-            var typeSymbol = (ITypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node);
+            var syntaxFactsService = GetSyntaxFactsService();
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var candidateTypes = PooledHashSet<(ITypeSymbol, SyntaxNode)>.GetInstance();
+            AddCandidateTypesInCompilationUnit(semanticModel, root, candidateTypes, cancellationToken);
 
-            var nonReadonlyFieldMembers = PooledHashSet<IFieldSymbol>.GetInstance();
+            var candidateFields = PooledHashSet<IFieldSymbol>.GetInstance();
+            foreach (var (typeSymbol, typeSyntax) in candidateTypes)
+            {
+                AddCandidateFieldsInType(context, typeSymbol, typeSyntax, candidateFields);
+            }
+
+            if (candidateFields.Count > 0)
+            {
+                var analyzedTypes = ArrayBuilder<(ITypeSymbol, SyntaxNode)>.GetInstance(candidateTypes.Count);
+                analyzedTypes.AddRange(candidateTypes);
+                analyzedTypes.Sort((x, y) => x.Item2.SpanStart - y.Item2.SpanStart);
+
+                // Remove types from the analysis list when they are contained by another type in the list
+                for (var i = analyzedTypes.Count - 1; i >= 1; i--)
+                {
+                    if (analyzedTypes[i - 1].Item2.FullSpan.Contains(analyzedTypes[i].Item2.FullSpan))
+                    {
+                        analyzedTypes[i] = default;
+                    }
+                }
+
+                foreach (var (typeSymbol, typeSyntax) in candidateTypes)
+                {
+                    if (typeSyntax is null)
+                    {
+                        // Node was removed due to nested scoping
+                        continue;
+                    }
+
+                    RemoveAssignedSymbols(semanticModel, syntaxFactsService, typeSyntax, candidateFields, cancellationToken);
+                }
+
+                foreach (var symbol in candidateFields)
+                {
+                    var diagnostic = Diagnostic.Create(
+                        GetDescriptorWithSeverity(option.Notification.Value),
+                        symbol.Locations[0]);
+                    context.ReportDiagnostic(diagnostic);
+                }
+
+                analyzedTypes.Free();
+            }
+
+            candidateTypes.Free();
+            candidateFields.Free();
+        }
+
+        private void AddCandidateFieldsInType(SemanticModelAnalysisContext context, ITypeSymbol typeSymbol, SyntaxNode typeSyntax, PooledHashSet<IFieldSymbol> candidateFields)
+        {
             foreach (var item in typeSymbol.GetMembers())
             {
                 if (item is IFieldSymbol symbol &&
@@ -55,48 +115,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     !symbol.IsImplicitlyDeclared &&
                     !IsMutableValueType(symbol.Type))
                 {
-                    var isInCurrentNode = false;
-                    foreach (var syntaxReference in item.DeclaringSyntaxReferences)
-                    {
-                        if (!syntaxReference.SyntaxTree.Equals(context.Node.SyntaxTree))
-                        {
-                            continue;
-                        }
-
-                        if (!context.Node.Span.Contains(syntaxReference.Span))
-                        {
-                            continue;
-                        }
-
-                        isInCurrentNode = true;
-                        break;
-                    }
-
-                    if (isInCurrentNode)
-                    {
-                        nonReadonlyFieldMembers.Add(symbol);
-                    }
+                    candidateFields.Add(symbol);
                 }
             }
-
-            var syntaxFactsService = GetSyntaxFactsService();
-            foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
-            {
-                var typeNode = syntaxReference.SyntaxTree.GetRoot(context.CancellationToken).FindNode(syntaxReference.Span);
-
-                var semanticModelForTree = context.SemanticModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-                RemoveAssignedSymbols(semanticModelForTree, syntaxFactsService, typeNode, nonReadonlyFieldMembers, context.CancellationToken);
-            }
-
-            foreach (var symbol in nonReadonlyFieldMembers)
-            {
-                var diagnostic = Diagnostic.Create(
-                    GetDescriptorWithSeverity(option.Notification.Value),
-                    symbol.Locations[0]);
-                context.ReportDiagnostic(diagnostic);
-            }
-
-            nonReadonlyFieldMembers.Free();
         }
 
         private void RemoveAssignedSymbols(SemanticModel model, ISyntaxFactsService syntaxFactsService, SyntaxNode node, PooledHashSet<IFieldSymbol> unassignedSymbols, CancellationToken cancellationToken)

@@ -714,7 +714,33 @@ class MyClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        // Remove this test when https://github.com/dotnet/roslyn/issues/25652 is fixed
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FixAllDoesNotSupportPartial()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"  partial struct MyClass
+    {
+        private static Func<int, bool> {|FixAllInDocument:_test1|} = x => x > 0;
+        private static Func<int, bool> _test2 = x => x < 0;
+
+        private static Func<int, bool> _test3 = x =>
+        {
+            return x == 0;
+        };
+
+        private static Func<int, bool> _test4 = x =>
+        {
+            return x != 0;
+        };
+    }
+
+    partial struct MyClass { }");
+        }
+
+        [Fact(Skip = "Partial types not yet supported: https://github.com/dotnet/roslyn/issues/25652")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FixAll2()
         {
             await TestInRegularAndScriptAsync(

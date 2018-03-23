@@ -61,6 +61,27 @@ End Class",
 End Class")
         End Function
 
+        ' Update this test when https://github.com/dotnet/roslyn/issues/25652 is fixed
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldNotAssigned_PartialClass1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Partial Class C
+    Private [|_goo|] As Integer
+End Class")
+        End Function
+
+        ' Update this test when https://github.com/dotnet/roslyn/issues/25652 is fixed
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldNotAssigned_PartialClass2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_goo|] As Integer
+End Class
+
+Partial Class C
+EndClass")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldNotAssigned_Struct() As Task
             Await TestInRegularAndScriptAsync(

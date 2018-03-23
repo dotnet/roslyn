@@ -4,16 +4,13 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicMakeFieldReadonlyDiagnosticAnalyzer
         Inherits AbstractMakeFieldReadonlyDiagnosticAnalyzer(Of IdentifierNameSyntax, ConstructorBlockSyntax)
-
-        Protected Overrides Sub InitializeWorker(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeType, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.ModuleBlock)
-        End Sub
 
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
             Return VisualBasicSyntaxFactsService.Instance
@@ -36,6 +33,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
             End If
 
             Return True
+        End Function
+
+        Protected Overrides Sub AddCandidateTypesInCompilationUnit(semanticModel As SemanticModel, compilationUnit As SyntaxNode, candidateTypes As PooledHashSet(Of (ITypeSymbol, SyntaxNode)), cancellationToken As CancellationToken)
+            For Each node In compilationUnit.DescendantNodes(descendIntoChildren:=Function(n) IsContainerOrAnalyzableType(n))
+                Dim typeBlock As TypeBlockSyntax
+                If node.IsKind(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock) Then
+                    typeBlock = DirectCast(node, TypeBlockSyntax)
+                Else
+                    Continue For
+                End If
+
+                Dim current = typeBlock
+                While current IsNot Nothing
+                    If Not current.GetModifiers.Any(SyntaxKind.PartialKeyword) Then
+                        ' VB allows one block to omit the Partial keyword
+                        Dim currentSymbol = semanticModel.GetDeclaredSymbol(current)
+                        If currentSymbol.DeclaringSyntaxReferences.Length = 1 Then
+                            Dim addedSymbol = If(current Is typeBlock, currentSymbol, semanticModel.GetDeclaredSymbol(typeBlock))
+                            candidateTypes.Add((addedSymbol, typeBlock))
+                        End If
+                    End If
+
+                    current = TryCast(current.Parent, TypeBlockSyntax)
+                End While
+            Next
+        End Sub
+
+        Private Shared Function IsContainerOrAnalyzableType(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.NamespaceBlock) OrElse
+                node.IsKind(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock)
         End Function
     End Class
 End Namespace
