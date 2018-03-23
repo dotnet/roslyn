@@ -124,6 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
                                                                    options.SpecificDiagnosticOptions,
+                                                                   options.PerTreeDiagnosticOptions,
                                                                    hasSourceSuppression)
         End Function
 

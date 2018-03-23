@@ -30,6 +30,162 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CompilationAPITests : CSharpTestBase
     {
+        [Fact]
+        public void PerTreeDiagnosticOptionsUnspecified()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            Assert.NotNull(options.PerTreeDiagnosticOptions);
+            Assert.True(options.PerTreeDiagnosticOptions.IsEmpty);
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsNull()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var newOptions = options.WithPerTreeDiagnosticOptions(null);
+            Assert.NotNull(newOptions.PerTreeDiagnosticOptions);
+            Assert.True(newOptions.PerTreeDiagnosticOptions.IsEmpty);
+            Assert.Same(options, newOptions);
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsEmptyDictionary()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var empty = ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>>.Empty;
+            var newOptions = options.WithPerTreeDiagnosticOptions(empty);
+            Assert.NotNull(newOptions.PerTreeDiagnosticOptions);
+            Assert.True(newOptions.PerTreeDiagnosticOptions.IsEmpty);
+            Assert.Same(empty, options.PerTreeDiagnosticOptions);
+            Assert.Same(empty, newOptions.PerTreeDiagnosticOptions);
+            Assert.Same(options, newOptions);
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsNewDict()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var dict = ImmutableDictionary.CreateRange(new[]
+            {
+                KeyValuePair.Create(SyntaxFactory.ParseSyntaxTree(""),
+                    ImmutableDictionary.CreateRange(new[] { KeyValuePair.Create("CS00778", ReportDiagnostic.Suppress) }))
+            });
+            var newOptions = options.WithPerTreeDiagnosticOptions(dict);
+            Assert.NotNull(newOptions.PerTreeDiagnosticOptions);
+            Assert.Same(dict, newOptions.PerTreeDiagnosticOptions);
+            Assert.NotEqual(options, newOptions);
+            Assert.NotEqual(options.GetHashCode(), newOptions.GetHashCode());
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsParseWarnings()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}");
+            tree.GetDiagnostics().Verify(
+                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
+
+            var comp = CSharpCompilation.Create("test", new[] { tree }, new[] { MscorlibRef }, options);
+            comp.VerifyDiagnostics(
+                // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22),
+                // (1,16): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
+
+            var newOptions = (CSharpCompilationOptions)options.WithPerTreeDiagnosticOptions(ImmutableDictionary.CreateRange(new[]
+            {
+                KeyValuePair.Create(
+                    tree,
+                    ImmutableDictionary.CreateRange(new[] { KeyValuePair.Create("CS0078", ReportDiagnostic.Suppress) }))
+            }));
+
+            var comp2 = CSharpCompilation.Create("test2", new[] { tree }, new[] { MscorlibRef }, newOptions);
+            comp2.VerifyDiagnostics(
+                // (1,16): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // class C { long _f = 0l;}
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsVsPragma()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class C {
+#pragma warning disable CS0078 
+long _f = 0l;
+#pragma warning restore CS0078
+}");
+            tree.GetDiagnostics().Verify(
+                // (4,12): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // long _f = 0l;
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 12));
+
+            var comp = CSharpCompilation.Create("test", new[] { tree }, new[] { MscorlibRef }, options);
+            comp.VerifyDiagnostics(
+                // (4,6): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // long _f = 0l;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(4, 6));
+
+            var newOptions = (CSharpCompilationOptions)options.WithPerTreeDiagnosticOptions(ImmutableDictionary.CreateRange(new[]
+            {
+                KeyValuePair.Create(
+                    tree,
+                    ImmutableDictionary.CreateRange(new[] { KeyValuePair.Create("CS0078", ReportDiagnostic.Error) }))
+            }));
+
+            var comp2 = CSharpCompilation.Create("test2", new[] { tree }, new[] { MscorlibRef }, newOptions);
+            // Pragma should have precedence over per-tree options
+            comp2.VerifyDiagnostics(
+                // (4,6): warning CS0414: The field 'C._f' is assigned but its value is never used
+                // long _f = 0l;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void PerTreeDiagnosticOptionsVsSpecificOptions()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithSpecificDiagnosticOptions(ImmutableDictionary.CreateRange(new[]
+                {
+                    KeyValuePair.Create("CS0078", ReportDiagnostic.Suppress)
+                }));
+
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }");
+            tree.GetDiagnostics().Verify(
+                // (1,23): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23));
+
+            var comp = CSharpCompilation.Create("test", new[] { tree }, new[] { MscorlibRef }, options);
+            comp.VerifyDiagnostics(
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17));
+
+            var newOptions = (CSharpCompilationOptions)options
+                .WithPerTreeDiagnosticOptions(ImmutableDictionary.CreateRange(new[]
+            {
+                KeyValuePair.Create(
+                    tree,
+                    ImmutableDictionary.CreateRange(new[] { KeyValuePair.Create("CS0078", ReportDiagnostic.Error) }))
+            }));
+
+            var comp2 = CSharpCompilation.Create("test2", new[] { tree }, new[] { MscorlibRef }, newOptions);
+            // Per-tree options should have precedence over specific diagnostic options
+            comp2.VerifyDiagnostics(
+                // (1,23): error CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23).WithWarningAsError(true),
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17));
+        }
+
         [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
         [WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")]
         [Fact]

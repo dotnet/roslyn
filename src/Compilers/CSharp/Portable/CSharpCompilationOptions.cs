@@ -63,12 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null,
             bool publicSign = false,
-            MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public)
+            MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
+            IEnumerable<(SyntaxTree, IEnumerable<(string, ReportDiagnostic)>)> perTreeDiagnosticOptions = null)
             : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
                    generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, concurrentBuild, deterministic,
+                   specificDiagnosticOptions,
+                   perTreeDiagnosticOptions,
+                   concurrentBuild, deterministic,
                    currentLocalTime: default(DateTime),
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
@@ -80,49 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None)
-        {
-        }
-
-        // 15.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public CSharpCompilationOptions(
-            OutputKind outputKind,
-            bool reportSuppressedDiagnostics,
-            string moduleName,
-            string mainTypeName,
-            string scriptClassName,
-            IEnumerable<string> usings,
-            OptimizationLevel optimizationLevel,
-            bool checkOverflow,
-            bool allowUnsafe,
-            string cryptoKeyContainer,
-            string cryptoKeyFile,
-            ImmutableArray<byte> cryptoPublicKey,
-            bool? delaySign,
-            Platform platform,
-            ReportDiagnostic generalDiagnosticOption,
-            int warningLevel,
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
-            bool concurrentBuild,
-            bool deterministic,
-            XmlReferenceResolver xmlReferenceResolver,
-            SourceReferenceResolver sourceReferenceResolver,
-            MetadataReferenceResolver metadataReferenceResolver,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            StrongNameProvider strongNameProvider,
-            bool publicSign)
-            : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
-                   usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
-                   generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, concurrentBuild, deterministic,
-                   xmlReferenceResolver,
-                   sourceReferenceResolver,
-                   metadataReferenceResolver,
-                   assemblyIdentityComparer,
-                   strongNameProvider,
-                   publicSign,
-                   MetadataImportOptions.Public)
         {
         }
 
@@ -145,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnostic generalDiagnosticOption,
             int warningLevel,
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            IEnumerable<(SyntaxTree, IEnumerable<(string, ReportDiagnostic)>)> perTreeDiagnosticOptions,
             bool concurrentBuild,
             bool deterministic,
             DateTime currentLocalTime,
@@ -161,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
+                   perTreeDiagnosticOptions: PerTreeOptionsToImmutableDictionary(perTreeDiagnosticOptions),
                    concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver,
                    sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                    strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
@@ -187,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             generalDiagnosticOption: other.GeneralDiagnosticOption,
             warningLevel: other.WarningLevel,
             specificDiagnosticOptions: other.SpecificDiagnosticOptions,
+            perTreeDiagnosticOptions: other.PerTreeDiagnosticOptions.Select(kvp => (kvp.Key, kvp.Value.Select(options => (options.Key, options.Value)))),
             concurrentBuild: other.ConcurrentBuild,
             deterministic: other.Deterministic,
             currentLocalTime: other.CurrentLocalTime,
@@ -370,14 +333,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value) => WithGeneralDiagnosticOption(value);
 
-        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions) =>
-            WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+            => WithSpecificDiagnosticOptions(specificDiagnosticOptions);
 
-        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions) =>
-            WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions)
+            => WithSpecificDiagnosticOptions(specificDiagnosticOptions);
 
-        protected override CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics) =>
-            WithReportSuppressedDiagnostics(reportSuppressedDiagnostics);
+        protected override CompilationOptions CommonWithPerTreeDiagnosticOptions(ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> perTreeDiagnosticOptions)
+            => WithPerTreeDiagnosticOptions(perTreeDiagnosticOptions);
+
+        protected override CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
+            => WithReportSuppressedDiagnostics(reportSuppressedDiagnostics);
 
         public new CSharpCompilationOptions WithGeneralDiagnosticOption(ReportDiagnostic value)
         {
@@ -406,6 +372,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values) =>
             new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values.ToImmutableDictionaryOrEmpty() };
+
+        public new CSharpCompilationOptions WithPerTreeDiagnosticOptions(ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> value)
+        {
+            if (value == null)
+            {
+                value = ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>>.Empty;
+            }
+
+            if (PerTreeDiagnosticOptions == value)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { PerTreeDiagnosticOptions = value };
+        }
 
         public new CSharpCompilationOptions WithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
         {
@@ -674,7 +655,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
         {
-            return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, GeneralDiagnosticOption, SpecificDiagnosticOptions);
+            return CSharpDiagnosticFilter.Filter(
+                diagnostic,
+                WarningLevel,
+                GeneralDiagnosticOption,
+                SpecificDiagnosticOptions,
+                PerTreeDiagnosticOptions);
         }
 
         protected override CompilationOptions CommonWithModuleName(string moduleName)
@@ -715,6 +701,108 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonWithCheckOverflow(bool checkOverflow)
         {
             return WithOverflowChecks(checkOverflow);
+        }
+
+        // 2.8 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            IEnumerable<string> usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            bool deterministic,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider,
+            bool publicSign,
+            MetadataImportOptions metadataImportOptions)
+            : this(outputKind,
+                   reportSuppressedDiagnostics,
+                   moduleName,
+                   mainTypeName,
+                   scriptClassName,
+                   usings,
+                   optimizationLevel,
+                   checkOverflow,
+                   allowUnsafe,
+                   cryptoKeyContainer,
+                   cryptoKeyFile,
+                   cryptoPublicKey,
+                   delaySign,
+                   platform,
+                   generalDiagnosticOption,
+                   warningLevel,
+                   specificDiagnosticOptions,
+                   concurrentBuild,
+                   deterministic,
+                   xmlReferenceResolver,
+                   sourceReferenceResolver,
+                   metadataReferenceResolver,
+                   assemblyIdentityComparer,
+                   strongNameProvider,
+                   publicSign,
+                   metadataImportOptions,
+                   perTreeDiagnosticOptions: null)
+        {
+        }
+
+        // 2.7 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            IEnumerable<string> usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            bool deterministic,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider,
+            bool publicSign)
+            : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
+                   usings, optimizationLevel, checkOverflow, allowUnsafe,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
+                   generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild, deterministic,
+                   xmlReferenceResolver,
+                   sourceReferenceResolver,
+                   metadataReferenceResolver,
+                   assemblyIdentityComparer,
+                   strongNameProvider,
+                   publicSign,
+                   MetadataImportOptions.Public)
+        {
         }
 
         // 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
@@ -828,7 +916,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel,
                    checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey,
                    delaySign, platform, generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, concurrentBuild,
+                   specificDiagnosticOptions,
+                   perTreeDiagnosticOptions: ImmutableArray<(SyntaxTree, IEnumerable<(string, ReportDiagnostic)>)>.Empty,
+                   concurrentBuild,
                    deterministic: deterministic,
                    currentLocalTime: default(DateTime),
                    debugPlusMode: false,

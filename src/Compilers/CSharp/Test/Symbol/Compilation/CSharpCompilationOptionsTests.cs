@@ -390,6 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ReportDiagnostic generalDiagnosticOption = 0;
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
+            IEnumerable<(SyntaxTree, IEnumerable<(string, ReportDiagnostic)>)> perTreeDiagnosticOptions = null;
             bool concurrentBuild = false;
             bool deterministic = false;
             DateTime currentLocalTime = default(DateTime);
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
+                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, perTreeDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
         }

@@ -93,7 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional strongNameProvider As StrongNameProvider = Nothing,
             Optional publicSign As Boolean = False,
             Optional reportSuppressedDiagnostics As Boolean = False,
-            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public)
+            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public,
+            Optional perTreeDiagnosticOptions As IEnumerable(Of (SyntaxTree, IEnumerable(Of (String, ReportDiagnostic)))) = Nothing)
 
             MyClass.New(
                 outputKind,
@@ -119,6 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform,
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
+                perTreeDiagnosticOptions,
                 concurrentBuild,
                 deterministic:=deterministic,
                 currentLocalTime:=Nothing,
@@ -135,75 +137,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 #Enable Warning RS0026 ' Do not add multiple overloads with optional parameters
-
-        '' 15.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        <EditorBrowsable(EditorBrowsableState.Never)>
-        Public Sub New(
-            outputKind As OutputKind,
-            moduleName As String,
-            mainTypeName As String,
-            scriptClassName As String,
-            globalImports As IEnumerable(Of GlobalImport),
-            rootNamespace As String,
-            optionStrict As OptionStrict,
-            optionInfer As Boolean,
-            optionExplicit As Boolean,
-            optionCompareText As Boolean,
-            parseOptions As VisualBasicParseOptions,
-            embedVbCoreRuntime As Boolean,
-            optimizationLevel As OptimizationLevel,
-            checkOverflow As Boolean,
-            cryptoKeyContainer As String,
-            cryptoKeyFile As String,
-            cryptoPublicKey As ImmutableArray(Of Byte),
-            delaySign As Boolean?,
-            platform As Platform,
-            generalDiagnosticOption As ReportDiagnostic,
-            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
-            concurrentBuild As Boolean,
-            deterministic As Boolean,
-            xmlReferenceResolver As XmlReferenceResolver,
-            sourceReferenceResolver As SourceReferenceResolver,
-            metadataReferenceResolver As MetadataReferenceResolver,
-            assemblyIdentityComparer As AssemblyIdentityComparer,
-            strongNameProvider As StrongNameProvider,
-            publicSign As Boolean,
-            reportSuppressedDiagnostics As Boolean)
-
-            MyClass.New(
-                outputKind,
-                moduleName,
-                mainTypeName,
-                scriptClassName,
-                globalImports,
-                rootNamespace,
-                optionStrict,
-                optionInfer,
-                optionExplicit,
-                optionCompareText,
-                parseOptions,
-                embedVbCoreRuntime,
-                optimizationLevel,
-                checkOverflow,
-                cryptoKeyContainer,
-                cryptoKeyFile,
-                cryptoPublicKey,
-                delaySign,
-                platform,
-                generalDiagnosticOption,
-                specificDiagnosticOptions,
-                concurrentBuild,
-                deterministic,
-                xmlReferenceResolver,
-                sourceReferenceResolver,
-                metadataReferenceResolver,
-                assemblyIdentityComparer,
-                strongNameProvider,
-                publicSign,
-                reportSuppressedDiagnostics,
-                MetadataImportOptions.Public)
-
-        End Sub
 
         Private Sub New(
             outputKind As OutputKind,
@@ -229,6 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             platform As Platform,
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            perTreeDiagnosticOptions As IEnumerable(Of (SyntaxTree, IEnumerable(Of (String, ReportDiagnostic)))),
             concurrentBuild As Boolean,
             deterministic As Boolean,
             currentLocalTime As Date,
@@ -260,6 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption:=generalDiagnosticOption,
                 warningLevel:=1,
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
+                perTreeDiagnosticOptions:=PerTreeOptionsToImmutableDictionary(perTreeDiagnosticOptions),
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
                 currentLocalTime:=currentLocalTime,
@@ -312,6 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform:=other.Platform,
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
+                perTreeDiagnosticOptions:=other.PerTreeDiagnosticOptions.Select(Function(kvp) (kvp.Key, kvp.Value.Select(Function(options) (options.Key, options.Value)))),
                 concurrentBuild:=other.ConcurrentBuild,
                 deterministic:=other.Deterministic,
                 currentLocalTime:=other.CurrentLocalTime,
@@ -809,6 +745,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
         End Function
 
+        Protected Overrides Function CommonWithPerTreeDiagnosticOptions(perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As CompilationOptions
+            Return Me.WithPerTreeDiagnosticOptions(perTreeDiagnosticOptions)
+        End Function
+
         Protected Overrides Function CommonWithReportSuppressedDiagnostics(reportSuppressedDiagnostics As Boolean) As CompilationOptions
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
@@ -859,6 +799,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
         Public Shadows Function WithSpecificDiagnosticOptions(value As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As VisualBasicCompilationOptions
             Return New VisualBasicCompilationOptions(Me) With {.SpecificDiagnosticOptions = value.ToImmutableDictionaryOrEmpty()}
+        End Function
+
+        Public Shadows Function WithPerTreeDiagnosticOptions(value As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As CompilationOptions
+            If value Is Nothing Then
+                value = ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)).Empty
+            End If
+
+            If value Is Me.PerTreeDiagnosticOptions Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.PerTreeDiagnosticOptions = value}
         End Function
 
         ''' <summary>
@@ -1109,8 +1061,148 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
+            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions, PerTreeDiagnosticOptions)
         End Function
+
+        ' 2.8 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider,
+            publicSign As Boolean,
+            reportSuppressedDiagnostics As Boolean,
+            metadataImportOptions As MetadataImportOptions)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
+                publicSign,
+                reportSuppressedDiagnostics,
+                metadataImportOptions,
+                perTreeDiagnosticOptions:=Nothing)
+
+        End Sub
+
+        '' 2.7 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider,
+            publicSign As Boolean,
+            reportSuppressedDiagnostics As Boolean)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
+                publicSign,
+                reportSuppressedDiagnostics,
+                MetadataImportOptions.Public)
+
+        End Sub
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         <EditorBrowsable(EditorBrowsableState.Never)>
@@ -1277,7 +1369,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyClass.New(
                 outputKind,
-                reportSuppressedDiagnostics,
                 moduleName,
                 mainTypeName,
                 scriptClassName,
@@ -1295,23 +1386,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile,
                 cryptoPublicKey,
                 delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
                 publicSign:=False,
-                platform:=platform,
-                generalDiagnosticOption:=generalDiagnosticOption,
-                specificDiagnosticOptions:=specificDiagnosticOptions,
-                concurrentBuild:=concurrentBuild,
-                deterministic:=deterministic,
-                currentLocalTime:=Nothing,
-                suppressEmbeddedDeclarations:=False,
-                debugPlusMode:=False,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public,
-                referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
+                metadataImportOptions:=MetadataImportOptions.Public)
 
         End Sub
 #Enable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads

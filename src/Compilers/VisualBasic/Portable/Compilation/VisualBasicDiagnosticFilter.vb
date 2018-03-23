@@ -23,10 +23,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
         ''' <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         ''' <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        Public Shared Function Filter(diagnostic As Diagnostic, generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As Diagnostic
+        Public Shared Function Filter(diagnostic As Diagnostic,
+                                      generalDiagnosticOption As ReportDiagnostic,
+                                      specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
+                                      perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As Diagnostic
             ' Diagnostic ids must be processed in case-insensitive fashion in VB.
             Dim caseInsensitiveSpecificDiagnosticOptions =
             ImmutableDictionary.Create(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer).AddRange(specificDiagnosticOptions)
+            Dim caseInsensitivePerTreeDiagnosticOptions =
+                ImmutableDictionary.CreateRange(
+                    perTreeDiagnosticOptions.Select(
+                    Function(kvp)
+                        Return KeyValuePair.Create(
+                            kvp.Key,
+                            ImmutableDictionary.CreateRange(CaseInsensitiveComparison.Comparer, kvp.Value))
+                    End Function))
 
             ' Filter void diagnostics so that our callers don't have to perform resolution
             ' (which might copy the list of diagnostics).
@@ -58,18 +69,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasSourceSuppression As Boolean = False
 
             If (s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
-                caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
-                report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
-                diagnostic.IsEnabledByDefault,
-                VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
-                diagnostic.Location,
-                diagnostic.Category,
-                generalDiagnosticOption,
-                caseInsensitiveSpecificDiagnosticOptions,
-                hasSourceSuppression)
+                caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
+                report = GetDiagnosticReport(
+                    MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
+                    diagnostic.IsEnabledByDefault,
+                    MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),
+                    diagnostic.Location,
+                    diagnostic.Category,
+                    generalDiagnosticOption,
+                    caseInsensitiveSpecificDiagnosticOptions,
+                    caseInsensitivePerTreeDiagnosticOptions,
+                    hasSourceSuppression)
             Else
-                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location,
-                    diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions, hasSourceSuppression)
+                report = GetDiagnosticReport(
+                    diagnostic.Severity,
+                    diagnostic.IsEnabledByDefault,
+                    diagnostic.Id,
+                    diagnostic.Location,
+                    diagnostic.Category,
+                    generalDiagnosticOption,
+                    caseInsensitiveSpecificDiagnosticOptions,
+                    caseInsensitivePerTreeDiagnosticOptions,
+                    hasSourceSuppression)
             End If
 
             If hasSourceSuppression Then
@@ -79,7 +100,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic.WithReportDiagnostic(report)
         End Function
 
-        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic), <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
+        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity,
+                                                   isEnabledByDefault As Boolean,
+                                                   id As String,
+                                                   location As Location,
+                                                   category As String,
+                                                   generalDiagnosticOption As ReportDiagnostic,
+                                                   caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
+                                                   perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)),
+                                                   <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
             hasDisableDirectiveSuppression = False
 
             ' Read options (e.g., /nowarn or /warnaserror)
@@ -87,6 +116,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)
             If Not isSpecified Then
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
+            End If
+
+            ' If location is available, look for tree-specific options
+            Dim optionsForTree As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing
+            Dim perTreeSetting As ReportDiagnostic
+            If location IsNot Nothing AndAlso
+                location.SourceTree IsNot Nothing AndAlso
+                perTreeDiagnosticOptions.TryGetValue(location.SourceTree, optionsForTree) AndAlso
+                optionsForTree.TryGetValue(id, perTreeSetting) Then
+                report = perTreeSetting
             End If
 
             ' Compute if the reporting should be suppressed.

@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class EnumerableExtensions
     {
+        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<(K, V)> items)
+            => ToImmutableDictionaryOrEmpty(items.Select(tuple => new KeyValuePair<K, V>(tuple.Item1, tuple.Item2)));
+
         public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items)
         {
             if (items == null)
@@ -138,5 +141,12 @@ namespace Microsoft.CodeAnalysis
                 return result;
             }
         }
+
+        /// <summary>
+        /// Constructs an IEnumerable for an immutable dictionary, but wraps keys and values with
+        /// tuples instead of a KeyValuePair.
+        /// </summary>
+        internal static IEnumerable<(K, V)> AsTupleEnumerable<K, V>(this ImmutableDictionary<K, V> source)
+            => source.Select(kvp => (kvp.Key, kvp.Value));
     }
 }

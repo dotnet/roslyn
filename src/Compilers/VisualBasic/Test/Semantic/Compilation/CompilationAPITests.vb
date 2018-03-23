@@ -22,6 +22,143 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
 
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsUnspecified()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Assert.NotNull(options.PerTreeDiagnosticOptions)
+            Assert.True(options.PerTreeDiagnosticOptions.IsEmpty)
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsNull()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim newOptions = options.WithPerTreeDiagnosticOptions(Nothing)
+            Assert.NotNull(newOptions.PerTreeDiagnosticOptions)
+            Assert.True(newOptions.PerTreeDiagnosticOptions.IsEmpty)
+            Assert.Same(options, newOptions)
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsEmptyDictionary()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim Empty = ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)).Empty
+            Dim newOptions = options.WithPerTreeDiagnosticOptions(Empty)
+            Assert.NotNull(newOptions.PerTreeDiagnosticOptions)
+            Assert.True(newOptions.PerTreeDiagnosticOptions.IsEmpty)
+            Assert.Same(Empty, options.PerTreeDiagnosticOptions)
+            Assert.Same(Empty, newOptions.PerTreeDiagnosticOptions)
+            Assert.Same(options, newOptions)
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsNewDict()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim dict = ImmutableDictionary.CreateRange(
+            {
+                KeyValuePair.Create(SyntaxFactory.ParseSyntaxTree(""),
+                    ImmutableDictionary.CreateRange({KeyValuePair.Create("CS00778", ReportDiagnostic.Suppress)}))
+            })
+            Dim newOptions = options.WithPerTreeDiagnosticOptions(dict)
+            Assert.NotNull(newOptions.PerTreeDiagnosticOptions)
+            Assert.Same(dict, newOptions.PerTreeDiagnosticOptions)
+            Assert.NotEqual(options, newOptions)
+            Assert.NotEqual(options.GetHashCode(), newOptions.GetHashCode())
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsWarnings()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+    Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            tree.GetDiagnostics().Verify()
+
+            Dim comp = VisualBasicCompilation.Create("test", {tree}, {MscorlibRef}, options)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+
+            Dim newOptions = CType(options.WithPerTreeDiagnosticOptions(ImmutableDictionary.CreateRange(
+            {
+                KeyValuePair.Create(
+                    tree,
+                    ImmutableDictionary.CreateRange({KeyValuePair.Create("BC42024", ReportDiagnostic.Suppress)}))
+            })), VisualBasicCompilationOptions)
+
+            Dim comp2 = VisualBasicCompilation.Create("test2", {tree}, {MscorlibRef}, newOptions)
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsPragma()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+    Sub M()
+#Disable Warning BC42024
+        Dim x As Integer
+#Enable Warning BC42024
+    End Sub
+End Class")
+            tree.GetDiagnostics().Verify()
+
+            Dim comp = VisualBasicCompilation.Create("test", {tree}, {MscorlibRef}, options)
+            comp.AssertNoDiagnostics()
+
+            Dim newOptions = CType(options.WithPerTreeDiagnosticOptions(ImmutableDictionary.CreateRange(
+            {
+                KeyValuePair.Create(
+                    tree,
+                    ImmutableDictionary.CreateRange({KeyValuePair.Create("BC42024", ReportDiagnostic.Error)}))
+            })), VisualBasicCompilationOptions)
+
+            Dim comp2 = VisualBasicCompilation.Create("test2", {tree}, {MscorlibRef}, newOptions)
+            ' Pragma should have precedence over per-tree options
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsSpecificOptions()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                WithSpecificDiagnosticOptions(ImmutableDictionary.CreateRange(
+                {
+                    KeyValuePair.Create("BC42024", ReportDiagnostic.Suppress)
+                }))
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+    Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim comp = VisualBasicCompilation.Create("test", {tree}, {MscorlibRef}, options)
+            comp.AssertNoDiagnostics()
+
+            Dim newOptions = CType(
+            options.WithPerTreeDiagnosticOptions(ImmutableDictionary.CreateRange(
+            {
+                KeyValuePair.Create(
+                    tree,
+                    ImmutableDictionary.CreateRange({KeyValuePair.Create("BC42024", ReportDiagnostic.Error)}))
+            })), VisualBasicCompilationOptions)
+
+            Dim comp2 = VisualBasicCompilation.Create("test2", {tree}, {MscorlibRef}, newOptions)
+            ' Per-tree options should have precedence over specific diagnostic options
+            comp2.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+        End Sub
+
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
         <Fact>

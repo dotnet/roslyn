@@ -114,16 +114,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
             bool hasPragmaSuppression;
-            return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
-                                                              true,
-                                                              diagnosticInfo.MessageIdentifier,
-                                                              diagnosticInfo.WarningLevel,
-                                                              Location.None,
-                                                              diagnosticInfo.Category,
-                                                              options.WarningLevel,
-                                                              options.GeneralDiagnosticOption,
-                                                              options.SpecificDiagnosticOptions,
-                                                              out hasPragmaSuppression);
+            return CSharpDiagnosticFilter.GetDiagnosticReport(
+                diagnosticInfo.Severity,
+                isEnabledByDefault: true,
+                diagnosticInfo.MessageIdentifier,
+                diagnosticInfo.WarningLevel,
+                Location.None,
+                diagnosticInfo.Category,
+                options.WarningLevel,
+                options.GeneralDiagnosticOption,
+                options.SpecificDiagnosticOptions,
+                options.PerTreeDiagnosticOptions,
+                out hasPragmaSuppression);
         }
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
