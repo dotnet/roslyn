@@ -2,10 +2,8 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -18,14 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Inherits AbstractInvertIfCodeRefactoringProvider
 
         Protected Overrides Function GetIfStatement(textSpan As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As SyntaxNode
-            ' We need to find a relevant if-else statement of type SingleLineIfStatement or
-            ' MultiLineIfBlock to act on its IfPart and ElsePart.
-            Dim relevantIfBlockOrIfStatement As ExecutableStatementSyntax = Nothing
 
-            ' We also need to find the relevant if statement's span in that if-(elseif)-else
-            ' statement to indicate where the refactoring should happen. The relevant if statement
-            ' could be the top statement in an if block (if it consists of an If and an Else) or it
-            ' could be the last ElseIf statement in a block before an Else statement.
+            Dim relevantIfBlockOrIfStatement As ExecutableStatementSyntax = Nothing
             Dim relevantSpan As TextSpan = Nothing
 
             Dim singleLineIf = token.GetAncestor(Of SingleLineIfStatementSyntax)()
@@ -38,15 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 relevantSpan = singleLineIf.Span
 
             ElseIf multiLineIf IsNot Nothing AndAlso
-                   multiLineIf.ElseBlock IsNot Nothing Then
+                   multiLineIf.ElseBlock IsNot Nothing AndAlso
+                   multiLineIf.ElseIfBlocks.IsEmpty Then
 
                 relevantIfBlockOrIfStatement = multiLineIf
-
-                If multiLineIf.ElseIfBlocks.IsEmpty Then
-                    relevantSpan = multiLineIf.IfStatement.IfKeyword.Span
-                Else 'if we have elseif blocks we won't offer refactoring
-                    Return Nothing
-                End If
+                relevantSpan = multiLineIf.IfStatement.IfKeyword.Span
             Else
                 Return Nothing
             End If
@@ -137,10 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
         Private Function InvertSingleLineIfStatement(workspace As Workspace, originalIfNode As SingleLineIfStatementSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
             Dim root = model.SyntaxTree.GetRoot()
-
             Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken)
-            '        .WithAdditionalAnnotations(Formatter.Annotation)
-
             Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
 
             ' Complexify the next statement if there is one.
@@ -237,8 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 #End If
 
         Private Function InvertMultiLineIfBlock(originalIfNode As MultiLineIfBlockSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken) _
-            '    .WithAdditionalAnnotations(Formatter.Annotation)
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken)
 
             Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
             Return result.Model
@@ -283,6 +267,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 ' for arrays and strings. We can do this because we know that Length cannot be
                 ' less than 0.
                 Dim operation = semanticModel.GetOperation(binaryExpression)
+                If (operation.Kind = OperationKind.BinaryOperator) Then
+                    Dim binaryOperation = DirectCast(operation, IBinaryOperation)
+                    If binaryOperation.OperatorMethod IsNot Nothing Then
+                        result = Nothing
+                        Return False
+                    End If
+                End If
                 If (IsSpecialCaseBinaryExpression(TryCast(operation, IBinaryOperation), cancellationToken)) Then
                     expressionType = SyntaxKind.EqualsExpression
                     operatorType = SyntaxKind.EqualsToken
@@ -382,7 +373,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 SyntaxFactory.Token(SyntaxKind.NotKeyword),
                 expression.Parenthesize())
 
-            ' Return result.WithAdditionalAnnotations(Formatter.Annotation)
             Return result
         End Function
     End Class

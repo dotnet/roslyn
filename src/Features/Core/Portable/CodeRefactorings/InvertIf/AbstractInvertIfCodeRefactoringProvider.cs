@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         var containingType = property.ContainingType;
                         if (containingType != null &&
                             (containingType.SpecialType == SpecialType.System_Array ||
-                             containingType.SpecialType == SpecialType.System_String))
+                            containingType.SpecialType == SpecialType.System_String))
                         {
                             return true;
                         }

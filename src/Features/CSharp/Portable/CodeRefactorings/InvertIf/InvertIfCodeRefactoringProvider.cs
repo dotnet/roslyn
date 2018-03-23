@@ -51,40 +51,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         protected override SyntaxNode GetRootWithInvertIfStatement(Workspace workspace, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
-        var ifNode = (IfStatementSyntax)ifStatement;
+            var ifNode = (IfStatementSyntax)ifStatement;
 
-        // For single line statment, we swap the TrailingTrivia to preserve the single line
-        StatementSyntax newIfNodeStatement = null;
-        ElseClauseSyntax newElseStatement = null;
-        var newCondition = Negate(ifNode.Condition, model, cancellationToken);
+            // For single line statment, we swap the TrailingTrivia to preserve the single line
+            StatementSyntax newIfNodeStatement = null;
+            ElseClauseSyntax newElseStatement = null;
+            var newCondition = Negate(ifNode.Condition, model, cancellationToken);
 
-        if (ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia))
-        {
-            // multiline if
-            newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement  // if it's an else-if
-            ? SyntaxFactory.Block(ifNode.Else.Statement)
-            : ifNode.Else.Statement;
-            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
-            ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
-                .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ? SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
-                .WithElse(newElseStatement)
-                .WithAdditionalAnnotations(Formatter.Annotation);
-        }
-        else
-        {
-            // singleline if
-            var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
-            var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
-
-            newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
-            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
-            ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
-                .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ?  SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
-                .WithElse(newElseStatement);
+            if (ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia))
+            {
+                // multiline if
+                newIfNodeStatement = ifNode.Else.Statement.Kind() != SyntaxKind.Block // if it's an else-if
+                ? SyntaxFactory.Block(ifNode.Else.Statement)
+                : ifNode.Else.Statement;
+                newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
             }
+            else
+            {
+                // singleline if
+                var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
+                var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
+                newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
+                newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
+                }
 
-        // get new root
-        return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
+            ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
+                            .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ? SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
+                            .WithElse(newElseStatement)
+                            .WithAdditionalAnnotations(Formatter.Annotation);
+
+            // get new root
+            return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
         }
 
         private bool TryNegateBinaryComparisonExpression(
@@ -103,6 +100,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 // binary expression to reflect that it will never be negative.
                 // For example, the expression Array.Length > 0, becomes Array.Length == 0 when negated.
                 var operation = semanticModel.GetOperation(binaryExpression);
+                if (operation.Kind == OperationKind.BinaryOperator)
+                {
+                    var binaryOperation = (IBinaryOperation)operation;
+                    if (binaryOperation.OperatorMethod != null)
+                    {
+                        result = null;
+                        return false;
+                    }
+                }
+
                 if (IsSpecialCaseBinaryExpression(operation as IBinaryOperation, cancellationToken))
                 {
                     negatedOperatorType = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken

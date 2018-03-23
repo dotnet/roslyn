@@ -1243,7 +1243,7 @@ End Module
 <File>
 Module A
     Sub Main()
-        If False Then : Else
+        If False Then :        Else
             Goo() : Goo
         End If
     End Sub
