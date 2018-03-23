@@ -3182,21 +3182,19 @@ class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True");
             verifier.VerifyIL("C.Main", @"{
-  // Code size       13 (0xd)
-  .maxstack  2
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  br.s       IL_0003
-  IL_0003:  ldc.i4.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  call       ""void System.Console.Write(bool)""
-  IL_000b:  nop
-  IL_000c:  ret
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ret
 }
 ");
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
   // Code size        7 (0x7)
-  .maxstack  2
+  .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  call       ""void System.Console.Write(bool)""
   IL_0006:  ret
@@ -3213,6 +3211,7 @@ class C
     public static void Main()
     {
         M(null);
+        M((1, 2));
     }
     public static void M((int, int)? t)
     {
@@ -3221,39 +3220,84 @@ class C
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
-  // Code size       56 (0x38)
+            CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       18 (0x12)
   .maxstack  2
-  .locals init ((int, int)? V_0,
-                bool V_1,
-                System.ValueTuple<int, int> V_2)
+  .locals init ((int, int)? V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool (int, int)?.HasValue.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_0010
-  IL_000d:  ldc.i4.0
-  IL_000e:  br.s       IL_0032
-  IL_0010:  ldloc.1
-  IL_0011:  brtrue.s   IL_0016
-  IL_0013:  ldc.i4.1
-  IL_0014:  br.s       IL_0032
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
-  IL_001d:  stloc.2
-  IL_001e:  ldloc.2
-  IL_001f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0024:  brtrue.s   IL_0031
-  IL_0026:  ldloc.2
-  IL_0027:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002c:  ldc.i4.0
-  IL_002d:  ceq
-  IL_002f:  br.s       IL_0032
-  IL_0031:  ldc.i4.0
-  IL_0032:  call       ""void System.Console.Write(bool)""
-  IL_0037:  ret
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.Write(bool)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNotEqualOnNullableVsNullableTuples_Tuple_MaybeNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M((1, 2));
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(t != ((int, int)?)null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "FalseTrue", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init ((int, int)? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  call       ""void System.Console.Write(bool)""
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNotEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_MaybeNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M((1, 2));
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(((int, int)?)null == t);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init ((int, int)? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.Write(bool)""
+  IL_0011:  ret
 }
 ");
         }
@@ -3273,7 +3317,7 @@ class C
 
             CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
   // Code size        7 (0x7)
-  .maxstack  2
+  .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  call       ""void System.Console.Write(bool)""
   IL_0006:  ret
@@ -3290,6 +3334,7 @@ class C
     public static void Main()
     {
         M(null);
+        M((1, 2));
     }
     public static void M((int, int)? t)
     {
@@ -3298,21 +3343,18 @@ class C
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
-  // Code size       21 (0x15)
+            CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       18 (0x12)
   .maxstack  2
-  .locals init ((int, int)? V_0,
-                System.ValueTuple<int, int> V_1)
+  .locals init ((int, int)? V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool (int, int)?.HasValue.get""
-  IL_0009:  brfalse.s  IL_000e
-  IL_000b:  ldc.i4.0
-  IL_000c:  br.s       IL_000f
-  IL_000e:  ldc.i4.1
-  IL_000f:  call       ""void System.Console.Write(bool)""
-  IL_0014:  ret
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.Write(bool)""
+  IL_0011:  ret
 }
 ");
         }
@@ -3332,7 +3374,7 @@ class C
 
             CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
   // Code size        7 (0x7)
-  .maxstack  2
+  .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  call       ""void System.Console.Write(bool)""
   IL_0006:  ret

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             //      // outer sequence
             //      leftHasValue = left.HasValue; (or true if !leftNullable)
-            //      leftHasValue = right.HasValue (or true if !rightNullable)
+            //      leftHasValue == right.HasValue (or true if !rightNullable)
             //          ? leftHasValue ? ... inner sequence ... : true/false
             //          : false/true
             //
@@ -166,11 +166,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return innerSequence;
             }
 
+            bool boolValue = operatorKind == BinaryOperatorKind.Equal; // true/false
+
+            if (rightHasValue.ConstantValue == ConstantValue.False)
+            {
+                // The outer sequence degenerates when we known that `rightHasValue` is false
+                // Produce: !leftHasValue (or leftHasValue for inequality comparison)
+                return MakeSequenceOrResultValue(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
+                    returnValue: boolValue ? _factory.Not(leftHasValue) : leftHasValue);
+            }
+
+            if (leftHasValue.ConstantValue == ConstantValue.False)
+            {
+                // The outer sequence degenerates when we known that `leftHasValue` is false
+                // Produce: !rightHasValue (or rightHasValue for inequality comparison)
+                return MakeSequenceOrResultValue(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
+                    returnValue: boolValue ? _factory.Not(rightHasValue) : rightHasValue);
+            }
+
             // outer sequence:
             //      leftHasValue == rightHasValue
             //          ? leftHasValue ? ... inner sequence ... : true/false
             //          : false/true
-            bool boolValue = operatorKind == BinaryOperatorKind.Equal; // true/false
             BoundExpression outerSequence =
                 MakeSequenceOrResultValue(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
                     _factory.Conditional(
