@@ -1,21 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    [Export(typeof(IAsyncCompletionServiceProvider))]
+    [Export(typeof(IAsyncCompletionItemManagerProvider))]
     [Name("C# and Visual Basic Completion Service Provider")]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal class EditorAsyncCompletionServiceProvider : IAsyncCompletionServiceProvider
+    internal class EditorAsyncCompletionServiceProvider : IAsyncCompletionItemManagerProvider
     {
         private readonly IAsyncCompletionBroker _broker;
-        private EditorAsyncCompletionService _instance;
+        private IAsyncCompletionItemManager _instance;
 
         [ImportingConstructor]
         public EditorAsyncCompletionServiceProvider(IAsyncCompletionBroker broker)
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             _broker = broker;
         }
 
-        public EditorCompletion.IAsyncCompletionService GetOrCreate(ITextView textView)
+        public IAsyncCompletionItemManager GetOrCreate(ITextView textView)
         {
             if (_instance == null)
             {

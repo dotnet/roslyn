@@ -14,16 +14,16 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
+using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    internal class EditorAsyncCompletionService : EditorCompletion.IAsyncCompletionService
+    internal class EditorAsyncCompletionService : IAsyncCompletionItemManager
     {
         private readonly IAsyncCompletionBroker _broker;
         private readonly CompletionHelper _completionHelper;
