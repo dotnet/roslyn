@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                     else
                     {
-                        folders = ImmutableArray.Create<string>();
+                        folders = ImmutableArray<string>.Empty;
                     }
 
                     name = pathNames[pathNames.Length - 1];
@@ -453,13 +453,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 else
                 {
                     name = logicalPath;
-                    folders = ImmutableArray.Create<string>();
+                    folders = ImmutableArray<string>.Empty;
                 }
             }
 
             private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, ImmutableArray<DocumentInfo> additionalDocuments, string projectFilePath, ProjectId projectId)
             {
-                var paths = new HashSet<string>();
+                var paths = new HashSet<string>(PathUtilities.Comparer);
                 foreach (var doc in documents.Concat(additionalDocuments))
                 {
                     if (paths.Contains(doc.FilePath))
