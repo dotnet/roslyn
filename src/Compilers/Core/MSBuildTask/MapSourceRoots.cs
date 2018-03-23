@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static class Names
         {
             public const string SourceRoot = nameof(SourceRoot);
+            public const string DeterministicSourcePaths = nameof(DeterministicSourcePaths);
 
             // Names of well-known SourceRoot metadata items:
             public const string SourceControl = nameof(SourceControl);
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             public const string MappedPath = nameof(MappedPath);
             public const string SourceLinkUrl = nameof(SourceLinkUrl);
 
-            public static readonly string[] MetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
+            public static readonly string[] SourceRootMetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
         }
 
         private static string EndWithSlash(string path)
@@ -129,7 +130,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (Deterministic)
             {
-                int i = 0;
                 var topLevelMappedPaths = new Dictionary<string, string>();
                 void setTopLevelMappedPaths(bool sourceControlled)
                 {
@@ -149,10 +149,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                 }
                                 else
                                 {
-                                    var mappedPath = "/_" + (i == 0 ? "" : i.ToString()) + "/";
+                                    int index = topLevelMappedPaths.Count;
+                                    var mappedPath = "/_" + (index == 0 ? "" : index.ToString()) + "/";
                                     topLevelMappedPaths.Add(localPath, mappedPath);
                                     root.SetMetadata(Names.MappedPath, mappedPath);
-                                    i++;
                                 }
                             }
                         }
@@ -164,6 +164,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // then assign mapped paths to other source-controlled top-level roots:
                 setTopLevelMappedPaths(sourceControlled: false);
+
+                if (topLevelMappedPaths.Count == 0)
+                {
+                    Log.LogErrorFromResources("MapSourceRoots.NoTopLevelSourceRoot", Names.SourceRoot, Names.DeterministicSourcePaths);
+                    return false;
+                }
 
                 // finally, calculate mapped paths of nested roots:
                 foreach (var root in mappedSourceRoots)
@@ -182,7 +188,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         }
                         else
                         {
-                            Log.LogErrorFromResources("MapSourceRoots.ValueOfNotFoundInItems", Names.SourceRoot + "." + Names.ContainingRoot, Names.SourceRoot, containingRoot);
+                            Log.LogErrorFromResources("MapSourceRoots.NoSuchTopLevelSourceRoot", Names.SourceRoot + "." + Names.ContainingRoot, Names.SourceRoot, containingRoot);
                         }
                     }
                 }
@@ -208,7 +214,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private void ReportConflictingWellKnownMetadata(ITaskItem left, ITaskItem right)
         {
-            foreach (var metadataName in Names.MetadataNames)
+            foreach (var metadataName in Names.SourceRootMetadataNames)
             {
                 var leftValue = left.GetMetadata(metadataName);
                 var rightValue = right.GetMetadata(metadataName);

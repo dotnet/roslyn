@@ -60,10 +60,10 @@
     ==========
 
     All source files of the project are expected to be located under one of the directories specified by SourceRoot item group.
-    This targets collects all SourceRoots from various sources.
+    This target collects all SourceRoots from various sources.
 
     This target calculates final local path for each SourceRoot and sets SourceRoot.MappedPath metadata accordingly.
-    The final path is a path when DeterministicSourcePaths is true, and the original path otherwise.
+    The final path is a path with deterministic prefix when DeterministicSourcePaths is true, and the original path otherwise.
     In addition, the target validates and deduplicates the SourceRoot items.
 
     InitializeSourceControlInformation is an msbuild target that ensures the SourceRoot items are populated from source control.
@@ -112,9 +112,6 @@
     <ItemGroup>
       <_TopLevelSourceRoot Include="@(SourceRoot)" Condition="'%(SourceRoot.NestedRoot)' == ''"/>
     </ItemGroup>
-
-    <Error Text="SourceRoot items must include at least one top-level SourceRoot item when DeterministicSourcePaths is true"
-           Condition="'@(_TopLevelSourceRoot)' == ''" />
 
     <PropertyGroup Condition="'@(_TopLevelSourceRoot)' != ''">
       <!-- TODO: Report error/warning if /pathmap doesn't cover all emitted source paths: https://github.com/dotnet/roslyn/issues/23969 -->

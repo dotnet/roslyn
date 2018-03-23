@@ -227,6 +227,47 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
             Assert.True(result);
         }
 
+        [Fact]
+        public void Error_Recursion()
+        {
+            var engine = new MockEngine();
+
+            var path1 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\1\");
+            var path2 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\2\");
+            var path3 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\");
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots = new[]
+                {
+                    new TaskItem(path1, new Dictionary<string, string>
+                    {
+                        { "ContainingRoot", path2 },
+                        { "NestedRoot", "a/1" },
+                    }),
+                    new TaskItem(path2, new Dictionary<string, string>
+                    {
+                        { "ContainingRoot", path1 },
+                        { "NestedRoot", "a/2" },
+                    }),
+                    new TaskItem(path3),
+                },
+                Deterministic = true
+            };
+
+            bool result = task.Execute();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "ERROR : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", path2)) + Environment.NewLine +
+                "ERROR : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", path1)) + Environment.NewLine, engine.Log);
+
+            Assert.Null(task.MappedSourceRoots);
+            Assert.False(result);
+        }
+
         [Theory]
         [InlineData(new object[] { true })]
         [InlineData(new object[] { false })]
@@ -327,7 +368,7 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
             bool result = task.Execute();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("ERROR : " + string.Format(task.Log.FormatResourceString(
-                "MapSourceRoots.ValueOfNotFoundInItems", "SourceRoot.ContainingRoot", "SourceRoot", @"c:\MyProjects\MyProject\")) + Environment.NewLine, engine.Log);
+                "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", @"c:\MyProjects\MyProject\")) + Environment.NewLine, engine.Log);
 
             Assert.Null(task.MappedSourceRoots);
             Assert.False(result);
@@ -356,10 +397,54 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
             bool result = task.Execute();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("ERROR : " + string.Format(task.Log.FormatResourceString(
-                "MapSourceRoots.ValueOfNotFoundInItems", "SourceRoot.ContainingRoot", "SourceRoot", @"")) + Environment.NewLine, engine.Log);
+                "MapSourceRoots.NoSuchTopLevelSourceRoot", "SourceRoot.ContainingRoot", "SourceRoot", @"")) + Environment.NewLine, engine.Log);
 
             Assert.Null(task.MappedSourceRoots);
             Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData(new object[] { true })]
+        [InlineData(new object[] { false })]
+        public void Error_NoTopLevelSourceRoot(bool deterministic)
+        {
+            var engine = new MockEngine();
+
+            var path1 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\");
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots = new[]
+                {
+                    new TaskItem(path1, new Dictionary<string, string>
+                    {
+                        { "ContainingRoot", path1 },
+                        { "NestedRoot", "a/b" },
+                    }),
+                },
+                Deterministic = deterministic
+            };
+
+            bool result = task.Execute();
+
+            if (deterministic)
+            {
+                AssertEx.AssertEqualToleratingWhitespaceDifferences("ERROR : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.NoTopLevelSourceRoot", "SourceRoot", "DeterministicSourcePaths")) + Environment.NewLine, engine.Log);
+
+                Assert.Null(task.MappedSourceRoots);
+                Assert.False(result);
+            }
+            else
+            {
+                AssertEx.Equal(new[]
+                {
+                    $"'{path1}' SourceControl='' RevisionId='' NestedRoot='a/b' ContainingRoot='{path1}' MappedPath='{path1}' SourceLinkUrl=''",
+                }, task.MappedSourceRoots.Select(InspectSourceRoot));
+
+                Assert.True(result);
+            }
         }
     }
 }

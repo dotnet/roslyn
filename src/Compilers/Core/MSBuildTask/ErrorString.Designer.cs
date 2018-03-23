@@ -233,20 +233,29 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: &apos;{2}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_NoSuchTopLevelSourceRoot {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.NoSuchTopLevelSourceRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} items must include at least one top-level (not nested) item when {1} is true.
+        /// </summary>
+        internal static string MapSourceRoots_NoTopLevelSourceRoot {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.NoTopLevelSourceRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} paths are required to end with a slash or backslash: &apos;{1}&apos;.
         /// </summary>
         internal static string MapSourceRoots_PathMustEndWithSlashOrBackslash {
             get {
                 return ResourceManager.GetString("MapSourceRoots.PathMustEndWithSlashOrBackslash", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The value of {0} not found in {1} items: &apos;{2}&apos;.
-        /// </summary>
-        internal static string MapSourceRoots_ValueOfNotFoundInItems {
-            get {
-                return ResourceManager.GetString("MapSourceRoots.ValueOfNotFoundInItems", resourceCulture);
             }
         }
         

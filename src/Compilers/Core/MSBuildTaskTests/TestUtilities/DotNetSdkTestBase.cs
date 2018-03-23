@@ -63,13 +63,13 @@ public class TestClass
             s_dotnetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
             s_dotnetSdkVersion = typeof(DotNetSdkTests).Assembly.GetCustomAttribute<DotNetSdkVersionAttribute>().Version;
 
-            bool IsMatchingDotNetInstance(string dotnetDir)
+            bool isMatchingDotNetInstance(string dotnetDir)
                 => dotnetDir != null && File.Exists(Path.Combine(dotnetDir, s_dotnetExeName)) && Directory.Exists(GetSdkPath(dotnetDir, s_dotnetSdkVersion));
 
             var dotnetInstallDir = Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR");
-            if (!IsMatchingDotNetInstance(s_dotnetInstallDir))
+            if (!isMatchingDotNetInstance(s_dotnetInstallDir))
             {
-                dotnetInstallDir = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator).FirstOrDefault(IsMatchingDotNetInstance);
+                dotnetInstallDir = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator).FirstOrDefault(isMatchingDotNetInstance);
             }
 
             if (dotnetInstallDir != null)
@@ -130,6 +130,8 @@ $@"<Project>
 
         public DotNetSdkTestBase()
         {
+            Assert.True(s_dotnetInstallDir != null, $"SDK not found. Use {nameof(ConditionalFactAttribute)}(typeof({nameof(DotNetSdkAvailable)})) to skip the test if the SDK is not found.");
+
             DotNetPath = Path.Combine(s_dotnetInstallDir, s_dotnetExeName);
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
             var sdksDir = Path.Combine(s_dotnetSdkPath, "Sdks");
