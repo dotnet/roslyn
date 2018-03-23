@@ -200,7 +200,7 @@
     <comment>{StrBegin="MSB3402: "}</comment>
   </data>
   <data name="MapSourceRoots.ContainsDuplicate">
-    <value>{0} contains a duplicate: '{1}'</value>
+    <value>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</value>
   </data>
   <data name="MapSourceRoots.ValueOfNotFoundInItems">
     <value>The value of {0} not found in {1} items: '{2}'</value>

@@ -40,6 +40,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         public bool Deterministic { get; set; }
 
+        /// <summary>
+        /// SourceRoot items with <term>MappedPath</term> metadata set.
+        /// Items listed in <see cref="SourceRoots"/> that have the same ItemSpec will be merged into a single item in this list.
+        /// </summary>
         [Output]
         public ITaskItem[] MappedSourceRoots { get; private set; }
 
@@ -49,64 +53,72 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // Names of well-known SourceRoot metadata items:
             public const string SourceControl = nameof(SourceControl);
+            public const string RevisionId = nameof(RevisionId);
             public const string NestedRoot = nameof(NestedRoot);
             public const string ContainingRoot = nameof(ContainingRoot);
             public const string MappedPath = nameof(MappedPath);
+            public const string SourceLinkUrl = nameof(SourceLinkUrl);
+
+            public static readonly string[] MetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
+        }
+
+        private static string EndWithSlash(string path)
+            => (path[path.Length - 1] == '/') ? path : path + '/';
+
+        private static bool EndsWithDirectorySeparator(string path)
+        {
+            if (path.Length == 0)
+            {
+                return false;
+            }
+
+            char c = path[path.Length - 1];
+            return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
+        }
+
+        private void MergeSourceRootMetadata(ITaskItem left, ITaskItem right)
+        {
+            foreach (string metadataName in right.MetadataNames)
+            {
+                var leftValue = left.GetMetadata(metadataName);
+                var rightValue = right.GetMetadata(metadataName);
+
+                if (!string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
+                {
+                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, right.ItemSpec, metadataName, leftValue, rightValue);
+                }
+                else if (string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue))
+                {
+                    left.SetMetadata(metadataName, rightValue);
+                }
+            }
         }
 
         public override bool Execute()
         {
-            var topLevelMappedPaths = new Dictionary<string, string>();
-            int i = 0;
-
-            void SetTopLevelMappedPaths(bool sourceControl)
-            {
-                foreach (var root in SourceRoots)
-                {
-                    if (!string.IsNullOrEmpty(root.GetMetadata(Names.SourceControl)) == sourceControl)
-                    {
-                        string nestedRoot = root.GetMetadata(Names.NestedRoot);
-                        if (string.IsNullOrEmpty(nestedRoot))
-                        {
-                            if (topLevelMappedPaths.ContainsKey(root.ItemSpec))
-                            {
-                                Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, root.ItemSpec);
-                            }
-                            else
-                            {
-                                var mappedPath = "/_" + (i == 0 ? "" : i.ToString()) + "/";
-                                topLevelMappedPaths.Add(root.ItemSpec, mappedPath);
-                                root.SetMetadata(Names.MappedPath, mappedPath);
-                                i++;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            string EndWithSlash(string path)
-                => (path[path.Length - 1] == '/') ? path : path + '/';
-
-            bool EndsWithDirectorySeparator(string path)
-            {
-                if (path.Length == 0)
-                {
-                    return false;
-                }
-
-                char c = path[path.Length - 1];
-                return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
-            }
-
-            // The SourceRoot is required to have a trailing directory separator.
-            // We do not append one implicitly as we do not know which separator to append on Windows.
-            // The usage of SourceRoot might be sensitive to what kind of separator is used (e.g. in SourceLink where it needs
-            // to match the corresponding separators used in paths given to the compiler).
+            // Merge metadata of SourceRoot items with the same identity.
+            var mappedSourceRoots = new List<ITaskItem>();
+            var rootByItemSpec = new Dictionary<string, ITaskItem>();
             foreach (var sourceRoot in SourceRoots)
             {
+                // The SourceRoot is required to have a trailing directory separator.
+                // We do not append one implicitly as we do not know which separator to append on Windows.
+                // The usage of SourceRoot might be sensitive to what kind of separator is used (e.g. in SourceLink where it needs
+                // to match the corresponding separators used in paths given to the compiler).
                 if (!EndsWithDirectorySeparator(sourceRoot.ItemSpec))
                 {
                     Log.LogErrorFromResources("MapSourceRoots.PathMustEndWithSlashOrBackslash", Names.SourceRoot, sourceRoot.ItemSpec);
+                }
+
+                if (rootByItemSpec.TryGetValue(sourceRoot.ItemSpec, out var existingRoot))
+                {
+                    ReportConflictingWellKnownMetadata(existingRoot, sourceRoot);
+                    sourceRoot.CopyMetadataTo(existingRoot);
+                }
+                else
+                {
+                    rootByItemSpec.Add(sourceRoot.ItemSpec, sourceRoot);
+                    mappedSourceRoots.Add(sourceRoot);
                 }
             }
 
@@ -115,18 +127,43 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            // TODO: deduplication
-
             if (Deterministic)
             {
+                int i = 0;
+                var topLevelMappedPaths = new Dictionary<string, string>();
+                void setTopLevelMappedPaths(bool sourceControl)
+                {
+                    foreach (var root in mappedSourceRoots)
+                    {
+                        if (!string.IsNullOrEmpty(root.GetMetadata(Names.SourceControl)) == sourceControl)
+                        {
+                            string nestedRoot = root.GetMetadata(Names.NestedRoot);
+                            if (string.IsNullOrEmpty(nestedRoot))
+                            {
+                                if (topLevelMappedPaths.ContainsKey(root.ItemSpec))
+                                {
+                                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, root.ItemSpec);
+                                }
+                                else
+                                {
+                                    var mappedPath = "/_" + (i == 0 ? "" : i.ToString()) + "/";
+                                    topLevelMappedPaths.Add(root.ItemSpec, mappedPath);
+                                    root.SetMetadata(Names.MappedPath, mappedPath);
+                                    i++;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // assign mapped paths to process source control roots first:
-                SetTopLevelMappedPaths(sourceControl: true);
+                setTopLevelMappedPaths(sourceControl: true);
 
                 // then assign mapped paths to other source control roots:
-                SetTopLevelMappedPaths(sourceControl: false);
+                setTopLevelMappedPaths(sourceControl: false);
 
                 // finally, calculate mapped paths of nested roots:
-                foreach (var root in SourceRoots)
+                foreach (var root in mappedSourceRoots)
                 {
                     string nestedRoot = root.GetMetadata(Names.NestedRoot);
                     if (!string.IsNullOrEmpty(nestedRoot))
@@ -149,7 +186,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             else
             {
-                foreach (var root in SourceRoots)
+                foreach (var root in mappedSourceRoots)
                 {
                     root.SetMetadata(Names.MappedPath, root.ItemSpec);
                 }
@@ -157,10 +194,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!Log.HasLoggedErrors)
             {
-                MappedSourceRoots = SourceRoots;
+                MappedSourceRoots = mappedSourceRoots.ToArray();
             }
 
             return !Log.HasLoggedErrors;
+        }
+
+        /// <summary>
+        /// Checks that when merging metadata of two SourceRoot items we don't have any conflicting well-known metadata values.
+        /// </summary>
+        private void ReportConflictingWellKnownMetadata(ITaskItem left, ITaskItem right)
+        {
+            foreach (var metadataName in Names.MetadataNames)
+            {
+                var leftValue = left.GetMetadata(metadataName);
+                var rightValue = right.GetMetadata(metadataName);
+
+                if (!string.IsNullOrEmpty(leftValue) && !string.IsNullOrEmpty(rightValue) && leftValue != rightValue)
+                {
+                    Log.LogWarningFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, left.ItemSpec, metadataName, leftValue, rightValue);
+                }
+            }
         }
     }
 }

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -11,6 +13,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class MapSourceRootsTests
     {
+        private string InspectSourceRoot(ITaskItem sourceRoot)
+            => $"'{sourceRoot.ItemSpec}'" +
+               $" SourceControl='{sourceRoot.GetMetadata("SourceControl")}'" +
+               $" RevisionId='{sourceRoot.GetMetadata("RevisionId")}'" +
+               $" NestedRoot='{sourceRoot.GetMetadata("NestedRoot")}'" +
+               $" ContainingRoot='{sourceRoot.GetMetadata("ContainingRoot")}'" +
+               $" MappedPath='{sourceRoot.GetMetadata("MappedPath")}'" +
+               $" SourceLinkUrl='{sourceRoot.GetMetadata("SourceLinkUrl")}'";
+
         [Fact]
         public void BasicMapping()
         {
@@ -43,7 +54,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             Assert.Equal(4, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Microsoft.CodeAnalysis.BuildTasks.Utilities.FixFilePath(@"c:\packages\SourcePackage1\"), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(@"c:\packages\SourcePackage1\"), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
             Assert.Equal(Utilities.FixFilePath(@"/packages/SourcePackage2/"), task.MappedSourceRoots[1].ItemSpec);
@@ -216,31 +227,80 @@ ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
             Assert.True(result);
         }
 
-        [Fact]
-        public void Error_DuplicateSourceRoot()
+        [Theory]
+        [InlineData(new object[] { true })]
+        [InlineData(new object[] { false })]
+        public void MetadataMerge1(bool deterministic)
         {
             var engine = new MockEngine();
+
+            var path1 = Utilities.FixFilePath(@"c:\packages\SourcePackage1\");
+            var path2 = Utilities.FixFilePath(@"c:\packages\SourcePackage2\");
+            var path3 = Utilities.FixFilePath(@"c:\packages\SourcePackage3\");
 
             var task = new MapSourceRoots
             {
                 BuildEngine = engine,
                 SourceRoots = new[]
                 {
-                    new TaskItem(@"c:\packages\SourcePackage1\"),
-                    new TaskItem(@"c:\packages\SourcePackage1\"),
-                    new TaskItem(@"c:\packages\SourcePackage2\"),
+                    new TaskItem(path1, new Dictionary<string, string>
+                    {
+                        { "NestedRoot", @"NR1A" },
+                        { "ContainingRoot", path3 },
+                        { "RevisionId", "RevId1" },
+                        { "SourceControl", "git" },
+                        { "MappedPath", "MP1" },
+                        { "SourceLinkUrl", "URL1" },
+                    }),
+                    new TaskItem(path1, new Dictionary<string, string>
+                    {
+                        { "NestedRoot", @"NR1B" },
+                        { "ContainingRoot", @"CR" },
+                        { "RevisionId", "RevId2" },
+                        { "SourceControl", "tfvc" },
+                        { "MappedPath", "MP2" },
+                        { "SourceLinkUrl", "URL2" },
+                    }),
+                    new TaskItem(path2, new Dictionary<string, string>
+                    {
+                        { "NestedRoot", @"NR2" },
+                        { "SourceControl", "git" },
+                    }),
+                    new TaskItem(path2, new Dictionary<string, string>
+                    {
+                        { "ContainingRoot", path3 },
+                        { "SourceControl", "git" },
+                    }),
+                    new TaskItem(path3),
                 },
-                Deterministic = true
+                Deterministic = deterministic
             };
 
             bool result = task.Execute();
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("ERROR : " + string.Format(task.Log.FormatResourceString(
-                "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.FixFilePath(@"c:\packages\SourcePackage1\"))) + Environment.NewLine, engine.Log);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "WARNING : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "SourceControl", "git", "tfvc")) + Environment.NewLine +
+                "WARNING : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "RevisionId", "RevId1", "RevId2")) + Environment.NewLine +
+                "WARNING : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "NestedRoot", "NR1A", "NR1B")) + Environment.NewLine +
+                "WARNING : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "ContainingRoot", path3, "CR")) + Environment.NewLine +
+                "WARNING : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "MappedPath", "MP1", "MP2")) + Environment.NewLine +
+                "WARNING : " + string.Format(task.Log.FormatResourceString(
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine, 
+                engine.Log);
 
-            Assert.Null(task.MappedSourceRoots);
+            AssertEx.Equal(new[] 
+            {
+                $"'{path1}' SourceControl='git' RevisionId='RevId1' NestedRoot='NR1A' ContainingRoot='{path3}' MappedPath='{(deterministic ? "/_/NR1A/" : path1)}' SourceLinkUrl='URL1'",
+                $"'{path2}' SourceControl='git' RevisionId='' NestedRoot='NR2' ContainingRoot='{path3}' MappedPath='{(deterministic ? "/_/NR2/" : path2)}' SourceLinkUrl=''",
+                $"'{path3}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{(deterministic ? "/_/" : path3)}' SourceLinkUrl=''",
+            }, task.MappedSourceRoots.Select(InspectSourceRoot));
 
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Fact]
