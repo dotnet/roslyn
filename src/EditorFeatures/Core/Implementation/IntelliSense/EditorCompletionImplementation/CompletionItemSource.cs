@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // TODO: Check CompletionOptions.TriggerOnDeletion
 
             applicableSpan = new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(text, triggerLocation.Position).ToSpan());
-            return false;
+            return true;
         }
     }
 }
