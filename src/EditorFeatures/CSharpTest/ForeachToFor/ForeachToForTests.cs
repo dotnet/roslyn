@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.ForeachToFor;
+using Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForeachToFor
     public partial class ForEachToForTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpForEachToForCodeRefactoringProvider();
+            => new CSharpConvertForEachToForCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
         public async Task EmptyBlockBody()

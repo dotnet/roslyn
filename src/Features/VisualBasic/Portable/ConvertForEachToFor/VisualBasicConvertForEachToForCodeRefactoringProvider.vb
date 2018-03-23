@@ -5,14 +5,20 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.ForeachToFor
+Imports Microsoft.CodeAnalysis.ConvertForEachToFor
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicForEachToForCodeRefactoringProvider)), [Shared]>
-    Friend Class VisualBasicForEachToForCodeRefactoringProvider
-        Inherits AbstractForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForEachToForCodeRefactoringProvider)), [Shared]>
+    Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
+        Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
+
+        Protected Overrides ReadOnly Property Title As String
+            Get
+                Return VBFeaturesResources.Convert_For_Each_To_For
+            End Get
+        End Property
 
         Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As ForEachBlockSyntax
             Dim forEachBlock = token.Parent.FirstAncestorOrSelf(Of ForEachBlockSyntax)()
@@ -117,13 +123,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ForeachToFor
                 bodyStatement,
                 nextStatement)
 
-            ' let leading And trailing trivia set
             If foreachInfo.RequireCollectionStatement Then
+                ' this is to remove blank line between newly added collection statement with "For" keyword.
+                ' default VB formatting rule around elastic trivia and end of line trivia is converting elastic trivia
+                ' to end of line trivia causing there to be 2 line breaks. this fix that issue. not changing the default
+                ' rule since it will affect other ones that having opposite desire.
                 forBlock = forBlock.WithLeadingTrivia(SyntaxFactory.TriviaList())
             Else
+                ' transfer comment on "For Each" to "For"
                 forBlock = forBlock.WithLeadingTrivia(forEachBlock.GetLeadingTrivia())
             End If
 
+            ' transfer comment at then end of "For Each" to "For"
             forBlock = forBlock.WithForStatement(forBlock.ForStatement.WithTrailingTrivia(forEachBlock.ForEachStatement.GetLastToken().TrailingTrivia))
 
             editor.ReplaceNode(forEachBlock, forBlock)

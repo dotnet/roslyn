@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ForeachToFor
+namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 {
-    internal abstract class AbstractForEachToForCodeRefactoringProvider<TForEachStatement> :
+    internal abstract class AbstractConvertForEachToForCodeRefactoringProvider<TForEachStatement> :
         CodeRefactoringProvider
             where TForEachStatement : SyntaxNode
     {
@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
         private const string Count = nameof(IList.Count);
 
         private static readonly ImmutableArray<string> s_KnownInterfaceNames =
-            new string[] { typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName }.ToImmutableArray();
+            ImmutableArray.Create(typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName);
 
+        protected abstract string Title { get; }
         protected abstract TForEachStatement GetForEachStatement(TextSpan selelction, SyntaxToken token);
         protected abstract bool ValidLocation(ForEachInfo foreachInfo);
         protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(TForEachStatement foreachStatement);
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
             context.RegisterRefactoring(
                 new ForEachToForCodeAction(
-                    FeaturesResources.Convert_foreach_to_for,
+                    Title,
                     c => ConvertForeachToForAsync(document, foreachInfo, c)));
         }
 
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
 
             // check string case
-            if (collectionType.Equals(model.Compilation.GetSpecialType(SpecialType.System_String)))
+            if (collectionType.SpecialType == SpecialType.System_String)
             {
                 var charType = model.Compilation.GetSpecialType(SpecialType.System_Char);
                 if (!IsExchangable(semanticFact, charType, foreachType, model.Compilation))
@@ -356,11 +357,17 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
         private static bool CheckRequireCollectionStatement(IOperation operation)
         {
-            return operation.Kind != OperationKind.LocalReference &&
-                   operation.Kind != OperationKind.FieldReference &&
-                   operation.Kind != OperationKind.ParameterReference &&
-                   operation.Kind != OperationKind.PropertyReference &&
-                   operation.Kind != OperationKind.ArrayElementReference;
+            switch (operation.Kind)
+            {
+                case OperationKind.LocalReference:
+                case OperationKind.FieldReference:
+                case OperationKind.ParameterReference:
+                case OperationKind.PropertyReference:
+                case OperationKind.ArrayElementReference:
+                    return false;
+                default:
+                    return true;
+            }
         }
 
         private IOperation RemoveImplicitConversion(IOperation collection)

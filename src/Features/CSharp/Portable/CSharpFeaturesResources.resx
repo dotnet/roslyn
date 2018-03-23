@@ -521,4 +521,7 @@
   <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
     <value>Add parentheses</value>
   </data>
+  <data name="Convert_foreach_to_for" xml:space="preserve">
+    <value>Convert 'foreach' to 'for'</value>
+  </data>
 </root>

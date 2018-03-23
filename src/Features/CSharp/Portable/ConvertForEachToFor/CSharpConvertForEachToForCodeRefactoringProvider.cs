@@ -6,18 +6,19 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ForeachToFor;
+using Microsoft.CodeAnalysis.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
+namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpForEachToForCodeRefactoringProvider)), Shared]
-    internal sealed class CSharpForEachToForCodeRefactoringProvider :
-        AbstractForEachToForCodeRefactoringProvider<ForEachStatementSyntax>
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToForCodeRefactoringProvider)), Shared]
+    internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
+        AbstractConvertForEachToForCodeRefactoringProvider<ForEachStatementSyntax>
     {
+        protected override string Title => CSharpFeaturesResources.Convert_foreach_to_for;
+
         protected override ForEachStatementSyntax GetForEachStatement(TextSpan selection, SyntaxToken token)
         {
             var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
@@ -111,12 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
                         SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexString))),
                 bodyStatement);
 
-            // let leading and trailing trivia set
             if (!foreachInfo.RequireCollectionStatement)
             {
+                // move comments before "foreach" keyword to "for". if collection statement is introduced,
+                // it should have attached to the new collection statement, so no need to do it here.
                 forStatement = forStatement.WithLeadingTrivia(foreachStatement.GetLeadingTrivia());
             }
 
+            // replace close parenthese from "foreach" statement
             forStatement = forStatement.WithCloseParenToken(foreachStatement.CloseParenToken);
 
             editor.ReplaceNode(foreachStatement, forStatement);
