@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 commandLineArgs,
                 docs,
                 additionalDocs,
-                project.GetProjectReferences(),
+                project.GetProjectReferences().ToImmutableArray(),
                 Log);
         }
 

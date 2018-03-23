@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -42,22 +41,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// The command line args used to compile the project.
         /// </summary>
-        public IReadOnlyList<string> CommandLineArgs { get; }
+        public ImmutableArray<string> CommandLineArgs { get; }
 
         /// <summary>
         /// The source documents.
         /// </summary>
-        public IReadOnlyList<DocumentFileInfo> Documents { get; }
+        public ImmutableArray<DocumentFileInfo> Documents { get; }
 
         /// <summary>
         /// The additional documents.
         /// </summary>
-        public IReadOnlyList<DocumentFileInfo> AdditionalDocuments { get; }
+        public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; }
 
         /// <summary>
         /// References to other projects.
         /// </summary>
-        public IReadOnlyList<ProjectFileReference> ProjectReferences { get; }
+        public ImmutableArray<ProjectFileReference> ProjectReferences { get; }
 
         /// <summary>
         /// The error message produced when a failure occurred attempting to get the info. 
@@ -77,10 +76,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string outputFilePath,
             string outputRefFilePath,
             string targetFramework,
-            IEnumerable<string> commandLineArgs,
-            IEnumerable<DocumentFileInfo> documents,
-            IEnumerable<DocumentFileInfo> additionalDocuments,
-            IEnumerable<ProjectFileReference> projectReferences,
+            ImmutableArray<string> commandLineArgs,
+            ImmutableArray<DocumentFileInfo> documents,
+            ImmutableArray<DocumentFileInfo> additionalDocuments,
+            ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
         {
             Debug.Assert(filePath != null);
@@ -91,10 +90,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.OutputFilePath = outputFilePath;
             this.OutputRefFilePath = outputRefFilePath;
             this.TargetFramework = targetFramework;
-            this.CommandLineArgs = commandLineArgs.ToImmutableArrayOrEmpty();
-            this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
-            this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();
-            this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
+            this.CommandLineArgs = commandLineArgs;
+            this.Documents = documents;
+            this.AdditionalDocuments = additionalDocuments;
+            this.ProjectReferences = projectReferences;
             this.Log = log;
         }
 
@@ -104,10 +103,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string outputFilePath,
             string outputRefFilePath,
             string targetFramework,
-            IEnumerable<string> commandLineArgs,
-            IEnumerable<DocumentFileInfo> documents,
-            IEnumerable<DocumentFileInfo> additionalDocuments,
-            IEnumerable<ProjectFileReference> projectReferences,
+            ImmutableArray<string> commandLineArgs,
+            ImmutableArray<DocumentFileInfo> documents,
+            ImmutableArray<DocumentFileInfo> additionalDocuments,
+            ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
             => new ProjectFileInfo(
                 isEmpty: false,
@@ -130,10 +129,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputFilePath: null,
                 outputRefFilePath: null,
                 targetFramework: null,
-                commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
-                documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
-                additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
-                projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
+                commandLineArgs: ImmutableArray<string>.Empty,
+                documents: ImmutableArray<DocumentFileInfo>.Empty,
+                additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
+                projectReferences: ImmutableArray<ProjectFileReference>.Empty,
                 log);
     }
 }

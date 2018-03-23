@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         metadataService: GetWorkspaceService<IMetadataService>(),
                         pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory))).ToImmutableArray();
 
-                var projectReferences = new List<ProjectReference>(capacity: projectFileInfo.ProjectReferences.Count);
+                var projectReferences = new List<ProjectReference>(capacity: projectFileInfo.ProjectReferences.Length);
                 var metadataReferenceSet = new MetadataReferenceSet(resolvedMetadataReferences);
 
                 var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
