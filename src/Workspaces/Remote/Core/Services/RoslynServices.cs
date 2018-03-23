@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var workspace = (RemoteWorkspace)primaryWorkspace.Workspace ?? new RemoteWorkspace();
 
             AssetService = new AssetService(_scopeId, storage, workspace);
-            SolutionService = new SolutionService(AssetService, workspace);
+            SolutionService = new SolutionService(AssetService);
             CompilationService = new CompilationService(SolutionService);
         }
 
