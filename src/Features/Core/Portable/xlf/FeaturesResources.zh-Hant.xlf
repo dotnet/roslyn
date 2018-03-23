@@ -1985,11 +1985,6 @@ This version used in: {2}</source>
         <target state="translated">索引子</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_foreach_to_for">
-        <source>Convert foreach to for</source>
-        <target state="new">Convert foreach to for</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

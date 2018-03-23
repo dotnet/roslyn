@@ -1334,7 +1334,4 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
-  <data name="Convert_foreach_to_for" xml:space="preserve">
-    <value>Convert foreach to for</value>
-  </data>
 </root>

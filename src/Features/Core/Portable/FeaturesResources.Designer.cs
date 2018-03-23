@@ -826,15 +826,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert foreach to for.
-        /// </summary>
-        internal static string Convert_foreach_to_for {
-            get {
-                return ResourceManager.GetString("Convert_foreach_to_for", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Convert to binary.
         /// </summary>
         internal static string Convert_to_binary {
