@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Reflection.PortableExecutable;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -173,7 +172,7 @@ class C
             {
                 var entries = peReader.ReadDebugDirectory();
 
-                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
 
                 var codeView = entries[0];
                 var checksum = entries[1];
@@ -233,7 +232,7 @@ class C
             {
                 var entries = peReader.ReadDebugDirectory();
 
-                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
 
                 var codeView = entries[0];
                 var checksum = entries[1];
