@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             PEReader peReader1 = new PEReader(result1.pe);
             PEReader peReader2 = new PEReader(result2.pe);
             Assert.Equal(Machine.Amd64, peReader1.PEHeaders.CoffHeader.Machine);
-            Assert.Equal((Machine)0xAA64, peReader2.PEHeaders.CoffHeader.Machine);
+            Assert.Equal(Machine.Arm64, peReader2.PEHeaders.CoffHeader.Machine);
             Assert.NotEqual(peReader1.PEHeaders.CoffHeader.TimeDateStamp, peReader2.PEHeaders.CoffHeader.TimeDateStamp);
         }
 
