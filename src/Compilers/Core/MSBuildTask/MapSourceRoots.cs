@@ -131,23 +131,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 int i = 0;
                 var topLevelMappedPaths = new Dictionary<string, string>();
-                void setTopLevelMappedPaths(bool sourceControl)
+                void setTopLevelMappedPaths(bool sourceControlled)
                 {
                     foreach (var root in mappedSourceRoots)
                     {
-                        if (!string.IsNullOrEmpty(root.GetMetadata(Names.SourceControl)) == sourceControl)
+                        if (!string.IsNullOrEmpty(root.GetMetadata(Names.SourceControl)) == sourceControlled)
                         {
+                            string localPath = root.ItemSpec;
                             string nestedRoot = root.GetMetadata(Names.NestedRoot);
                             if (string.IsNullOrEmpty(nestedRoot))
                             {
-                                if (topLevelMappedPaths.ContainsKey(root.ItemSpec))
+                                // root isn't nested
+
+                                if (topLevelMappedPaths.ContainsKey(localPath))
                                 {
-                                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, root.ItemSpec);
+                                    Log.LogErrorFromResources("MapSourceRoots.ContainsDuplicate", Names.SourceRoot, localPath);
                                 }
                                 else
                                 {
                                     var mappedPath = "/_" + (i == 0 ? "" : i.ToString()) + "/";
-                                    topLevelMappedPaths.Add(root.ItemSpec, mappedPath);
+                                    topLevelMappedPaths.Add(localPath, mappedPath);
                                     root.SetMetadata(Names.MappedPath, mappedPath);
                                     i++;
                                 }
@@ -156,11 +159,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                 }
 
-                // assign mapped paths to process source control roots first:
-                setTopLevelMappedPaths(sourceControl: true);
+                // assign mapped paths to process source-controlled top-level roots first:
+                setTopLevelMappedPaths(sourceControlled: true);
 
-                // then assign mapped paths to other source control roots:
-                setTopLevelMappedPaths(sourceControl: false);
+                // then assign mapped paths to other source-controlled top-level roots:
+                setTopLevelMappedPaths(sourceControlled: false);
 
                 // finally, calculate mapped paths of nested roots:
                 foreach (var root in mappedSourceRoots)
