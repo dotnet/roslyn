@@ -11484,6 +11484,80 @@ partial class C
 }");
         }
 
+        [Fact]
+        public void SourceNamedTypeSymbolDelegatesToContainingTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C_init
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    class C
+    {
+        void M()
+        {
+            int x = 1;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    class C
+    {
+        void M()
+        {
+            int x = 1;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C_init.C.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+
+            comp.VerifyIL("C_skip.C.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
