@@ -212,6 +212,52 @@ public class Test
         }
 
         [Fact]
+        public async Task NullablePropertyAssignmentInInvocation()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var c = new C();
+        c?.A = ([|from x in nums select x + 1|]).ToList();
+    }
+
+    class C
+    {
+        public List<int> A { get; set; }
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var c = new C();
+        c?.A = new List<int>();
+        foreach (var x in nums)
+        {
+            c?.A.Add(x + 1);
+        }
+    }
+
+    class C
+    {
+        public List<int> A { get; set; }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
         public async Task MultipleDeclarationsFirst()
         {
             string source = @"
@@ -479,6 +525,51 @@ class C
             }
         }
 
+        return list;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task AssignListWithNullableToList()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        var list = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|])?.ToList<int>();
+        return list;
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        IEnumerable<int> localFunction()
+        {
+            foreach (int n1 in nums)
+            {
+                foreach (int n2 in nums)
+                {
+                    yield return n1;
+                }
+            }
+        }
+
+        var list = localFunction()?.ToList();
         return list;
     }
 }
@@ -1169,7 +1260,7 @@ class Query
             {
                 foreach (var x2 in c2)
                 {
-                    if (x1.Equals(x2 / 10))
+                    if (Equals(x1, x2 / 10))
                     {
                         yield return x1 + x2;
                     }
@@ -1346,7 +1437,7 @@ class Query
         {
             foreach (var y in c2)
             {
-                if (x.Equals(y / 10))
+                if (Equals(x, y / 10))
                 {
                     var z = x + y;
                     r1.Add(z);
@@ -1397,7 +1488,7 @@ class Query
         {
             foreach (var x2 in c2)
             {
-                if (x1.Equals(x2 / 10))
+                if (Equals(x1, x2 / 10))
                 {
                     var g = new { x1, x2 };
                     if (x1 < 7)
@@ -1501,7 +1592,7 @@ class Program
             {
                 foreach (var b in Enumerable.Range(1, 13))
                 {
-                    if ((4 * a).Equals(b))
+                    if (Equals(4 * a, b))
                     {
                         yield return a;
                     }
@@ -1753,7 +1844,7 @@ static class Test
             {
                 foreach (var x7 in new int[] { 0 })
                 {
-                    if (5.Equals(5))
+                    if (Equals(5, 5))
                     {
                         var x8 = new { x3, x7 };
                         yield return x8;
@@ -1796,7 +1887,7 @@ class Program
             {
                 foreach (var x1 in new int[] { 4, 5 })
                 {
-                    if (num.Equals(x1))
+                    if (Equals(num, x1))
                     {
                         yield return x1 + 5;
                     }
