@@ -1,20 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForeachToFor
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 {
-    public partial class ForEachToForTests : AbstractCSharpCodeActionTest
+    public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(
+            Workspace workspace, TestParameters parameters)
             => new CSharpConvertForEachToForCodeRefactoringProvider();
+
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+
+        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
         public async Task EmptyBlockBody()
@@ -37,7 +48,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
         }
     }
@@ -65,7 +76,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++) ;
+        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
     }
 }
 ";
@@ -91,9 +102,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            var a = array[i];
+            int a = array[i];
             Console.WriteLine(a);
         }
     }
@@ -124,9 +135,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            var a = array[i];
+            int a = array[i];
             Console.WriteLine(a);
         }
     }
@@ -158,7 +169,7 @@ class Test
     {
         var array = new int[] { 1, 3, 4 };
         /* comment */
-        for (var {|Rename:i|} = 0; i < array.Length; i++) /* comment */
+        for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */
         {
         }
     }
@@ -189,7 +200,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         /* comment */
         {
         }/* comment */
@@ -218,7 +229,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++) /* comment */;
+        for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */;
     }
 }
 ";
@@ -244,9 +255,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            var a = array[i];
+            int a = array[i];
             Console.WriteLine(a); // test
         }
     }
@@ -274,9 +285,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++) /* test */
+        for (int {|Rename:i|} = 0; i < array.Length; i++) /* test */
         {
-            var a = array[i];
+            int a = array[i];
             Console.WriteLine(a);
         }
     }
@@ -305,9 +316,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            var a = array[i];
+            int a = array[i];
             /* test */
             Console.WriteLine(a);
         }
@@ -338,8 +349,8 @@ class Test
     void Method()
     {
         // test
-        var {|Rename:array|} = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        int[] {|Rename:array|} = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
         }
     }
@@ -416,10 +427,10 @@ class Test
 {
     void Method()
     {
-        var {|Rename:array|} = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        int[] {|Rename:array|} = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            var a = array[i];
+            int a = array[i];
             Console.WriteLine(a);
         }
     }
@@ -452,10 +463,10 @@ class Test
     {
         var array = 1;
 
-        var {|Rename:array1|} = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array1.Length; i++)
+        int[] {|Rename:array1|} = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array1.Length; i++)
         {
-            var a = array1[i];
+            int a = array1[i];
             Console.WriteLine(a);
         }
     }
@@ -486,9 +497,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i1|} = 0; i1 < array.Length; i1++)
+        for (int {|Rename:i1|} = 0; i1 < array.Length; i1++)
         {
-            var a = array[i1];
+            int a = array[i1];
             int i = 0;
         }
     }
@@ -594,7 +605,7 @@ class Test
 
     void Method()
     {
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
         }
     }
@@ -625,9 +636,9 @@ class Test
     void Method()
     {
         var array = new int[][] { new int[] { 1, 3, 4 } };
-        for (var {|Rename:i|} = 0; i < array[0].Length; i++)
+        for (int {|Rename:i|} = 0; i < array[0].Length; i++)
         {
-            var a = array[0][i];
+            int a = array[0][i];
             Console.WriteLine(a);
         }
     }
@@ -655,7 +666,7 @@ class Test
 {
     void Method(int[] array)
     {
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
         }
     }
@@ -687,7 +698,7 @@ class Test
 
     void Method()
     {
-        for (var {|Rename:i|} = 0; i < Prop.Length; i++)
+        for (int {|Rename:i|} = 0; i < Prop.Length; i++)
         {
         }
     }
@@ -722,9 +733,9 @@ class Test
     void Method()
     {
         var array = (IList<int>)(new int[] { 1, 3, 4 });
-        for (var {|Rename:i|} = 0; i < array.Count; i++)
+        for (int {|Rename:i|} = 0; i < array.Count; i++)
         {
-            var a = array[i];
+            int a = array[i];
             Console.WriteLine(a);
         }
     }
@@ -759,9 +770,9 @@ class Test
     void Method()
     {
         var list = new List<int>();
-        for (var {|Rename:i|} = 0; i < list.Count; i++)
+        for (int {|Rename:i|} = 0; i < list.Count; i++)
         {
-            var a = list[i];
+            int a = list[i];
             Console.WriteLine(a);
         }
     }
@@ -807,9 +818,9 @@ class Test
     void Method()
     {
         var list = new ReadOnly<int>();
-        for (var {|Rename:i|} = 0; i < list.Count; i++)
+        for (int {|Rename:i|} = 0; i < list.Count; i++)
         {
-            var a = list[i];
+            int a = list[i];
             Console.WriteLine(a);
         }
 
@@ -875,9 +886,9 @@ class Test
     void Method()
     {
         var list = new List();
-        for (var {|Rename:i|} = 0; i < list.Count; i++)
+        for (int {|Rename:i|} = 0; i < list.Count; i++)
         {
-            var a = list[i];
+            object a = list[i];
             Console.WriteLine(a);
         }
 
@@ -940,9 +951,9 @@ class Test
     void Method()
     {
         var list = ImmutableArray.Create(1);
-        for (var {|Rename:i|} = 0; i < list.Length; i++)
+        for (int {|Rename:i|} = 0; i < list.Length; i++)
         {
-            var a = list[i];
+            int a = list[i];
             Console.WriteLine(a);
         }
     }
@@ -989,10 +1000,10 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        var {|Rename:list1|} = (IReadOnlyList<int>)list;
-        for (var {|Rename:i|} = 0; i < list1.Count; i++)
+        IReadOnlyList<int> {|Rename:list1|} = list;
+        for (int {|Rename:i|} = 0; i < list1.Count; i++)
         {
-            var a = list1[i];
+            int a = list1[i];
             Console.WriteLine(a);
         }
     }
@@ -1087,8 +1098,8 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        var {|Rename:list1|} = (IReadOnlyList<int>)list;
-        for (var {|Rename:i|} = 0; i < list1.Count; i++)
+        IReadOnlyList<int> {|Rename:list1|} = list;
+        for (int {|Rename:i|} = 0; i < list1.Count; i++)
         {
             int a = list1[i];
             Console.WriteLine(a);
@@ -1154,9 +1165,9 @@ class Test
     void Method()
     {
         var list = new Mixed();
-        for (var {|Rename:i|} = 0; i < list.Count; i++)
+        for (int {|Rename:i|} = 0; i < list.Count; i++)
         {
-            var a = list[i];
+            int a = list[i];
             Console.WriteLine(a);
         }
     }
@@ -1220,8 +1231,8 @@ class Test
     void Method()
     {
         var list = new Mixed();
-        var {|Rename:list1|} = (IReadOnlyList<string>)list;
-        for (var {|Rename:i|} = 0; i < list1.Count; i++)
+        IReadOnlyList<string> {|Rename:list1|} = list;
+        for (int {|Rename:i|} = 0; i < list1.Count; i++)
         {
             string a = list1[i];
             Console.WriteLine(a);
@@ -1290,8 +1301,8 @@ namespace NS
     {
         void Method()
         {
-            var {|Rename:list|} = (IReadOnlyList<string>)new NS.Mixed();
-            for (var {|Rename:i|} = 0; i < list.Count; i++)
+            IReadOnlyList<string> {|Rename:list|} = new NS.Mixed();
+            for (int {|Rename:i|} = 0; i < list.Count; i++)
             {
                 string a = list[i];
                 Console.WriteLine(a);
@@ -1352,9 +1363,9 @@ class Test
     {
         var array = new int[] { 1, 3, 4 };
         if (true)
-            for (var {|Rename:i|} = 0; i < array.Length; i++)
+            for (int {|Rename:i|} = 0; i < array.Length; i++)
             {
-                var a = array[i];
+                int a = array[i];
                 Console.WriteLine(a);
             }
     }
@@ -1385,9 +1396,9 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i1|} = 0; i1 < array.Length; i1++)
+        for (int {|Rename:i1|} = 0; i1 < array.Length; i1++)
         {
-            var i = array[i1];
+            int i = array[i1];
             Console.WriteLine(i);
         }
     }
@@ -1418,7 +1429,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
             int a = array[i];
             Console.WriteLine(i);
@@ -1437,7 +1448,7 @@ class Test
 {
     void Method()
     {
-        foreach [||] (int a in ""test"")
+        foreach [||] (var a in ""test"")
         {
             Console.WriteLine(a);
         }
@@ -1449,15 +1460,16 @@ class Test
 {
     void Method()
     {
-        var {|Rename:str|} = ""test"";
-        for (var {|Rename:i|} = 0; i < str.Length; i++)
+        string {|Rename:str|} = ""test"";
+        for (int {|Rename:i|} = 0; i < str.Length; i++)
         {
-            int a = str[i];
+            char a = str[i];
             Console.WriteLine(a);
         }
     }
 }
 ";
+
             await TestInRegularAndScriptAsync(text, expected);
         }
 
@@ -1470,7 +1482,7 @@ class Test
     void Method()
     {
         const string test = ""test"";
-        foreach [||] (int a in test)
+        foreach [||] (var a in test)
         {
             Console.WriteLine(a);
         }
@@ -1483,9 +1495,9 @@ class Test
     void Method()
     {
         const string test = ""test"";
-        for (var {|Rename:i|} = 0; i < test.Length; i++)
+        for (int {|Rename:i|} = 0; i < test.Length; i++)
         {
-            int a = test[i];
+            char a = test[i];
             Console.WriteLine(a);
         }
     }
@@ -1504,7 +1516,7 @@ class Test
 
     void Method()
     {
-        foreach [||] (int a in test)
+        foreach [||] (var a in test)
         {
             Console.WriteLine(a);
         }
@@ -1518,9 +1530,9 @@ class Test
 
     void Method()
     {
-        for (var {|Rename:i|} = 0; i < test.Length; i++)
+        for (int {|Rename:i|} = 0; i < test.Length; i++)
         {
-            int a = test[i];
+            char a = test[i];
             Console.WriteLine(a);
         }
     }
@@ -1551,7 +1563,7 @@ class Test
     void Method()
     {
         var array = new object[] { 1, 2, 3 };
-        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
             string a = (string)array[i];
             Console.WriteLine(a);

@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             End If
 
             ' first, see whether we need to introduce New statement to capture collection
-            IntroduceCollectionStatement(model, foreachInfo, editor, expression, collectionVariable)
+            IntroduceCollectionStatement(model, foreachInfo, editor, type:=Nothing, expression, collectionVariable)
 
             ' create New index varialbe name
             Dim indexVariable = If(

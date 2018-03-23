@@ -4,10 +4,12 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.ConvertForEachToFor;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -87,8 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var collectionVariable = GetCollectionVariableName(
                 model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
+            var collectionStatementType = foreachInfo.RequireExplicitCastInterface ?
+                GetTypeExpression(generator, foreachInfo.Options, foreachInfo.ExplicitCastInterface) :
+                GetTypeExpression(generator, foreachInfo.Options,
+                    model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object));
+
             // first, see whether we need to introduce new statement to capture collection
-            IntroduceCollectionStatement(model, foreachInfo, editor, foreachCollectionExpression, collectionVariable);
+            IntroduceCollectionStatement(
+                model, foreachInfo, editor, collectionStatementType, foreachCollectionExpression, collectionVariable);
 
             // create new index varialbe name
             var indexVariable = CreateUniqueName(foreachInfo.SemanticFacts, model, foreachStatement.Statement, "i", cancellationToken);
@@ -99,7 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
                 SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.IdentifierName("var"),
+                    GetTypeExpression(
+                        generator, foreachInfo.Options, model.Compilation.GetSpecialType(SpecialType.System_Int32)),
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
@@ -127,6 +136,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             editor.ReplaceNode(foreachStatement, forStatement);
         }
 
+        private static TypeSyntax GetTypeExpression(
+            SyntaxGenerator generator, OptionSet options, ITypeSymbol explicitType)
+        {
+            // types are not apparent in foreach statements.
+            var isBuiltInTypeContext = TypeStyleHelper.IsBuiltInType(explicitType);
+            if (TypeStyleHelper.IsImplicitStylePreferred(
+                    options, isBuiltInTypeContext, isTypeApparentContext: false))
+            {
+                return SyntaxFactory.IdentifierName("var");
+            }
+            else
+            {
+                return (TypeSyntax)generator.TypeExpression(explicitType);
+            }
+        }
+
         private StatementSyntax GetForLoopBody(
             SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable)
         {
@@ -141,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             {
                 // create variable statement
                 var variableStatement = AddItemVariableDeclaration(
-                    generator, foreachStatement.Type,
+                    generator, GetTypeExpression(generator, foreachInfo.Options, foreachInfo.ForEachElementType),
                     foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(

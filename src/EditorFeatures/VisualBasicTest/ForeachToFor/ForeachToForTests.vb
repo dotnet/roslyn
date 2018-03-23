@@ -5,11 +5,12 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ForeachToFor
-    Partial Public Class ForEachToForTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFor
+    Partial Public Class ConvertForEachToForTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(
+            workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertForEachToForCodeRefactoringProvider()
         End Function
 
