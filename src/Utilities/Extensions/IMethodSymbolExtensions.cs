@@ -321,5 +321,18 @@ namespace Analyzer.Utilities.Extensions
 
             return null;
         }
+
+        public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
+        {
+            for (var i = 0; i < methodSymbol.Parameters.Length; i++)
+            {
+                if (parameterSymbol == methodSymbol.Parameters[i])
+                {
+                    return i;
+                }
+            }
+
+            throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
+        }
     }
 }

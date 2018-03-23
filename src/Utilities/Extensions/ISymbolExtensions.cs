@@ -473,5 +473,28 @@ namespace Analyzer.Utilities.Extensions
                     return null;
             }
         }
+
+        /// <summary>
+        /// Returns a value indicating whether the specified symbol has the specified
+        /// attribute.
+        /// </summary>
+        /// <param name="symbol">
+        /// The symbol being examined.
+        /// </param>
+        /// <param name="attribute">
+        /// The attribute in question.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        /// If <paramref name="symbol"/> is a type, this method does not find attributes
+        /// on its base types.
+        /// </remarks>
+        public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
+        {
+            return symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
+        }
     }
 }
