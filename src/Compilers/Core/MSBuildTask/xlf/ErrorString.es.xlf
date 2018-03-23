@@ -120,8 +120,8 @@
         <note>{StrBegin="MSB3402: "}</note>
       </trans-unit>
       <trans-unit id="MapSourceRoots.ContainsDuplicate">
-        <source>{0} contains a duplicate: '{1}'</source>
-        <target state="new">{0} contains a duplicate: '{1}'</target>
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="new">{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.ValueOfNotFoundInItems">
