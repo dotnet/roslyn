@@ -159,12 +159,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 
         /// <summary>
         /// True if this is an argument with just an expression and nothing else (i.e. no ref/out,
         /// no named params, no omitted args).
         /// </summary>
         bool IsSimpleArgument(SyntaxNode node);
+        bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
@@ -215,6 +217,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
+        bool IsLocalFunctionStatement(SyntaxNode node);
+
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
         SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
         SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node);
@@ -223,6 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryExpression(SyntaxNode node);
+        bool IsQueryKeyword(SyntaxToken token);
         bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);

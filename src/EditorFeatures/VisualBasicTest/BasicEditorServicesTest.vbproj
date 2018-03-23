@@ -152,6 +152,7 @@
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Test.Utilities" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
     <Import Include="Roslyn.Test.Utilities" />

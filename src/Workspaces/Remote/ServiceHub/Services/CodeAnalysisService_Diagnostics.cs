@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     token.ThrowIfCancellationRequested();
 
-                    var service = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+                    var service = RoslynServices.SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
                     if (service == null)
                     {
                         return;

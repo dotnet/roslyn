@@ -288,6 +288,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;for&apos; to &apos;foreach&apos;.
+        /// </summary>
+        internal static string Convert_for_to_foreach {
+            get {
+                return ResourceManager.GetString("Convert_for_to_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
         /// </summary>
         internal static string Convert_if_to_switch {
@@ -464,15 +473,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Hide_base_member {
             get {
                 return ResourceManager.GetString("Hide_base_member", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
-        /// </summary>
-        internal static string implicit_array_creation {
-            get {
-                return ResourceManager.GetString("implicit_array_creation", resourceCulture);
             }
         }
         
