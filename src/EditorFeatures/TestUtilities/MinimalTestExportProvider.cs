@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // Microsoft.VisualStudio.Language.StandardClassification.dll:
                 typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly,
 
-                typeof(Microsoft.VisualStudio.Language.Intellisense.IAsyncCompletionServiceProvider).Assembly
+                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionItemManagerProvider).Assembly
             };
 
             return assemblies;
