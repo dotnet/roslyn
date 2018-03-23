@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 declarators.Add(root.FindNode(diagnosticSpan).FirstAncestorOrSelf<TSymbolSyntax>());
             }
 
-            MakeFieldReadonly(document, editor, declarators);
+            await MakeFieldReadonlyAsync(document, editor, declarators).ConfigureAwait(false);
         }
 
-        private async void MakeFieldReadonly(Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators)
+        private async Task MakeFieldReadonlyAsync(Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators)
         {
             var declaratorsByField = declarators.GroupBy(g => g.FirstAncestorOrSelf<TFieldDeclarationSyntax>());
 
