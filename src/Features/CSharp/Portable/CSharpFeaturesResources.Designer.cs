@@ -288,6 +288,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;for&apos; to &apos;foreach&apos;.
+        /// </summary>
+        internal static string Convert_for_to_foreach {
+            get {
+                return ResourceManager.GetString("Convert_for_to_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert &apos;foreach&apos; to &apos;for&apos;.
         /// </summary>
         internal static string Convert_foreach_to_for {

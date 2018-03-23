@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim analyzerPackage = New HostDiagnosticAnalyzerPackage("MyPackage", ImmutableArray.Create(analyzerFile.Path))
                 Dim analyzerPackages = SpecializedCollections.SingletonEnumerable(analyzerPackage)
                 Dim analyzerLoader = VisualStudioWorkspaceDiagnosticAnalyzerProviderService.GetLoader()
-                Dim hostAnalyzerManager = New HostAnalyzerManager(analyzerPackages, analyzerLoader, hostDiagnosticUpdateSource:=Nothing)
+                Dim hostAnalyzerManager = New HostAnalyzerManager(analyzerPackages, analyzerLoader, hostDiagnosticUpdateSource:=Nothing, primaryWorkspace:=Nothing)
                 Dim analyzerReferenceMap = hostAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(LanguageNames.CSharp)
                 Assert.Single(analyzerReferenceMap)
                 Dim analyzers = analyzerReferenceMap.Single().Value

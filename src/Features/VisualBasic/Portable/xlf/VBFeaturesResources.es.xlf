@@ -1817,9 +1817,9 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <target state="translated">Usar comprobación "IsNot Nothing"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_For_Each_To_For">
-        <source>Convert 'For Each' to 'For'</source>
-        <target state="new">Convert 'For Each' to 'For'</target>
+      <trans-unit id="Convert_For_to_For_Each">
+        <source>Convert 'For' to 'For Each'</source>
+        <target state="new">Convert 'For' to 'For Each'</target>
         <note />
       </trans-unit>
     </body>

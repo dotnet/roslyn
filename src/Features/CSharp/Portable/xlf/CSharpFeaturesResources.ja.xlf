@@ -632,9 +632,9 @@
         <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_foreach_to_for">
-        <source>Convert 'foreach' to 'for'</source>
-        <target state="new">Convert 'foreach' to 'for'</target>
+      <trans-unit id="Convert_for_to_foreach">
+        <source>Convert 'for' to 'foreach'</source>
+        <target state="new">Convert 'for' to 'foreach'</target>
         <note />
       </trans-unit>
     </body>

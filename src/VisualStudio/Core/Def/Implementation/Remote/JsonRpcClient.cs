@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Remote;
@@ -26,19 +27,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private JsonRpcDisconnectedEventArgs _debuggingLastDisconnectReason;
         private string _debuggingLastDisconnectCallstack;
 
-        public JsonRpcEx(TraceSource logger, Stream stream, object callbackTarget, bool useThisAsCallback)
+        public JsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object callbackTarget, bool useThisAsCallback)
         {
+            Contract.Requires(workspace != null);
             Contract.Requires(logger != null);
             Contract.Requires(stream != null);
 
             var target = useThisAsCallback ? this : callbackTarget;
 
+            Workspace = workspace;
             _logger = logger;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc.Disconnected += OnDisconnected;
+        }
+
+        public Workspace Workspace
+        {
+            get;
         }
 
         protected abstract void Dispose(bool disposing);
@@ -185,13 +193,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// </summary>
         private void ThrowOwnCancellationToken()
         {
-            if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_reported)
+            if (Workspace != null && !s_reported)
             {
                 // do not report it multiple times
                 s_reported = true;
 
                 // use info bar to show warning to users
-                CodeAnalysis.PrimaryWorkspace.Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
+                Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
                     ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
             }
 
