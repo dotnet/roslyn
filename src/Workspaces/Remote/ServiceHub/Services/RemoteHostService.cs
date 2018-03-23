@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
                 // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
                 //
-                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // The AppDomain base directory is specified in VisualStudio\Setup\codeAnalysisService.servicehub.service.json
                 // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
                 //
                 //   "appBasePath": "%VSAPPIDDIR%"

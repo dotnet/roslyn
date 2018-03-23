@@ -50,8 +50,6 @@ function Copy-InsertionItems() {
         "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\CodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsman",
         "Vsix\PortableFacades\PortableFacades.vsix",
         "Vsix\PortableFacades\PortableFacades.vsman",
