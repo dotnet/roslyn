@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
-    internal abstract class AbstractConvertLinqQueryToLinqMethodProvider<TQueryExpression> : CodeRefactoringProvider
+    internal abstract class AbstractConvertLinqQueryToForEachProvider<TQueryExpression> : CodeRefactoringProvider
         where TQueryExpression : SyntaxNode
     {
         protected abstract string Title { get; }
@@ -23,13 +24,15 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             CancellationToken cancellationToken,
             out DocumentUpdateInfo documentUpdate);
 
+        protected abstract TQueryExpression FindNodeToRefactor(SyntaxNode root, TextSpan span);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var queryExpression = root.FindNode(context.Span) as TQueryExpression;
+            var queryExpression = FindNodeToRefactor(root, context.Span);
             if (queryExpression == null || queryExpression.ContainsDiagnostics)
             {
                 return;
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             /// </summary>
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {
-                return root.ReplaceNode(_source, _destinations.Select(node => node.WithAdditionalAnnotations(Simplifier.Annotation)));
+                return root.ReplaceNode(_source, _destinations);
             }
         }
 
