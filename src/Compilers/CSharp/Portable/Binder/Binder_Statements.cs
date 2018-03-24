@@ -1099,28 +1099,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (initializerType.SpecialType == SpecialType.System_String &&
                         ((object)fixedPatternMethod == null || fixedPatternMethod.ContainingType.SpecialType != SpecialType.System_String))
                     {
+                        fixedPatternMethod = null;
                         elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
                         additionalDiagnostics.Free();
                         break;
                     }
 
+                    // if the feature was enabled, but something went wrong with the method, report that, otherwise don't. 
+                    // If feature is not enabled, additional errors would be just noise.
+                    bool extensibleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
+                    if (extensibleFixedEnabled)
+                    {
+                        diagnostics.AddRange(additionalDiagnostics);
+                    }
+
+                    additionalDiagnostics.Free();
+
                     if ((object)fixedPatternMethod != null)
                     {
                         elementType = fixedPatternMethod.ReturnType;
                         CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
-                        additionalDiagnostics.Free();
                         break;
                     }
                     else
                     {
-                        // if the feature was enabled but something went wrong with the method, report that
-                        bool extensibleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
-                        if (extensibleFixedEnabled && additionalDiagnostics != null)
-                        {
-                            diagnostics.AddRange(additionalDiagnostics);
-                        }
                         Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
-                        additionalDiagnostics.Free();
                         return false;
                     }
             }
@@ -1191,13 +1194,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                // we have succeeded or almost succeded to bind the method
+                // report additional binding diagnostics that we have seen so far
+                additionalDiagnostics.AddRange(bindingDiagnostics);
+
                 var patterMethodSymbol = call.Method;
                 if (patterMethodSymbol is ErrorMethodSymbol ||
                     patternMethodCall.HasAnyErrors)
                 {
-                    // we almost succeded, this is unusual and may be hard to diagnose.
-                    // report additional errors on why we failed to bind the helper
-                    additionalDiagnostics.AddRange(bindingDiagnostics);
+                    // bound to something uncallable
                     return null;
                 }
 
