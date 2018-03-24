@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// serialize and deserialize objects to stream.
     /// some of these could be moved into actual object, but putting everything here is a bit easier to find I believe.
     /// </summary>
-    internal partial class Serializer
+    internal partial class SerializerService
     {
         public void SerializeSourceText(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {

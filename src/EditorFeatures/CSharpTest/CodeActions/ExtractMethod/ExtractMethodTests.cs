@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1569,16 +1567,16 @@ class C
     public static void Main()
     {
         void Local()
-        {
+        {|Warning:{
             {|Rename:NewMethod|}();
-        }
+        }|}
         Local();
     }
 
     private static void NewMethod()
     {
-        {|Warning:int x = 0;
-        x++;|}
+        int x = 0;
+        x++;
     }
 }");
         }
@@ -1618,7 +1616,7 @@ class Test
 
     private static int NewMethod(int v, int i)
     {
-        {|Warning:v = v + i|};
+        {|Warning:v = v + i;|}
         return v;
     }
 }");
@@ -1652,14 +1650,14 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                v = {|Rename:NewMethod|}(v, i);
+                {|Warning:v = {|Rename:NewMethod|}(v, i)|};
             }
         }
     }
 
     private static int NewMethod(int v, int i)
     {
-        {|Warning:return v + i|};
+        return v + i;
     }
 }");
         }
@@ -1692,14 +1690,14 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                i = {|Rename:NewMethod|}(ref v, i);
+                {|Warning:i = {|Rename:NewMethod|}(ref v, i)|};
             }
         }
     }
 
     private static int NewMethod(ref int v, int i)
     {
-        {|Warning:return v = v + i;|}
+        return v = v + i;
     }
 }");
         }
