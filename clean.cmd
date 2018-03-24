@@ -1,0 +1,3 @@
+@echo Cleaning ...
+git clean -xdf
+@echo ...Done
