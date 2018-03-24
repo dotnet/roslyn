@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             string baseName,
             CancellationToken cancellationToken)
         {
-            return semanticFacts.GenerateUniqueName(model, location, containerOpt: null, baseName, cancellationToken);
+            return semanticFacts.GenerateUniqueLocalName(model, location, containerOpt: null, baseName, cancellationToken);
         }
 
         protected SyntaxNode GetCollectionVariableName(

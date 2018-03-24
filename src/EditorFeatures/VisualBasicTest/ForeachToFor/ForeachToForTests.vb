@@ -660,5 +660,37 @@ End Class
 "
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        Public Async Function UniqueLocalName() As Task
+            Dim initial = "
+Imports System
+Imports System.Collections.Generic
+
+Class Test
+    Sub Method()
+        For Each [||] a In New List(Of Integer)()
+            Console.WriteLine(a)
+        Next
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Imports System
+Imports System.Collections.Generic
+
+Class Test
+    Sub Method()
+        Dim {|Rename:list|} = New List(Of Integer)()
+        For {|Rename:i|} = 0 To list.Count - 1
+            Dim a = list(i)
+            Console.WriteLine(a)
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
     End Class
 End Namespace
