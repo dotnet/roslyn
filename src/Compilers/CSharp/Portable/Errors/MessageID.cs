@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStackAllocInitializer = MessageBase + 12740,
         IDS_FeatureTupleEquality = MessageBase + 12741,
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
+        IDS_FeatureDeconstructDefault = MessageBase + 12743,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -201,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
                 case MessageID.IDS_FeatureTupleEquality: // semantic check
+                case MessageID.IDS_FeatureDeconstructDefault: // semantic check
                 case MessageID.IDS_FeatureRefReassignment:
                 case MessageID.IDS_FeatureRefFor:
                 case MessageID.IDS_FeatureRefForEach:

@@ -8715,6 +8715,11 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">declaration of expression variables in member initializers and queries</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDeconstructDefault">
+        <source>deconstruction on default</source>
+        <target state="new">deconstruction on default</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

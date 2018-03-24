@@ -10440,6 +10440,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to deconstruction on default.
+        /// </summary>
+        internal static string IDS_FeatureDeconstructDefault {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDeconstructDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to default operator.
         /// </summary>
         internal static string IDS_FeatureDefault {

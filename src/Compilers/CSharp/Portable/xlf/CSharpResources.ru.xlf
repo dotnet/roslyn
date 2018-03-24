@@ -8715,6 +8715,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">declaration of expression variables in member initializers and queries</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDeconstructDefault">
+        <source>deconstruction on default</source>
+        <target state="new">deconstruction on default</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
