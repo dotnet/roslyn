@@ -746,7 +746,24 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundNode&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="Value" Type="BoundExpression"/>
+  </Node>
+
+  <!-- 
+  Like BoundSequence, but the side-effects are statements. This node is
+  produced during initial lowering for the `await` expression and for the
+  switch expression. A separate pass removes these nodes by moving
+  the statements to the top level (i.e. to a statement list that is not in
+  a BoundSpillSequence). It is called a
+  spill sequence because the process of moving it to the top level
+  causes values that would be on the stack during its evaluation to be
+  spilled to temporary variables.
+  -->
+  <Node Name="BoundSpillSequence" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;"/>
     <Field Name="Value" Type="BoundExpression"/>
   </Node>
 

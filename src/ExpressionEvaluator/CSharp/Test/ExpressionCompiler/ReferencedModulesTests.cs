@@ -625,7 +625,7 @@ IL_0005:  ret
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
         [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
             var sourceA =

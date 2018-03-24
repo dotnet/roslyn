@@ -849,7 +849,7 @@ False";
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(6, 5));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AcrossScriptDeclarations()
         {
             string source =

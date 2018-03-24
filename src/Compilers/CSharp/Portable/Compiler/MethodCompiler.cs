@@ -1244,9 +1244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                bool sawLambdas;
-                bool sawLocalFunctions;
-                bool sawAwaitInExceptionHandler;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
                     method,
@@ -1260,9 +1257,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider: debugDocumentProvider,
                     dynamicAnalysisSpans: ref dynamicAnalysisSpans,
                     diagnostics: diagnostics,
-                    sawLambdas: out sawLambdas,
-                    sawLocalFunctions: out sawLocalFunctions,
-                    sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
+                    sawLambdas: out bool sawLambdas,
+                    sawLocalFunctions: out bool sawLocalFunctions,
+                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
                 {
@@ -1318,16 +1315,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
-                IteratorStateMachine iteratorStateMachine;
-                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
+                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
+                    out IteratorStateMachine iteratorStateMachine);
 
                 if (bodyWithoutIterators.HasErrors)
                 {
                     return bodyWithoutIterators;
                 }
 
-                AsyncStateMachine asyncStateMachine;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out asyncStateMachine);
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
+                    out AsyncStateMachine asyncStateMachine);
 
                 Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;

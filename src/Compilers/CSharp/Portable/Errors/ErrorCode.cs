@@ -1590,6 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarMayNotBindToType = 8408,
         WRN_SwitchExpressionNotExhaustive = 8409,
         ERR_SwitchArmSubsumed = 8410,
+        ERR_ExpressionTreeContainsSwitchExpression = 8411,
         #endregion diagnostics introduced for recursive patterns
 
     }

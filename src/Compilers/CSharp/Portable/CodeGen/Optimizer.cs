@@ -720,18 +720,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var origContext = _context;
 
             var sideeffects = node.SideEffects;
-            ArrayBuilder<BoundNode> rewrittenSideeffects = null;
+            ArrayBuilder<BoundExpression> rewrittenSideeffects = null;
             if (!sideeffects.IsDefault)
             {
                 for (int i = 0; i < sideeffects.Length; i++)
                 {
                     var sideeffect = sideeffects[i];
-                    var rewrittenSideeffect =
-                        sideeffect is BoundExpression expr ? this.VisitExpression(expr, ExprContext.Sideeffects) : this.VisitSideEffect(sideeffect);
+                    var rewrittenSideeffect = this.VisitExpression(sideeffect, ExprContext.Sideeffects);
 
                     if (rewrittenSideeffects == null && rewrittenSideeffect != sideeffect)
                     {
-                        rewrittenSideeffects = ArrayBuilder<BoundNode>.GetInstance();
+                        rewrittenSideeffects = ArrayBuilder<BoundExpression>.GetInstance();
                         rewrittenSideeffects.AddRange(sideeffects, i);
                     }
 

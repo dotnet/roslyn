@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IReadOnlySet<Symbol> hoistedVariables;
+        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
 
         protected StateMachineRewriter(
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.RefKind != RefKind.None)
                     {
                         // we'll create proxies for these variables later:
-                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill);
                         continue;
                     }
 

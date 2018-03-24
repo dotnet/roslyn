@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MultipleLocalDeclarations,
         LocalFunctionStatement,
         Sequence,
+        SpillSequence,
         NoOpStatement,
         ReturnStatement,
         YieldReturnStatement,
@@ -2499,7 +2500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSequence : BoundExpression
     {
-        public BoundSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundNode> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+        public BoundSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Sequence, syntax, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
         {
 
@@ -2516,7 +2517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<LocalSymbol> Locals { get; }
 
-        public ImmutableArray<BoundNode> SideEffects { get; }
+        public ImmutableArray<BoundExpression> SideEffects { get; }
 
         public BoundExpression Value { get; }
 
@@ -2525,11 +2526,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSequence(this);
         }
 
-        public BoundSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundNode> sideEffects, BoundExpression value, TypeSymbol type)
+        public BoundSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type)
         {
             if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || type != this.Type)
             {
                 var result = new BoundSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundSpillSequence : BoundExpression
+    {
+        public BoundSpillSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.SpillSequence, syntax, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
+        {
+
+            Debug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!sideEffects.IsDefault, "Field 'sideEffects' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(value != null, "Field 'value' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Locals = locals;
+            this.SideEffects = sideEffects;
+            this.Value = value;
+        }
+
+
+        public ImmutableArray<LocalSymbol> Locals { get; }
+
+        public ImmutableArray<BoundStatement> SideEffects { get; }
+
+        public BoundExpression Value { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitSpillSequence(this);
+        }
+
+        public BoundSpillSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression value, TypeSymbol type)
+        {
+            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || type != this.Type)
+            {
+                var result = new BoundSpillSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -7017,6 +7058,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitLocalFunctionStatement(node as BoundLocalFunctionStatement, arg);
                 case BoundKind.Sequence: 
                     return VisitSequence(node as BoundSequence, arg);
+                case BoundKind.SpillSequence: 
+                    return VisitSpillSequence(node as BoundSpillSequence, arg);
                 case BoundKind.NoOpStatement: 
                     return VisitNoOpStatement(node as BoundNoOpStatement, arg);
                 case BoundKind.ReturnStatement: 
@@ -7478,6 +7521,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitSequence(BoundSequence node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitSpillSequence(BoundSpillSequence node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8158,6 +8205,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitSequence(BoundSequence node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
             return this.DefaultVisit(node);
         }
@@ -8896,6 +8947,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitSequence(BoundSequence node)
+        {
+            this.VisitList(node.SideEffects);
+            this.Visit(node.Value);
+            return null;
+        }
+        public override BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
             this.VisitList(node.SideEffects);
             this.Visit(node.Value);
@@ -9827,7 +9884,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitSequence(BoundSequence node)
         {
-            ImmutableArray<BoundNode> sideEffects = (ImmutableArray<BoundNode>)this.VisitList(node.SideEffects);
+            ImmutableArray<BoundExpression> sideEffects = (ImmutableArray<BoundExpression>)this.VisitList(node.SideEffects);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.Locals, sideEffects, value, type);
+        }
+        public override BoundNode VisitSpillSequence(BoundSpillSequence node)
+        {
+            ImmutableArray<BoundStatement> sideEffects = (ImmutableArray<BoundStatement>)this.VisitList(node.SideEffects);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Locals, sideEffects, value, type);
@@ -11084,6 +11148,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitSequence(BoundSequence node, object arg)
         {
             return new TreeDumperNode("sequence", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("locals", node.Locals, null),
+                new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),
+                new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitSpillSequence(BoundSpillSequence node, object arg)
+        {
+            return new TreeDumperNode("spillSequence", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("locals", node.Locals, null),
                 new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),

@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set up the current method locals
                     DeclareLocals(_currentScope, _topLevelMethod.Parameters);
                     // Treat 'this' as a formal parameter of the top-level method
-                    if (_topLevelMethod.TryGetThisParameter(out var thisParam))
+                    if (_topLevelMethod.TryGetThisParameter(out var thisParam) && (object)thisParam != null)
                     {
                         DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
                     }
@@ -497,6 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                    Debug.Assert(symbol.ContainingSymbol != null);
                     if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
                     {
                         // Restricted types can't be hoisted, so they are not permitted to be captured

@@ -1080,7 +1080,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
             );
@@ -1088,7 +1088,7 @@ public class Program
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
             );
