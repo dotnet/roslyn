@@ -1822,6 +1822,11 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="new">Convert 'For' to 'For Each'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_For_Each_To_For">
+        <source>Convert  'For Each' to 'For'</source>
+        <target state="new">Convert  'For Each' to 'For'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

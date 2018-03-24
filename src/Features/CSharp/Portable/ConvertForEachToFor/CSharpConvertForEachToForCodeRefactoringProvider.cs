@@ -72,10 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             return foreachInfo.ForEachStatement.Parent.IsKind(SyntaxKind.Block);
         }
 
-        protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(ForEachStatementSyntax foreachStatement)
-        {
-            return (foreachStatement.Statement, foreachStatement.Statement);
-        }
+        protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(
+            ForEachStatementSyntax foreachStatement) =>
+            (foreachStatement.Statement, foreachStatement.Statement);
 
         protected override void ConvertToForStatement(
             SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, CancellationToken cancellationToken)
@@ -98,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             IntroduceCollectionStatement(
                 model, foreachInfo, editor, collectionStatementType, foreachCollectionExpression, collectionVariable);
 
-            // create new index varialbe name
             var indexVariable = CreateUniqueName(foreachInfo.SemanticFacts, model, foreachStatement.Statement, "i", cancellationToken);
 
             // put variable statement in body
