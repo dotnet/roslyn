@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         protected abstract bool TryConvert(
             TQueryExpression queryExpression,
             SemanticModel semanticModel,
+            ISemanticFactsService semanticFacts,
             CancellationToken cancellationToken,
             out DocumentUpdateInfo documentUpdate);
 
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (TryConvert(queryExpression, semanticModel, cancellationToken, out DocumentUpdateInfo documentUpdateInfo))
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out DocumentUpdateInfo documentUpdateInfo))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(

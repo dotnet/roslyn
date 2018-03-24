@@ -3,7 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
@@ -39,7 +39,7 @@ class Query
     public static void Main(string[] args)
     {
         List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var i in c)
             {
@@ -47,7 +47,7 @@ class Query
             }
         }
 
-        var r = localFunction();
+        var r = enumerable();
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -120,7 +120,7 @@ class Query
     {
         List<int> c1 = new List<int>{1, 2, 3, 4, 5, 7};
         List<int> c2 = new List<int>{10, 30, 40, 50, 60, 70};
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x1 in c1)
             {
@@ -134,7 +134,7 @@ class Query
             }
         }
 
-        var r = localFunction();
+        var r = enumerable();
     }
 }
 ";
@@ -163,7 +163,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        System.Collections.Generic.IEnumerable<int> localFunction()
+        System.Collections.Generic.IEnumerable<int> enumerable()
         {
             foreach (var num in new int[] { 4, 5 })
             {
@@ -177,7 +177,7 @@ class Program
             }
         }
 
-        var q1 = localFunction();
+        var q1 = enumerable();
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -326,7 +326,7 @@ class C
 {
     static void Main()
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in C)
             {
@@ -334,7 +334,7 @@ class C
             }
         }
 
-        var q = localFunction();
+        var q = enumerable();
     }
 
     static IEnumerable<int> Select<T>(Func<int, T> f) { return null; }
@@ -364,7 +364,7 @@ class C
 {
     static void Main()
     {
-        IEnumerable<object> localFunction()
+        IEnumerable<object> enumerable()
         {
             foreach (var x in C)
             {
@@ -372,7 +372,7 @@ class C
             }
         }
 
-        var q = localFunction();
+        var q = enumerable();
     }
 
     static Func<Func<int, object>, IEnumerable<object>> Select = null;
@@ -408,7 +408,7 @@ class Program
 {
     static void Main()
     {
-        System.Collections.Generic.IEnumerable<int> localFunction()
+        System.Collections.Generic.IEnumerable<int> enumerable()
         {
             foreach (var a in Enumerable.Range(1, 13))
             {
@@ -422,7 +422,7 @@ class Program
             }
         }
 
-        var q2 = localFunction();
+        var q2 = enumerable();
 
         foreach (var q in q2)
         {
@@ -466,7 +466,7 @@ class Program
     static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        System.Collections.Generic.IEnumerable<int> localFunction()
+        System.Collections.Generic.IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -477,7 +477,7 @@ class Program
             }
         }
 
-        var q2 = localFunction();
+        var q2 = enumerable();
 
         string serializer = String.Empty;
         foreach (var q in q2)
@@ -545,7 +545,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        System.Collections.Generic.IEnumerable<int> localFunction()
+        System.Collections.Generic.IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -554,7 +554,7 @@ public class Test
             }
         }
 
-        var q2 = localFunction();
+        var q2 = enumerable();
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -585,7 +585,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -594,7 +594,7 @@ public class Test
             }
         }
 
-        var q2 = localFunction();
+        var q2 = enumerable();
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -622,7 +622,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        System.Collections.Generic.IEnumerable<int> localFunction()
+        System.Collections.Generic.IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -630,7 +630,7 @@ public class Test
             }
         }
 
-        var q2 = localFunction();
+        var q2 = enumerable();
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -660,7 +660,7 @@ static class Test
 {
     static void Main()
     {
-        System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> localFunction()
+        System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> enumerable()
         {
             foreach (var x3 in new int[] { 0 })
             {
@@ -675,7 +675,7 @@ static class Test
             }
         }
 
-        var qie = localFunction();
+        var qie = enumerable();
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -758,7 +758,7 @@ class C
     void M(IEnumerable<int> nums)
     {
         IEnumerable<int> q;
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (int n1 in nums)
             {
@@ -769,7 +769,7 @@ class C
             }
         }
 
-        q = localFunction();
+        q = enumerable();
 
         N(q);
     }
@@ -805,7 +805,7 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         IEnumerable<int> q1, q2;
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -813,7 +813,7 @@ public class Test
             }
         }
 
-        q1 = q2 = localFunction();
+        q1 = q2 = enumerable();
     }
 }";
 
@@ -850,7 +850,7 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         var c = new C();
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -858,7 +858,7 @@ public class Test
             }
         }
 
-        c.A = localFunction();
+        c.A = enumerable();
     }
 
     class C
@@ -893,7 +893,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -901,7 +901,7 @@ public class Test
             }
         }
 
-        IEnumerable<int> q1 = localFunction(), q2 = from x in nums select x + 1;
+        IEnumerable<int> q1 = enumerable(), q2 = from x in nums select x + 1;
     }
 }";
 
@@ -931,7 +931,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -939,7 +939,7 @@ public class Test
             }
         }
 
-        IEnumerable<int> q1 = from x in nums select x + 1, q2 = localFunction();
+        IEnumerable<int> q1 = from x in nums select x + 1, q2 = enumerable();
     }
 }";
 
@@ -970,7 +970,7 @@ public class Test
     public static void Main()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var x in nums)
             {
@@ -978,7 +978,7 @@ public class Test
             }
         }
 
-        var q = (localFunction(), from x in nums select x + 1);
+        var q = (enumerable(), from x in nums select x + 1);
     }
 }";
 
@@ -1010,7 +1010,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (int n1 in nums)
             {
@@ -1021,7 +1021,7 @@ class C
             }
         }
 
-        var q = localFunction();
+        var q = enumerable();
         return q;
     }
 }
@@ -1166,7 +1166,7 @@ public class Test
 {
     (IEnumerable<int>, int) M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach(var a in q)
             {
@@ -1174,7 +1174,7 @@ public class Test
             }
         }
 
-        return (localFunction(), 1);
+        return (enumerable(), 1);
     }
 }
 ";
@@ -1204,7 +1204,7 @@ public class Test
 {
     (int, int) M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach(var a in q)
             {
@@ -1212,7 +1212,7 @@ public class Test
             }
         }
 
-        return (localFunction().Count(), 1);
+        return (enumerable().Count(), 1);
     }
 }
 ";
@@ -1251,7 +1251,7 @@ class Query
         var c1 = new int[] {1, 2, 3};
         var c2 = new int[] {10, 20, 30};
         var c3 = new int[] {100, 200, 300};
-        System.Collections.Generic.IEnumerable<int> localFunction()
+        System.Collections.Generic.IEnumerable<int> enumerable()
         {
             foreach (int x in c1)
             {
@@ -1265,7 +1265,7 @@ class Query
             }
         }
 
-        var r1 = localFunction();
+        var r1 = enumerable();
         Console.WriteLine(r1);
     }
 }";
@@ -1301,7 +1301,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (int n1 in nums)
             {
@@ -1312,7 +1312,7 @@ class C
             }
         }
 
-        var q = localFunction();
+        var q = enumerable();
         N(q);
     }
 
@@ -1346,7 +1346,7 @@ class C
 {
     T M<T>(IEnumerable<T> nums)
     {
-        IEnumerable<T> localFunction()
+        IEnumerable<T> enumerable()
         {
             foreach (var n1 in nums)
             {
@@ -1357,7 +1357,7 @@ class C
             }
         }
 
-        return (localFunction()).FirstOrDefault();
+        return (enumerable()).FirstOrDefault();
     }
 }
 ";
@@ -1426,7 +1426,7 @@ public class Test
 {
     IEnumerable<int>[] M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var a in q)
             {
@@ -1434,7 +1434,7 @@ public class Test
             }
         }
 
-        return new[] { localFunction() };
+        return new[] { enumerable() };
     }
 }
 ";
@@ -1463,7 +1463,7 @@ public class Test
 {
     List<IEnumerable<int>> M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var a in q)
             {
@@ -1471,7 +1471,7 @@ public class Test
             }
         }
 
-        return new List<IEnumerable<int>> { localFunction() };
+        return new List<IEnumerable<int>> { enumerable() };
     }
 }
 ";
@@ -1510,7 +1510,7 @@ public class Test
 
     X M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var a in q)
             {
@@ -1518,7 +1518,7 @@ public class Test
             }
         }
 
-        return new X() { P = localFunction() };
+        return new X() { P = enumerable() };
     }
 }
 ";
@@ -1557,7 +1557,7 @@ public class Test
 
     X M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (var a in q)
             {
@@ -1565,7 +1565,7 @@ public class Test
             }
         }
 
-        return new X() { P = localFunction() };
+        return new X() { P = enumerable() };
     }
 }
 ";
@@ -1594,7 +1594,7 @@ public class Test
 {
     List<int> M(IEnumerable<int> q)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> collection()
         {
             foreach (var a in q)
             {
@@ -1602,7 +1602,7 @@ public class Test
             }
         }
 
-        return new List<int>(localFunction());
+        return new List<int>(collection());
     }
 }
 ";
@@ -1660,7 +1660,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (int n1 in nums)
             {
@@ -1671,7 +1671,7 @@ class C
             }
         }
 
-        var q = localFunction();
+        var q = enumerable();
         foreach (var b in q)
         {
             Console.WriteLine(b);
@@ -1713,7 +1713,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (int n1 in nums)
             {
@@ -1724,7 +1724,7 @@ class C
             }
         }
 
-        var q = localFunction();
+        var q = enumerable();
         foreach(var n1 in q)
         {
             Console.WriteLine(n1);
@@ -2067,7 +2067,7 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        IEnumerable<int> localFunction()
+        IEnumerable<int> enumerable()
         {
             foreach (int n1 in nums)
             {
@@ -2078,7 +2078,7 @@ class C
             }
         }
 
-        var list = (localFunction())?.ToList<int>();
+        var list = (enumerable())?.ToList<int>();
         return list;
     }
 }
@@ -2515,7 +2515,7 @@ public class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-        public async Task ExpressionBodiedLocalFunction()
+        public async Task ExpressionBodiedenumerable()
         {
             string source = @"
 using System.Collections.Generic;

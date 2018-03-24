@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -26,9 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         protected override bool TryConvert(
             QueryExpressionSyntax queryExpression,
             SemanticModel semanticModel,
+            ISemanticFactsService semanticFacts,
             CancellationToken cancellationToken,
             out DocumentUpdateInfo documentUpdateInfo)
-            => new Converter(semanticModel, cancellationToken).TryConvert(queryExpression, out documentUpdateInfo);
+                => new Converter(semanticModel, semanticFacts, cancellationToken).TryConvert(queryExpression, out documentUpdateInfo);
 
         protected override QueryExpressionSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
         {
@@ -39,11 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         private sealed class Converter
         {
             private readonly SemanticModel _semanticModel;
+            private readonly ISemanticFactsService _semanticFacts;
             private readonly CancellationToken _cancellationToken;
 
-            public Converter(SemanticModel semanticModel, CancellationToken cancellationToken)
+            public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
+                _semanticFacts = semanticFacts;
                 _cancellationToken = cancellationToken;
             }
 
@@ -319,9 +323,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             //   {
                             //       yield return a;
                             //   }
-                            //  }
+                            // }
                             //  statement ... localFunction();
-                            string localFunctionName = GetFreeSymbolName("localFunction", source.GetLocation().SourceSpan.Start);
+                            string localFunctionName =_semanticFacts.GenerateNameForExpression(
+                                _semanticModel, 
+                                source, 
+                                capitalize: false, 
+                                _cancellationToken);
+                            localFunctionName = GetFreeSymbolName(localFunctionName, source.GetLocation().SourceSpan.Start);
                             var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
                                 modifiers: default,
                                 returnType: typeSyntax.WithAdditionalAnnotations(Simplifier.SpecialTypeAnnotation),
