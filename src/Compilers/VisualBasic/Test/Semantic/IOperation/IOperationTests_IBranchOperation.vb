@@ -909,7 +909,7 @@ Block[B0] - Entry
 {
     .try {R3, R4}
     {
-        Block[B1] - Block
+        Block[B1] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B3]
@@ -936,7 +936,7 @@ Block[B0] - Entry
             Entering: {R2} {R3} {R5}
 }
 
-Block[B4] - Block
+Block[B4] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -948,7 +948,7 @@ Block[B4] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
     Next (Regular) Block[B5]
-Block[B5] - Exit
+Block[B5] - Exit [UnReachable]
     Predecessors: [B4]
     Statements (0)
 ]]>.Value
@@ -985,7 +985,7 @@ Block[B0] - Entry
 
 .try {R1, R2}
 {
-    Block[B1] - Block
+    Block[B1] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -1000,7 +1000,7 @@ Block[B0] - Entry
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -1048,7 +1048,7 @@ Block[B0] - Entry
 {
     .try {R3, R4}
     {
-        Block[B1] - Block
+        Block[B1] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B4]
@@ -1057,7 +1057,7 @@ Block[B0] - Entry
     }
     .catch {R5} (System.Exception)
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B3]
@@ -1073,7 +1073,7 @@ Block[B0] - Entry
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -1112,7 +1112,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B3]
         Entering: {R1} {R3}
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1128,7 +1128,7 @@ Block[B1] - Block
 
 .try {R1, R2}
 {
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors: [B1]
         Statements (0)
         Next (Regular) Block[B3]
@@ -1143,7 +1143,7 @@ Block[B1] - Block
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -1181,7 +1181,7 @@ Block[B0] - Entry
 
 .try {R1, R2}
 {
-    Block[B1] - Block
+    Block[B1] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -1248,7 +1248,7 @@ Block[B0] - Entry
 {
     .try {R3, R4}
     {
-        Block[B1] - Block
+        Block[B1] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B4]
@@ -1275,7 +1275,7 @@ Block[B0] - Entry
             Entering: {R2} {R3} {R5}
 }
 
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors: [B1] [B2]
     Statements (0)
 ]]>.Value
@@ -1322,7 +1322,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B3]
         Entering: {R1} {R2} {R3} {R5}
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1340,7 +1340,7 @@ Block[B1] - Block
 {
     .try {R3, R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors: [B1]
             Statements (0)
             Next (Regular) Block[B3]
@@ -1367,7 +1367,7 @@ Block[B1] - Block
             Entering: {R2} {R3} {R5}
 }
 
-Block[B5] - Exit
+Block[B5] - Exit [UnReachable]
     Predecessors: [B3]
     Statements (0)
 ]]>.Value
@@ -1402,7 +1402,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
         Entering: {R1} {R2}
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1426,7 +1426,7 @@ Block[B1] - Block
 }
 .catch {R3} (System.Exception)
 {
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B4]
@@ -1474,7 +1474,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Exception)
 {
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B1]
@@ -1599,7 +1599,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
         Entering: {R1} {R2}
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1632,7 +1632,7 @@ Block[B1] - Block
             Entering: {R2}
 }
 
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ]]>.Value
@@ -1698,7 +1698,7 @@ Block[B1] - Block
     }
     .catch {R5} (System.Exception)
     {
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B6]
@@ -1715,7 +1715,7 @@ Block[B1] - Block
             Leaving: {R6} {R1}
 }
 
-Block[B5] - Block
+Block[B5] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1801,7 +1801,7 @@ Block[B0] - Entry
             Next (Regular) Block[B2]
                 Leaving: {R8} {R7} {R6}
                 Entering: {R2} {R3} {R5}
-        Block[B4] - Block
+        Block[B4] - Block [UnReachable]
             Predecessors (0)
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1817,20 +1817,20 @@ Block[B0] - Entry
     }
     .catch {R9} (System.Exception)
     {
-        Block[B5] - Block
+        Block[B5] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B6]
                 Leaving: {R9} {R7}
     }
 
-    Block[B6] - Block
+    Block[B6] - Block [UnReachable]
         Predecessors: [B4] [B5]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B7] - Exit
+Block[B7] - Exit [UnReachable]
     Predecessors: [B1] [B2]
     Statements (0)
 ]]>.Value
@@ -1857,7 +1857,7 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true')
@@ -1898,7 +1898,7 @@ Block[B1] - Block
     Predecessors: [B0] [B1]
     Statements (0)
     Next (Regular) Block[B1]
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)]]>.Value
 
@@ -1952,7 +1952,7 @@ Block[B0] - Entry
         Predecessors: [B2] [B3]
         Statements (0)
         Next (Regular) Block[B2]
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = false')
@@ -2022,7 +2022,7 @@ Block[B0] - Entry
         Predecessors: [B2] [B3]
         Statements (0)
         Next (Regular) Block[B2]
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = false')
@@ -2036,7 +2036,7 @@ Block[B0] - Entry
         Next (Regular) Block[B2]
 }
 
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -2181,7 +2181,7 @@ Block[B0] - Entry
         Next (Regular) Block[B2]
 }
 
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -2242,7 +2242,7 @@ Block[B0] - Entry
             Leaving: {R3} {R1}
 
         Next (Regular) Block[B2]
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = false')
@@ -2317,7 +2317,7 @@ Block[B0] - Entry
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
 
         Next (Regular) Block[B2]
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = false')
@@ -2381,7 +2381,7 @@ Block[B2] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Next (Regular) Block[B1]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -2408,7 +2408,7 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = false')
@@ -2463,7 +2463,7 @@ Block[B1] - Block
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
 
     Next (Regular) Block[B1]
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = false')
@@ -2475,7 +2475,7 @@ Block[B2] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Next (Regular) Block[B1]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value

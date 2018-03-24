@@ -32,6 +32,7 @@ Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.Return = 2 -> Microsoft.
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.StructuredExceptionHandling = 3 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.Throw = 5 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Condition, bool JumpIfTrue, Microsoft.CodeAnalysis.Operations.BasicBlock.Branch Branch)
+Microsoft.CodeAnalysis.Operations.BasicBlock.IsReachable.get -> bool
 Microsoft.CodeAnalysis.Operations.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> (Microsoft.CodeAnalysis.IOperation Value, Microsoft.CodeAnalysis.Operations.BasicBlock.Branch Branch)
 Microsoft.CodeAnalysis.Operations.BasicBlock.Ordinal.get -> int

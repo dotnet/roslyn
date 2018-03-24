@@ -1172,5 +1172,220 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ExceptionDispatch_45()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Shared Sub Main()
+    End Sub
+
+    Sub M(x As Integer) 'BIND:"Sub M"
+        Try
+            Throw New NullReferenceException()
+    label1:
+            x = 1
+            End
+        Catch
+            x = 3
+            GoTo label1
+        Finally
+            x = 4
+        end Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Throw) Block[null]
+                IObjectCreationOperation (Constructor: Sub System.NullReferenceException..ctor()) (OperationKind.ObjectCreation, Type: System.NullReferenceException) (Syntax: 'New NullRef ... Exception()')
+                  Arguments(0)
+                  Initializer: 
+                    null
+        Block[B2] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 1')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (ProgramTermination) Block[null]
+    }
+    .catch {R5} (System.Exception)
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 3')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+            Next (Regular) Block[B2]
+                Leaving: {R5}
+                Entering: {R4}
+    }
+}
+.finally {R6}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 4')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 4')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors (0)
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub FinallyDispatch_04()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(x As Integer) 'BIND:"Sub M"
+        GoTo label2
+
+        Try
+            Try
+    label1:
+                x = 1
+    label2:
+                x = 2
+            Finally
+                x = 3
+            end Try
+        Finally
+            x = 4
+            goto label1
+        end Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30754: 'GoTo label2' is not valid because 'label2' is inside a 'Try', 'Catch' or 'Finally' statement that does not contain this statement.
+        GoTo label2
+             ~~~~~~
+BC30101: Branching out of a 'Finally' is not valid.
+            goto label1
+                 ~~~~~~
+BC30754: 'GoTo label1' is not valid because 'label1' is inside a 'Try', 'Catch' or 'Finally' statement that does not contain this statement.
+            goto label1
+                 ~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B2]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 1')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B0] [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 2')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+            Next (Regular) Block[B5]
+                Finalizing: {R5} {R6}
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .finally {R5}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 3')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+.finally {R6}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 4')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 4')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+        Next (Regular) Block[B1]
+            Leaving: {R6}
+            Entering: {R2} {R3} {R4}
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace

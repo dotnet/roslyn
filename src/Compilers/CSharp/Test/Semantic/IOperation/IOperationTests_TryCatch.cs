@@ -989,7 +989,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -1437,7 +1437,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -1579,7 +1579,7 @@ Block[B0] - Entry
     .catch {R5} (Exception1)
     {
         Locals: [Exception1 e]
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1594,7 +1594,7 @@ Block[B0] - Entry
         .locals {R6}
         {
             Locals: [System.Int32 j]
-            Block[B3] - Block
+            Block[B3] - Block [UnReachable]
                 Predecessors: [B2]
                 Statements (1)
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -1691,7 +1691,7 @@ Block[B0] - Entry
 .catch {R3} (Exception1)
 {
     Locals: [Exception1 e]
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1759,7 +1759,7 @@ Block[B0] - Entry
     Locals: [Exception1 e] [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1786,7 +1786,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -1856,7 +1856,7 @@ Block[B0] - Entry
     Locals: [Exception1 e] [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1882,7 +1882,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -1945,7 +1945,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -1966,7 +1966,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2036,7 +2036,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2056,7 +2056,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -2119,7 +2119,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2140,7 +2140,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2210,7 +2210,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2230,7 +2230,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -2289,7 +2289,7 @@ Block[B0] - Entry
 .catch {R3} (Exception1)
 {
     Locals: [System.Int32 j]
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2353,7 +2353,7 @@ Block[B0] - Entry
 }
 .catch {R3} (Exception1)
 {
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -2415,7 +2415,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2436,7 +2436,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2506,7 +2506,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block
+        Block[B2] - Block [UnReachable]
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2526,7 +2526,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block
+        Block[B3] - Block [UnReachable]
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -3397,6 +3397,4317 @@ Block[B2] - Exit
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_01()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_02()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            if (ThisCanThrow()) return;
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+            Leaving: {R2} {R1}
+
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_03()
+        {
+            string source = @"
+class P
+{
+    bool M(bool b)
+/*<bind>*/{
+        try
+        {
+            return ThisCanThrow();
+        }
+        catch
+        {
+            b = true;
+        }
+
+        return false;
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B4]
+            IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Next (Return) Block[B4]
+        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_04()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            throw null;
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_05()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            if (true) throw null;
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            Leaving: {R2} {R1}
+
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_06()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            if (false) throw null;
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+            Leaving: {R2} {R1}
+
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_07()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch
+        {
+            try
+            {
+                if (true) throw;
+            }
+            catch
+            {
+                b = true;
+            }
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .try {R4, R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B4]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Leaving: {R5} {R4} {R3} {R1}
+
+            Next (ReThrow) Block[null]
+    }
+    .catch {R6} (System.Object)
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                      Left: 
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+            Next (Regular) Block[B4]
+                Leaving: {R6} {R4} {R3} {R1}
+    }
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_08()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch
+        {
+            try
+            {
+                if (false) throw;
+            }
+            catch
+            {
+                b = true;
+            }
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .try {R4, R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B4]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                Leaving: {R5} {R4} {R3} {R1}
+
+            Next (ReThrow) Block[null]
+    }
+    .catch {R6} (System.Object)
+    {
+        Block[B3] - Block [UnReachable]
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                      Left: 
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+            Next (Regular) Block[B4]
+                Leaving: {R6} {R4} {R3} {R1}
+    }
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_09()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+            if (false) return;
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool[] ThisCanThrow() => null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean[] P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+            Leaving: {R2} {R1}
+
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(9,24): warning CS0162: Unreachable code detected
+                //             if (false) return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(9, 24)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_10()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+            if (true) return;
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool[] ThisCanThrow() => null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean[] P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            Leaving: {R2} {R1}
+
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_11()
+        {
+            string source = @"
+class P
+{
+    bool[] M(bool b)
+/*<bind>*/{
+        try
+        {
+            if (true) return ThisCanThrow();
+        }
+        catch
+        {
+            b = true;
+        }
+
+        return null;
+    }/*</bind>*/
+
+    static bool[] ThisCanThrow() => null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            Leaving: {R2} {R1}
+
+        Next (Return) Block[B4]
+            IInvocationOperation (System.Boolean[] P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'ThisCanThrow()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Block
+    Predecessors: [B1] [B2]
+    Statements (0)
+    Next (Return) Block[B4]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean[], Constant: null, IsImplicit) (Syntax: 'null')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_12()
+        {
+            string source = @"
+class P
+{
+    bool[] M(bool b)
+/*<bind>*/{
+        try
+        {
+            if (false) return ThisCanThrow();
+        }
+        catch
+        {
+            b = true;
+        }
+
+        return null;
+    }/*</bind>*/
+
+    static bool[] ThisCanThrow() => null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+            Leaving: {R2} {R1}
+
+        Next (Return) Block[B4]
+            IInvocationOperation (System.Boolean[] P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'ThisCanThrow()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
+}
+
+Block[B3] - Block
+    Predecessors: [B1] [B2]
+    Statements (0)
+    Next (Return) Block[B4]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean[], Constant: null, IsImplicit) (Syntax: 'null')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            (ImplicitReference)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(8,24): warning CS0162: Unreachable code detected
+                //             if (false) return ThisCanThrow();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(8, 24)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_13()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+            }
+            finally
+            {
+                ThisCanThrow();
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B4]
+                Finalizing: {R5}
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Leaving: {R6} {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_14()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B4]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R2} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Leaving: {R6} {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_15()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (true)
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B5]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B3]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Next (Regular) Block[B5]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B4] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R8} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(12,25): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //             catch when (true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(12, 25)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_16()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (false)
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B5]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B3]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B3] - Block [UnReachable]
+                Predecessors: [B2]
+                Statements (0)
+                Next (Regular) Block[B5]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R8} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(12,25): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //             catch when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(12, 25)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_17()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (ThisCanThrow())
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B5]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B3]
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Next (Regular) Block[B5]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R8} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_18()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (ThisCanThrow() || true)
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B6]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B4]
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Jump if True (Regular) to Block[B4]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B4] - Block
+                Predecessors: [B2] [B3]
+                Statements (0)
+                Next (Regular) Block[B6]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B5] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B6]
+            Leaving: {R8} {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B1] [B4] [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_19()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (true || ThisCanThrow())
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B6]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B4]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (Regular) Block[B3]
+            Block[B3] - Block [UnReachable]
+                Predecessors: [B2]
+                Statements (0)
+                Jump if True (Regular) to Block[B4]
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B4] - Block
+                Predecessors: [B2] [B3]
+                Statements (0)
+                Next (Regular) Block[B6]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B5] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B6]
+            Leaving: {R8} {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B1] [B4] [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_20()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (ThisCanThrow() && false)
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B7]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if False (Regular) to Block[B4]
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Jump if True (Regular) to Block[B5]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B2] [B3]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B5] - Block [UnReachable]
+                Predecessors: [B3]
+                Statements (0)
+                Next (Regular) Block[B7]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B6] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B7]
+            Leaving: {R8} {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B1] [B5] [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_21()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (false && ThisCanThrow())
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B7]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if False (Regular) to Block[B4]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+                Next (Regular) Block[B3]
+            Block[B3] - Block [UnReachable]
+                Predecessors: [B2]
+                Statements (0)
+                Jump if True (Regular) to Block[B5]
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B2] [B3]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B5] - Block [UnReachable]
+                Predecessors: [B3]
+                Statements (0)
+                Next (Regular) Block[B7]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+}
+.catch {R8} (System.Object)
+{
+    Block[B6] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B7]
+            Leaving: {R8} {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B1] [B5] [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_22()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Next (Regular) Block[B4]
+            Leaving: {R3} {R1}
+}
+.catch {R4} (System.Object)
+{
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Leaving: {R4} {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(13,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(13, 9)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_23()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (true)
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B5]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B4] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R6} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(10,21): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch when (true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 21)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_24()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (false)
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B5]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B3] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R6} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(10,21): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(10, 21)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_25()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (ThisCanThrow())
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B5]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B3]
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R6} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_26()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch when (ThisCanThrow())
+            {
+            }
+            catch
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B6]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        .filter {R6}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B3]
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                    Leaving: {R6}
+                    Entering: {R7}
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+        .handler {R7}
+        {
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Next (Regular) Block[B6]
+                    Leaving: {R7} {R5} {R3} {R2} {R1}
+        }
+    }
+    .catch {R8} (System.Object)
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Next (Regular) Block[B6]
+                Leaving: {R8} {R3} {R2} {R1}
+    }
+}
+.catch {R9} (System.Object)
+{
+    Block[B5] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B6]
+            Leaving: {R9} {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B1] [B3] [B4] [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_27()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (ThisCanThrow() || true)
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B6]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B4]
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Jump if True (Regular) to Block[B4]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (0)
+            Next (Regular) Block[B6]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B5] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B6]
+            Leaving: {R6} {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B1] [B4] [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_28()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (true || ThisCanThrow())
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B6]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B4]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Jump if True (Regular) to Block[B4]
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (0)
+            Next (Regular) Block[B6]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B5] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B6]
+            Leaving: {R6} {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B1] [B4] [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_29()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (ThisCanThrow() && false)
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B7]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B4]
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B5] - Block [UnReachable]
+            Predecessors: [B3]
+            Statements (0)
+            Next (Regular) Block[B7]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B6] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B7]
+            Leaving: {R6} {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B1] [B5] [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_30()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch when (false && ThisCanThrow())
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B7]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B4]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B5] - Block [UnReachable]
+            Predecessors: [B3]
+            Statements (0)
+            Next (Regular) Block[B7]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B6] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B7]
+            Leaving: {R6} {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B1] [B5] [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_31()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch
+            {
+                ThisCanThrow();
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B4]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.Object)
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R2} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Leaving: {R6} {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_32()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch (System.NullReferenceException e)
+        {
+            ThisCanThrow();
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.NullReferenceException)
+{
+    Locals: [System.NullReferenceException e]
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (2)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(System.Nul ... xception e)')
+              Left: 
+                ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: System.NullReferenceException, IsImplicit) (Syntax: '(System.Nul ... xception e)')
+              Right: 
+                ICaughtExceptionOperation (OperationKind.CaughtException, Type: System.NullReferenceException, IsImplicit) (Syntax: '(System.Nul ... xception e)')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+            Leaving: {R3} {R1}
+}
+.catch {R4} (System.Object)
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Leaving: {R4} {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(10,46): warning CS0168: The variable 'e' is declared but never used
+                //         catch (System.NullReferenceException e)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(10, 46)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_33()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            catch (System.NullReferenceException e)
+            {
+            }
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B4]
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .catch {R5} (System.NullReferenceException)
+    {
+        Locals: [System.NullReferenceException e]
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(System.Nul ... xception e)')
+                  Left: 
+                    ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: System.NullReferenceException, IsImplicit) (Syntax: '(System.Nul ... xception e)')
+                  Right: 
+                    ICaughtExceptionOperation (OperationKind.CaughtException, Type: System.NullReferenceException, IsImplicit) (Syntax: '(System.Nul ... xception e)')
+
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R2} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Leaving: {R6} {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(12,50): warning CS0168: The variable 'e' is declared but never used
+                //             catch (System.NullReferenceException e)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(12, 50)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_34()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            if (true) throw null;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B4]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Block[B3] - Block [UnReachable]
+        Predecessors: [B2]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B4] - Exit [UnReachable]
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_35()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            if (false) throw null;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B4]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B4] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_36()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            if (b) throw null;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B4]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B4] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_37()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            if (true) goto label1;
+            throw null;
+label1:     ;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B5]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block [UnReachable]
+        Predecessors: [B2]
+        Statements (0)
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_38()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            if (false) goto label1;
+            throw null;
+label1:     ;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B5]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (0)
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Block[B4] - Block [UnReachable]
+        Predecessors: [B2]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(11,24): warning CS0162: Unreachable code detected
+                //             if (false) goto label1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(11, 24),
+                // file.cs(13,1): warning CS0162: Unreachable code detected
+                // label1:     ;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "label1").WithLocation(13, 1)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_39()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch
+        {
+            try
+            {
+                ThisCanThrow();
+            }
+            finally
+            {
+                if (false) goto label1;
+                throw;
+    label1:     ;
+            }
+
+            b = false;
+        }       
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B5]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.Object)
+{
+    .try {R4, R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+                  Expression: 
+                    IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+
+            Next (Regular) Block[B4]
+                Finalizing: {R6}
+                Leaving: {R5} {R4}
+    }
+    .finally {R6}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (ReThrow) to Block[null]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+
+    Block[B4] - Block [UnReachable]
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = false;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = false')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Next (Regular) Block[B5]
+            Leaving: {R3} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(19,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                //                 throw;
+                Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw").WithLocation(19, 17),
+                // file.cs(18,28): warning CS0162: Unreachable code detected
+                //                 if (false) goto label1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(18, 28),
+                // file.cs(20,5): warning CS0162: Unreachable code detected
+                //     label1:     ;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "label1").WithLocation(20, 5),
+                // file.cs(23,13): warning CS0162: Unreachable code detected
+                //             b = false;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "b").WithLocation(23, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_40()
+        {
+            string source = @"
+class P
+{
+    void M(bool b)
+/*<bind>*/{
+        try
+        {
+            ThisCanThrow();
+        }
+        catch (System.NullReferenceException) when (true)
+        {
+        }
+        catch
+        {
+            b = true;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ThisCanThrow();')
+              Expression: 
+                IInvocationOperation (System.Boolean P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'ThisCanThrow()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B5]
+            Leaving: {R2} {R1}
+}
+.catch {R3} (System.NullReferenceException)
+{
+    .filter {R4}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Leaving: {R4}
+                Entering: {R5}
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    .handler {R5}
+    {
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Leaving: {R5} {R3} {R1}
+    }
+}
+.catch {R6} (System.Object)
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B5]
+            Leaving: {R6} {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(10,53): warning CS7095: Filter expression is a constant 'true', consider removing the filter
+                //         catch (System.NullReferenceException) when (true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 53)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_41()
+        {
+            string source = @"
+class P
+{
+    void M(int x)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                throw null;
+            }
+            finally
+            {
+                x = 1;
+            }
+
+            x = 2;
+        }
+        finally
+        {
+            x = 3;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Throw) Block[null]
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 1')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B5]
+            Finalizing: {R6}
+            Leaving: {R2} {R1}
+}
+.finally {R6}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(17,13): warning CS0162: Unreachable code detected
+                //             x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_42()
+        {
+            string source = @"
+class P
+{
+    void M(int x)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                throw null;
+            }
+            finally
+            {
+                throw null;
+            }
+
+            x = 2;
+        }
+        finally
+        {
+            x = 3;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Throw) Block[null]
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Next (Throw) Block[null]
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    }
+
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B5]
+            Finalizing: {R6}
+            Leaving: {R2} {R1}
+}
+.finally {R6}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(17,13): warning CS0162: Unreachable code detected
+                //             x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_43()
+        {
+            string source = @"
+class P
+{
+    void M(int x)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                throw null;
+            }
+            finally
+            {
+                while (true) {}
+            }
+
+            x = 2;
+        }
+        finally
+        {
+            x = 3;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Throw) Block[null]
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Jump if False (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+            Next (Regular) Block[B2]
+        Block[B3] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+
+    Block[B4] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B6]
+            Finalizing: {R6}
+            Leaving: {R2} {R1}
+}
+.finally {R6}
+{
+    Block[B5] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B6] - Exit [UnReachable]
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(17,13): warning CS0162: Unreachable code detected
+                //             x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ExceptionDispatch_44()
+        {
+            string source = @"
+class P
+{
+    void M()
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                try
+                {
+                }
+                finally
+                {
+                    return;
+                }
+            }
+            catch
+            {
+            }
+        }
+        finally
+        {
+            throw null;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4} {R5} {R6}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        .try {R5, R6}
+        {
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (0)
+                Next (Regular) Block[B5]
+                    Finalizing: {R7} {R9}
+                    Leaving: {R6} {R5} {R4} {R3} {R2} {R1}
+        }
+        .finally {R7}
+        {
+            Block[B2] - Block
+                Predecessors (0)
+                Statements (0)
+                Next (Regular) Block[B5]
+                    Finalizing: {R9}
+                    Leaving: {R7} {R5} {R4} {R3} {R2} {R1}
+        }
+    }
+    .catch {R8} (System.Object)
+    {
+        Block[B3] - Block [UnReachable]
+            Predecessors (0)
+            Statements (0)
+            Next (Regular) Block[B5]
+                Finalizing: {R9}
+                Leaving: {R8} {R3} {R2} {R1}
+    }
+}
+.finally {R9}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (0)
+        Next (Throw) Block[null]
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(15,21): error CS0157: Control cannot leave the body of a finally clause
+                //                     return;
+                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "return").WithLocation(15, 21)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FinallyDispatch_01()
+        {
+            string source = @"
+class P
+{
+    void M(int x)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                return;
+            }
+            finally
+            {
+                x = 1;
+            }
+
+            x = 2;
+        }
+        finally
+        {
+            x = 3;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Finalizing: {R5} {R6}
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 1')
+                      Left: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
+
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B5]
+            Finalizing: {R6}
+            Leaving: {R2} {R1}
+}
+.finally {R6}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit
+    Predecessors: [B1] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(17,13): warning CS0162: Unreachable code detected
+                //             x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FinallyDispatch_02()
+        {
+            string source = @"
+class P
+{
+    void M(int x)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                return;
+            }
+            finally
+            {
+                throw null;
+            }
+
+            x = 2;
+        }
+        finally
+        {
+            x = 3;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B5]
+                Finalizing: {R5} {R6}
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors (0)
+            Statements (0)
+            Next (Throw) Block[null]
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    }
+
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B5]
+            Finalizing: {R6}
+            Leaving: {R2} {R1}
+}
+.finally {R6}
+{
+    Block[B4] - Block
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B1] [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(17,13): warning CS0162: Unreachable code detected
+                //             x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FinallyDispatch_03()
+        {
+            string source = @"
+class P
+{
+    void M(int x)
+/*<bind>*/{
+        try
+        {
+            try
+            {
+                return;
+            }
+            finally
+            {
+                while (true) {}
+            }
+
+            x = 2;
+        }
+        finally
+        {
+            x = 3;
+        }
+    }/*</bind>*/
+
+    static bool ThisCanThrow() => throw null;
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
+
+.try {R1, R2}
+{
+    .try {R3, R4}
+    {
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B6]
+                Finalizing: {R5} {R6}
+                Leaving: {R4} {R3} {R2} {R1}
+    }
+    .finally {R5}
+    {
+        Block[B2] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Jump if False (Regular) to Block[B3]
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+            Next (Regular) Block[B2]
+        Block[B3] - Block [UnReachable]
+            Predecessors: [B2]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+
+    Block[B4] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 2')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B6]
+            Finalizing: {R6}
+            Leaving: {R2} {R1}
+}
+.finally {R6}
+{
+    Block[B5] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 3')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B6] - Exit [UnReachable]
+    Predecessors: [B1] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(17,13): warning CS0162: Unreachable code detected
+                //             x = 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(17, 13)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
         // PROTOTYPE(dataflow): Add flow graph tests to VB.

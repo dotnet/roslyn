@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Null(currentRegion.ExceptionType);
                         Assert.Empty(currentRegion.Locals);
                         Assert.Equal(ControlFlowGraph.RegionKind.Root, currentRegion.Kind);
+                        Assert.True(block.IsReachable);
                         break;
 
                     case BasicBlockKind.Exit:
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     stringBuilder.AppendLine();
                 }
 
-                appendLine($"Block[B{i}] - {block.Kind}");
+                appendLine($"Block[B{i}] - {block.Kind}{(block.IsReachable ? "" : " [UnReachable]")}");
 
                 var predecessors = block.Predecessors;
 
@@ -130,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(blocks[conditionalBranch.Destination.Ordinal], conditionalBranch.Destination);
                     }
 
+                    Assert.NotEqual(BasicBlock.BranchKind.StructuredExceptionHandling, conditionalBranch.Kind);
                     appendLine($"    Jump if {(block.Conditional.JumpIfTrue ? "True" : "False")} ({conditionalBranch.Kind}) to Block[{getDestinationString(ref conditionalBranch)}]");
 
                     IOperation value = block.Conditional.Condition;
@@ -151,6 +153,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (nextBranch.Destination != null)
                     {
                         Assert.Same(blocks[nextBranch.Destination.Ordinal], nextBranch.Destination);
+                    }
+
+                    if (nextBranch.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
+                    {
+                        Assert.Null(nextBranch.Destination);
+                        Assert.Equal(block.Region.LastBlockOrdinal, block.Ordinal);
+                        Assert.True(block.Region.Kind == ControlFlowGraph.RegionKind.Filter || block.Region.Kind == ControlFlowGraph.RegionKind.Finally);
                     }
 
                     appendLine($"    Next ({nextBranch.Kind}) Block[{getDestinationString(ref nextBranch)}]");

@@ -1277,7 +1277,7 @@ Block[B0] - Entry
 
         Next (Regular) Block[B3]
             Leaving: {R1}
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')

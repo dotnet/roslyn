@@ -223,7 +223,7 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = true;')
@@ -273,7 +273,7 @@ Block[B1] - Block
     Statements (0)
     Next (Return) Block[B3]
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = true;')
@@ -624,7 +624,7 @@ Block[B1] - Block
     Statements (0)
     Next (Return) Block[B3]
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (0)
     Next (Return) Block[B3]
@@ -1189,7 +1189,7 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
-Block[B1] - Block
+Block[B1] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = true;')
