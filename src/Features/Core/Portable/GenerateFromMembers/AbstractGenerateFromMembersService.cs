@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => !symbol.IsStatic && (IsViableField(symbol) || IsViableProperty(symbol));
 
         private static bool IsViableProperty(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Property;
+            => symbol is IPropertySymbol property && property.Parameters.IsEmpty;
 
         private static bool IsViableField(ISymbol symbol)
             => symbol is IFieldSymbol field && field.AssociatedSymbol == null;

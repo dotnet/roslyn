@@ -975,6 +975,34 @@ class Program
 chosenSymbols: null);
         }
 
+        [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogNoIndexer()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P => 0;
+    public int this[int index] => 0;
+    [||]
+}",
+@"
+class Program
+{
+    public int P => 0;
+    public int this[int index] => 0;
+
+    public override bool Equals(object obj)
+    {
+        var program = obj as Program;
+        return program != null &&
+               P == program.P;
+    }
+}",
+chosenSymbols: null);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGenerateOperators1()
         {
