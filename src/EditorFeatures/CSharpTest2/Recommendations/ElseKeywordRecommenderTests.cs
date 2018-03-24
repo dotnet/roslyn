@@ -86,7 +86,7 @@ dasd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIf()
+        public async Task TestAfterIfExpressionStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"if (true)
@@ -106,7 +106,18 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterElse1()
+        public async Task TestAfterIfWhileStatementBlock()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    while (true)
+    {
+    }
+$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterIfExpressionStatementElse()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"if (true)
@@ -115,7 +126,7 @@ else $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterElse2()
+        public async Task TestNotAfterIfBlockElse()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"if (true)

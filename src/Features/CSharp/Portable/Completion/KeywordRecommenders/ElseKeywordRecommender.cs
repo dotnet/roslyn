@@ -38,18 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //   if (goo)
             //     Console.WriteLine();
             //   e|
-            if (token.IsKind(SyntaxKind.SemicolonToken) && ifStatement.Statement.GetLastToken(includeSkipped: true) == token)
-            {
-                return true;
-            }
-
-            // if (goo) {
+            //   if (goo) {
             //     Console.WriteLine();
             //   } |
             //   if (goo) {
             //     Console.WriteLine();
             //   } e|
-            if (token.IsKind(SyntaxKind.CloseBraceToken) && ifStatement.Statement is BlockSyntax && token == ((BlockSyntax)ifStatement.Statement).CloseBraceToken)
+            if (ifStatement.Statement.GetLastToken(includeSkipped: true, includeZeroWidth: true) == token)
             {
                 return true;
             }
