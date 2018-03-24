@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Parameter,
         LabelStatement,
         GotoStatement,
+        GotoExpression,
         LabeledStatement,
         Label,
         StatementList,
@@ -3961,6 +3962,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundGotoExpression : BoundExpression
+    {
+        public BoundGotoExpression(SyntaxNode syntax, LabelSymbol label, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.GotoExpression, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Label = label;
+        }
+
+        public BoundGotoExpression(SyntaxNode syntax, LabelSymbol label, TypeSymbol type)
+            : base(BoundKind.GotoExpression, syntax, type)
+        {
+
+            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Label = label;
+        }
+
+
+        public LabelSymbol Label { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitGotoExpression(this);
+        }
+
+        public BoundGotoExpression Update(LabelSymbol label, TypeSymbol type)
+        {
+            if (label != this.Label || type != this.Type)
+            {
+                var result = new BoundGotoExpression(this.Syntax, label, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundLabeledStatement : BoundStatement
     {
         public BoundLabeledStatement(SyntaxNode syntax, LabelSymbol label, BoundStatement body, bool hasErrors = false)
@@ -6518,6 +6561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitLabelStatement(node as BoundLabelStatement, arg);
                 case BoundKind.GotoStatement: 
                     return VisitGotoStatement(node as BoundGotoStatement, arg);
+                case BoundKind.GotoExpression: 
+                    return VisitGotoExpression(node as BoundGotoExpression, arg);
                 case BoundKind.LabeledStatement: 
                     return VisitLabeledStatement(node as BoundLabeledStatement, arg);
                 case BoundKind.Label: 
@@ -7021,6 +7066,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitGotoStatement(BoundGotoStatement node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitGotoExpression(BoundGotoExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7641,6 +7690,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitGotoStatement(BoundGotoStatement node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitGotoExpression(BoundGotoExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -8372,6 +8425,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.CaseExpressionOpt);
             this.Visit(node.LabelExpressionOpt);
+            return null;
+        }
+        public override BoundNode VisitGotoExpression(BoundGotoExpression node)
+        {
             return null;
         }
         public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
@@ -9234,6 +9291,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression caseExpressionOpt = (BoundExpression)this.Visit(node.CaseExpressionOpt);
             BoundLabel labelExpressionOpt = (BoundLabel)this.Visit(node.LabelExpressionOpt);
             return node.Update(node.Label, caseExpressionOpt, labelExpressionOpt);
+        }
+        public override BoundNode VisitGotoExpression(BoundGotoExpression node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.Label, type);
         }
         public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
         {
@@ -10565,6 +10627,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("label", node.Label, null),
                 new TreeDumperNode("caseExpressionOpt", null, new TreeDumperNode[] { Visit(node.CaseExpressionOpt, null) }),
                 new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) })
+            }
+            );
+        }
+        public override TreeDumperNode VisitGotoExpression(BoundGotoExpression node, object arg)
+        {
+            return new TreeDumperNode("gotoExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("label", node.Label, null),
+                new TreeDumperNode("type", node.Type, null)
             }
             );
         }

@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite the nullable expression to a temp as we might have a user defined conversion from source expression to switch governing type.
             // We can avoid generating the temp if the expression is a bound local.
             LocalSymbol tempLocal;
-            if (rewrittenExpression.Kind != BoundKind.Local)
+            if (rewrittenExpression.Kind != BoundKind.Local &&
+                rewrittenExpression.Kind != BoundKind.LoweredConditionalAccess)
             {
                 BoundAssignmentOperator assignmentToTemp;
                 BoundLocal boundTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
@@ -153,37 +154,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tempLocal = null;
             }
 
-            // Generate a BoundConditionalGoto with null check as the conditional expression and appropriate switch label as the target: null, default or exit label.
-            BoundStatement condGotoNullValueTargetLabel = new BoundConditionalGoto(
-                exprSyntax,
-                condition: MakeNullCheck(exprSyntax, rewrittenExpression, BinaryOperatorKind.NullableNullEqual),
-                jumpIfTrue: true,
-                label: GetNullValueTargetSwitchLabel(rewrittenSections, breakLabel));
+            TypeSymbol nullableUnderlyingType = exprNullableType.GetNullableUnderlyingType();
+            BoundExpression gotoNullValueTargetLabel = new BoundGotoExpression(
+                syntax: exprSyntax,
+                label: GetNullValueTargetSwitchLabel(rewrittenSections, breakLabel),
+                type: nullableUnderlyingType);
 
-            // Rewrite the switch statement using nullable expression's underlying value as the switch expression.
-
-            // rewrittenExpression.GetValueOrDefault()
-            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, exprNullableType, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            BoundCall callGetValueOrDefault = BoundCall.Synthesized(exprSyntax, rewrittenExpression, getValueOrDefault);
-            rewrittenExpression = callGetValueOrDefault;
+            rewrittenExpression = MakeNullCoalescingOperator(
+                syntax: exprSyntax,
+                rewrittenLeft: rewrittenExpression,
+                rewrittenRight: gotoNullValueTargetLabel,
+                leftConversion: Conversion.Identity,
+                rewrittenResultType: nullableUnderlyingType);
 
             // rewrite switch statement
             BoundStatement rewrittenSwitchStatement = MakeSwitchStatementWithNonNullableExpression(
                 syntax,
-                condGotoNullValueTargetLabel,
-                rewrittenExpression, 
-                rewrittenSections, 
-                constantTargetOpt, 
-                locals, 
-                localFunctions, 
-                breakLabel, 
+                preambleOpt: null,
+                rewrittenExpression,
+                rewrittenSections,
+                constantTargetOpt,
+                locals,
+                localFunctions,
+                breakLabel,
                 oldNode);
 
             statementBuilder.Add(rewrittenSwitchStatement);
 
             return new BoundBlock(
                 syntax,
-                locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal),
+                locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create(tempLocal),
                 statements: statementBuilder.ToImmutableAndFree());
         }
 

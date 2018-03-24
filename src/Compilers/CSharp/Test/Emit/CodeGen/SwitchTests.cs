@@ -2400,6 +2400,55 @@ class Program
 }");
         }
 
+        [WorkItem(21962, "https://github.com/dotnet/roslyn/issues/21962")]
+        [Fact()]
+        public void ConditionalAccessAsSwitchExpression()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        M(null);
+        M("""");
+    }
+
+    static void M(string str)
+    {
+        switch(str?.Length)
+        {
+            case null:
+                Console.Write(0);
+                break;
+            case 0:
+                Console.Write(1);
+                break;
+        }
+    }
+}";
+            CompileAndVerify(text, expectedOutput: "01").VerifyIL("Program.M",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000e
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""int string.Length.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_0015
+  IL_000d:  ret
+  IL_000e:  ldc.i4.0
+  IL_000f:  call       ""void System.Console.Write(int)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.1
+  IL_0016:  call       ""void System.Console.Write(int)""
+  IL_001b:  ret
+}");
+        }
+
         [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression_02()

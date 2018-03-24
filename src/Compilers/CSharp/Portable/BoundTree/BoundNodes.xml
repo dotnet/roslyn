@@ -1083,6 +1083,12 @@
     <Field Name="LabelExpressionOpt" Type="BoundLabel" Null="allow"/>
   </Node>
 
+  <!-- only used by codegen -->
+  <Node Name="BoundGotoExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
+  </Node>
+
   <!-- 
   This represents a statement which has been labeled.
   This allows us to recursively bind the labeled expression during binding.

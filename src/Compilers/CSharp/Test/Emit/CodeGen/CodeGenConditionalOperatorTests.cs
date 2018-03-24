@@ -2068,46 +2068,46 @@ public static class Program
             string expectedOutput = @"Val Val ";
             string expectedIL = @"
 {
-  // Code size       81 (0x51)
-  .maxstack  3
+  // Code size       82 (0x52)
+  .maxstack  2
   .locals init (Program.IGoo<string> V_0, //i
-  Program.GooVal V_1, //e
-  Program.GooVal? V_2,
-  Program.IGoo<string> V_3)
+                Program.GooVal V_1, //e
+                Program.GooVal? V_2, //n
+                Program.IGoo<string> V_3)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  initobj    ""Program.GooVal""
-  IL_000a:  ldloc.1
-  IL_000b:  newobj     ""Program.GooVal?..ctor(Program.GooVal)""
-  IL_0010:  ldloc.0
-  IL_0011:  dup
-  IL_0012:  brtrue.s   IL_001b
-  IL_0014:  pop
-  IL_0015:  ldloc.1
-  IL_0016:  box        ""Program.GooVal""
-  IL_001b:  stloc.0
-  IL_001c:  ldloc.0
-  IL_001d:  callvirt   ""string Program.IGoo<string>.Goo()""
-  IL_0022:  call       ""void System.Console.Write(string)""
-  IL_0027:  ldnull
-  IL_0028:  stloc.0
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_2
-  IL_002c:  call       ""bool Program.GooVal?.HasValue.get""
-  IL_0031:  brtrue.s   IL_0036
-  IL_0033:  ldloc.0
-  IL_0034:  br.s       IL_0044
-  IL_0036:  ldloca.s   V_2
-  IL_0038:  call       ""Program.GooVal Program.GooVal?.GetValueOrDefault()""
-  IL_003d:  box        ""Program.GooVal""
-  IL_0042:  stloc.3
-  IL_0043:  ldloc.3
-  IL_0044:  stloc.0
-  IL_0045:  ldloc.0
-  IL_0046:  callvirt   ""string Program.IGoo<string>.Goo()""
-  IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  ret
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""Program.GooVal?..ctor(Program.GooVal)""
+  IL_0012:  ldloc.0
+  IL_0013:  dup
+  IL_0014:  brtrue.s   IL_001d
+  IL_0016:  pop
+  IL_0017:  ldloc.1
+  IL_0018:  box        ""Program.GooVal""
+  IL_001d:  stloc.0
+  IL_001e:  ldloc.0
+  IL_001f:  callvirt   ""string Program.IGoo<string>.Goo()""
+  IL_0024:  call       ""void System.Console.Write(string)""
+  IL_0029:  ldnull
+  IL_002a:  stloc.0
+  IL_002b:  ldloca.s   V_2
+  IL_002d:  call       ""bool Program.GooVal?.HasValue.get""
+  IL_0032:  brtrue.s   IL_0037
+  IL_0034:  ldloc.0
+  IL_0035:  br.s       IL_0045
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""Program.GooVal Program.GooVal?.GetValueOrDefault()""
+  IL_003e:  box        ""Program.GooVal""
+  IL_0043:  stloc.3
+  IL_0044:  ldloc.3
+  IL_0045:  stloc.0
+  IL_0046:  ldloc.0
+  IL_0047:  callvirt   ""string Program.IGoo<string>.Goo()""
+  IL_004c:  call       ""void System.Console.Write(string)""
+  IL_0051:  ret
 }";
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
