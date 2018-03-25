@@ -352,6 +352,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
+    public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual TResult VisitQueryExpression(QueryExpressionSyntax node)
     {
@@ -1575,6 +1581,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a StackAllocArrayCreationExpressionSyntax node.</summary>
     public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
+    public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -2902,7 +2914,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
       var type = (TypeSyntax)this.Visit(node.Type);
-      return node.Update(stackAllocKeyword, type);
+      var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
+      return node.Update(stackAllocKeyword, type, initializer);
+    }
+
+    public override SyntaxNode VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+    {
+      var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
+      var openBracketToken = this.VisitToken(node.OpenBracketToken);
+      var closeBracketToken = this.VisitToken(node.CloseBracketToken);
+      var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
+      return node.Update(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
     }
 
     public override SyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
@@ -5994,7 +6016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new StackAllocArrayCreationExpressionSyntax instance.</summary>
-    public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type)
+    public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
     {
       switch (stackAllocKeyword.Kind())
       {
@@ -6005,14 +6027,56 @@ namespace Microsoft.CodeAnalysis.CSharp
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
-      return (StackAllocArrayCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+      return (StackAllocArrayCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node, type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, initializer == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new StackAllocArrayCreationExpressionSyntax instance.</summary>
+    public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(TypeSyntax type, InitializerExpressionSyntax initializer)
+    {
+      return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), type, initializer);
+    }
+
+    /// <summary>Creates a new StackAllocArrayCreationExpressionSyntax instance.</summary>
     public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(TypeSyntax type)
     {
-      return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), type);
+      return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), type, default(InitializerExpressionSyntax));
+    }
+
+    /// <summary>Creates a new ImplicitStackAllocArrayCreationExpressionSyntax instance.</summary>
+    public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+    {
+      switch (stackAllocKeyword.Kind())
+      {
+        case SyntaxKind.StackAllocKeyword:
+          break;
+        default:
+          throw new ArgumentException("stackAllocKeyword");
+      }
+      switch (openBracketToken.Kind())
+      {
+        case SyntaxKind.OpenBracketToken:
+          break;
+        default:
+          throw new ArgumentException("openBracketToken");
+      }
+      switch (closeBracketToken.Kind())
+      {
+        case SyntaxKind.CloseBracketToken:
+          break;
+        default:
+          throw new ArgumentException("closeBracketToken");
+      }
+      if (initializer == null)
+        throw new ArgumentNullException(nameof(initializer));
+      return (ImplicitStackAllocArrayCreationExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ImplicitStackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node, initializer == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new ImplicitStackAllocArrayCreationExpressionSyntax instance.</summary>
+    public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(InitializerExpressionSyntax initializer)
+    {
+      return SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), initializer);
     }
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>

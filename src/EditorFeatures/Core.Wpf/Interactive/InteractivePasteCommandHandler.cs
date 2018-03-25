@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -10,22 +9,25 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using System.IO;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Commanding;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     // This command handler must be invoked after the handlers specified in `Order` attribute
     // (those handlers also implement `ICommandHandler<PasteCommandArgs>`),
     // because it will intercept the paste command and skip the rest of handlers in chain.  
-    [ExportCommandHandler(PredefinedCommandHandlerNames.InteractivePaste, ContentTypeNames.RoslynContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.InteractivePaste)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Commit)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
-    internal sealed class InteractivePasteCommandHandler : ICommandHandler<PasteCommandArgs>
+    internal sealed class InteractivePasteCommandHandler : VSCommanding.ICommandHandler<PasteCommandArgs>
     {
         // The following two field definitions have to stay in sync with VS editor implementation
 
@@ -47,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         // This is for unit test purpose only, do not explicitly set this field otherwise.
         internal IRoslynClipboard RoslynClipboard;
 
+        public string DisplayName => EditorFeaturesResources.Interactive_Paste_Command_Handler;
+
         [ImportingConstructor]
         public InteractivePasteCommandHandler(IEditorOperationsFactoryService editorOperationsFactoryService, ITextUndoHistoryRegistry textUndoHistoryRegistry)
         {
@@ -55,23 +59,24 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             RoslynClipboard = new SystemClipboardWrapper();
         }
 
-        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(PasteCommandArgs args, CommandExecutionContext context)
         {
             // InteractiveWindow handles pasting by itself, which including checks for buffer types, etc.
             if (!args.TextView.TextBuffer.ContentType.IsOfType(PredefinedInteractiveContentTypes.InteractiveContentTypeName) &&
                 RoslynClipboard.ContainsData(InteractiveClipboardFormat.Tag))
             {
                 PasteInteractiveFormat(args.TextView);
+                return true;
             }
             else
             {
-                nextHandler();
+                return false;
             }
         }
 
-        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(PasteCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]  // Avoid loading InteractiveWindow unless necessary

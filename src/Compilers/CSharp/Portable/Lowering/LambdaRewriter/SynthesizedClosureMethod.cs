@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId lambdaId)
             : base(containingType,
                    originalMethod,
-                   null,
                    blockSyntax,
                    originalMethod.DeclaringSyntaxReferences[0].GetLocation(),
                    originalMethod is LocalFunctionSymbol
