@@ -85,10 +85,6 @@ namespace RunTests
                 var environmentVariables = new Dictionary<string, string>();
                 _options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
-                var outputDirectory = _options.LogFilePath != null
-                    ? Path.GetDirectoryName(_options.LogFilePath)
-                    : Directory.GetCurrentDirectory();
-
                 // Attach procDump to processes when the are started so we can watch for 
                 // unexepected crashes.
                 void onProcessStart(Process process)
