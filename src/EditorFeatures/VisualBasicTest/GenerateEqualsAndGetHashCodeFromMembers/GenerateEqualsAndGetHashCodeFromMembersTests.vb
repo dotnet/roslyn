@@ -130,7 +130,7 @@ chosenSymbols:=Nothing)
 
         <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
-        Public Async Function TestWithDialogNoIndexer() As Task
+        Public Async Function TestWithDialogNoParameterizedProperty() As Task
             Await TestWithPickMembersDialogAsync(
 "
 Class Program
@@ -154,6 +154,46 @@ Class Program
         End Get
     End Property
     Public ReadOnly Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               P = program.P
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogNoIndexer() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Default Public ReadOnly Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Default Public ReadOnly Property I(index As Integer) As Integer
         Get
             Return 0
         End Get
