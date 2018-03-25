@@ -9827,15 +9827,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using &apos;unmanaged&apos; constraint on local functions type parameters is not supported..
-        /// </summary>
-        internal static string ERR_UnmanagedConstraintWithLocalFunctions {
-            get {
-                return ResourceManager.GetString("ERR_UnmanagedConstraintWithLocalFunctions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A previous catch clause already catches all exceptions of this or of a super type (&apos;{0}&apos;).
         /// </summary>
         internal static string ERR_UnreachableCatch {

@@ -675,9 +675,9 @@ public class Test
 }";
 
             CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
-                // (4,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
+                // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
                 //     public void M<T>() where T : unmanaged {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(4, 17));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(4, 19));
         }
 
         [Fact]
