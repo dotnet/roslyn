@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -131,7 +132,7 @@ public class Program
     public int Method()
     {
         Console.WriteLine(""Hello World"");
-        var result = [|NewMethod|]();
+        int result = [|NewMethod|]();
         return result;
     }
 

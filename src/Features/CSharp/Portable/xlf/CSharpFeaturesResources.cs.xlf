@@ -627,6 +627,11 @@
         <target state="translated">Použít kontrolu „is null“</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

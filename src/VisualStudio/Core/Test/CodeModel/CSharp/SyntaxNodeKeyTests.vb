@@ -3,6 +3,7 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Roslyn.Test.Utilities
 

@@ -40,7 +40,7 @@ class C
         (new C()).M();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -81,10 +81,10 @@ public interface I
         var o = (I)null;
     }
 }";
-            var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
+            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
 
-            var compilation0 = CreateStandardCompilation(source, new[] { referencePIA }, TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { referencePIA }, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -136,16 +136,16 @@ public interface I
         A.M(y);
     }
 }";
-            var modulePIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll).ToModuleInstance();
+            var modulePIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll).ToModuleInstance();
 
             // csc /t:library /l:PIA.dll A.cs
-            var moduleA = CreateStandardCompilation(
+            var moduleA = CreateCompilation(
                 sourceA,
                 options: TestOptions.DebugDll,
                 references: new[] { modulePIA.GetReference().WithEmbedInteropTypes(true) }).ToModuleInstance();
 
             // csc /r:A.dll /r:PIA.dll B.cs
-            var moduleB = CreateStandardCompilation(
+            var moduleB = CreateCompilation(
                 sourceB,
                 options: TestOptions.DebugExe,
                 references: new[] { moduleA.GetReference(), modulePIA.GetReference() }).ToModuleInstance();

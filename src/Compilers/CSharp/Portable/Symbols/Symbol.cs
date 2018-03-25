@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IMessageSerializable
+    internal abstract partial class Symbol : ISymbol, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -1123,53 +1123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region ISymbol Members
 
-        SymbolKind ISymbol.Kind
-        {
-            get
-            {
-                switch (this.Kind)
-                {
-                    case SymbolKind.ArrayType:
-                        return SymbolKind.ArrayType;
-                    case SymbolKind.Assembly:
-                        return SymbolKind.Assembly;
-                    case SymbolKind.DynamicType:
-                        return SymbolKind.DynamicType;
-                    case SymbolKind.Event:
-                        return SymbolKind.Event;
-                    case SymbolKind.Field:
-                        return SymbolKind.Field;
-                    case SymbolKind.Label:
-                        return SymbolKind.Label;
-                    case SymbolKind.Local:
-                        return SymbolKind.Local;
-                    case SymbolKind.Method:
-                        return SymbolKind.Method;
-                    case SymbolKind.ErrorType:
-                    case SymbolKind.NamedType:
-                        return SymbolKind.NamedType;
-                    case SymbolKind.Namespace:
-                        return SymbolKind.Namespace;
-                    case SymbolKind.Parameter:
-                        return SymbolKind.Parameter;
-                    case SymbolKind.PointerType:
-                        return SymbolKind.PointerType;
-                    case SymbolKind.Property:
-                        return SymbolKind.Property;
-                    case SymbolKind.TypeParameter:
-                        return SymbolKind.TypeParameter;
-                    case SymbolKind.Alias:
-                        return SymbolKind.Alias;
-                    case SymbolKind.NetModule:
-                        return SymbolKind.NetModule;
-                    case SymbolKind.RangeVariable:
-                        return SymbolKind.RangeVariable;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(this.Kind);
-                }
-            }
-        }
-
         public string Language
         {
             get
@@ -1333,5 +1286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor);
 
         #endregion
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToString();
+        }
     }
 }

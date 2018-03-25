@@ -8,11 +8,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -58,7 +60,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void ShowLightBulb()
-            => InvokeOnUIThread(() => GetDTE().ExecuteCommand(WellKnownCommandNames.View_ShowSmartTag));
+        {
+            InvokeOnUIThread(() =>
+            {
+                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+
+                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
+                var cmdID = ECMD_SMARTTASKS;
+                object obj = null;
+                shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
+            });
+        }
 
         public void WaitForLightBulbSession()
             => ExecuteOnActiveView(view =>
@@ -209,7 +223,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetQuickInfo()
             => ExecuteOnActiveView(view =>
             {
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
                 var broker = GetComponentModelService<IQuickInfoBroker>();
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 
                 var sessions = broker.GetSessions(view);
                 if (sessions.Count != 1)

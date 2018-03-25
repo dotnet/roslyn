@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -157,6 +157,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var code = @"class Test { void Method() { } }";
 
             await VerifySolutionUpdate(code, s => s.Projects.First().WithAssemblyName("test2").Solution);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestUpdateOutputFilePath()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s => s.WithProjectOutputFilePath(s.ProjectIds[0], "test.dll"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestUpdateOutputRefFilePath()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s => s.WithProjectOutputRefFilePath(s.ProjectIds[0], "test.dll"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]

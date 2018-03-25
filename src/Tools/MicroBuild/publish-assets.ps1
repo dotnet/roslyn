@@ -23,6 +23,7 @@ Param(
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Get-PublishKey([string]$uploadUrl) {
     $url = New-Object Uri $uploadUrl
@@ -48,7 +49,7 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
             }
 
             if (-not $test) {
-                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --apiKey $apiKey -v q"
+                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
             }
         }
     } 

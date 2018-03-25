@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias CscExe;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +12,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -30,20 +30,19 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using CscExe.Microsoft.CodeAnalysis.CSharp.CommandLine;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CSharpTestBase
     {
-        private static readonly string s_CSharpCompilerExecutable = typeof(Csc).GetTypeInfo().Assembly.Location;
+        private static readonly string s_CSharpCompilerExecutable = Path.Combine(
+            Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
+            Path.Combine("dependency", "csc.exe"));
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-        private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-        private static readonly string s_compilerShortCommitHash =
-            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
-
         private readonly string _baseDirectory = TempRoot.Root;
+        private static readonly string s_compilerVersion = typeof(CommandLineTests).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerCommitHash = typeof(CommandLineTests).Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
+        private static readonly string s_compilerShortCommitHash = CommonCompiler.ExtractShortCommitHash(s_compilerCommitHash);
 
         private class TestCommandLineParser : CSharpCommandLineParser
         {
@@ -389,7 +388,7 @@ d.cs
             };
 
             var parsedArgs = DefaultParse(args, _baseDirectory);
-            var compilation = CreateStandardCompilation(new SyntaxTree[0]);
+            var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
             CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
@@ -513,7 +512,7 @@ d.cs
             string tmpFileName = Temp.CreateFile().WriteAllBytes(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }).Path;
 
             var parsedArgs = DefaultParse(new[] { "/win32icon:" + tmpFileName, "a.cs" }, _baseDirectory);
-            var compilation = CreateStandardCompilation(new SyntaxTree[0]);
+            var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
 
             CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -1342,12 +1341,10 @@ d.cs
         public void LanguageVersionAdded_Canary()
         {
             // When a new version is added, this test will break. This list must be checked:
-            // - update the command-line error for bad /langver flag (<see cref="ErrorCode.ERR_BadCompatMode"/>)
             // - update the "UpgradeProject" codefixer
             // - update the IDE drop-down for selecting Language Version
             // - update all the tests that call this canary
-            // - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "latest" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions, the format should be "x.y", such as "7.1"
         }
@@ -1369,7 +1366,8 @@ d.cs
                 ErrorCode.ERR_FeatureNotAvailableInVersion6,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_1,
-                ErrorCode.ERR_FeatureNotAvailableInVersion7_2
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_2,
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_3
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1390,9 +1388,10 @@ d.cs
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3.MapSpecifiedToEffectiveVersion());
 
             Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -1420,6 +1419,7 @@ d.cs
             InlineData("07", false, LanguageVersion.Default),
             InlineData("7.1", true, LanguageVersion.CSharp7_1),
             InlineData("7.2", true, LanguageVersion.CSharp7_2),
+            InlineData("7.3", true, LanguageVersion.CSharp7_3),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
@@ -5868,7 +5868,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/23529")]
+        [Fact]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"
@@ -5887,7 +5887,7 @@ public class C
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyfile:key.snk", });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(PortableStrongNameProvider));
+            Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
         }
 
         [Fact]
@@ -7911,6 +7911,51 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
+        public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"
+#pragma warning disable Warning01
+class C { }
+");
+
+            var errorLog = Temp.CreateFile();
+            var csc = new MockCSharpCompilerWithSpecificAnalyzer(
+                workingDirectory: Path.GetDirectoryName(srcFile.Path),
+                args: new[] { "/errorlog:" + errorLog.Path, "/warnaserror+", "/nologo", "/t:library", srcFile.Path },
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new WarningDiagnosticAnalyzer()));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+
+            // Previously, the compiler would return error code 1 without printing any diagnostics
+            Assert.Empty(outWriter.ToString());
+            Assert.Equal(0, exitCode);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+            CleanupAllGeneratedFiles(errorLog.Path);
+        }
+
+        /// <summary>
+        /// This mock compiler will not auto-detect analyzers, but only use the ones it is given explicitly.
+        /// </summary>
+        private class MockCSharpCompilerWithSpecificAnalyzer : MockCSharpCompiler
+        {
+            public MockCSharpCompilerWithSpecificAnalyzer(string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
+                : base(responseFile: null, workingDirectory, args, analyzers, loader: null)
+            {
+            }
+
+            protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+                List<DiagnosticInfo> diagnostics,
+                CommonMessageProvider messageProvider)
+            {
+                Assert.True(!_analyzers.IsDefaultOrEmpty);
+                return _analyzers;
+            }
+        }
+
+        [Fact]
         [WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")]
         public void AnalyzerDiagnosticThrowsInGetMessage()
         {
@@ -8105,10 +8150,10 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
-            var comp = CreateCompilation(string.Empty);
+            var comp = CreateEmptyCompilation(string.Empty);
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion, "v4.0.30319");
 
-            comp = CreateCompilation(string.Empty);
+            comp = CreateEmptyCompilation(string.Empty);
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion, "_+@%#*^");
         }
 
@@ -9020,7 +9065,7 @@ class C
             var arguments = DefaultParse(new[] { "/warnaserror-:3001", "/warnaserror" }, null);
             var options = arguments.CompilationOptions;
 
-            var comp = CreateStandardCompilation(@"[assembly: System.CLSCompliant(true)]
+            var comp = CreateCompilation(@"[assembly: System.CLSCompliant(true)]
 public class C
 {
     public void M(ushort i)
@@ -9045,7 +9090,7 @@ public class C
             var arguments = DefaultParse(new[] { "/warnaserror", "/warnaserror-:3001" }, null);
             var options = arguments.CompilationOptions;
 
-            var comp = CreateStandardCompilation(@"[assembly: System.CLSCompliant(true)]
+            var comp = CreateCompilation(@"[assembly: System.CLSCompliant(true)]
 public class C
 {
     public void M(ushort i)
@@ -9405,7 +9450,7 @@ class Runner
     static int Main(string[] args)
     {{
         var assembly = Assembly.LoadFrom(@""{s_CSharpCompilerExecutable}"");
-        var program = assembly.GetType(""{typeof(Program).FullName}"");
+        var program = assembly.GetType(""Microsoft.CodeAnalysis.CSharp.CommandLine.Program"");
         var main = program.GetMethod(""Main"");
         return (int)main.Invoke(null, new object[] {{ args }});
     }}
@@ -9675,7 +9720,7 @@ class C
         public void MissingCompilerAssembly()
         {
             var dir = Temp.CreateDirectory();
-            var cscPath = dir.CopyFile(typeof(Csc).Assembly.Location).Path;
+            var cscPath = dir.CopyFile(s_CSharpCompilerExecutable).Path;
             dir.CopyFile(typeof(Compilation).Assembly.Location);
 
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
@@ -9773,9 +9818,8 @@ class C
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var csc = new Csc(null, new BuildPaths("", workingDir.Path, null, tempDir.Path),
-                new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" },
-                analyzerLoader: null);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var desktopProvider = Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
             using (var inputStream = Assert.IsType<DesktopStrongNameProvider.TempFileStream>(desktopProvider.CreateInputStream()))

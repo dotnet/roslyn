@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -110,6 +111,20 @@ $@"class C
         if (x != null)
         {
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(25237, "https://github.com/dotnet/roslyn/issues/25237")]
+        public async Task TestMissingOnReturnStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|return;|]
     }
 }");
         }

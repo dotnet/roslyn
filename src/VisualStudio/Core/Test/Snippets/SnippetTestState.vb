@@ -5,18 +5,19 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Moq
@@ -113,29 +114,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Function
 
         Friend Overloads Sub SendTabToCompletion()
-            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
+            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TabKeyCommandArgs))
 
             SendTab(AddressOf handler.ExecuteCommand, AddressOf SendTab)
         End Sub
 
         Friend Overloads Sub SendTab()
-            SendTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
+            If Not SendTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertText("    ")
+            End If
         End Sub
 
         Friend Overloads Sub SendBackTab()
-            SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
+            If Not SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.Unindent()
+            End If
         End Sub
 
         Friend Overloads Sub SendReturn()
-            SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
+            If Not SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertNewLine()
+            End If
         End Sub
 
         Friend Overloads Sub SendEscape()
-            SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+            If Not SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertText("EscapePassedThrough!")
+            End If
         End Sub
 
         Public Overloads Sub SendTypeChars(typeChars As String)
-            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
             MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
         End Sub
 
