@@ -74,27 +74,20 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         // Can use non const fields and properties with setters in them.
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-            => IsViableInstanceFieldOrProperty(symbol) &&
-               IsWritableFieldOrProperty(symbol);
+            => !symbol.IsStatic &&
+               (symbol is IFieldSymbol field && IsViableField(field) && !field.IsConst ||
+                symbol is IPropertySymbol property && IsViableProperty(property) && property.IsWritableInConstructor());
 
-        private static bool IsWritableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
-            {
-                case IFieldSymbol field: return !field.IsConst && IsViableField(field);
-                case IPropertySymbol property: return property.IsWritableInConstructor();
-                default: return false;
-            }
-        }
+        protected static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
+            => !symbol.IsStatic &&
+               (symbol is IFieldSymbol field && IsViableField(field) ||
+                symbol is IPropertySymbol property && IsViableProperty(property) && !property.IsWriteOnly);
 
-        protected static bool IsViableInstanceFieldOrProperty(ISymbol symbol)
-            => !symbol.IsStatic && (IsViableField(symbol) || IsViableProperty(symbol));
+        private static bool IsViableProperty(IPropertySymbol property)
+            => property.Parameters.IsEmpty;
 
-        private static bool IsViableProperty(ISymbol symbol)
-            => symbol is IPropertySymbol property && property.Parameters.IsEmpty;
-
-        private static bool IsViableField(ISymbol symbol)
-            => symbol is IFieldSymbol field && field.AssociatedSymbol == null;
+        private static bool IsViableField(IFieldSymbol field)
+            => field.AssociatedSymbol == null;
 
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers)

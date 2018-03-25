@@ -208,6 +208,44 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
+        <WorkItem(25707, "https://github.com/dotnet/roslyn/issues/25707")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogNoSetterOnlyProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public ReadOnly Property P() As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               P = program.P
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestGenerateOperators1() As Task
             Await TestWithPickMembersDialogAsync(

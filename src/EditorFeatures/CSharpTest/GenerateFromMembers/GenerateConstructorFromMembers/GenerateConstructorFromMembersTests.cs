@@ -995,5 +995,31 @@ class Program
 }",
 chosenSymbols: null);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogSetterOnlyProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int S { set { } }
+    [||]
+}",
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int S { set { } }
+
+    public Program(int p, int s{|Navigation:)|}
+    {
+        P = p;
+        S = s;
+    }
+}",
+chosenSymbols: null);
+        }
     }
 }

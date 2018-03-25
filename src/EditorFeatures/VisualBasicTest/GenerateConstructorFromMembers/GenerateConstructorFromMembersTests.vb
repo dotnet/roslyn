@@ -420,5 +420,45 @@ Class Program
 End Class",
 chosenSymbols:=Nothing)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogSetterOnlyProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer, s As Integer{|Navigation:)|}
+        Me.P = p
+        Me.S = s
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
     End Class
 End Namespace
