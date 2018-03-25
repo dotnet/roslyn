@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-//#define original
-
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
@@ -373,11 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
-#if original
-                this.ForegroundColor = Color.FromRgb(192, 192, 192);
-#else
                 this.ForegroundColor = Color.FromRgb(0, 0, 0);
-#endif
             }
         }
 
@@ -393,11 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_class;
-#if original
-                this.ForegroundColor = Color.FromRgb(216, 80, 80);
-#else
                 this.ForegroundColor = Color.FromRgb(0x07, 0xbf, 0xb6);
-#endif
             }
         }
 
@@ -413,13 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexQuantifierFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
-
-                // same as keywords
-#if original
-                this.ForegroundColor = Color.FromRgb(95, 149, 250);
-#else
                 this.ForegroundColor = Color.FromRgb(128, 0, 0);
-#endif
             }
         }
 
@@ -435,13 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
-                // same as quantifier
-
-#if original
-                this.ForegroundColor = Color.FromRgb(202, 121, 236);
-#else
                 this.ForegroundColor = Color.FromRgb(128, 0, 0);
-#endif
             }
         }
 
@@ -457,11 +435,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAlternationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
-#if original
-                this.ForegroundColor = Color.FromRgb(255, 255, 0);
-#else
                 this.ForegroundColor = Color.FromRgb(0xff, 0x78, 0x00);
-#endif
             }
         }
 
@@ -477,13 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
-
-                // same as user types
-#if original
-                this.ForegroundColor = Color.FromRgb(78, 201, 176);
-#else
                 this.ForegroundColor = Color.FromRgb(0xff, 0x78, 0x00);
-#endif
             }
         }
 
@@ -499,12 +467,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexEscapeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Escape;
-#if original
-                this.ForegroundColor = Color.FromRgb(255, 128, 9);
-#else
                 this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
-#endif
-
             }
         }
 #endregion
