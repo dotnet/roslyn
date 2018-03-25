@@ -95,6 +95,16 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfExpressionStatement_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    Console.WriteLine();
+$$
+else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIfBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -106,6 +116,18 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfBlock_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+{
+    Console.WriteLine();
+}
+$$
+else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIfWhileStatementBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -114,6 +136,64 @@ $$"));
     {
     }
 $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfWhileStatementBlock_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    while (true)
+    {
+    }
+$$
+else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfNestedIf()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    if (true)
+        Console.WriteLine();
+    $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfNestedIf_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    if (true)
+        Console.WriteLine();
+    $$
+    else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfNestedIfElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        Console.WriteLine();
+$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIfNestedIfElse_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        Console.WriteLine();
+$$
+else"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

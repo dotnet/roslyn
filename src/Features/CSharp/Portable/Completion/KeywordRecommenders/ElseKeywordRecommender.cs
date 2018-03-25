@@ -23,30 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var token = context.TargetToken;
 
-            var statement = token.GetAncestor<StatementSyntax>();
-            var ifStatement = statement.GetAncestorOrThis<IfStatementSyntax>();
-
-            if (statement == null || ifStatement == null)
+            // We have to consider all ancestor if statements of the last token until we find a match for this 'else':
+            // while (true)
+            //     if (true)
+            //         while (true)
+            //             if (true)
+            //                 Console.WriteLine();
+            //             else
+            //                 Console.WriteLine();
+            //     $$
+            foreach (var ifStatement in token.GetAncestors<IfStatementSyntax>())
             {
-                return false;
-            }
-
-            // cases:
-            //   if (goo)
-            //     Console.WriteLine();
-            //   |
-            //   if (goo)
-            //     Console.WriteLine();
-            //   e|
-            //   if (goo) {
-            //     Console.WriteLine();
-            //   } |
-            //   if (goo) {
-            //     Console.WriteLine();
-            //   } e|
-            if (ifStatement.Statement.GetLastToken(includeSkipped: true, includeZeroWidth: true) == token)
-            {
-                return true;
+                if (ifStatement.Statement.GetLastToken(includeSkipped: true, includeZeroWidth: true) == token)
+                {
+                    return true;
+                }
             }
 
             return false;
