@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#define original
-// #define darkmerged1
-// #define lightmerged1
+//#define original
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -377,12 +375,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
 #if original
                 this.ForegroundColor = Color.FromRgb(192, 192, 192);
-#elif darkmerged1
-                this.ForegroundColor = Color.FromRgb(214, 157, 133);
-#elif lightmerged1
-                this.ForegroundColor = Color.FromRgb(128, 0, 0);
 #else
-#error
+                this.ForegroundColor = Color.FromRgb(0, 0, 0);
 #endif
             }
         }
@@ -401,8 +395,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_class;
 #if original
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
-#elif darkmerged1
-                this.ForegroundColor = Color.FromRgb(202, 121, 236);
+#else
+                this.ForegroundColor = Color.FromRgb(0x07, 0xbf, 0xb6);
 #endif
             }
         }
@@ -423,10 +417,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // same as keywords
 #if original
                 this.ForegroundColor = Color.FromRgb(95, 149, 250);
-#elif lightmerged1
-                this.ForegroundColor = Color.FromRgb(0, 0, 255);
 #else
-#error
+                this.ForegroundColor = Color.FromRgb(128, 0, 0);
 #endif
             }
         }
@@ -443,15 +435,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+                // same as quantifier
+
 #if original
                 this.ForegroundColor = Color.FromRgb(202, 121, 236);
-#elif darkmerged1
-                // same as quantifier
-                this.ForegroundColor = Color.FromRgb(95, 149, 250);
-#elif lightmerged1
-                this.ForegroundColor = Color.FromRgb(0, 0, 255);
 #else
-#error
+                this.ForegroundColor = Color.FromRgb(128, 0, 0);
 #endif
             }
         }
@@ -470,30 +459,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
 #if original
                 this.ForegroundColor = Color.FromRgb(255, 255, 0);
-#elif darkmerged1
-                // same as grouping by default.
-                this.ForegroundColor = Color.FromRgb(78, 201, 176);
-#elif lightmerged1
-                this.ForegroundColor = Color.FromRgb(43, 145, 175);
 #else
-#error
+                this.ForegroundColor = Color.FromRgb(0xff, 0x78, 0x00);
 #endif
-            }
-        }
-         
-        [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexEscape)]
-        [Name(ClassificationTypeNames.RegexEscape)]
-        [Order(After = ClassificationTypeNames.StringLiteral)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [UserVisible(true)]
-        [ExcludeFromCodeCoverage]
-        private class RegexEscapeFormatDefinition : ClassificationFormatDefinition
-        {
-            private RegexEscapeFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Escape;
-                this.ForegroundColor = Color.FromRgb(255, 128, 9);
             }
         }
 
@@ -513,11 +481,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // same as user types
 #if original
                 this.ForegroundColor = Color.FromRgb(78, 201, 176);
-#elif lightmerged1
-                this.ForegroundColor = Color.FromRgb(43, 145, 175);
 #else
-#error
+                this.ForegroundColor = Color.FromRgb(0xff, 0x78, 0x00);
 #endif
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexEscape)]
+        [Name(ClassificationTypeNames.RegexEscape)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexEscapeFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexEscapeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Escape;
+#if original
+                this.ForegroundColor = Color.FromRgb(255, 128, 9);
+#else
+                this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
+#endif
+
             }
         }
 #endregion
