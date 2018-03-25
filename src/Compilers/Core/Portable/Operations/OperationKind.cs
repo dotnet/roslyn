@@ -181,6 +181,12 @@ namespace Microsoft.CodeAnalysis
         ConstantPattern = 0x55,
         /// <summary>Indicates an <see cref="IDeclarationPatternOperation"/>.</summary>
         DeclarationPattern = 0x56,
+        /// <summary>Indicates an <see cref="ITupleBinaryOperation"/>.</summary>
+        TupleBinaryOperator = 0x57,
+        /// <summary>Indicates an <see cref="IMethodBodyOperation"/>.</summary>
+        MethodBodyOperation = 0x58,
+        /// <summary>Indicates an <see cref="IConstructorBodyOperation"/>.</summary>
+        ConstructorBodyOperation = 0x59,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

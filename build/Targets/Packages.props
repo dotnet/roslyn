@@ -75,26 +75,25 @@
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26730-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26730-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
-    <MicrosoftVisualStudioCompositionVersion>15.0.71</MicrosoftVisualStudioCompositionVersion>
-    <MicrosoftVisualStudioCoreUtilityVersion>15.0.26606</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>15.6.253-preview</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30319</MicrosoftVisualStudioDebuggerInterop100Version>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.0.26730-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
-    <MicrosoftVisualStudioEditorVersion>15.0.26730-alpha</MicrosoftVisualStudioEditorVersion>
+    <MicrosoftVisualStudioEditorVersion>15.6.253-preview</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>15.0.26730-alpha</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>15.0.26730-alpha</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>15.0.26730-alpha</MicrosoftVisualStudioImagingVersion>
-    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>14.3.25407</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
-    <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageIntellisenseVersion>
-    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.3.1710.203</MicrosoftVisualStudioLanguageCallHierarchyVersion>
+    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.6.253-preview</MicrosoftVisualStudioLanguageIntellisenseVersion>
+    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.6.253-preview</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
+    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.6.253-preview</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6070</MicrosoftVisualStudioOLEInteropVersion>
-    <MicrosoftVisualStudioPlatformVSEditorVersion>15.0.26730-alpha</MicrosoftVisualStudioPlatformVSEditorVersion>
-    <MicrosoftVisualStudioPlatformVSEditorInteropVersion>15.0.26730-alpha</MicrosoftVisualStudioPlatformVSEditorInteropVersion>
+    <MicrosoftVisualStudioPlatformVSEditorVersion>15.6.253-preview</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionCommonVersion>
     <MicrosoftVisualStudioProgressionInterfacesVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>
@@ -113,18 +112,18 @@
     <MicrosoftVisualStudioShellInterop100Version>10.0.30319</MicrosoftVisualStudioShellInterop100Version>
     <MicrosoftVisualStudioShellInterop110Version>11.0.61030</MicrosoftVisualStudioShellInterop110Version>
     <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
-    <MicrosoftVisualStudioShellInterop140DesignTimeVersion>14.3.25407</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop150DesignTimeVersion>15.0.26730-alpha</MicrosoftVisualStudioShellInterop150DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop153DesignTimeVersion>15.0.26730-alpha</MicrosoftVisualStudioShellInterop153DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop80Version>8.0.50727</MicrosoftVisualStudioShellInterop80Version>
     <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>15.0.26730-alpha</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
-    <MicrosoftVisualStudioTextDataVersion>15.0.26730-alpha</MicrosoftVisualStudioTextDataVersion>
-    <MicrosoftVisualStudioTextInternalVersion>15.0.26730-alpha</MicrosoftVisualStudioTextInternalVersion>
-    <MicrosoftVisualStudioTextLogicVersion>15.0.26730-alpha</MicrosoftVisualStudioTextLogicVersion>
-    <MicrosoftVisualStudioTextUIVersion>15.0.26730-alpha</MicrosoftVisualStudioTextUIVersion>
-    <MicrosoftVisualStudioTextUIWpfVersion>15.0.26730-alpha</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioTextDataVersion>15.6.253-preview</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextInternalVersion>15.6.253-preview</MicrosoftVisualStudioTextInternalVersion>
+    <MicrosoftVisualStudioTextLogicVersion>15.6.253-preview</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>15.6.253-preview</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>15.6.253-preview</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextManagerInteropVersion>7.10.6070</MicrosoftVisualStudioTextManagerInteropVersion>
     <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30319</MicrosoftVisualStudioTextManagerInterop100Version>
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
@@ -218,6 +217,7 @@
     <SystemTextRegularExpressionsVersion>4.3.0</SystemTextRegularExpressionsVersion>
     <SystemThreadingVersion>4.3.0</SystemThreadingVersion>
     <SystemThreadingTasksVersion>4.3.0</SystemThreadingTasksVersion>
+    <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
     <SystemThreadingTasksParallelVersion>4.3.0</SystemThreadingTasksParallelVersion>
     <SystemThreadingThreadVersion>4.3.0</SystemThreadingThreadVersion>
     <SystemValueTupleVersion>4.3.0</SystemValueTupleVersion>

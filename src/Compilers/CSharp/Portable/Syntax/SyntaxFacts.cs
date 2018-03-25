@@ -473,5 +473,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
         }
+
+        internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
+        {
+            return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
+        }
     }
 }

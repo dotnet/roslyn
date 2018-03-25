@@ -286,7 +286,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.StackAllocArrayCreationExpressionSyntax GenerateStackAllocArrayCreationExpression()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), GenerateIdentifierName());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), GenerateIdentifierName(), null);
+        }
+        
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax GenerateImplicitStackAllocArrayCreationExpression()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ImplicitStackAllocArrayCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBracketToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBracketToken), GenerateInitializerExpression());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.QueryExpressionSyntax GenerateQueryExpression()
@@ -1686,6 +1691,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.StackAllocKeyword, node.StackAllocKeyword.Kind);
             Assert.NotNull(node.Type);
+            Assert.Null(node.Initializer);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionFactoryAndProperties()
+        {
+            var node = GenerateImplicitStackAllocArrayCreationExpression();
+            
+            Assert.Equal(SyntaxKind.StackAllocKeyword, node.StackAllocKeyword.Kind);
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
+            Assert.NotNull(node.Initializer);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -5069,6 +5088,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateStackAllocArrayCreationExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9205,7 +9250,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static StackAllocArrayCreationExpressionSyntax GenerateStackAllocArrayCreationExpression()
         {
-            return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), GenerateIdentifierName());
+            return SyntaxFactory.StackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), GenerateIdentifierName(), default(InitializerExpressionSyntax));
+        }
+        
+        private static ImplicitStackAllocArrayCreationExpressionSyntax GenerateImplicitStackAllocArrayCreationExpression()
+        {
+            return SyntaxFactory.ImplicitStackAllocArrayCreationExpression(SyntaxFactory.Token(SyntaxKind.StackAllocKeyword), SyntaxFactory.Token(SyntaxKind.OpenBracketToken), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), GenerateInitializerExpression());
         }
         
         private static QueryExpressionSyntax GenerateQueryExpression()
@@ -10605,7 +10655,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.StackAllocKeyword, node.StackAllocKeyword.Kind());
             Assert.NotNull(node.Type);
-            var newNode = node.WithStackAllocKeyword(node.StackAllocKeyword).WithType(node.Type);
+            Assert.Null(node.Initializer);
+            var newNode = node.WithStackAllocKeyword(node.StackAllocKeyword).WithType(node.Type).WithInitializer(node.Initializer);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionFactoryAndProperties()
+        {
+            var node = GenerateImplicitStackAllocArrayCreationExpression();
+            
+            Assert.Equal(SyntaxKind.StackAllocKeyword, node.StackAllocKeyword.Kind());
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
+            Assert.NotNull(node.Initializer);
+            var newNode = node.WithStackAllocKeyword(node.StackAllocKeyword).WithOpenBracketToken(node.OpenBracketToken).WithCloseBracketToken(node.CloseBracketToken).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
         }
         
@@ -13988,6 +14052,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateStackAllocArrayCreationExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
