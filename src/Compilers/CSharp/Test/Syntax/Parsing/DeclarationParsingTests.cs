@@ -6461,5 +6461,39 @@ public class Program
                 //         abstract ref remove => throw null; 
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(7, 9));
         }
+
+        [Fact]
+        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        public void AsyncAsType_ExpressionBodiedProperty()
+        {
+            var text = "class a { async b => null; }";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var cs = (TypeDeclarationSyntax)file.Members[0];
+
+            Assert.Equal(1, cs.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
+            var ps = (PropertyDeclarationSyntax)cs.Members[0];
+            Assert.Equal(0, ps.AttributeLists.Count);
+            Assert.Equal(0, ps.Modifiers.Count);
+            Assert.NotNull(ps.Type);
+            Assert.Equal("async", ps.Type.ToString());
+            Assert.NotNull(ps.Identifier);
+            Assert.Equal("b", ps.Identifier.ToString());
+
+            Assert.Null(ps.AccessorList);
+            Assert.NotNull(ps.ExpressionBody);
+            Assert.NotNull(ps.ExpressionBody.ArrowToken);
+            Assert.NotNull(ps.ExpressionBody.Expression);
+            Assert.Equal(SyntaxKind.NullLiteralExpression, ps.ExpressionBody.Expression.Kind());
+            Assert.NotNull(ps.SemicolonToken);
+        }
     }
 }
