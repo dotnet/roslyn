@@ -2,25 +2,21 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
 {
     public abstract class AbstractBlockCommentEditingTests
     {
-        internal abstract ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
+        internal abstract VSCommanding.ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 
@@ -39,7 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
                 var args = new ReturnKeyCommandArgs(view, view.TextBuffer);
                 var nextHandler = CreateInsertTextHandler(view, "\r\n");
 
-                commandHandler.ExecuteCommand(args, nextHandler);
+                if (!commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create()))
+                {
+                    nextHandler();
+                }
+
                 MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());

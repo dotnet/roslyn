@@ -1214,6 +1214,7 @@ End Class
         ' confirm header has expected SN signature size
         Dim peHeaders = New PEHeaders(other.EmitToStream())
         Assert.Equal(256, peHeaders.CorHeader.StrongNameSignatureDirectory.Size)
+        Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
     End Sub
 
     ''' <summary>
@@ -1260,13 +1261,8 @@ End Class
 
         Using metadata = ModuleMetadata.CreateFromStream(moduleContents)
             Dim flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags
-            If legacyStrongName Then
-                ' confirm file does not claim to be signed
-                Assert.Equal(0, CInt(flags And CorFlags.StrongNameSigned))
-            Else
-                ' portable signing should sign the module
-                Assert.Equal(CorFlags.StrongNameSigned, CInt(flags And CorFlags.StrongNameSigned))
-            End If
+            ' confirm file does not claim to be signed
+            Assert.Equal(0, CInt(flags And CorFlags.StrongNameSigned))
 
             Dim token As EntityHandle = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
             Assert.False(token.IsNil)   ' could the magic type ref be located? If not then the attribute's not there.
