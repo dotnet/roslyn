@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -146,6 +147,7 @@ $@"if (true)
     else"));
         }
 
+        [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [Statements]
         public async Task TestAfterIfNestedIfElseStatement(string statement)
@@ -159,6 +161,7 @@ $@"if (true)
 $$"));
         }
 
+        [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [Statements]
         public async Task TestAfterIfNestedIfElseStatement_BeforeElse(string statement)
