@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
+        protected abstract ImmutableArray<SyntaxNode> GetCaptureFlowAnalysisNodes(SemanticModel semanticModel, SyntaxToken token);
 
         private async Task<SemanticQuickInfoTokenBindingResult> BindTokenAsync(
             Document document,
@@ -310,10 +311,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (symbols.Any())
             {
                 var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
+                if (discardSymbols)
+                {
+                    return new SemanticQuickInfoTokenBindingResult(
+                        semanticModel,
+                        ImmutableArray<ISymbol>.Empty,
+                        ImmutableArray<SyntaxNode>.Empty);
+                }
+
+                var captureFlowAnalysisNodes = GetCaptureFlowAnalysisNodes(semanticModel, token);
                 return new SemanticQuickInfoTokenBindingResult(
-                    semanticModel, 
-                    discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols,
-                    ImmutableArray<SyntaxNode>.Empty);
+                    semanticModel,
+                    symbols,
+                    captureFlowAnalysisNodes);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -324,8 +334,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 if (IsOk(typeInfo.Type))
                 {
                     return new SemanticQuickInfoTokenBindingResult(
-                        semanticModel, 
-                        ImmutableArray.Create<ISymbol>(typeInfo.Type), 
+                        semanticModel,
+                        ImmutableArray.Create<ISymbol>(typeInfo.Type),
                         ImmutableArray<SyntaxNode>.Empty);
                 }
             }

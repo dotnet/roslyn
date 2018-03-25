@@ -107,6 +107,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             Return False
         End Function
 
+        Protected Overrides Function GetCaptureFlowAnalysisNodes(semanticModel As SemanticModel, token As SyntaxToken) As ImmutableArray(Of SyntaxNode)
+            Return ImmutableArray(Of SyntaxNode).Empty
+        End Function
+
         Private Overloads Async Function BuildContentAsync(document As Document,
                                                 token As SyntaxToken,
                                                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
