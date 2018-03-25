@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.Type));
         }
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)

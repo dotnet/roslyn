@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var memberAccess = BindInstanceMemberAccess(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>), typeArguments: default(ImmutableArray<TypeSymbol>),
-                                        invoked: true, diagnostics: diagnostics);
+                                        invoked: true, indexed: false, diagnostics: diagnostics);
 
                 memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
                 memberAccess.WasCompilerGenerated = true;

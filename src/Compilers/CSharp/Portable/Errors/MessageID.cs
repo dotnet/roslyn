@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStackAllocInitializer = MessageBase + 12740,
         IDS_FeatureTupleEquality = MessageBase + 12741,
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
+        IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
+        IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -209,6 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnmanagedGenericTypeConstraint: // semantic check
                 case MessageID.IDS_FeatureStackAllocInitializer:
                 case MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers: // semantic check
+                case MessageID.IDS_FeatureExtensibleFixedStatement:  // semantic check
+                case MessageID.IDS_FeatureIndexingMovableFixedBuffers: //semantic check
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.
