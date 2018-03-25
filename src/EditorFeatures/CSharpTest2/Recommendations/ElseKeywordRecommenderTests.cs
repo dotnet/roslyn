@@ -547,6 +547,150 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhileIfWhileNestedIfElseExpressionStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                Console.WriteLine();
+    $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhileIfWhileNestedIfElseExpressionStatement_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                Console.WriteLine();
+    $$
+    else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhileIfWhileNestedIfElseBlock()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+            {
+            }
+    $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhileIfWhileNestedIfElseBlock_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+            {
+            }
+    $$
+    else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhileIfWhileNestedIfElseWhileStatementBlock()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                while (true)
+                {
+                }
+    $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhileIfWhileNestedIfElseWhileStatementBlock_BeforeElse()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                while (true)
+                {
+                }
+    $$
+    else"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterWhileIfWhileNestedIfElseElseExpressionStatement()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                Console.WriteLine();
+    else
+        Console.WriteLine();
+$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterWhileIfWhileNestedIfElseElseBlock()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                Console.WriteLine();
+    else
+    {
+    }
+$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterWhileIfWhileNestedIfElseElseWhileStatementBlock()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                Console.WriteLine();
+    else
+        while (true)
+        {
+        }
+$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterMemberAccess()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
