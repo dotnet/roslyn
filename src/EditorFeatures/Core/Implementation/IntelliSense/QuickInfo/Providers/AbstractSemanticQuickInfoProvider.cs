@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
             var linkedDocumentIds = document.GetLinkedDocumentIds();
 
-            var tokenBindingResult = await this.BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
-            if (tokenBindingResult.Symbols.Length == 0 && !linkedDocumentIds.Any())
+            var modelAndSymbols = await this.BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
+            if (modelAndSymbols.Symbols.Length == 0 && !linkedDocumentIds.Any())
             {
                 return null;
             }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 return await CreateContentAsync(document.Project.Solution.Workspace,
                     token,
-                    tokenBindingResult,
+                    modelAndSymbols,
                     supportedPlatforms: null,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var invalidProjects = new List<ProjectId>();
 
             var candidateResults = new List<(DocumentId documentId, SemanticQuickInfoTokenBindingResult tokenBindingResult)>();
-            candidateResults.Add((document.Id, tokenBindingResult));
+            candidateResults.Add((document.Id, modelAndSymbols));
 
             foreach (var link in linkedDocumentIds)
             {
