@@ -951,7 +951,7 @@ chosenSymbols: new string[] { });
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestWithDialogNoBackingFields()
+        public async Task TestWithDialogNoBackingField()
         {
             await TestWithPickMembersDialogAsync(
 @"

@@ -108,16 +108,16 @@ End Class")
 
         <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
-        Public Async Function TestWithDialogNoBackingFields() As Task
+        Public Async Function TestWithDialogNoBackingField() As Task
             Await TestWithPickMembersDialogAsync(
 "
 Class Program
-    Public ReadOnly Property F() As Integer
+    Public Property F() As Integer
     [||]
 End Class",
 "
 Class Program
-    Public ReadOnly Property F() As Integer
+    Public Property F() As Integer
 
     Public Overrides Function Equals(obj As Object) As Boolean
         Dim program = TryCast(obj, Program)
