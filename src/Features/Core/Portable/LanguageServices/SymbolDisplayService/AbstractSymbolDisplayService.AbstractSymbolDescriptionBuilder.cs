@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return null;
             }
 
-            private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
+            private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols, ImmutableArray<SyntaxNode> captureFlowAnalysisNodes)
             {
                 await AddDescriptionPartAsync(symbols[0]).ConfigureAwait(false);
 
@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 FixAllAnonymousTypes(symbols[0]);
                 AddExceptions(symbols[0]);
                 AddCaptures(symbols[0]);
+                AddCaptures(captureFlowAnalysisNodes);
             }
 
             private void AddExceptions(ISymbol symbol)
@@ -183,6 +184,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             /// </summary>
             /// <param name="symbol"></param>
             protected abstract void AddCaptures(ISymbol symbol);
+
+            /// <summary>
+            /// Given the body of a local or an anonymous function (lambda or delegate), add the variables captured
+            /// by that local or anonymous function to the "Captures" group.
+            /// </summary>
+            protected void AddCaptures(ImmutableArray<SyntaxNode> syntaxNodes)
+            {
+                foreach (var node in syntaxNodes)
+                {
+                    AddCaptures(node);
+                }
+            }
 
             /// <summary>
             /// Given the body of a local or an anonymous function (lambda or delegate), add the variables captured
@@ -234,16 +247,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 Contract.ThrowIfFalse(symbolGroup.Length > 0);
 
-                await AddPartsAsync(symbolGroup).ConfigureAwait(false);
+                await AddPartsAsync(symbolGroup, ImmutableArray<SyntaxNode>.Empty).ConfigureAwait(false);
 
                 return this.BuildDescription(groups);
             }
 
-            public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> BuildDescriptionSectionsAsync(ImmutableArray<ISymbol> symbolGroup)
+            public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> BuildDescriptionSectionsAsync(
+                ImmutableArray<ISymbol> symbolGroup,
+                ImmutableArray<SyntaxNode> captureFlowAnalysisNodes)
             {
                 Contract.ThrowIfFalse(symbolGroup.Length > 0);
 
-                await AddPartsAsync(symbolGroup).ConfigureAwait(false);
+                await AddPartsAsync(symbolGroup, captureFlowAnalysisNodes).ConfigureAwait(false);
 
                 return this.BuildDescriptionSections();
             }

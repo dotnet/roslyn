@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> ToDescriptionGroupsAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, 
+            ImmutableArray<SyntaxNode> captureFlowAnalysisNodes, CancellationToken cancellationToken)
         {
             if (symbols.Length == 0)
             {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             var builder = CreateDescriptionBuilder(workspace, semanticModel, position, cancellationToken);
-            return await builder.BuildDescriptionSectionsAsync(symbols).ConfigureAwait(false);
+            return await builder.BuildDescriptionSectionsAsync(symbols, captureFlowAnalysisNodes).ConfigureAwait(false);
         }
     }
 }

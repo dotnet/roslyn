@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
             var linkedDocumentIds = document.GetLinkedDocumentIds();
 
-            var modelAndSymbols = await this.BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
-            if (modelAndSymbols.Item2.Length == 0 && !linkedDocumentIds.Any())
+            var tokenBindingResult = await this.BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
+            if (tokenBindingResult.Symbols.Length == 0 && !linkedDocumentIds.Any())
             {
                 return null;
             }
@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 return await CreateContentAsync(document.Project.Solution.Workspace,
                     token,
-                    modelAndSymbols.Item1,
-                    modelAndSymbols.Item2,
+                    tokenBindingResult,
                     supportedPlatforms: null,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
@@ -59,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var candidateProjects = new List<ProjectId>() { document.Project.Id };
             var invalidProjects = new List<ProjectId>();
 
-            var candidateResults = new List<Tuple<DocumentId, SemanticModel, ImmutableArray<ISymbol>>>();
-            candidateResults.Add(Tuple.Create(document.Id, modelAndSymbols.Item1, modelAndSymbols.Item2));
+            var candidateResults = new List<(DocumentId documentId, SemanticQuickInfoTokenBindingResult tokenBindingResult)>();
+            candidateResults.Add((document.Id, tokenBindingResult));
 
             foreach (var link in linkedDocumentIds)
             {
@@ -72,38 +71,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(link.ProjectId);
                     var linkedModelAndSymbols = await this.BindTokenAsync(linkedDocument, linkedToken, cancellationToken).ConfigureAwait(false);
-                    candidateResults.Add(Tuple.Create(link, linkedModelAndSymbols.Item1, linkedModelAndSymbols.Item2));
+                    candidateResults.Add((link, linkedModelAndSymbols));
                 }
             }
 
             // Take the first result with no errors.
             var bestBinding = candidateResults.FirstOrDefault(
-                c => c.Item3.Length > 0 && !ErrorVisitor.ContainsError(c.Item3.FirstOrDefault()));
+                c => c.tokenBindingResult.Symbols.Length > 0 && !ErrorVisitor.ContainsError(c.tokenBindingResult.Symbols.FirstOrDefault()));
 
             // Every file binds with errors. Take the first candidate, which is from the current file.
-            if (bestBinding == null)
+            if (bestBinding.documentId == null)
             {
                 bestBinding = candidateResults.First();
             }
 
-            if (bestBinding.Item3 == null || !bestBinding.Item3.Any())
+            if (bestBinding.tokenBindingResult == null || !bestBinding.tokenBindingResult.Symbols.Any())
             {
                 return null;
             }
 
             // We calculate the set of supported projects
             candidateResults.Remove(bestBinding);
-            foreach (var candidate in candidateResults)
+            foreach (var (documentId, tokenBindingResult) in candidateResults)
             {
                 // Does the candidate have anything remotely equivalent?
-                if (!candidate.Item3.Intersect(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
+                if (!tokenBindingResult.Symbols.Intersect(bestBinding.tokenBindingResult.Symbols, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
                 {
-                    invalidProjects.Add(candidate.Item1.ProjectId);
+                    invalidProjects.Add(documentId.ProjectId);
                 }
             }
 
             var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, document.Project.Solution.Workspace);
-            return await CreateContentAsync(document.Project.Solution.Workspace, token, bestBinding.Item2, bestBinding.Item3, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+            return await CreateContentAsync(document.Project.Solution.Workspace, token, bestBinding.tokenBindingResult, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<SyntaxToken> FindTokenInLinkedDocument(SyntaxToken token, Document originalDocument, Document linkedDocument, CancellationToken cancellationToken)
@@ -145,14 +144,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         protected async Task<IDeferredQuickInfoContent> CreateContentAsync(
             Workspace workspace,
             SyntaxToken token,
-            SemanticModel semanticModel,
-            IEnumerable<ISymbol> symbols,
+            SemanticQuickInfoTokenBindingResult tokenBindingResult,
             SupportedPlatformData supportedPlatforms,
             CancellationToken cancellationToken)
         {
+            var semanticModel = tokenBindingResult.SemanticModel;
+            var symbols = tokenBindingResult.Symbols;
+
             var descriptionService = workspace.Services.GetLanguageServices(token.Language).GetService<ISymbolDisplayService>();
 
-            var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
+            var sections = await descriptionService.ToDescriptionGroupsAsync(
+                workspace, tokenBindingResult.SemanticModel, token.SpanStart, tokenBindingResult.Symbols,
+                tokenBindingResult.CaptureFlowAnalysisNodes, cancellationToken).ConfigureAwait(false);
 
 
             var mainDescriptionBuilder = new List<TaggedText>();
@@ -275,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
 
-        private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
+        private async Task<SemanticQuickInfoTokenBindingResult> BindTokenAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -307,7 +310,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (symbols.Any())
             {
                 var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
-                return (semanticModel, discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols);
+                return new SemanticQuickInfoTokenBindingResult(
+                    semanticModel, 
+                    discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols,
+                    ImmutableArray<SyntaxNode>.Empty);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -317,11 +323,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return (semanticModel, ImmutableArray.Create<ISymbol>(typeInfo.Type));
+                    return new SemanticQuickInfoTokenBindingResult(
+                        semanticModel, 
+                        ImmutableArray.Create<ISymbol>(typeInfo.Type), 
+                        ImmutableArray<SyntaxNode>.Empty);
                 }
             }
 
-            return (semanticModel, ImmutableArray<ISymbol>.Empty);
+            return new SemanticQuickInfoTokenBindingResult(semanticModel, ImmutableArray<ISymbol>.Empty, ImmutableArray<SyntaxNode>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)

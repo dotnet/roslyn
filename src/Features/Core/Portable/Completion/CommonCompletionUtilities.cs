@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // TODO(cyrusn): Figure out a way to cancel this.
             var symbol = symbols[0];
-            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
+            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(
+                workspace, semanticModel, position, ImmutableArray.Create(symbol), 
+                ImmutableArray<SyntaxNode>.Empty, cancellationToken).ConfigureAwait(false);
 
             if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
             {

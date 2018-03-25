@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -117,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
             Dim semantics = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim types = declarators.SelectMany(Function(d) d.Names).Select(
+            Dim types = declarators.SelectMany(Function(d) d.Names).Select(Of ISymbol)(
                 Function(n)
                     Dim symbol = semantics.GetDeclaredSymbol(n, cancellationToken)
                     If symbol Is Nothing Then
@@ -131,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
                     Else
                         Return Nothing
                     End If
-                End Function).WhereNotNull().Distinct().ToList()
+                End Function).WhereNotNull().Distinct().ToImmutableArray()
 
             If types.Count = 0 Then
                 Return Nothing
@@ -143,7 +144,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
                 Return Me.CreateClassifiableDeferredContent(contentBuilder)
             End If
 
-            Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, types, supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(
+                document.Project.Solution.Workspace, token, New SemanticQuickInfoTokenBindingResult(semantics, types, ImmutableArray(Of SyntaxNode).Empty),
+                supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Async Function BuildContentForIntrinsicOperatorAsync(document As Document,
