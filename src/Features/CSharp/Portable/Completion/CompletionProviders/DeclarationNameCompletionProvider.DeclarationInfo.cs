@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     result = IsFollowingTypeOrComma<ArgumentSyntax>(
                         token,
                         semanticModel,
-                        GetTypeSyntaxOfArgument,
+                        GetNodeDenotingTheTypeOfTupleArgument,
                         _ => default(SyntaxTokenList),
                         _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
                     return result.Type != null;
@@ -428,13 +428,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return Accessibility.NotApplicable;
             }
 
-            private static SyntaxNode GetTypeSyntaxOfArgument(ArgumentSyntax argumentSyntax)
+            private static SyntaxNode GetNodeDenotingTheTypeOfTupleArgument(ArgumentSyntax argumentSyntax)
             {
                 switch (argumentSyntax.Expression?.Kind())
                 {
                     case SyntaxKind.DeclarationExpression:
-                        return (argumentSyntax.Expression as DeclarationExpressionSyntax).Type;
+                        // The parser found a declaration as in (System.Action action, System.Array a$$)
+                        // we need the type part of the declaration expression.
+                        return ((DeclarationExpressionSyntax)argumentSyntax.Expression).Type;
                     default:
+                        // We assume the parser found something that represents something named,
+                        // e.g. a MemberAccessExpression as in (System.Action action, System.Array $$)
+                        // We also assume that this name could be resolved to a type.
                         return argumentSyntax.Expression;
                 }
             }
