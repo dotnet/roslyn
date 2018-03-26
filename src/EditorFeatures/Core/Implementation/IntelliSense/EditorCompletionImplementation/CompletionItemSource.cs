@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var items = completionList.Items.SelectAsArray(roslynItem =>
             {
-                var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
-
-                var item = Convert(document, roslynItem, completionService, filterCache, needsCustomCommit);
+                var item = Convert(document, roslynItem, completionService, filterCache);
                 item.Properties.AddProperty(TriggerBuffer, triggerLocation.Snapshot.TextBuffer);
                 return item;
             });
@@ -95,10 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private EditorCompletion.CompletionItem Convert(
             Document document,
-            RoslynCompletionItem roslynItem, 
-            CompletionService completionService, 
-            Dictionary<string, CompletionFilter> filterCache,
-            bool needsCustomCommit)
+            RoslynCompletionItem roslynItem,
+            CompletionService completionService,
+            Dictionary<string, CompletionFilter> filterCache)
         {
             var imageId = roslynItem.Tags.GetGlyph().GetImageId();
             var filters = GetFilters(roslynItem, filterCache);
@@ -126,7 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Name"),
                 filters,
                 suffix: string.Empty,
-                needsCustomCommit,
                 insertionText,
                 roslynItem.SortText,
                 roslynItem.FilterText,
