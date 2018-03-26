@@ -267,13 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 ' for arrays and strings. We can do this because we know that Length cannot be
                 ' less than 0.
                 Dim operation = semanticModel.GetOperation(binaryExpression)
-                If (operation.Kind = OperationKind.BinaryOperator) Then
-                    Dim binaryOperation = DirectCast(operation, IBinaryOperation)
-                    If binaryOperation.OperatorMethod IsNot Nothing Then
-                        result = Nothing
-                        Return False
-                    End If
-                End If
+
                 If (IsSpecialCaseBinaryExpression(TryCast(operation, IBinaryOperation), cancellationToken)) Then
                     expressionType = SyntaxKind.EqualsExpression
                     operatorType = SyntaxKind.EqualsToken

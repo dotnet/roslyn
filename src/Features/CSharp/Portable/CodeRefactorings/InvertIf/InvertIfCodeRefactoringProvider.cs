@@ -100,15 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 // binary expression to reflect that it will never be negative.
                 // For example, the expression Array.Length > 0, becomes Array.Length == 0 when negated.
                 var operation = semanticModel.GetOperation(binaryExpression);
-                if (operation.Kind == OperationKind.BinaryOperator)
-                {
-                    var binaryOperation = (IBinaryOperation)operation;
-                    if (binaryOperation.OperatorMethod != null)
-                    {
-                        result = null;
-                        return false;
-                    }
-                }
 
                 if (IsSpecialCaseBinaryExpression(operation as IBinaryOperation, cancellationToken))
                 {
