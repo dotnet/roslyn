@@ -439,7 +439,7 @@ public class Test2
         }
 
         [Fact]
-        public void EnumConstraint_IsReflectedinSymbols_Alone()
+        public void EnumConstraint_IsReflectedInSymbols_Alone()
         {
             var code = "public class Test<T> where T : System.Enum { }";
 
@@ -455,7 +455,7 @@ public class Test2
         }
 
         [Fact]
-        public void EnumConstraint_IsReflectedinSymbols_ValueType()
+        public void EnumConstraint_IsReflectedInSymbols_ValueType()
         {
             var code = "public class Test<T> where T : struct, System.Enum { }";
 
@@ -472,7 +472,7 @@ public class Test2
         }
 
         [Fact]
-        public void EnumConstraint_IsReflectedinSymbols_ReferenceType()
+        public void EnumConstraint_IsReflectedInSymbols_ReferenceType()
         {
             var code = "public class Test<T> where T : class, System.Enum { }";
 
@@ -489,7 +489,7 @@ public class Test2
         }
 
         [Fact]
-        public void EnumConstraint_IsReflectedinSymbols_Constructor()
+        public void EnumConstraint_IsReflectedInSymbols_Constructor()
         {
             var code = "public class Test<T> where T : System.Enum, new() { }";
 
@@ -957,7 +957,7 @@ public class Test2
         }
 
         [Fact]
-        public void DelegateConstraint_IsReflectedinSymbols_Alone()
+        public void DelegateConstraint_IsReflectedInSymbols_Alone()
         {
             var code = "public class Test<T> where T : System.Delegate { }";
 
@@ -973,7 +973,7 @@ public class Test2
         }
 
         [Fact]
-        public void DelegateConstraint_IsReflectedinSymbols_ValueType()
+        public void DelegateConstraint_IsReflectedInSymbols_ValueType()
         {
             var compilation = CreateCompilation("public class Test<T> where T : struct, System.Delegate { }")
                     .VerifyDiagnostics(
@@ -991,7 +991,7 @@ public class Test2
         }
 
         [Fact]
-        public void DelegateConstraint_IsReflectedinSymbols_ReferenceType()
+        public void DelegateConstraint_IsReflectedInSymbols_ReferenceType()
         {
             var code = "public class Test<T> where T : class, System.Delegate { }";
 
@@ -1008,7 +1008,7 @@ public class Test2
         }
 
         [Fact]
-        public void DelegateConstraint_IsReflectedinSymbols_Constructor()
+        public void DelegateConstraint_IsReflectedInSymbols_Constructor()
         {
             var code = "public class Test<T> where T : System.Delegate, new() { }";
 
@@ -1442,7 +1442,7 @@ public class Test2
         }
 
         [Fact]
-        public void MulticastDelegateConstraint_IsReflectedinSymbols_Alone()
+        public void MulticastDelegateConstraint_IsReflectedInSymbols_Alone()
         {
             var code = "public class Test<T> where T : System.MulticastDelegate { }";
 
@@ -1458,7 +1458,7 @@ public class Test2
         }
 
         [Fact]
-        public void MulticastDelegateConstraint_IsReflectedinSymbols_ValueType()
+        public void MulticastDelegateConstraint_IsReflectedInSymbols_ValueType()
         {
             var compilation = CreateCompilation("public class Test<T> where T : struct, System.MulticastDelegate { }")
                     .VerifyDiagnostics(
@@ -1476,7 +1476,7 @@ public class Test2
         }
 
         [Fact]
-        public void MulticastDelegateConstraint_IsReflectedinSymbols_ReferenceType()
+        public void MulticastDelegateConstraint_IsReflectedInSymbols_ReferenceType()
         {
             var code = "public class Test<T> where T : class, System.MulticastDelegate { }";
 
@@ -1493,7 +1493,7 @@ public class Test2
         }
 
         [Fact]
-        public void MulticastDelegateConstraint_IsReflectedinSymbols_Constructor()
+        public void MulticastDelegateConstraint_IsReflectedInSymbols_Constructor()
         {
             var code = "public class Test<T> where T : System.MulticastDelegate, new() { }";
 
@@ -2098,7 +2098,7 @@ class Legacy
         }
 
         [Fact]
-        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_Type()
+        public void UnmanagedConstraint_IsReflectedInSymbols_Alone_Type()
         {
             var code = "public class Test<T> where T : unmanaged { }";
 
@@ -2116,7 +2116,7 @@ class Legacy
         }
 
         [Fact]
-        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_Method()
+        public void UnmanagedConstraint_IsReflectedInSymbols_Alone_Method()
         {
             var code = @"
 public class Test
@@ -2138,7 +2138,7 @@ public class Test
         }
 
         [Fact]
-        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_Delegate()
+        public void UnmanagedConstraint_IsReflectedInSymbols_Alone_Delegate()
         {
             var code = "public delegate void D<T>() where T : unmanaged;";
 
@@ -2156,7 +2156,7 @@ public class Test
         }
 
         [Fact]
-        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_LocalFunction()
+        public void UnmanagedConstraint_IsReflectedInSymbols_Alone_LocalFunction()
         {
             var code = @"
 public class Test
