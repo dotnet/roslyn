@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         assemblyName = GetAssemblyNameFromProjectPath(projectPath);
                     }
 
-                    // Ensure sure that doc-are parsed
+                    // Ensure sure that doc-comments are parsed
                     var parseOptions = commandLineArgs.ParseOptions;
                     if (parseOptions.DocumentationMode == DocumentationMode.None)
                     {
