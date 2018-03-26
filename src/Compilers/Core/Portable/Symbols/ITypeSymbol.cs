@@ -94,4 +94,14 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember);
     }
+
+    static internal class ITypeSymbolHelpers
+    {
+        // Intentionally not an extension method. We don't want it ever be called for symbol classes
+        // Once Default Interface Implementations are supported, we can move this method into the interface. 
+        internal static bool IsNullableType(ITypeSymbol typeOpt)
+        {
+            return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+    }
 }

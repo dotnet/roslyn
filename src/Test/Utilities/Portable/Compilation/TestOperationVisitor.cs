@@ -16,20 +16,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class TestOperationVisitor : OperationVisitor
     {
-        private static TestOperationVisitor s_instance;
+        public static readonly TestOperationVisitor Singleton = new TestOperationVisitor();
 
         private TestOperationVisitor()
             : base()
         { }
-
-        public static TestOperationVisitor GetInstance()
-        {
-            if (s_instance == null)
-            {
-                s_instance = new TestOperationVisitor();
-            }
-            return s_instance;
-        }
 
         public override void DefaultVisit(IOperation operation)
         {
@@ -679,6 +670,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Coalesce, operation.Kind);
             AssertEx.Equal(new[] { operation.Value, operation.WhenNull }, operation.Children);
+            var valueConversion = operation.ValueConversion;
         }
 
         public override void VisitIsType(IIsTypeOperation operation)
@@ -1118,6 +1110,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
             }
+        }
+
+        public override void VisitFlowCapture(IFlowCaptureOperation operation)
+        {
+            Assert.Equal(OperationKind.FlowCapture, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Same(operation.Value, operation.Children.Single());
+        }
+
+        public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
+        {
+            Assert.Equal(OperationKind.FlowCaptureReference, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Empty(operation.Children);
+        }
+
+        public override void VisitIsNull(IIsNullOperation operation)
+        {
+            Assert.Equal(OperationKind.IsNull, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Same(operation.Operand, operation.Children.Single());
+        }
+
+        public override void VisitCaughtException(ICaughtExceptionOperation operation)
+        {
+            Assert.Equal(OperationKind.CaughtException, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Empty(operation.Children);
+        }
+
+        public override void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        {
+            Assert.Equal(OperationKind.StaticLocalInitializationSemaphore, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Empty(operation.Children);
+            Assert.NotNull(operation.Local);
+            Assert.True(operation.Local.IsStatic);
         }
 
         public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)

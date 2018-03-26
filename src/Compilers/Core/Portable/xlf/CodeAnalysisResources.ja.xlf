@@ -833,6 +833,11 @@
         <target state="translated">報告された診断の ID は '{0}' です。これはコンパイラのみが報告するべきものです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
+        private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
+
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
@@ -41,9 +43,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var argument = value.Syntax?.Parent as ArgumentSyntax;
 
             // if argument syntax doesn't exist, this operation is implicit
-            return new CSharpArgument(kind,
+            return new ArgumentOperation(value,
+                kind,
                 parameter,
-                value,
+                s_boxedIdentityConversion,
+                s_boxedIdentityConversion,
                 semanticModel: _semanticModel,
                 syntax: argument ?? value.Syntax,
                 constantValue: default,
@@ -293,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.BinaryOperatorKind.OpMask)
+                switch (operatorKind.OperatorWithLogical())
                 {
                     case CSharp.BinaryOperatorKind.Addition:
                         return BinaryOperatorKind.Add;
@@ -342,6 +346,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case CSharp.BinaryOperatorKind.GreaterThan:
                         return BinaryOperatorKind.GreaterThan;
+
+                    case CSharp.BinaryOperatorKind.LogicalAnd:
+                        return BinaryOperatorKind.ConditionalAnd;
+
+                    case CSharp.BinaryOperatorKind.LogicalOr:
+                        return BinaryOperatorKind.ConditionalOr;
                 }
 
                 return BinaryOperatorKind.None;

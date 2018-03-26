@@ -1183,7 +1183,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.UInt32 x
     Local_2: System.UInt32 y
   LoopControlVariable: 

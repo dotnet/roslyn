@@ -324,7 +324,7 @@ class P
             string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m >= n  ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
+    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
       Left: 
         IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n')
           Left: 
@@ -1122,7 +1122,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.GetType() ... ).Equals(x)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
+        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
           Left: 
             IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'd.GetType() == t')
               Left: 
@@ -1163,6 +1163,220 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_01()
+        {
+            string source = @"
+class P
+{
+    void M()
+/*<bind>*/{
+        bool condition = false;
+        if (true)
+        {
+            condition = true;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Boolean condition]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            Leaving: {R1}
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = true')
+                  Left: 
+                    ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_02()
+        {
+            string source = @"
+class P
+{
+    void M()
+/*<bind>*/{
+        bool condition = false;
+        if (true)
+        {
+            ;
+        }
+        else
+        {
+            condition = true;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Boolean condition]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Jump if False (Regular) to Block[B2]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = true')
+                  Left: 
+                    ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(13,13): warning CS0162: Unreachable code detected
+                //             condition = true;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "condition").WithLocation(13, 13),
+                // file.cs(6,14): warning CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_03()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b)
+/*<bind>*/{
+        if (a && b)
+        {
+            a = false;
+        }
+        else
+        {
+            b = true;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'a = false')
+              Left: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+              Left: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
     }
 }

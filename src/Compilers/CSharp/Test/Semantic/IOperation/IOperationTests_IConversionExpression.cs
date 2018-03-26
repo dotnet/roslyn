@@ -348,6 +348,8 @@ IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDe
             Arguments(0)
             Initializer: 
               null
+        ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          (Identity)
         WhenNull: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'throw new Exception()')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

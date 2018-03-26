@@ -833,6 +833,11 @@
         <target state="translated">回報的診斷具有識別碼 '{0}'，只應有編譯器回報。</target>
         <note />
       </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
