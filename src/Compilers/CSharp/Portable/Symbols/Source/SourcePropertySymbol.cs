@@ -688,12 +688,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public bool AreLocalsZeroed
+        public bool HasSkipLocalsInitAttribute
         {
             get
             {
                 var data = this.GetDecodedWellKnownAttributeData();
-                return data?.HasSkipLocalsInitAttribute != true && ContainingType.AreLocalsZeroed;
+                return data?.HasSkipLocalsInitAttribute == true;
             }
         }
 
