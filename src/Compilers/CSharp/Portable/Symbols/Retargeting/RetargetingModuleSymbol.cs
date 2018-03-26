@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -284,5 +285,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
     }
 }

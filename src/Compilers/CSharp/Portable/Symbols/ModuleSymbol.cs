@@ -362,6 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract bool AreLocalsZeroed { get; }
+
         #region IModuleSymbol Members
 
         INamespaceSymbol IModuleSymbol.GlobalNamespace

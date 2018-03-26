@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var data = this.GetDecodedWellKnownAttributeData();
-                return data?.HasSkipLocalsInitAttribute != true && ContainingType?.AreLocalsZeroed != false;
+                return data?.HasSkipLocalsInitAttribute != true && (ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed);
             }
         }
 
