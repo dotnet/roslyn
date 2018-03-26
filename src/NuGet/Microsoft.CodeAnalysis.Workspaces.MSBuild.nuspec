@@ -3,11 +3,13 @@
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.Workspaces.MSBuild</id>
     <summary>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
+      .NET Compiler Platform ("Roslyn") support for analyzing MSBuild projects and solutions.
     </summary>
     <description>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
-      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      .NET Compiler Platform ("Roslyn") support for analyzing MSBuild projects and solutions. This should be used with at least one
+      of the following packages to add the appropriate language support:
+      - Microsoft.CodeAnalysis.CSharp.Workspaces
+      - Microsoft.CodeAnalysis.VisualBasic.Workspaces
 
       More details at https://aka.ms/roslyn-packages
 
