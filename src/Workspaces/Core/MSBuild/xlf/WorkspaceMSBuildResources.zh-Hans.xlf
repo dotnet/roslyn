@@ -22,6 +22,11 @@
         <target state="new">Found project with the same file path and output path as another project: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Duplicate_project_discovered_and_skipped_0">
+        <source>Duplicate project discovered and skipped: {0}</source>
+        <target state="new">Duplicate project discovered and skipped: {0}</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

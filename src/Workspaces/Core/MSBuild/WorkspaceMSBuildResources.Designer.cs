@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate project discovered and skipped: {0}.
+        /// </summary>
+        internal static string Duplicate_project_discovered_and_skipped_0 {
+            get {
+                return ResourceManager.GetString("Duplicate_project_discovered_and_skipped_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Found project with the same file path and output path as another project: {0}.
         /// </summary>
         internal static string Found_project_with_the_same_file_path_and_output_path_as_another_project_0 {

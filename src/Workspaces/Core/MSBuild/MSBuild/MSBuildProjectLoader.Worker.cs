@@ -138,7 +138,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                         if (!processedPaths.Add(absoluteProjectPath))
                         {
-                            // TODO: Report warning if there are duplicate project paths.
+                            _diagnosticReporter.Report(
+                                new WorkspaceDiagnostic(
+                                    WorkspaceDiagnosticKind.Warning,
+                                    string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, absoluteProjectPath)));
+
                             continue;
                         }
 

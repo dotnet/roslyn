@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             foreach (var logItem in log)
             {
-                Report(DiagnosticReportingMode.Log, GetMsbuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
+                Report(DiagnosticReportingMode.Log, GetMSBuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
             }
         }
 
-        private static string GetMsbuildFailedMessage(string projectFilePath, string message)
+        private static string GetMSBuildFailedMessage(string projectFilePath, string message)
             => string.IsNullOrWhiteSpace(message)
                 ? string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0, projectFilePath)
                 : string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
