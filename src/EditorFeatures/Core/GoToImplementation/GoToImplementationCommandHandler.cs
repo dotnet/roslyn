@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             return (document, document?.GetLanguageService<IFindUsagesService>());
         }
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Implementation_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
                 using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
                 {
-                    var userCancellationToken = context.WaitContext.UserCancellationToken;
+                    var userCancellationToken = context.OperationContext.UserCancellationToken;
                     StreamingGoToImplementation(
                         document, caretPosition,
                         streamingService, streamingPresenter,
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 if (messageToShow != null)
                 {
                     // We are about to show a modal UI dialog so we should take over the command execution
-                    // wait context. That means the command system won't attempt to show its own wait dialog 
+                    // wait context. That means the command system won't attempt to show its own wait dialog
                     // and also will take it into consideration when measuring command handling duration.
                     context.OperationContext.TakeOwnership();
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
@@ -109,14 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             CancellationToken cancellationToken,
             out string messageToShow)
         {
-            // We create our own context object, simply to capture all the definitions reported by 
-            // the individual IFindUsagesService.  Once we get the results back we'll then decide 
-            // what to do with them.  If we get only a single result back, then we'll just go 
+            // We create our own context object, simply to capture all the definitions reported by
+            // the individual IFindUsagesService.  Once we get the results back we'll then decide
+            // what to do with them.  If we get only a single result back, then we'll just go
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
             var goToImplContext = new SimpleFindUsagesContext(cancellationToken);
             findUsagesService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
 
-            // If finding implementations reported a message, then just stop and show that 
+            // If finding implementations reported a message, then just stop and show that
             // message to the user.
             messageToShow = goToImplContext.Message;
             if (messageToShow != null)
