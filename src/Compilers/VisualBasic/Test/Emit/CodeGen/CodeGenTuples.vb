@@ -21482,6 +21482,40 @@ End Module
             Assert.Equal("(X As System.Int32, P As Module1.MyDelegate)", tupleSymbol.ConvertedType.ToTestDisplayString())
         End Sub
 
+        <Fact>
+        <WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")>
+        Public Sub InferenceWithTuple()
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Interface IAct(Of T)
+    Function Act(Of TReturn)(fn As Func(Of T, TReturn)) As IResult(Of TReturn)
+End Interface
+
+Public Interface IResult(Of TReturn)
+End Interface
+
+Module Module1
+    Sub M(impl As IAct(Of (Integer, Integer)))
+        Dim case3 = impl.Act(Function(a As (x As Integer, y As Integer)) a.x * a.y)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp.AssertTheseDiagnostics()
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim case3 = nodes.OfType(Of LocalDeclarationStatementSyntax)().Single().Declarators.Single().Names.Single()
+
+            Assert.Equal("case3 As IResult(Of System.Int32)", model.GetDeclaredSymbol(case3).ToTestDisplayString())
+        End Sub
+
     End Class
 
 End Namespace

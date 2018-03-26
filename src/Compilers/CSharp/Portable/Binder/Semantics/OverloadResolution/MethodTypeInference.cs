@@ -2635,7 +2635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (anonymousFunction.ParameterType(p) != fixedDelegateParameters[p].Type)
+                    if (!anonymousFunction.ParameterType(p).Equals(fixedDelegateParameters[p].Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                     {
                         return null;
                     }

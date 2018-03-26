@@ -24253,5 +24253,67 @@ namespace System
                 //         tuple.Item1 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
         }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int, int)> impl)
+    {
+        var case3 = impl.Do(((int x, int y) a) => a.x * a.y);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var varType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single().Declaration.Type;
+            Assert.Equal("IResult<System.Int32>", model.GetTypeInfo(varType).Type.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithDynamic()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<object> impl)
+    {
+        var case3 = impl.Do((dynamic a) => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var varType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single().Declaration.Type;
+            Assert.Equal("IResult<System.Int32>", model.GetTypeInfo(varType).Type.ToTestDisplayString());
+        }
     }
 }
