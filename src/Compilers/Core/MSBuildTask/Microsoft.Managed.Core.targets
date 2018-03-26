@@ -117,13 +117,19 @@
       <!-- TODO: Report error/warning if /pathmap doesn't cover all emitted source paths: https://github.com/dotnet/roslyn/issues/23969 -->
 
       <!-- TODO: PathMap should accept and ignore empty mapping: https://github.com/dotnet/roslyn/issues/23523 -->
-      <PathMap Condition="'$(PathMap)' != ''">$(PathMap),</PathMap>
+      <PathMap Condition="'$(PathMap)' != ''">,$(PathMap)</PathMap>
 
       <!--
+        Prepend the SourceRoot.MappedPath values to PathMap, if it already has a value.
+        For each emitted source path the compiler applies the first mapping that matches the path.
+        PathMap values set previously will thus only be applied if the mapping provided by 
+        SourceRoot.MappedPath doesn't match. Since SourceRoot.MappedPath is also used by SourceLink 
+        preferring it over manually set PathMap ensures that PathMap is consistent with SourceLink.
+      
         TODO: quote the paths to avoid misinterpreting ',' and '=' in them as separators, 
         but quoting doesn't currently work (see https://github.com/dotnet/roslyn/issues/22835).
       -->
-      <PathMap>$(PathMap)@(_TopLevelSourceRoot->'%(Identity)=%(MappedPath)', ',')</PathMap>
+      <PathMap>@(_TopLevelSourceRoot->'%(Identity)=%(MappedPath)', ',')$(PathMap)</PathMap>
     </PropertyGroup>
   </Target>
 

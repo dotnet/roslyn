@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   <PropertyGroup>
     <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <PathMap>PreviousPathMap</PathMap>
   </PropertyGroup>
   {sourcePackageTargets}
   {sourceLinkPackageTargets}
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}sub1\: /_/sub1/",
                     $@"{root1}sub2\: /_/sub2/",
                     @"true",
-                    $@"{root2}=/_1/,{root1}=/_/"
+                    $@"{root2}=/_1/,{root1}=/_/,PreviousPathMap"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
