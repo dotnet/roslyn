@@ -977,6 +977,27 @@ class Program2
         {
             Console.Write(3);
         }
+
+        if (o is Frog(9, 2) { A: 1, B: 2, C: 3 }) {} else
+        {
+            Console.Write(4);
+        }
+        if (o is Frog(1, 9) { A: 1, B: 2, C: 3 }) {} else
+        {
+            Console.Write(5);
+        }
+        if (o is Frog(1, 2) { A: 9, B: 2, C: 3 }) {} else
+        {
+            Console.Write(6);
+        }
+        if (o is Frog(1, 2) { A: 1, B: 9, C: 3 }) {} else
+        {
+            Console.Write(7);
+        }
+        if (o is Frog(1, 2) { A: 1, B: 2, C: 9 }) {} else
+        {
+            Console.Write(8);
+        }
     }
 }
 
@@ -991,7 +1012,7 @@ class Frog
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"123");
+            var comp = CompileAndVerify(compilation, expectedOutput: @"12345678");
         }
 
         [Fact]
