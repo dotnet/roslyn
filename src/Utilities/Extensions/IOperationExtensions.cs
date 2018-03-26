@@ -340,14 +340,14 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="binaryOperation"></param>
         /// <returns></returns>
-        public static bool IsConditionalOpertator(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalAndOpertator() || binaryOperation.IsConditionalOrOpertator();
+        public static bool IsConditionalOperator(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalAndOperator() || binaryOperation.IsConditionalOrOperator();
 
         /// <summary>
         /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd operator ('&&').
         /// </summary>
         /// <param name="binaryOperation"></param>
         /// <returns></returns>
-        public static bool IsConditionalAndOpertator(this IBinaryOperation binaryOperation)
+        public static bool IsConditionalAndOperator(this IBinaryOperation binaryOperation)
         {
             switch (binaryOperation.OperatorKind)
             {
@@ -368,7 +368,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="binaryOperation"></param>
         /// <returns></returns>
-        public static bool IsConditionalOrOpertator(this IBinaryOperation binaryOperation)
+        public static bool IsConditionalOrOperator(this IBinaryOperation binaryOperation)
         {
             switch (binaryOperation.OperatorKind)
             {
@@ -407,5 +407,22 @@ namespace Analyzer.Utilities.Extensions
                     return false;
             }
         }
+
+        public static ITypeSymbol GetExceptionType(this IThrowOperation throwOperation)
+        {
+            if (throwOperation.Exception != null)
+            {
+                return throwOperation.Exception.Type;
+            }
+
+            var catchOperation = throwOperation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause);
+            return catchOperation?.ExceptionType;
+        }
+
+        public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
+            => operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate();
+
+        public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
+            => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
     }
 }
