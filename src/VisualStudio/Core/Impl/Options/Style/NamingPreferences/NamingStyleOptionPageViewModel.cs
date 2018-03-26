@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
     internal class NamingStyleOptionPageViewModel : AbstractNotifyPropertyChanged
     {
         public string ManageSpecificationsButtonText => ServicesVSResources.Manage_specifications;
-        public string ManageStylesButtonText => ServicesVSResources.Manage_styles;
+        public string ManageStylesButtonText => ServicesVSResources.Manage_naming_styles;
 
         private readonly NotificationOptionViewModel[] _notifications = new[]
         {
