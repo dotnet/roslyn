@@ -18,6 +18,24 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    public static class WellKnownAttributeTestsUtil
+    {
+        public static bool? HasLocalsInit(this CompilationVerifier verifier, string methodName, bool realIL = false)
+        {
+            var il = verifier.VisualizeIL(methodName, realIL);
+
+            if (il.Contains(".locals init ("))
+            {
+                return true;
+            }
+            if (il.Contains(".locals ("))
+            {
+                return false;
+            }
+            return null;
+        }
+    }
+
     public class AttributeTests_WellKnownAttributes : WellKnownAttributesTestBase
     {
         #region Misc
@@ -8591,69 +8609,42 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.M_init", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}", realIL: true);
+            Assert.True(comp.HasLocalsInit("C.M_init", realIL: true));
+            Assert.False(comp.HasLocalsInit("C.M_skip", realIL: true));
+            Assert.True(comp.HasLocalsInit("C.M_init", realIL: false));
+            Assert.False(comp.HasLocalsInit("C.M_skip", realIL: false));
+        }
 
-            comp.VerifyIL("C.M_skip", @"
+        [Fact]
+        public void SkipLocalsInitAttributeOnPartialMethod()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
 {
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}", realIL: true);
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
 
-            comp.VerifyIL("C.M_init", @"
+partial class C
 {
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}", realIL: false);
+    partial void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
 
-            comp.VerifyIL("C.M_skip", @"
+partial class C
 {
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}", realIL: false);
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    partial void M();
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
         }
 
         [Fact]
@@ -8783,47 +8774,6 @@ public class C
         }
 
         [Fact]
-        public void SkipLocalsInitAttributeOnClassDoesNotPropagateToMethod()
-        {
-            var source = @"
-namespace System.Runtime.CompilerServices
-{
-    public class SkipLocalsInitAttribute : System.Attribute
-    {
-    }
-}
-
-[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
-public class C
-{
-    public void M()
-    {
-        int x = 2;
-        x = x + x + x;
-    }
-}
-";
-
-            var comp = CompileAndVerify(source);
-
-            comp.VerifyIL("C.M", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-        }
-
-        [Fact]
         public void SkipLocalsInitAttributeOnAssemblyDoesNotPropagateToMethod()
         {
             var source = @"
@@ -8848,21 +8798,7 @@ public class C
 
             var comp = CompileAndVerify(source);
 
-            comp.VerifyIL("C.M", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.True(comp.HasLocalsInit("C.M"));
         }
 
         [Fact]
@@ -8892,21 +8828,7 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<M>g__F|0_0", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0"));
         }
 
         [Fact]
@@ -8936,21 +8858,7 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<>c.<M>b__0_0", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_0"));
         }
 
         [Fact]
@@ -9010,119 +8918,12 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            // F
-            comp.VerifyIL("C.<M>g__F|0_0", @"
-{
-  // Code size       37 (0x25)
-  .maxstack  2
-  .locals (int V_0) //y
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ldsfld     ""System.Action C.<>c.<>9__0_3""
-  IL_000d:  brtrue.s   IL_0024
-  IL_000f:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0014:  ldftn      ""void C.<>c.<M>b__0_3()""
-  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_001f:  stsfld     ""System.Action C.<>c.<>9__0_3""
-  IL_0024:  ret
-}");
-
-            // FF
-            comp.VerifyIL("C.<M>g__FF|0_2", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            // FL
-            comp.VerifyIL("C.<>c.<M>b__0_3", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            // L
-            comp.VerifyIL("C.<>c.<M>b__0_1", @"
-{
-  // Code size       37 (0x25)
-  .maxstack  2
-  .locals (int V_0) //y
-  IL_0000:  ldc.i4.4
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ldsfld     ""System.Action C.<>c.<>9__0_5""
-  IL_000d:  brtrue.s   IL_0024
-  IL_000f:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0014:  ldftn      ""void C.<>c.<M>b__0_5()""
-  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_001f:  stsfld     ""System.Action C.<>c.<>9__0_5""
-  IL_0024:  ret
-}");
-
-            // LF
-            comp.VerifyIL("C.<M>g__LF|0_4", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.5
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            // LL
-            comp.VerifyIL("C.<>c.<M>b__0_5", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.6
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0")); // F
+            Assert.False(comp.HasLocalsInit("C.<M>g__FF|0_2")); // FF
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_3")); // FL
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_1")); // L
+            Assert.False(comp.HasLocalsInit("C.<M>g__LF|0_4")); // LF
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_5")); // LL
         }
 
         [Fact]
@@ -9155,265 +8956,25 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<M_skip>d__0.System.Collections.IEnumerator.MoveNext", @"
-{
-  // Code size       92 (0x5c)
-  .maxstack  2
-  .locals (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0037,
-        IL_0053)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  box        ""int""
-  IL_0029:  stfld      ""object C.<M_skip>d__0.<>2__current""
-  IL_002e:  ldarg.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_003e:  ldarg.0
-  IL_003f:  ldc.i4.2
-  IL_0040:  box        ""int""
-  IL_0045:  stfld      ""object C.<M_skip>d__0.<>2__current""
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.2
-  IL_004c:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0051:  ldc.i4.1
-  IL_0052:  ret
-  IL_0053:  ldarg.0
-  IL_0054:  ldc.i4.m1
-  IL_0055:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_005a:  ldc.i4.0
-  IL_005b:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Collections.IEnumerator.MoveNext", @"
-{
-  // Code size       92 (0x5c)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0037,
-        IL_0053)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.3
-  IL_0024:  box        ""int""
-  IL_0029:  stfld      ""object C.<M_init>d__1.<>2__current""
-  IL_002e:  ldarg.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_003e:  ldarg.0
-  IL_003f:  ldc.i4.4
-  IL_0040:  box        ""int""
-  IL_0045:  stfld      ""object C.<M_init>d__1.<>2__current""
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.2
-  IL_004c:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0051:  ldc.i4.1
-  IL_0052:  ret
-  IL_0053:  ldarg.0
-  IL_0054:  ldc.i4.m1
-  IL_0055:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_005a:  ldc.i4.0
-  IL_005b:  ret
-}");
-
-            comp.VerifyIL("C.<M_skip>d__0.System.Collections.Generic.IEnumerable<object>.GetEnumerator", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  2
-  .locals (C.<M_skip>d__0 V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0006:  ldc.i4.s   -2
-  IL_0008:  bne.un.s   IL_0022
-  IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<M_skip>d__0.<>l__initialThreadId""
-  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0015:  bne.un.s   IL_0022
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.0
-  IL_0019:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_001e:  ldarg.0
-  IL_001f:  stloc.0
-  IL_0020:  br.s       IL_0029
-  IL_0022:  ldc.i4.0
-  IL_0023:  newobj     ""C.<M_skip>d__0..ctor(int)""
-  IL_0028:  stloc.0
-  IL_0029:  ldloc.0
-  IL_002a:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  2
-  .locals init (C.<M_init>d__1 V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0006:  ldc.i4.s   -2
-  IL_0008:  bne.un.s   IL_0022
-  IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<M_init>d__1.<>l__initialThreadId""
-  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0015:  bne.un.s   IL_0022
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.0
-  IL_0019:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_001e:  ldarg.0
-  IL_001f:  stloc.0
-  IL_0020:  br.s       IL_0029
-  IL_0022:  ldc.i4.0
-  IL_0023:  newobj     ""C.<M_init>d__1..ctor(int)""
-  IL_0028:  stloc.0
-  IL_0029:  ldloc.0
-  IL_002a:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.MoveNext"));
+            Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.MoveNext"));
+            Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
+            Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
 
             // The following methods do not contain locals, so the attribute should not alter their behavior
 
-            comp.VerifyIL("C.<M_skip>d__0.System.IDisposable.Dispose", @"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.IDisposable.Dispose", @"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}");
-
-            comp.VerifyIL("C.<M_skip>d__0.System.Collections.IEnumerable.GetEnumerator", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Collections.Generic.IEnumerator<object> C.<M_skip>d__0.GetEnumerator()""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Collections.IEnumerable.GetEnumerator", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Collections.Generic.IEnumerator<object> C.<M_init>d__1.GetEnumerator()""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("C.<M_skip>d__0.System.Collections.IEnumerator.get_Current", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""object C.<M_skip>d__0.<>2__current""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Collections.IEnumerator.get_Current", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""object C.<M_init>d__1.<>2__current""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("C.<M_skip>d__0.System.Collections.IEnumerator.Reset", @"
-{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  newobj     ""System.NotSupportedException..ctor()""
-  IL_0005:  throw
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Collections.IEnumerator.Reset", @"
-{
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  newobj     ""System.NotSupportedException..ctor()""
-  IL_0005:  throw
-}");
-
-            comp.VerifyIL("C.<M_skip>d__0.System.Collections.Generic.IEnumerator<object>.get_Current", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""object C.<M_skip>d__0.<>2__current""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Collections.Generic.IEnumerator<object>.get_Current", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""object C.<M_init>d__1.<>2__current""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("C.<M_skip>d__0..ctor", @"
-{
-  // Code size       25 (0x19)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldarg.1
-  IL_0008:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_000d:  ldarg.0
-  IL_000e:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0013:  stfld      ""int C.<M_skip>d__0.<>l__initialThreadId""
-  IL_0018:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1..ctor", @"
-{
-  // Code size       25 (0x19)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldarg.1
-  IL_0008:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_000d:  ldarg.0
-  IL_000e:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0013:  stfld      ""int C.<M_init>d__1.<>l__initialThreadId""
-  IL_0018:  ret
-}");
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.IDisposable.Dispose"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.IDisposable.Dispose"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerable.GetEnumerator"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerable.GetEnumerator"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.Reset"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.Reset"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.Generic.IEnumerator<object>.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.Generic.IEnumerator<object>.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0..ctor"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1..ctor"));
         }
 
         [Fact]
@@ -9443,77 +9004,8 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<<M>g__F|0_0>d.System.Collections.IEnumerator.MoveNext", @"
-{
-  // Code size       92 (0x5c)
-  .maxstack  2
-  .locals (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0037,
-        IL_0053)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  box        ""int""
-  IL_0029:  stfld      ""object C.<<M>g__F|0_0>d.<>2__current""
-  IL_002e:  ldarg.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_003e:  ldarg.0
-  IL_003f:  ldc.i4.2
-  IL_0040:  box        ""int""
-  IL_0045:  stfld      ""object C.<<M>g__F|0_0>d.<>2__current""
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.2
-  IL_004c:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0051:  ldc.i4.1
-  IL_0052:  ret
-  IL_0053:  ldarg.0
-  IL_0054:  ldc.i4.m1
-  IL_0055:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_005a:  ldc.i4.0
-  IL_005b:  ret
-}");
-
-            comp.VerifyIL("C.<<M>g__F|0_0>d.System.Collections.Generic.IEnumerable<object>.GetEnumerator()", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  2
-  .locals (C.<<M>g__F|0_0>d V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0006:  ldc.i4.s   -2
-  IL_0008:  bne.un.s   IL_0022
-  IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<<M>g__F|0_0>d.<>l__initialThreadId""
-  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0015:  bne.un.s   IL_0022
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.0
-  IL_0019:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_001e:  ldarg.0
-  IL_001f:  stloc.0
-  IL_0020:  br.s       IL_0029
-  IL_0022:  ldc.i4.0
-  IL_0023:  newobj     ""C.<<M>g__F|0_0>d..ctor(int)""
-  IL_0028:  stloc.0
-  IL_0029:  ldloc.0
-  IL_002a:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Collections.IEnumerator.MoveNext"));
+            Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
         }
 
         [Fact]
@@ -9546,175 +9038,13 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
-  // Code size      145 (0x91)
-  .maxstack  3
-  .locals (int V_0,
-           System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
-           System.Runtime.CompilerServices.YieldAwaitable V_2,
-           System.Exception V_3)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0006:  stloc.0
-  .try
-  {
-    IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0041
-    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
-    IL_000f:  stloc.2
-    IL_0010:  ldloca.s   V_2
-    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
-    IL_0017:  stloc.1
-    IL_0018:  ldloca.s   V_1
-    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
-    IL_001f:  brtrue.s   IL_005d
-    IL_0021:  ldarg.0
-    IL_0022:  ldc.i4.0
-    IL_0023:  dup
-    IL_0024:  stloc.0
-    IL_0025:  stfld      ""int C.<M_skip>d__0.<>1__state""
-    IL_002a:  ldarg.0
-    IL_002b:  ldloc.1
-    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M_skip>d__0.<>u__1""
-    IL_0031:  ldarg.0
-    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_skip>d__0.<>t__builder""
-    IL_0037:  ldloca.s   V_1
-    IL_0039:  ldarg.0
-    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<M_skip>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<M_skip>d__0)""
-    IL_003f:  leave.s    IL_0090
-    IL_0041:  ldarg.0
-    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M_skip>d__0.<>u__1""
-    IL_0047:  stloc.1
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M_skip>d__0.<>u__1""
-    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.m1
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int C.<M_skip>d__0.<>1__state""
-    IL_005d:  ldloca.s   V_1
-    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0064:  leave.s    IL_007d
-  }
-  catch System.Exception
-  {
-    IL_0066:  stloc.3
-    IL_0067:  ldarg.0
-    IL_0068:  ldc.i4.s   -2
-    IL_006a:  stfld      ""int C.<M_skip>d__0.<>1__state""
-    IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_skip>d__0.<>t__builder""
-    IL_0075:  ldloc.3
-    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_007b:  leave.s    IL_0090
-  }
-  IL_007d:  ldarg.0
-  IL_007e:  ldc.i4.s   -2
-  IL_0080:  stfld      ""int C.<M_skip>d__0.<>1__state""
-  IL_0085:  ldarg.0
-  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_skip>d__0.<>t__builder""
-  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0090:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
-  // Code size      145 (0x91)
-  .maxstack  3
-  .locals init (int V_0,
-                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
-                System.Runtime.CompilerServices.YieldAwaitable V_2,
-                System.Exception V_3)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0006:  stloc.0
-  .try
-  {
-    IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0041
-    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
-    IL_000f:  stloc.2
-    IL_0010:  ldloca.s   V_2
-    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
-    IL_0017:  stloc.1
-    IL_0018:  ldloca.s   V_1
-    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
-    IL_001f:  brtrue.s   IL_005d
-    IL_0021:  ldarg.0
-    IL_0022:  ldc.i4.0
-    IL_0023:  dup
-    IL_0024:  stloc.0
-    IL_0025:  stfld      ""int C.<M_init>d__1.<>1__state""
-    IL_002a:  ldarg.0
-    IL_002b:  ldloc.1
-    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M_init>d__1.<>u__1""
-    IL_0031:  ldarg.0
-    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_init>d__1.<>t__builder""
-    IL_0037:  ldloca.s   V_1
-    IL_0039:  ldarg.0
-    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<M_init>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<M_init>d__1)""
-    IL_003f:  leave.s    IL_0090
-    IL_0041:  ldarg.0
-    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M_init>d__1.<>u__1""
-    IL_0047:  stloc.1
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<M_init>d__1.<>u__1""
-    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.m1
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int C.<M_init>d__1.<>1__state""
-    IL_005d:  ldloca.s   V_1
-    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0064:  leave.s    IL_007d
-  }
-  catch System.Exception
-  {
-    IL_0066:  stloc.3
-    IL_0067:  ldarg.0
-    IL_0068:  ldc.i4.s   -2
-    IL_006a:  stfld      ""int C.<M_init>d__1.<>1__state""
-    IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_init>d__1.<>t__builder""
-    IL_0075:  ldloc.3
-    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_007b:  leave.s    IL_0090
-  }
-  IL_007d:  ldarg.0
-  IL_007e:  ldc.i4.s   -2
-  IL_0080:  stfld      ""int C.<M_init>d__1.<>1__state""
-  IL_0085:  ldarg.0
-  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_init>d__1.<>t__builder""
-  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0090:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
+            Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
 
             // The following method does not contain locals, so the attribute should not alter its behavior
 
-            comp.VerifyIL("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine", @"
-{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_skip>d__0.<>t__builder""
-  IL_0006:  ldarg.1
-  IL_0007:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine)""
-  IL_000c:  ret
-}");
-
-            comp.VerifyIL("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine", @"
-{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M_init>d__1.<>t__builder""
-  IL_0006:  ldarg.1
-  IL_0007:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine)""
-  IL_000c:  ret
-}");
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine"));
         }
 
         [Fact]
@@ -9745,78 +9075,7 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<<M>g__F|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
-  // Code size      145 (0x91)
-  .maxstack  3
-  .locals (int V_0,
-           System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
-           System.Runtime.CompilerServices.YieldAwaitable V_2,
-           System.Exception V_3)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0006:  stloc.0
-  .try
-  {
-    IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0041
-    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
-    IL_000f:  stloc.2
-    IL_0010:  ldloca.s   V_2
-    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
-    IL_0017:  stloc.1
-    IL_0018:  ldloca.s   V_1
-    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
-    IL_001f:  brtrue.s   IL_005d
-    IL_0021:  ldarg.0
-    IL_0022:  ldc.i4.0
-    IL_0023:  dup
-    IL_0024:  stloc.0
-    IL_0025:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-    IL_002a:  ldarg.0
-    IL_002b:  ldloc.1
-    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<<M>g__F|0_0>d.<>u__1""
-    IL_0031:  ldarg.0
-    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__F|0_0>d.<>t__builder""
-    IL_0037:  ldloca.s   V_1
-    IL_0039:  ldarg.0
-    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<<M>g__F|0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<<M>g__F|0_0>d)""
-    IL_003f:  leave.s    IL_0090
-    IL_0041:  ldarg.0
-    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<<M>g__F|0_0>d.<>u__1""
-    IL_0047:  stloc.1
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<<M>g__F|0_0>d.<>u__1""
-    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.m1
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-    IL_005d:  ldloca.s   V_1
-    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0064:  leave.s    IL_007d
-  }
-  catch System.Exception
-  {
-    IL_0066:  stloc.3
-    IL_0067:  ldarg.0
-    IL_0068:  ldc.i4.s   -2
-    IL_006a:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-    IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__F|0_0>d.<>t__builder""
-    IL_0075:  ldloc.3
-    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_007b:  leave.s    IL_0090
-  }
-  IL_007d:  ldarg.0
-  IL_007e:  ldc.i4.s   -2
-  IL_0080:  stfld      ""int C.<<M>g__F|0_0>d.<>1__state""
-  IL_0085:  ldarg.0
-  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__F|0_0>d.<>t__builder""
-  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0090:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
         }
 
         [Fact]
@@ -9847,78 +9106,7 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<>c.<<M>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
-  // Code size      145 (0x91)
-  .maxstack  3
-  .locals (int V_0,
-           System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
-           System.Runtime.CompilerServices.YieldAwaitable V_2,
-           System.Exception V_3)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
-  IL_0006:  stloc.0
-  .try
-  {
-    IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0041
-    IL_000a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
-    IL_000f:  stloc.2
-    IL_0010:  ldloca.s   V_2
-    IL_0012:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
-    IL_0017:  stloc.1
-    IL_0018:  ldloca.s   V_1
-    IL_001a:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
-    IL_001f:  brtrue.s   IL_005d
-    IL_0021:  ldarg.0
-    IL_0022:  ldc.i4.0
-    IL_0023:  dup
-    IL_0024:  stloc.0
-    IL_0025:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
-    IL_002a:  ldarg.0
-    IL_002b:  ldloc.1
-    IL_002c:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<>c.<<M>b__0_0>d.<>u__1""
-    IL_0031:  ldarg.0
-    IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
-    IL_0037:  ldloca.s   V_1
-    IL_0039:  ldarg.0
-    IL_003a:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<>c.<<M>b__0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<>c.<<M>b__0_0>d)""
-    IL_003f:  leave.s    IL_0090
-    IL_0041:  ldarg.0
-    IL_0042:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<>c.<<M>b__0_0>d.<>u__1""
-    IL_0047:  stloc.1
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<>c.<<M>b__0_0>d.<>u__1""
-    IL_004e:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.m1
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
-    IL_005d:  ldloca.s   V_1
-    IL_005f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0064:  leave.s    IL_007d
-  }
-  catch System.Exception
-  {
-    IL_0066:  stloc.3
-    IL_0067:  ldarg.0
-    IL_0068:  ldc.i4.s   -2
-    IL_006a:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
-    IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
-    IL_0075:  ldloc.3
-    IL_0076:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_007b:  leave.s    IL_0090
-  }
-  IL_007d:  ldarg.0
-  IL_007e:  ldc.i4.s   -2
-  IL_0080:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
-  IL_0085:  ldarg.0
-  IL_0086:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
-  IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_0090:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<>c.<<M>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
         }
 
         [Fact]
@@ -9944,99 +9132,11 @@ public class C
 
             var comp = CompileAndVerify(source);
 
-            comp.VerifyIL("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode", @"
-{
-  // Code size       29 (0x1d)
-  .maxstack  3
-  IL_0000:  ldc.i4     0x5298af41
-  IL_0005:  ldc.i4     0xa5555529
-  IL_000a:  mul
-  IL_000b:  call       ""System.Collections.Generic.EqualityComparer<<Value>j__TPar> System.Collections.Generic.EqualityComparer<<Value>j__TPar>.Default.get""
-  IL_0010:  ldarg.0
-  IL_0011:  ldfld      ""<Value>j__TPar <>f__AnonymousType0<<Value>j__TPar>.<Value>i__Field""
-  IL_0016:  callvirt   ""int System.Collections.Generic.EqualityComparer<<Value>j__TPar>.GetHashCode(<Value>j__TPar)""
-  IL_001b:  add
-  IL_001c:  ret
-}");
-
-            comp.VerifyIL("<>f__AnonymousType0<<Value>j__TPar>..ctor", @"
-{
-  // Code size       14 (0xe)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldarg.1
-  IL_0008:  stfld      ""<Value>j__TPar <>f__AnonymousType0<<Value>j__TPar>.<Value>i__Field""
-  IL_000d:  ret
-}");
-
-            comp.VerifyIL("<>f__AnonymousType0<<Value>j__TPar>.Equals", @"
-{
-  // Code size       35 (0x23)
-  .maxstack  3
-  .locals init (<>f__AnonymousType0<<Value>j__TPar> V_0)
-  IL_0000:  ldarg.1
-  IL_0001:  isinst     ""<>f__AnonymousType0<<Value>j__TPar>""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0021
-  IL_000a:  call       ""System.Collections.Generic.EqualityComparer<<Value>j__TPar> System.Collections.Generic.EqualityComparer<<Value>j__TPar>.Default.get""
-  IL_000f:  ldarg.0
-  IL_0010:  ldfld      ""<Value>j__TPar <>f__AnonymousType0<<Value>j__TPar>.<Value>i__Field""
-  IL_0015:  ldloc.0
-  IL_0016:  ldfld      ""<Value>j__TPar <>f__AnonymousType0<<Value>j__TPar>.<Value>i__Field""
-  IL_001b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<Value>j__TPar>.Equals(<Value>j__TPar, <Value>j__TPar)""
-  IL_0020:  ret
-  IL_0021:  ldc.i4.0
-  IL_0022:  ret
-}");
-
-            comp.VerifyIL("<>f__AnonymousType0<<Value>j__TPar>.ToString", @"
-{
-  // Code size       77 (0x4d)
-  .maxstack  7
-  .locals init (<Value>j__TPar V_0,
-                <Value>j__TPar V_1)
-  IL_0000:  ldnull
-  IL_0001:  ldstr      ""{{ Value = {0} }}""
-  IL_0006:  ldc.i4.1
-  IL_0007:  newarr     ""object""
-  IL_000c:  dup
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""<Value>j__TPar <>f__AnonymousType0<<Value>j__TPar>.<Value>i__Field""
-  IL_0014:  stloc.0
-  IL_0015:  ldloca.s   V_0
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  initobj    ""<Value>j__TPar""
-  IL_001f:  ldloc.1
-  IL_0020:  box        ""<Value>j__TPar""
-  IL_0025:  brtrue.s   IL_003b
-  IL_0027:  ldobj      ""<Value>j__TPar""
-  IL_002c:  stloc.1
-  IL_002d:  ldloca.s   V_1
-  IL_002f:  ldloc.1
-  IL_0030:  box        ""<Value>j__TPar""
-  IL_0035:  brtrue.s   IL_003b
-  IL_0037:  pop
-  IL_0038:  ldnull
-  IL_0039:  br.s       IL_0046
-  IL_003b:  constrained. ""<Value>j__TPar""
-  IL_0041:  callvirt   ""string object.ToString()""
-  IL_0046:  stelem.ref
-  IL_0047:  call       ""string string.Format(System.IFormatProvider, string, params object[])""
-  IL_004c:  ret
-}");
-
-            comp.VerifyIL("<>f__AnonymousType0<<Value>j__TPar>.Value.get", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""<Value>j__TPar <>f__AnonymousType0<<Value>j__TPar>.<Value>i__Field""
-  IL_0006:  ret
-}");
+            Assert.Null(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
+            Assert.Null(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
+            Assert.True(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Equals"));
+            Assert.True(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.ToString"));
+            Assert.Null(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Value.get"));
         }
 
         [Fact]
@@ -10063,14 +9163,7 @@ public class C
 
             var comp = CompileAndVerify(source);
 
-            comp.VerifyIL("C.<>c__DisplayClass0_0..ctor", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ret
-}");
+            Assert.Null(comp.HasLocalsInit("C.<>c__DisplayClass0_0..ctor"));
         }
 
         [Fact]
@@ -10097,26 +9190,10 @@ public class C
 
             var comp = CompileAndVerify(source);
 
-            comp.VerifyIL("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Attribute..ctor()""
-  IL_0006:  ret
-}");
-
-            comp.VerifyIL("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Attribute..ctor()""
-  IL_0006:  ret
-}");
+            Assert.Null(comp.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
+            Assert.Null(comp.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
         }
 
-        // PROTOTYPE(SkipLocalsInitAttribute): we might want to update this test once SkipLocalsInitAttribute on classes is enabled
         [Fact]
         public void SourceMemberMethodSymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
         {
@@ -10128,7 +9205,18 @@ namespace System.Runtime.CompilerServices
     }
 }
 
-public class C
+public class C_init
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
     public void M()
@@ -10139,23 +9227,10 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.M", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.True(comp.HasLocalsInit("C_init.M"));
+            Assert.False(comp.HasLocalsInit("C_skip.M"));
         }
 
         [Fact]
@@ -10206,67 +9281,10 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.P_skip.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P_init.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P_skip.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            comp.VerifyIL("C.P_init.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.4
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.P_skip.get"));
+            Assert.True(comp.HasLocalsInit("C.P_init.get"));
+            Assert.False(comp.HasLocalsInit("C.P_skip.set"));
+            Assert.True(comp.HasLocalsInit("C.P_init.set"));
         }
 
         [Fact]
@@ -10335,98 +9353,12 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.P1.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P1.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            comp.VerifyIL("C.P2.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P2.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.4
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            comp.VerifyIL("C.P3.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.5
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P3.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.6
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.P1.get"));
+            Assert.True(comp.HasLocalsInit("C.P1.set"));
+            Assert.True(comp.HasLocalsInit("C.P2.get"));
+            Assert.False(comp.HasLocalsInit("C.P2.set"));
+            Assert.False(comp.HasLocalsInit("C.P3.get"));
+            Assert.False(comp.HasLocalsInit("C.P3.set"));
         }
 
         [Fact]
@@ -10456,77 +9388,8 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.<get_P>d__1.System.Collections.IEnumerator.MoveNext", @"
-{
-  // Code size       92 (0x5c)
-  .maxstack  2
-  .locals (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<get_P>d__1.<>1__state""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0037,
-        IL_0053)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      ""int C.<get_P>d__1.<>1__state""
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  box        ""int""
-  IL_0029:  stfld      ""object C.<get_P>d__1.<>2__current""
-  IL_002e:  ldarg.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  stfld      ""int C.<get_P>d__1.<>1__state""
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  stfld      ""int C.<get_P>d__1.<>1__state""
-  IL_003e:  ldarg.0
-  IL_003f:  ldc.i4.2
-  IL_0040:  box        ""int""
-  IL_0045:  stfld      ""object C.<get_P>d__1.<>2__current""
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.2
-  IL_004c:  stfld      ""int C.<get_P>d__1.<>1__state""
-  IL_0051:  ldc.i4.1
-  IL_0052:  ret
-  IL_0053:  ldarg.0
-  IL_0054:  ldc.i4.m1
-  IL_0055:  stfld      ""int C.<get_P>d__1.<>1__state""
-  IL_005a:  ldc.i4.0
-  IL_005b:  ret
-}");
-
-            comp.VerifyIL("C.<get_P>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  2
-  .locals (C.<get_P>d__1 V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<get_P>d__1.<>1__state""
-  IL_0006:  ldc.i4.s   -2
-  IL_0008:  bne.un.s   IL_0022
-  IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<get_P>d__1.<>l__initialThreadId""
-  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
-  IL_0015:  bne.un.s   IL_0022
-  IL_0017:  ldarg.0
-  IL_0018:  ldc.i4.0
-  IL_0019:  stfld      ""int C.<get_P>d__1.<>1__state""
-  IL_001e:  ldarg.0
-  IL_001f:  stloc.0
-  IL_0020:  br.s       IL_0029
-  IL_0022:  ldc.i4.0
-  IL_0023:  newobj     ""C.<get_P>d__1..ctor(int)""
-  IL_0028:  stloc.0
-  IL_0029:  ldloc.0
-  IL_002a:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.<get_P>d__1.System.Collections.IEnumerator.MoveNext"));
+            Assert.False(comp.HasLocalsInit("C.<get_P>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
         }
 
         [Fact]
@@ -10598,101 +9461,14 @@ public class C
 
             var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.P1.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P1.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            comp.VerifyIL("C.P2.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P2.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.4
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
-
-            comp.VerifyIL("C.P3.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.5
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P3.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals (int V_0) //x
-  IL_0000:  ldc.i4.6
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.False(comp.HasLocalsInit("C.P1.get"));
+            Assert.False(comp.HasLocalsInit("C.P1.set"));
+            Assert.False(comp.HasLocalsInit("C.P2.get"));
+            Assert.False(comp.HasLocalsInit("C.P2.set"));
+            Assert.False(comp.HasLocalsInit("C.P3.get"));
+            Assert.False(comp.HasLocalsInit("C.P3.set"));
         }
 
-        // PROTOTYPE(SkipLocalsInitAttribute): we might want to update this test once SkipLocalsInitAttribute on classes is enabled
         [Fact]
         public void SourcePropertySymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
         {
@@ -10704,7 +9480,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 
-public class C
+public class C_init
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
     public int P
@@ -10722,40 +9498,34 @@ public class C
         }
     }
 }
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public int P
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
 ";
 
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
 
-            comp.VerifyIL("C.P.get", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  ret
-}");
-
-            comp.VerifyIL("C.P.set", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  .locals init (int V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  add
-  IL_0005:  ldloc.0
-  IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  ret
-}");
+            Assert.True(comp.HasLocalsInit("C_init.P.get"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.get"));
+            Assert.True(comp.HasLocalsInit("C_init.P.set"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.set"));
         }
 
         [Fact]
@@ -10779,8 +9549,352 @@ public class C
 }
 ";
 
-            // No locals are expected. We are just making sure it still works.
             var comp = CompileAndVerify(source);
+
+            // No locals are expected. We are just making sure it still works.
+
+            Assert.Null(comp.HasLocalsInit("C.P.get"));
+            Assert.Null(comp.HasLocalsInit("C.P.set"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExpressionBodiedProperty()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    int p;
+    int p2;
+    int p3;
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P
+    {
+        get => p;
+        set => p = value;
+    }
+
+    public int P2
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get => p2;
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set => p2 = value;
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P3 => p3;
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            // No locals are expected. We are just making sure it still works.
+
+            Assert.Null(comp.HasLocalsInit("C.P.get"));
+            Assert.Null(comp.HasLocalsInit("C.P.set"));
+            Assert.Null(comp.HasLocalsInit("C.P2.get"));
+            Assert.Null(comp.HasLocalsInit("C.P2.set"));
+            Assert.Null(comp.HasLocalsInit("C.P3.get"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnClassPropagatesToItsMembers()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+class C_skip
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+
+class C_init
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C_init.P.get"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.get"));
+            Assert.True(comp.HasLocalsInit("C_init.P.set"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.set"));
+            Assert.True(comp.HasLocalsInit("C_init.M"));
+            Assert.False(comp.HasLocalsInit("C_skip.M"));
+            Assert.True(comp.HasLocalsInit("C_init.C2.M2"));
+            Assert.False(comp.HasLocalsInit("C_skip.C2.M2"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnClassKeepsPropagatingToNestedClasses()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+class C
+{
+    class C2
+    {
+        void M2()
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+
+        class C3
+        {
+            void M3()
+            {
+                int x = 3;
+                x = x + x + x;
+            }
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.C2.M2"));
+            Assert.False(comp.HasLocalsInit("C.C2.C3.M3"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnNestedClassPropagatesToItsMembers()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    class C2
+    {
+        int P2
+        {
+            get
+            {
+                int x = 1;
+                return x + x + x;
+            }
+
+            set
+            {
+                int x = 2;
+                x = x + x + x;
+            }
+        }
+
+        void M2()
+        {
+            int x = 3;
+            x = x + x + x;
+        }
+
+        class C3
+        {
+            void M3()
+            {
+                int x = 4;
+                x = x + x + x;
+            }
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.C2.P2.get"));
+            Assert.False(comp.HasLocalsInit("C.C2.P2.set"));
+            Assert.False(comp.HasLocalsInit("C.C2.M2"));
+            Assert.False(comp.HasLocalsInit("C.C2.C3.M3"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnPartialClassPropagatesToItsMembers()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x = x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+partial class C
+{
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.P.get"));
+            Assert.False(comp.HasLocalsInit("C.P.set"));
+            Assert.False(comp.HasLocalsInit("C.M"));
+            Assert.False(comp.HasLocalsInit("C.C2.M2"));
+        }
+
+        [Fact]
+        public void SourceNamedTypeSymbolDelegatesToContainingTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C_init
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    class C
+    {
+        void M()
+        {
+            int x = 1;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    class C
+    {
+        void M()
+        {
+            int x = 1;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C_init.C.M"));
+            Assert.False(comp.HasLocalsInit("C_skip.C.M"));
         }
 
         #endregion

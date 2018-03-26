@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         internal override bool IsComImport
         {
             get { return false; }
