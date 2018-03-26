@@ -7,18 +7,18 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    [Export(typeof(IAsyncCompletionSourceProvider))]
-    [Name("Roslyn Completion Source Provider")]
+    [Export(typeof(IAsyncCompletionCommitManagerProvider))]
+    [Name("Roslyn Completion Commit Manager")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class CompletionSourceProvider : IAsyncCompletionSourceProvider
+    internal class CompletionItemSourceProvider : IAsyncCompletionCommitManagerProvider
     {
-        IAsyncCompletionSource _instance;
+        IAsyncCompletionCommitManager _instance;
 
-        IAsyncCompletionSource IAsyncCompletionSourceProvider.GetOrCreate(ITextView textView)
+        IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
             if (_instance == null)
             {
-                _instance = new CompletionItemSource();
+                _instance = new CompletionCommitManager();
             }
 
             return _instance;

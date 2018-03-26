@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         }
 
         /// <summary>
-        /// Mostly borrowed from <see cref="Controller.Session.FilterModelInBackgroundWorker(Document, Model, int, SnapshotPoint, CodeAnalysis.Completion.CompletionFilterReason, ImmutableDictionary{CompletionItemFilter, bool})"/>
+        /// Mostly taken from <see cref="Controller.Session.FilterModelInBackgroundWorker(Document, Model, int, SnapshotPoint, CodeAnalysis.Completion.CompletionFilterReason, ImmutableDictionary{CompletionItemFilter, bool})"/>
         /// </summary>
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList, 
@@ -138,9 +137,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var caretPoint = view.GetCaretPoint(snapshot.TextBuffer);
             var caretPosition = caretPoint.HasValue ? caretPoint.Value.Position : (int?)null;
 
+            var snapshotForDocument = sortedList.FirstOrDefault(i => i.Properties.ContainsProperty(CompletionItemSource.TriggerBuffer))?.Properties.GetProperty<ITextBuffer>(CompletionItemSource.TriggerBuffer).CurrentSnapshot ?? snapshot;
+
             return HandleNormalFiltering(
                 sortedList,
-                sortedList[0].Properties.GetProperty<ITextBuffer>("TriggerBuffer").CurrentSnapshot, // TODO: Get this the right way, and only get it when required.
+                snapshotForDocument,
                 caretPosition,
                 filterText,
                 filters,
@@ -252,20 +253,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             List<FilterResult> itemsInList,
             CompletionTriggerReason triggerReason)
         {
-            var service = GetCompletionService(snapshot);
-            if (service == null)
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
             {
                 var listWithSelections = GetHighlightedList(itemsInList, filterText);
                 return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
             }
 
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var completionService = document.GetLanguageService<CompletionService>();
+            if (completionService == null)
+            {
+                var listWithSelections = GetHighlightedList(itemsInList, filterText);
+                return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
+            }
 
             var matchingItems = itemsInList
                 .Where(r => r.MatchedFilterText)
                 .Select(t => t.CompletionItem.Properties.GetProperty<RoslynCompletionItem>("RoslynItem"))
                 .AsImmutable();
-            var chosenItems = service.FilterItems(snapshot.GetOpenDocumentInCurrentContextWithChanges(), matchingItems, filterText);
+
+            var chosenItems = completionService.FilterItems(snapshot.GetOpenDocumentInCurrentContextWithChanges(), matchingItems, filterText);
 
             var recentItems = _recentItems;
             var bestItem = GetBestItemBasedOnMRU(chosenItems, recentItems);
@@ -322,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return false;
             }
 
-            // TODO
+            // TODO: Are there more cases?
 
             // There was either filter text, or this was a preselect match. In either case, we can
             // hard select this.
@@ -380,57 +387,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ImmutableArray<CompletionFilterWithState> filters,
             string filterText)
         {
-            /*
             // See which filters might be enabled based on the typed code
             var textFilteredFilters = filteredList.SelectMany(n => n.CompletionItem.Filters).Distinct();
 
             // When no items are available for a given filter, it becomes unavailable
-            var updatedFilters = ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
-
-            return updatedFilters;
-            */
-
-            var missingItems = new List<EditorCompletion.CompletionItem>();
-            int filteredListIndex = 0;
-            var filtersPresentInIncludedItems = new HashSet<CompletionFilter>();
-            for (int originalListIndex = 0; originalListIndex < originalList.Length; originalListIndex++)
-            {
-                if (filteredListIndex < filteredList.Count && originalList[originalListIndex] == filteredList[filteredListIndex].CompletionItem)
-                {
-                    foreach (var filter in filteredList[filteredListIndex].CompletionItem.Filters)
-                    {
-                        filtersPresentInIncludedItems.Add(filter);
-                    }
-
-                    filteredListIndex++;
-                }
-                else
-                {
-                    missingItems.Add(originalList[originalListIndex]);
-                }
-            }
-
-            var filtersPresentInMissingItems = new HashSet<CompletionFilter>();
-            foreach (var missingItem in missingItems)
-            {
-                if (_completionHelper.MatchesPattern(missingItem.FilterText, filterText, CultureInfo.CurrentCulture))
-                {
-                    foreach (var filter in missingItem.Filters)
-                    {
-                        filtersPresentInMissingItems.Add(filter);
-                    }
-                }
-            }
-
-            var resultingFilters = new List<CompletionFilterWithState>();
-
-            foreach (var filter in filters)
-            {
-                var isAvailable = filter.IsSelected || filtersPresentInIncludedItems.Contains(filter.Filter) || filtersPresentInMissingItems.Contains(filter.Filter);
-                resultingFilters.Add(filter.WithAvailability(isAvailable));
-            }
-
-            return resultingFilters.ToImmutableArray();
+            return ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
         }
 
 
@@ -469,7 +430,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
 
                 newItems = newItems.Add(item);
-
                 updated = ImmutableInterlocked.InterlockedCompareExchange(ref _recentItems, newItems, oldItems) == oldItems;
             }
         }
@@ -559,17 +519,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
         }
 
-        private CompletionService GetCompletionService(ITextSnapshot snapshot)
-        {
-            if (!Workspace.TryGetWorkspace(snapshot.TextBuffer.AsTextContainer(), out var workspace))
-            {
-                return null;
-            }
-
-            return workspace.Services.GetLanguageServices(snapshot.TextBuffer).GetService<CompletionService>();
-        }
-
-
         private bool MatchesFilterText(
             RoslynCompletionItem item, 
             string filterText, 
@@ -584,7 +533,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 triggerReason,
                 filterReason);
         }
-
 
         private bool MatchesFilterText(
             EditorCompletion.CompletionItem item,
@@ -667,7 +615,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 ? matchPriority
                 : MatchPriority.Default;
         }
-
 
         private struct FilterResult
         {
