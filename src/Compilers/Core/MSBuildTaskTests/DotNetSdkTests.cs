@@ -280,9 +280,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
         }
-
-        // TODO: test no TopLevelSourceRoot, duplicate source roots
-        // TODO: Source embedding
-        // TODO: SourceLink package in previous version
     }
 }

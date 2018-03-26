@@ -87,7 +87,7 @@ public class TestClass
             string projectXml)
         {
             // Common.props automatically import {project-name}.*.props files from MSBuildProjectExtensionsPath directory, 
-            // which is by defautl set to the IntermediateOutputPath:
+            // which is by default set to the IntermediateOutputPath:
             File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props"), projectXml);
         }
 
