@@ -9,21 +9,26 @@ namespace RoslynBuilder
 	{
 		public void Execute()
 		{
-			BuildCsc("netcoreapp2.0", "win-x64", KnownPaths.CscWindowsBinariesDirectory);
-			BuildCsc("netcoreapp2.0", "osx-x64", KnownPaths.CscMacBinariesDirectory);
-			BuildCsc("netcoreapp2.0", "linux-x64", KnownPaths.CscLinuxBinariesDirectory);
-			BuildCsc("net46", null, KnownPaths.CscNet46Directory);
+			BuildRoslynComponents("netcoreapp2.0", "win-x64", KnownPaths.CscWindowsBinariesDirectory);
+			BuildRoslynComponents("netcoreapp2.0", "osx-x64", KnownPaths.CscMacBinariesDirectory);
+			BuildRoslynComponents("netcoreapp2.0", "linux-x64", KnownPaths.CscLinuxBinariesDirectory);
+			BuildRoslynComponents("net46", null, KnownPaths.CscNet46Directory);
 		}
 
-		private static void BuildCsc(string framework, string runtime, NPath outputDir)
+		private static void BuildRoslynComponents(string framework, string runtime, NPath outputDir)
+		{
+			BuildProject(framework, runtime, outputDir, KnownPaths.RoslynRoot.Combine("src", "Compilers", "CSharp", "csc"));
+			BuildProject(framework, runtime, outputDir, KnownPaths.RoslynRoot.Combine("src", "Compilers", "Server", "VBCSCompiler"));
+		}
+
+		private static void BuildProject(string framework, string runtime, NPath outputDir, NPath projectDir)
 		{
 			var description = framework;
 			if (!string.IsNullOrEmpty(runtime))
 				description += "/" + runtime;
 
-			Console.WriteLine($"Building csc for {description}...");
+			Console.WriteLine($"Building {projectDir} for {description}...");
 
-			var projectDir = KnownPaths.RoslynRoot.Combine("src", "Compilers", "CSharp", "csc");
 			var commandLineArgs = new List<string>()
 			{
 				"publish",
@@ -49,7 +54,7 @@ namespace RoslynBuilder
 			var dotnetOutput = Shell.ExecuteAndCaptureOutput(KnownPaths.DotNet, args);
 
 			Console.WriteLine(dotnetOutput);
-			Console.WriteLine($"Successfully built csc for {description}.");
+			Console.WriteLine($"Successfully built {projectDir} for {description}.");
 		}
 	}
 }
