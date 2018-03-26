@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,29 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // We use a subclass of SwitchBinder for the pattern-matching switch statement until we have completed
     // a totally compatible implementation of switch that also accepts pattern-matching constructs.
-    internal partial class PatternSwitchBinder : SwitchBinder
+    internal partial class PatternSwitchBinder : LocalScopeBinder
     {
-        internal PatternSwitchBinder(Binder next, SwitchStatementSyntax switchSyntax) : base(next, switchSyntax)
+        internal static PatternSwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
         {
-        }
-
-        /// <summary>
-        /// When pattern-matching is enabled, we use a completely different binder and binding
-        /// strategy for switch statements. Once we have confirmed that it is totally upward
-        /// compatible with the existing syntax and semantics, we will merge them completely.
-        /// However, until we have edit-and-continue working, we continue using the old binder
-        /// when we can.
-        /// </summary>
-        private bool UseV8SwitchBinder
-        {
-            get
-            {
-                var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
-                return
-                    parseOptions?.Features.ContainsKey("testV8SwitchBinder") == true ||
-                    HasPatternSwitchSyntax(SwitchSyntax) ||
-                    !SwitchGoverningType.IsValidV6SwitchGoverningType();
-            }
+            return new PatternSwitchBinder(next, switchSyntax);
         }
 
         /// <summary>
@@ -43,13 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            // If it is a valid C# 6 switch statement, we use the old binder to bind it.
-            if (!UseV8SwitchBinder)
-            {
-                return base.BindSwitchStatementCore(node, originalBinder, diagnostics);
-            }
-
             Debug.Assert(SwitchSyntax.Equals(node));
+
+            if (node.Sections.Count == 0)
+            {
+                diagnostics.Add(ErrorCode.WRN_EmptySwitch, node.OpenBraceToken.GetLocation());
+            }
 
             // Bind switch expression and set the switch governing type.
             BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
@@ -88,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 decisionDag: decisionDag);
         }
 
-        private static void CheckSwitchErrors(
+        private void CheckSwitchErrors(
             SwitchStatementSyntax node,
             BoundExpression boundSwitchGoverningExpression,
             ref ImmutableArray<BoundPatternSwitchSection> switchSections,
@@ -100,29 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return !reachableLabels.Contains(switchLabel.Label);
             }
-            bool areAnySubsumed(ImmutableArray<BoundPatternSwitchSection> sections)
-            {
-                foreach (BoundPatternSwitchSection section in sections)
-                {
-                    foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
-                    {
-                        if (!label.HasErrors && isSubsumed(label))
-                        {
-                            // we found a label that is subsumed
-                            return true;
-                        }
-                    }
-                }
 
-                return false;
-            }
-
-            if (!areAnySubsumed(switchSections))
+            // If no switch sections are subsumed, just return
+            if (!switchSections.Any(s => s.SwitchLabels.Any(l => isSubsumed(l))))
             {
                 return;
             }
 
-            // We mark any subsumed sections as erroneous for the benefit of flow analysis
             var sectionBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
             foreach (var oldSection in switchSections)
             {
@@ -136,14 +102,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (syntax)
                         {
                             case CasePatternSwitchLabelSyntax p:
-                                syntax = p.Pattern;
+                                diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
                                 break;
                             case CaseSwitchLabelSyntax p:
-                                syntax = p.Value;
+                                if (label.Pattern is BoundConstantPattern cp && !cp.ConstantValue.IsBad && FindMatchingSwitchCaseLabel(cp.ConstantValue, p) != label.Label)
+                                {
+                                    // We use the traditional diagnostic when possible
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
+                                }
+                                else
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
+                                }
                                 break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                         }
 
-                        diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, syntax.Location);
+                        // We mark any subsumed sections as erroneous for the benefit of flow analysis
                         newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.Guard, hasErrors: true);
                     }
 
@@ -248,16 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (innerValueSyntax.Kind() == SyntaxKind.DefaultLiteralExpression)
                         {
                             diagnostics.Add(ErrorCode.ERR_DefaultInSwitch, innerValueSyntax.Location);
-                            hasErrors = true;
-                        }
-
-                        var constantValue = pattern.ConstantValue;
-                        if (!hasErrors &&
-                            (object)constantValue != null &&
-                            pattern.Value.Type == SwitchGoverningType &&
-                            this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
                         }
 

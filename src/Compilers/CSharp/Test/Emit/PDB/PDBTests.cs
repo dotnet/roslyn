@@ -2790,6 +2790,7 @@ class Program
         <encLocalSlotMap>
           <slot kind=""5"" offset=""15"" />
           <slot kind=""0"" offset=""15"" />
+          <slot kind=""35"" offset=""91"" />
           <slot kind=""1"" offset=""83"" />
           <slot kind=""1"" offset=""237"" />
         </encLocalSlotMap>
@@ -2803,24 +2804,24 @@ class Program
         <entry offset=""0x1b"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""14"" document=""1"" />
         <entry offset=""0x1c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""33"" document=""1"" />
         <entry offset=""0x23"" hidden=""true"" document=""1"" />
-        <entry offset=""0x29"" startLine=""17"" startColumn=""25"" endLine=""17"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""20"" startColumn=""25"" endLine=""20"" endColumn=""42"" document=""1"" />
-        <entry offset=""0x35"" hidden=""true"" document=""1"" />
-        <entry offset=""0x38"" startLine=""21"" startColumn=""25"" endLine=""21"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x39"" startLine=""22"" startColumn=""25"" endLine=""22"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x3a"" startLine=""24"" startColumn=""25"" endLine=""24"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x3c"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
-        <entry offset=""0x3d"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x47"" hidden=""true"" document=""1"" />
-        <entry offset=""0x51"" hidden=""true"" document=""1"" />
-        <entry offset=""0x52"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""17"" startColumn=""25"" endLine=""17"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""20"" startColumn=""25"" endLine=""20"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x38"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""21"" startColumn=""25"" endLine=""21"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x3d"" startLine=""22"" startColumn=""25"" endLine=""22"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x3e"" startLine=""24"" startColumn=""25"" endLine=""24"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x41"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x4b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x55"" hidden=""true"" document=""1"" />
+        <entry offset=""0x56"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x53"">
+      <scope startOffset=""0x0"" endOffset=""0x57"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
         <namespace name=""System.Linq"" />
-        <scope startOffset=""0x14"" endOffset=""0x3d"">
-          <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x3d"" attributes=""0"" />
+        <scope startOffset=""0x14"" endOffset=""0x41"">
+          <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x41"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -3306,7 +3307,7 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
-  // Code size       15 (0xf)
+  // Code size       17 (0x11)
   .maxstack  1
   .locals init (int V_0,
                 int V_1)
@@ -3317,18 +3318,19 @@ expectedIL: @"{
   IL_0002:  stloc.1
   IL_0003:  ldc.i4.1
   IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
   // sequence point: Console.Write(1);
-  IL_0005:  ldc.i4.1
-  IL_0006:  call       ""void System.Console.Write(int)""
-  IL_000b:  nop
+  IL_0007:  ldc.i4.1
+  IL_0008:  call       ""void System.Console.Write(int)""
+  IL_000d:  nop
   // sequence point: break;
-  IL_000c:  br.s       IL_000e
+  IL_000e:  br.s       IL_0010
   // sequence point: }
-  IL_000e:  ret
+  IL_0010:  ret
 }");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       27 (0x1b)
+  // Code size       29 (0x1d)
   .maxstack  1
   .locals init (string V_0,
                 string V_1)
@@ -3339,14 +3341,15 @@ expectedIL: @"{
   IL_0006:  stloc.1
   IL_0007:  ldstr      ""M2""
   IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
   // sequence point: Console.Write(nameof(M2));
-  IL_000d:  ldstr      ""M2""
-  IL_0012:  call       ""void System.Console.Write(string)""
-  IL_0017:  nop
+  IL_000f:  ldstr      ""M2""
+  IL_0014:  call       ""void System.Console.Write(string)""
+  IL_0019:  nop
   // sequence point: break;
-  IL_0018:  br.s       IL_001a
+  IL_001a:  br.s       IL_001c
   // sequence point: }
-  IL_001a:  ret
+  IL_001c:  ret
 }");
 
             // Check the release code generation too.
@@ -3424,7 +3427,7 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
-  // Code size       67 (0x43)
+  // Code size       65 (0x41)
   .maxstack  1
   .locals init (T V_0, //t
                 int V_1, //i
@@ -3441,38 +3444,37 @@ expectedIL: @"{
   IL_0006:  ldloc.2
   IL_0007:  box        ""int""
   IL_000c:  isinst     ""T""
-  IL_0011:  brfalse.s  IL_0026
+  IL_0011:  brfalse.s  IL_0033
   IL_0013:  ldloc.2
   IL_0014:  box        ""int""
   IL_0019:  isinst     ""T""
   IL_001e:  unbox.any  ""T""
   IL_0023:  stloc.3
-  IL_0024:  br.s       IL_0028
-  IL_0026:  br.s       IL_0035
-  IL_0028:  ldloc.3
-  IL_0029:  stloc.0
-  IL_002a:  br.s       IL_002c
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.3
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_002a
   // sequence point: Console.Write(1);
-  IL_002c:  ldc.i4.1
-  IL_002d:  call       ""void System.Console.Write(int)""
-  IL_0032:  nop
+  IL_002a:  ldc.i4.1
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  nop
   // sequence point: break;
-  IL_0033:  br.s       IL_0042
-  IL_0035:  ldloc.2
-  IL_0036:  stloc.1
-  IL_0037:  br.s       IL_0039
+  IL_0031:  br.s       IL_0040
+  IL_0033:  ldloc.2
+  IL_0034:  stloc.1
+  IL_0035:  br.s       IL_0037
   // sequence point: Console.Write(2);
-  IL_0039:  ldc.i4.2
-  IL_003a:  call       ""void System.Console.Write(int)""
-  IL_003f:  nop
+  IL_0037:  ldc.i4.2
+  IL_0038:  call       ""void System.Console.Write(int)""
+  IL_003d:  nop
   // sequence point: break;
-  IL_0040:  br.s       IL_0042
+  IL_003e:  br.s       IL_0040
   // sequence point: }
-  IL_0042:  ret
+  IL_0040:  ret
 }");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       65 (0x41)
+  // Code size       63 (0x3f)
   .maxstack  1
   .locals init (T V_0, //t
                 string V_1, //s
@@ -3488,33 +3490,32 @@ expectedIL: @"{
   IL_000d:  stloc.2
   IL_000e:  ldloc.2
   IL_000f:  isinst     ""T""
-  IL_0014:  brfalse.s  IL_0024
+  IL_0014:  brfalse.s  IL_0031
   IL_0016:  ldloc.2
   IL_0017:  isinst     ""T""
   IL_001c:  unbox.any  ""T""
   IL_0021:  stloc.3
-  IL_0022:  br.s       IL_0026
-  IL_0024:  br.s       IL_0033
-  IL_0026:  ldloc.3
-  IL_0027:  stloc.0
-  IL_0028:  br.s       IL_002a
+  IL_0022:  br.s       IL_0024
+  IL_0024:  ldloc.3
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0028
   // sequence point: Console.Write(3);
-  IL_002a:  ldc.i4.3
-  IL_002b:  call       ""void System.Console.Write(int)""
-  IL_0030:  nop
+  IL_0028:  ldc.i4.3
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  nop
   // sequence point: break;
-  IL_0031:  br.s       IL_0040
-  IL_0033:  ldloc.2
-  IL_0034:  stloc.1
-  IL_0035:  br.s       IL_0037
+  IL_002f:  br.s       IL_003e
+  IL_0031:  ldloc.2
+  IL_0032:  stloc.1
+  IL_0033:  br.s       IL_0035
   // sequence point: Console.Write(4);
-  IL_0037:  ldc.i4.4
-  IL_0038:  call       ""void System.Console.Write(int)""
-  IL_003d:  nop
+  IL_0035:  ldc.i4.4
+  IL_0036:  call       ""void System.Console.Write(int)""
+  IL_003b:  nop
   // sequence point: break;
-  IL_003e:  br.s       IL_0040
+  IL_003c:  br.s       IL_003e
   // sequence point: }
-  IL_0040:  ret
+  IL_003e:  ret
 }");
 
             // Check the release code generation too.
@@ -3526,8 +3527,7 @@ expectedIL: @"{
 @"{
   // Code size       46 (0x2e)
   .maxstack  1
-  .locals init (int V_0,
-                T V_1)
+  .locals init (int V_0)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -3538,7 +3538,7 @@ expectedIL: @"{
   IL_0010:  box        ""int""
   IL_0015:  isinst     ""T""
   IL_001a:  unbox.any  ""T""
-  IL_001f:  stloc.1
+  IL_001f:  pop
   IL_0020:  ldc.i4.1
   IL_0021:  call       ""void System.Console.Write(int)""
   IL_0026:  ret
@@ -3550,8 +3550,7 @@ expectedIL: @"{
 @"{
   // Code size       40 (0x28)
   .maxstack  1
-  .locals init (string V_0,
-                T V_1)
+  .locals init (string V_0)
   IL_0000:  ldstr      ""M2""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3560,7 +3559,7 @@ expectedIL: @"{
   IL_000e:  ldloc.0
   IL_000f:  isinst     ""T""
   IL_0014:  unbox.any  ""T""
-  IL_0019:  stloc.1
+  IL_0019:  pop
   IL_001a:  ldc.i4.3
   IL_001b:  call       ""void System.Console.Write(int)""
   IL_0020:  ret
@@ -3606,25 +3605,28 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       15 (0xf)
+  // Code size       17 (0x11)
   .maxstack  1
-  .locals init (string V_0,
-                string V_1)
+  .locals init (T V_0, //t
+                string V_1, //s
+                string V_2,
+                string V_3)
   // sequence point: {
   IL_0000:  nop
   // sequence point: switch (x)
   IL_0001:  ldnull
-  IL_0002:  stloc.1
+  IL_0002:  stloc.3
   IL_0003:  ldnull
-  IL_0004:  stloc.0
+  IL_0004:  stloc.2
+  IL_0005:  br.s       IL_0007
   // sequence point: Console.Write(6);
-  IL_0005:  ldc.i4.6
-  IL_0006:  call       ""void System.Console.Write(int)""
-  IL_000b:  nop
+  IL_0007:  ldc.i4.6
+  IL_0008:  call       ""void System.Console.Write(int)""
+  IL_000d:  nop
   // sequence point: break;
-  IL_000c:  br.s       IL_000e
+  IL_000e:  br.s       IL_0010
   // sequence point: }
-  IL_000e:  ret
+  IL_0010:  ret
 }");
 
             // Check the release code generation too.
@@ -7005,9 +7007,9 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c"" methodName=""&lt;F&gt;b__0_0"" parameterNames=""i"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x27"" endOffset=""0xd5"" />
+          <slot startOffset=""0x23"" endOffset=""0xd1"" />
           <slot />
-          <slot startOffset=""0x7f"" endOffset=""0xb6"" />
+          <slot startOffset=""0x7b"" endOffset=""0xb2"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""temp"" />
@@ -7016,19 +7018,19 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x27"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x28"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
-        <entry offset=""0x3f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
-        <entry offset=""0x40"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" document=""1"" />
-        <entry offset=""0x7d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7f"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x90"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x91"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" document=""1"" />
-        <entry offset=""0xad"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb5"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xb6"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
-        <entry offset=""0xd1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd5"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x24"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" document=""1"" />
+        <entry offset=""0x79"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x8c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8d"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" document=""1"" />
+        <entry offset=""0xa9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb2"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xcd"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xd1"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -8584,7 +8586,7 @@ class Program
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size       77 (0x4d)
+  // Code size       89 (0x59)
   .maxstack  2
   .locals init (int V_0,
                 int V_1,
@@ -8603,43 +8605,46 @@ class Program
     IL_000a:  stfld      ""int Program.<Test>d__0.<i>5__1""
     // sequence point: switch (i)
     IL_000f:  ldarg.0
-    IL_0010:  ldfld      ""int Program.<Test>d__0.<i>5__1""
-    IL_0015:  stloc.1
+    IL_0010:  ldarg.0
+    IL_0011:  ldfld      ""int Program.<Test>d__0.<i>5__1""
+    IL_0016:  stloc.1
     // sequence point: <hidden>
-    IL_0016:  ldloc.1
-    IL_0017:  ldc.i4.1
-    IL_0018:  beq.s      IL_001c
-    IL_001a:  br.s       IL_001e
+    IL_0017:  ldloc.1
+    IL_0018:  stfld      ""int Program.<Test>d__0.<>s__2""
+    IL_001d:  ldc.i4.1
+    IL_001e:  ldarg.0
+    IL_001f:  ldfld      ""int Program.<Test>d__0.<>s__2""
+    IL_0024:  beq.s      IL_0028
+    IL_0026:  br.s       IL_002a
     // sequence point: break;
-    IL_001c:  br.s       IL_001e
-    IL_001e:  leave.s    IL_0038
+    IL_0028:  br.s       IL_002a
+    IL_002a:  leave.s    IL_0044
   }
   catch System.Exception
   {
     // async: catch handler, sequence point: <hidden>
-    IL_0020:  stloc.2
-    IL_0021:  ldarg.0
-    IL_0022:  ldc.i4.s   -2
-    IL_0024:  stfld      ""int Program.<Test>d__0.<>1__state""
-    IL_0029:  ldarg.0
-    IL_002a:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
-    IL_002f:  ldloc.2
-    IL_0030:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_0035:  nop
-    IL_0036:  leave.s    IL_004c
+    IL_002c:  stloc.2
+    IL_002d:  ldarg.0
+    IL_002e:  ldc.i4.s   -2
+    IL_0030:  stfld      ""int Program.<Test>d__0.<>1__state""
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
+    IL_003b:  ldloc.2
+    IL_003c:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_0041:  nop
+    IL_0042:  leave.s    IL_0058
   }
   // sequence point: }
-  IL_0038:  ldarg.0
-  IL_0039:  ldc.i4.s   -2
-  IL_003b:  stfld      ""int Program.<Test>d__0.<>1__state""
+  IL_0044:  ldarg.0
+  IL_0045:  ldc.i4.s   -2
+  IL_0047:  stfld      ""int Program.<Test>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_0040:  ldarg.0
-  IL_0041:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
-  IL_0046:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_004b:  nop
-  IL_004c:  ret
-}
-", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+  IL_004c:  ldarg.0
+  IL_004d:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
+  IL_0052:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_0057:  nop
+  IL_0058:  ret
+}", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
         [Fact]

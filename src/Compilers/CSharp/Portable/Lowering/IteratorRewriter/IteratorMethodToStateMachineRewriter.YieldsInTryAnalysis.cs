@@ -123,19 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLabelStatement(node);
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            CollectLabel(node.ConstantTargetOpt);
-            CollectLabel(node.BreakLabel);
-            return base.VisitSwitchStatement(node);
-        }
-
-        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
-        {
-            CollectLabel(node.Label);
-            return base.VisitSwitchLabel(node);
-        }
-
         private void CollectLabel(LabelSymbol label)
         {
             if ((object)label != null)

@@ -486,7 +486,7 @@ class Program
 }");
             compVerifier.VerifyIL("Program.P5",
 @"{
-  // Code size      122 (0x7a)
+  // Code size      103 (0x67)
   .maxstack  2
   .locals init (object V_0,
                 double V_1,
@@ -499,56 +499,48 @@ class Program
   IL_0003:  ldloc.3
   IL_0004:  stloc.0
   IL_0005:  ldloc.0
-  IL_0006:  brfalse.s  IL_0072
-  IL_0008:  ldloc.0
-  IL_0009:  isinst     ""double""
-  IL_000e:  brfalse.s  IL_0035
-  IL_0010:  ldloc.0
-  IL_0011:  unbox.any  ""double""
-  IL_0016:  stloc.1
-  IL_0017:  ldloc.1
-  IL_0018:  call       ""bool double.IsNaN(double)""
-  IL_001d:  brtrue.s   IL_005e
-  IL_001f:  ldloc.0
-  IL_0020:  isinst     ""double""
-  IL_0025:  brfalse.s  IL_0072
-  IL_0027:  ldc.r8     3.14
-  IL_0030:  ldloc.1
-  IL_0031:  beq.s      IL_0068
-  IL_0033:  br.s       IL_0072
-  IL_0035:  ldloc.0
-  IL_0036:  isinst     ""float""
-  IL_003b:  brfalse.s  IL_0072
-  IL_003d:  ldloc.0
-  IL_003e:  unbox.any  ""float""
-  IL_0043:  stloc.2
-  IL_0044:  ldloc.2
-  IL_0045:  call       ""bool float.IsNaN(float)""
-  IL_004a:  brtrue.s   IL_0063
-  IL_004c:  ldloc.0
-  IL_004d:  isinst     ""float""
-  IL_0052:  brfalse.s  IL_0072
-  IL_0054:  ldc.r4     3.14
-  IL_0059:  ldloc.2
-  IL_005a:  beq.s      IL_006d
-  IL_005c:  br.s       IL_0072
-  IL_005e:  ldc.i4.1
-  IL_005f:  stloc.s    V_4
-  IL_0061:  br.s       IL_0077
-  IL_0063:  ldc.i4.1
-  IL_0064:  stloc.s    V_4
-  IL_0066:  br.s       IL_0077
-  IL_0068:  ldc.i4.1
-  IL_0069:  stloc.s    V_4
-  IL_006b:  br.s       IL_0077
-  IL_006d:  ldc.i4.1
-  IL_006e:  stloc.s    V_4
-  IL_0070:  br.s       IL_0077
-  IL_0072:  ldc.i4.0
-  IL_0073:  stloc.s    V_4
-  IL_0075:  br.s       IL_0077
-  IL_0077:  ldloc.s    V_4
-  IL_0079:  ret
+  IL_0006:  isinst     ""double""
+  IL_000b:  brfalse.s  IL_002a
+  IL_000d:  ldloc.0
+  IL_000e:  unbox.any  ""double""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""bool double.IsNaN(double)""
+  IL_001a:  brtrue.s   IL_004b
+  IL_001c:  ldc.r8     3.14
+  IL_0025:  ldloc.1
+  IL_0026:  beq.s      IL_0055
+  IL_0028:  br.s       IL_005f
+  IL_002a:  ldloc.0
+  IL_002b:  isinst     ""float""
+  IL_0030:  brfalse.s  IL_005f
+  IL_0032:  ldloc.0
+  IL_0033:  unbox.any  ""float""
+  IL_0038:  stloc.2
+  IL_0039:  ldloc.2
+  IL_003a:  call       ""bool float.IsNaN(float)""
+  IL_003f:  brtrue.s   IL_0050
+  IL_0041:  ldc.r4     3.14
+  IL_0046:  ldloc.2
+  IL_0047:  beq.s      IL_005a
+  IL_0049:  br.s       IL_005f
+  IL_004b:  ldc.i4.1
+  IL_004c:  stloc.s    V_4
+  IL_004e:  br.s       IL_0064
+  IL_0050:  ldc.i4.1
+  IL_0051:  stloc.s    V_4
+  IL_0053:  br.s       IL_0064
+  IL_0055:  ldc.i4.1
+  IL_0056:  stloc.s    V_4
+  IL_0058:  br.s       IL_0064
+  IL_005a:  ldc.i4.1
+  IL_005b:  stloc.s    V_4
+  IL_005d:  br.s       IL_0064
+  IL_005f:  ldc.i4.0
+  IL_0060:  stloc.s    V_4
+  IL_0062:  br.s       IL_0064
+  IL_0064:  ldloc.s    V_4
+  IL_0066:  ret
 }");
         }
     }

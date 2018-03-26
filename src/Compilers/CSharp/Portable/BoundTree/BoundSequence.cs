@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ExpressionStatement:
                     case BoundKind.GotoStatement:
                     case BoundKind.ConditionalGoto:
-                    case BoundKind.SwitchStatement:
                     case BoundKind.SequencePoint:
                     case BoundKind.LabelStatement:
                     case BoundKind.SwitchDispatch:

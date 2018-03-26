@@ -717,11 +717,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            return PossibleIteratorScope(node.InnerLocals, () => (BoundStatement)base.VisitSwitchStatement(node));
-        }
-
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             throw ExceptionUtilities.Unreachable; // for statements have been lowered away by now

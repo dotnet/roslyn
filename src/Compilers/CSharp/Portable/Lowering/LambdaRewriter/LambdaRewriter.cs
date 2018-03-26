@@ -1252,26 +1252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            // Test if this frame has captured variables and requires the introduction of a closure class.
-            if (_frames.TryGetValue(node, out var frame))
-            {
-                return IntroduceFrame(node, frame, (ArrayBuilder<BoundNode> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
-                {
-                    var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
-                    InsertAndFreePrologue(newStatements, prologue);
-                    newStatements.Add((BoundStatement)base.VisitSwitchStatement(node));
-
-                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), newStatements.ToImmutableAndFree(), node.HasErrors);
-                });
-            }
-            else
-            {
-                return base.VisitSwitchStatement(node);
-            }
-        }
-
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
             // A delegate creation expression of the form "new Action( ()=>{} )" is treated exactly like

@@ -20027,8 +20027,11 @@ class Test
    }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_GotoCaseShouldConvert, Line = 13, Column = 13, IsWarning = true } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,13): warning CS0469: The 'goto case' value is not implicitly convertible to type 'char'
+                //             goto case 127;   // CS0469
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 127;").WithArguments("char").WithLocation(13, 13)
+                );
         }
 
         [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]

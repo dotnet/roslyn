@@ -531,17 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _tempSubstitution.Clear();
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            EnterStatement(node);
-
-            BoundSpillSequenceBuilder builder = null;
-            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var boundExpression = VisitExpression(ref builder, node.Expression);
-            var switchSections = this.VisitList(node.SwitchSections);
-            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
-        }
-
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
             EnterStatement(node);
@@ -582,6 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var condition = VisitExpression(ref builder, node.Condition);
             return UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label), substituteTemps: true);
+        }
+
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            EnterStatement(node);
+
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod), substituteTemps: true);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)

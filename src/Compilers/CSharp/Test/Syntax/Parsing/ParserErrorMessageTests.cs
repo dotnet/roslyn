@@ -5937,8 +5937,12 @@ class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_EmptySwitch, "{"));
+            ParseAndValidate(test);
+            CreateCompilation(test).VerifyDiagnostics(
+                // (8,9): warning CS1522: Empty switch block
+                //         {}
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(8, 9)
+                );
         }
 
         [Fact]

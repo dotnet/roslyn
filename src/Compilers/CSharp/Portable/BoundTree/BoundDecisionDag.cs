@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -48,45 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_reachableLabels == null)
                 {
-                    // Compute the set of reachable labels at the BoundDecision leaves.  We do this
-                    // iteratively rather than recursively so that we do not overflow the stack on a
-                    // large switch statement.
-                    var workQueue = ArrayBuilder<BoundDecisionDag>.GetInstance();
-                    var processed = PooledHashSet<BoundDecisionDag>.GetInstance();
-                    var reachableLabels = new HashSet<LabelSymbol>();
-                    workQueue.Add(this);
-                    while (workQueue.Count != 0)
-                    {
-                        BoundDecisionDag node = workQueue.Pop();
-                        if (node == null || !processed.Add(node))
-                        {
-                            continue;
-                        }
-
-                        switch (node)
-                        {
-                            case BoundEvaluationPoint x:
-                                workQueue.Push(x.Next);
-                                break;
-                            case BoundDecisionPoint x:
-                                workQueue.Push(x.WhenTrue);
-                                workQueue.Push(x.WhenFalse);
-                                break;
-                            case BoundWhenClause x:
-                                workQueue.Push(x.WhenTrue);
-                                workQueue.Push(x.WhenFalse); // possibly null, handled later
-                                break;
-                            case BoundDecision x:
-                                reachableLabels.Add(x.Label);
-                                break;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(node.Kind);
-                        }
-                    }
-
-                    workQueue.Free();
-                    processed.Free();
-                    _reachableLabels = reachableLabels;
+                    // PROTOTYPE(patterns2): avoid linq?
+                    _reachableLabels = new HashSet<LabelSymbol>(
+                        this.TopologicallySortedNodes().OfType<BoundDecision>().Select(d => d.Label));
                 }
 
                 return _reachableLabels;
@@ -158,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundWhenClause p:
                         if (p.WhenExpression == null || p.WhenExpression.ConstantValue == ConstantValue.True)
                         {
-                            return p.Update(p.Bindings, p.WhenExpression, makeReplacement(p.WhenTrue), null);
+                            return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], null);
                         }
                         else if (p.WhenExpression.ConstantValue == ConstantValue.False)
                         {

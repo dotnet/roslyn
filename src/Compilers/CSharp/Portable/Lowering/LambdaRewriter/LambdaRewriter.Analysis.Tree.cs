@@ -364,15 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
-                public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-                {
-                    var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.InnerLocals);
-                    var result = base.VisitSwitchStatement(node);
-                    _currentScope = oldScope;
-                    return result;
-                }
-
                 public override BoundNode VisitLambda(BoundLambda node)
                 {
                     var oldInExpressionTree = _inExpressionTree;

@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: declType, deconstructMethodOpt: deconstructMethod,
+                syntax: node, declaredType: boundDeclType, inputType: operandType, deconstructMethodOpt: deconstructMethod,
                 deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
         }
 
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<(Symbol property, BoundPattern pattern)> propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
             BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: declType, deconstructMethodOpt: null,
+                syntax: node, declaredType: boundDeclType, inputType: operandType, deconstructMethodOpt: null,
                 deconstruction: default, propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
         }
 

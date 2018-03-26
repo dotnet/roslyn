@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Latest).WithFeatures(s_experimentalFeatures);
 
-        // Enable pattern-switch translation even for switches that use no new syntax. This is used
-        // to help ensure compatibility of the semantics of the new switch binder with the old switch
-        // binder, so that we may eliminate the old one in the future.
-        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV8SwitchBinder", "true" } });
-
         public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular.WithRecursivePatterns();
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);

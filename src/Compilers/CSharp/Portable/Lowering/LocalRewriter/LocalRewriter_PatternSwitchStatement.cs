@@ -20,6 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class PatternSwitchLocalRewriter : BasePatternSwitchLocalRewriter
         {
+            public static BoundNode Rewrite(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
+            {
+                var rewriter = new PatternSwitchLocalRewriter(node, localRewriter);
+                BoundStatement result = rewriter.LowerPatternSwitchStatement(node);
+                rewriter.Free();
+                return result;
+            }
+
             /// <summary>
             /// Map from switch section's syntax to the lowered code for the section. The code for a section
             /// includes the code to assign to the pattern variables and evaluate the when clause. Since a
@@ -27,20 +35,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Dictionary<SyntaxNode, ArrayBuilder<BoundStatement>> _switchSections => base._switchArms;
 
+            /// <summary>
+            /// A map from section syntax to the first label in that section.
+            /// </summary>
+            private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
+
+            /// <summary>
+            /// We revise the returned label for a decision so that all decisions in the same switch section are given the same label.
+            /// This permits all the decisions in a
+            /// section to share the label, which enables the switch emitter to produce better code.
+            /// </summary>
+            protected override LabelSymbol GetDagNodeLabel(BoundDecisionDag dag)
+            {
+                var result = base.GetDagNodeLabel(dag);
+                if (dag is BoundDecision d)
+                {
+                    SyntaxNode section = d.Syntax.Parent;
+
+                    // It is possible that the decision represents a compiler-generated default for a switch statement in the EE.
+                    // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
+                    // in decisions that result from explicit switch case labels in a switch section.
+                    if (section?.Kind() == SyntaxKind.SwitchSection)
+                    {
+                        if (_sectionLabels.TryGetValue(section, out LabelSymbol replacementLabel))
+                        {
+                            return replacementLabel;
+                        }
+
+                        _sectionLabels.Add(section, result);
+                    }
+                }
+
+                return result;
+            }
+
             private PatternSwitchLocalRewriter(BoundPatternSwitchStatement node, LocalRewriter localRewriter)
                 : base(localRewriter, localRewriter.VisitExpression(node.Expression), node.SwitchSections.SelectAsArray(section => section.Syntax), node.DecisionDag)
             {
             }
 
-            public static BoundNode Rewrite(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
-            {
-                var rewriter = new PatternSwitchLocalRewriter(node, localRewriter);
-                BoundStatement result = rewriter.LowerPatternSwitchStatement2(node);
-                rewriter.Free();
-                return result;
-            }
-
-            private BoundStatement LowerPatternSwitchStatement2(BoundPatternSwitchStatement node)
+            private BoundStatement LowerPatternSwitchStatement(BoundPatternSwitchStatement node)
             {
                 var reachableLabels = node.DecisionDag.ReachableLabels;
 
@@ -81,23 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Lower each switch section.
                 foreach (BoundPatternSwitchSection section in node.SwitchSections)
                 {
-                    bool sectionReachable = false;
                     _factory.Syntax = section.Syntax;
                     ArrayBuilder<BoundStatement> sectionBuilder = _switchSections[section.Syntax];
                     foreach (BoundPatternSwitchLabel switchLabel in section.SwitchLabels)
                     {
-                        if (reachableLabels.Contains(switchLabel.Label))
-                        {
-                            sectionBuilder.Add(_factory.Label(switchLabel.Label));
-                            sectionReachable = true;
-                        }
-                    }
-
-                    if (!sectionReachable)
-                    {
-                        // The switch section isn't reachable (perhaps because of a constant governing expression).
-                        // In that case we simply do not lower the unreachable code.
-                        continue;
+                        sectionBuilder.Add(_factory.Label(switchLabel.Label));
                     }
 
                     // Lifetime of these locals is expanded to the entire switch body, as it is possible to capture

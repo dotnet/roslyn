@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax));
-            while (binder != null && !(binder is SwitchBinder))
+            while (binder != null && !(binder is PatternSwitchBinder))
             {
                 binder = binder.Next;
             }
