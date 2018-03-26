@@ -558,4 +558,7 @@
   <data name="Cast_operator" xml:space="preserve">
     <value>Cast operator:  (type)expression</value>
   </data>
+  <data name="Event_Hookup_Command_Handler" xml:space="preserve">
+    <value>Generate Event Subscription Command Handler</value>
+  </data>
 </root>

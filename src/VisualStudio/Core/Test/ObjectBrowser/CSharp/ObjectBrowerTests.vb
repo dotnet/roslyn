@@ -1,11 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
-Imports System.Threading.Tasks
-Imports System.Globalization
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests

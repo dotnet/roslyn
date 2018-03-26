@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
@@ -223,7 +223,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, bool allowRequireForClarityOption)
         {
-            var shortName = fieldName.Substring(0, fieldName.Length - "OperationParentheses".Length).ToLowerInvariant();
+            const string suffix = "OperationParentheses";
+
+            Debug.Assert(fieldName.EndsWith(suffix));
+            var shortName = fieldName.Substring(0, fieldName.Length - suffix.Length).ToLowerInvariant();
 
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
