@@ -1111,10 +1111,14 @@ public class B
 "Module M
     Sub Main()
         Dim a = New A()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             F(New B(), a)
         Catch e As System.Exception
             System.Console.Write(e.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
         End Try
     End Sub
     Sub F(b As B, a As Object)

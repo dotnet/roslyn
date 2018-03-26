@@ -301,10 +301,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         private async Task<(SemanticModel semanticModel, ImmutableArray<ISymbol> symbols)> BindTokenAsync(
             Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
-
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
             ImmutableArray<ISymbol> symbols;
             if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
@@ -317,7 +316,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     .GetSymbols(includeType: true);
             }
 
-            var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
+            var bindableParent = syntaxFacts.GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
 
             symbols = symbols.Where(IsOk)
@@ -328,11 +327,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (symbols.Any())
             {
-                var typeParameter = symbols.First() as ITypeParameterSymbol;
-                return (semanticModel,
-                    symbols: typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
-                        ? ImmutableArray<ISymbol>.Empty
-                        : symbols);
+                var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
+                return (semanticModel, discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -342,11 +338,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return (semanticModel, symbols: ImmutableArray.Create<ISymbol>(typeInfo.Type));
+                    return (semanticModel, ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return (semanticModel, symbols: ImmutableArray<ISymbol>.Empty);
+            return (semanticModel, ImmutableArray<ISymbol>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)
