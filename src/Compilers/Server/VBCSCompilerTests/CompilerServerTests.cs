@@ -187,6 +187,8 @@ End Module")
             bool shouldRunOnServer = true)
         {
             var arguments = new List<string>(argumentsSingle.Split(' '));
+            arguments.Add("/preferreduilang:en");
+
             ReferenceNetstandardDllIfCoreClr(currentDirectory, arguments);
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
