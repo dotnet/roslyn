@@ -10,7 +10,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -266,7 +268,7 @@ End Module")
 
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files, redirectEncoding: Encoding.ASCII, shouldRunOnServer: false);
                 Assert.Equal(result.ExitCode, 1);
-                Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
+                Assert.Equal($"hello.cs(1,1): error CS1056: {string.Format(CSharpResources.ERR_UnexpectedCharacter, "?")}", result.Output.Trim());
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -285,7 +287,7 @@ End Module")
                     redirectEncoding: UTF8Encoding,
                     shouldRunOnServer: false);
 
-                Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
+                Assert.Equal($"test.cs(1,1): error CS1056: {string.Format(CSharpResources.ERR_UnexpectedCharacter, "♕")}".Trim(),
                     result.Output.Trim().Replace(srcFile, "test.cs"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -307,7 +309,7 @@ End Module")
                     shouldRunOnServer: false);
 
                 Assert.Equal(result.ExitCode, 1);
-                Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
+                Assert.Equal($@"test.vb(1) : error BC30037: {ReplaceNonASCIICharacters(VBResources.ERR_IllegalChar)}
 
 ?
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
@@ -329,7 +331,7 @@ End Module")
                     redirectEncoding: UTF8Encoding,
                     shouldRunOnServer: false);
 
-                Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
+                Assert.Equal($@"test.vb(1) : error BC30037: {VBResources.ERR_IllegalChar}
 
 ♕
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
@@ -474,8 +476,8 @@ class Hello
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} hello.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("hello.cs(5,42): error CS1002: ; expected", result.Output, StringComparison.Ordinal);
+                Assert.Contains(CSharpResources.IDS_LogoLine2, result.Output, StringComparison.Ordinal);
+                Assert.Contains($"hello.cs(5,42): error CS1002: {CSharpResources.ERR_SemicolonExpected}", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -502,9 +504,9 @@ End Class"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.", result.Output, StringComparison.Ordinal);
+                Assert.Contains(VBResources.IDS_LogoLine2, result.Output, StringComparison.Ordinal);
+                Assert.Contains($"hellovb.vb(3) : error BC30625: {VBResources.ERR_ExpectedEndModule}", result.Output, StringComparison.Ordinal);
+                Assert.Contains($"hellovb.vb(7) : error BC30460: {VBResources.ERR_EndClassNoClass}", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -520,8 +522,8 @@ End Class"}};
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} missingfile.cs", _tempDirectory);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
+                Assert.Contains(CSharpResources.IDS_LogoLine2, result.Output, StringComparison.Ordinal);
+                Assert.Contains($"error CS2001: {string.Format(CSharpResources.ERR_FileNotFound, Path.Combine(_tempDirectory.Path, "missingfile.cs"))}", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -537,8 +539,8 @@ End Class"}};
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
+                Assert.Contains(CSharpResources.IDS_LogoLine2, result.Output, StringComparison.Ordinal);
+                Assert.Contains("CS0006: " + string.Format(CSharpResources.ERR_NoMetadataFile, "missing.dll"), result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -561,8 +563,8 @@ End Class"}};
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Lib.cs app.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
-                Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
+                Assert.Contains(CSharpResources.IDS_LogoLine2, result.Output, StringComparison.Ordinal);
+                Assert.Contains("CS0009: " + string.Format(CSharpResources.FTL_MetadataCantOpenFile, Path.Combine(_tempDirectory.Path, "Lib.cs"), ""), result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -578,7 +580,7 @@ End Class"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* missingfile.vb", _tempDirectory);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains(CSharpResources.IDS_LogoLine2, result.Output, StringComparison.Ordinal);
                 Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
@@ -607,7 +609,7 @@ End Module"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:missing.dll hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
+                Assert.Contains("error BC2017: " + string.Format(VBResources.ERR_LibNotFound, "missing.dll"), result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -1068,7 +1070,7 @@ End Module
                     _tempDirectory,
                     redirectEncoding: Encoding.ASCII);
 
-                Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '?'".Trim(),
+                Assert.Equal($"test.cs(1,1): error CS1056: {string.Format(CSharpResources.ERR_UnexpectedCharacter, "?")}".Trim(),
                     result.Output.Trim());
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -1091,7 +1093,7 @@ End Module
                     _tempDirectory,
                     redirectEncoding: Encoding.ASCII);
 
-                Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
+                Assert.Equal($@"SRC.VB(1) : error BC30037: {ReplaceNonASCIICharacters(VBResources.ERR_IllegalChar)}
 
 ?
 ~
@@ -1117,7 +1119,7 @@ End Module
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
-                Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
+                Assert.Equal($"test.cs(1,1): error CS1056: {string.Format(CSharpResources.ERR_UnexpectedCharacter, "♕")}".Trim(),
                     result.Output.Trim());
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -1139,7 +1141,7 @@ End Module
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
-                Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
+                Assert.Equal($@"SRC.VB(1) : error BC30037: {VBResources.ERR_IllegalChar}
 
 ♕
 ~
@@ -1222,7 +1224,7 @@ class Program
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
-                Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'",
+                Assert.Equal($"test.cs(1,1): error CS1056: {string.Format(CSharpResources.ERR_UnexpectedCharacter, "♕")}",
                     result.Output.Trim());
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -1245,7 +1247,7 @@ class Program
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
-                Assert.Equal(@"src.vb(1) : error BC30037: Character is not valid.
+                Assert.Equal($@"src.vb(1) : error BC30037: {VBResources.ERR_IllegalChar}
 
 ♕
 ~", result.Output.Trim().Replace(srcFile, "src.vb"));
@@ -1260,7 +1262,7 @@ class Program
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
+            Assert.Equal(CodeAnalysisResources.MissingKeepAlive, result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1269,7 +1271,7 @@ class Program
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
+            Assert.Equal(CodeAnalysisResources.KeepAliveIsNotAnInteger, result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1278,7 +1280,7 @@ class Program
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
+            Assert.Equal(CodeAnalysisResources.KeepAliveIsTooSmall, result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1287,7 +1289,7 @@ class Program
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
+            Assert.Equal(CodeAnalysisResources.KeepAliveIsNotAnInteger, result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1392,6 +1394,16 @@ class Program
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
+        }
+
+        /// <summary>
+        /// Replaces non ASCII characters by '?'.
+        /// </summary>
+        private string ReplaceNonASCIICharacters(string input)
+        {
+            var bytes = Encoding.ASCII.GetBytes(input);
+
+            return Encoding.ASCII.GetString(bytes);
         }
     }
 }

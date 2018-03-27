@@ -6980,7 +6980,7 @@ class C
                     Assert.False(result.Success);
                     result.Diagnostics.Verify(
                         // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
-                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(new IOException().Message).WithLocation(1, 1)
                         );
                 }
             }
@@ -7038,7 +7038,7 @@ class C
                     Assert.False(result.Success);
                     result.Diagnostics.Verify(
                         // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
-                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(new IOException().Message).WithLocation(1, 1)
                         );
                 }
             }

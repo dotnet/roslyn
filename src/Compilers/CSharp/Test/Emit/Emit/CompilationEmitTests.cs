@@ -3725,7 +3725,7 @@ public sealed class ContentType
             compilation.VerifyDiagnostics();
 
             var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
-            result.Diagnostics.Verify(
+            result.Diagnostics.Verify(fallbackToErrorCodeOnlyForNonEnglish: true,
                 // error CS2041: Invalid output name: Name contains invalid characters.
                 Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameContainsInvalidCharacter).WithLocation(1, 1));
 
@@ -4678,7 +4678,7 @@ class C
                 var result = compilation.Emit(output, pdbStream, options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
-                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(new IOException().Message).WithLocation(1, 1)
                     );
             }
         }
@@ -4963,7 +4963,7 @@ public class X
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
-                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(new IOException().Message).WithLocation(1, 1));
 
                 // Allow for cancellation
                 broken = new BrokenStream();
