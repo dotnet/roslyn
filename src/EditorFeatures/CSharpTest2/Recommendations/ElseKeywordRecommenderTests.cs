@@ -327,11 +327,65 @@ $@"while (true)
 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMemberAccess()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console")]
+        [InlineData("Console.")]
+        [InlineData("Console.WriteLine(")]
+        [InlineData("Console.WriteLine()")]
+        [InlineData("{")]
+        [InlineData("{ Console.WriteLine();")]
+        [InlineData("while")]
+        [InlineData("while (true)")]
+        [InlineData("while (true) {")]
+        [InlineData("while (true) { { }")]
+        public async Task TestNotAfterIfIncompleteStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true)string.$$"));
+$@"if (true)
+    {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console")]
+        [InlineData("Console.")]
+        [InlineData("Console.WriteLine(")]
+        [InlineData("Console.WriteLine()")]
+        [InlineData("{")]
+        [InlineData("{ Console.WriteLine();")]
+        [InlineData("while")]
+        [InlineData("while (true)")]
+        [InlineData("while (true) {")]
+        [InlineData("while (true) { { }")]
+        public async Task TestNotAfterIfNestedIfIncompleteStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        {statement}
+    $$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console")]
+        [InlineData("Console.")]
+        [InlineData("Console.WriteLine(")]
+        [InlineData("Console.WriteLine()")]
+        [InlineData("{")]
+        [InlineData("{ Console.WriteLine();")]
+        [InlineData("while")]
+        [InlineData("while (true)")]
+        [InlineData("while (true) {")]
+        [InlineData("while (true) { { }")]
+        public async Task TestNotAfterIfNestedIfElseIncompleteStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        {statement}
+$$"));
         }
     }
 }
