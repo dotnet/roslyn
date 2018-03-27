@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                factory.CurrentMethod = this;
+                factory.CurrentMethodOrNestedFunction = this;
 
                 var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (baseConstructorCall == null)

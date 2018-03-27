@@ -170,13 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
                                                    hasBaseReceiver: false,
-                                                   containingMember: _factory.CurrentMethod,
+                                                   containingMember: _factory.CurrentMethodOrNestedFunction,
                                                    containingType: _factory.CurrentType,
                                                    location: enumeratorInfo.Location);
 
                 BoundBlock finallyBlockOpt;
                 var idisposableTypeSymbol = disposeMethod.ContainingType;
-                var conversions = new TypeConversions(_factory.CurrentMethod.ContainingAssembly.CorLibrary);
+                var conversions = new TypeConversions(_factory.CurrentMethodOrNestedFunction.ContainingAssembly.CorLibrary);
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 var isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
