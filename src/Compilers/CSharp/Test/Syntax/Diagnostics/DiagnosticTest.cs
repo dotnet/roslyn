@@ -245,6 +245,7 @@ class X
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                        case ErrorCode.WRN_IsTypeNamedUnderscore:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

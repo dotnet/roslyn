@@ -84,7 +84,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE(patterns2): give an error if there is a bindable `_` in scope.
+            // give an error if there is a bindable `_` in scope.
+            var lookupResult = LookupResult.GetInstance();
+            var name = node.UnderscoreToken.ValueText;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.AllMethodsOnArityZero);
+            diagnostics.Add(node, useSiteDiagnostics);
+            if (lookupResult.IsMultiViable)
+            {
+                diagnostics.Add(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, node.Location, lookupResult.SingleSymbolOrDefault ?? lookupResult.Symbols[0]);
+            }
+
             return new BoundDiscardPattern(node);
         }
 
@@ -101,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out _);
+            return BindConstantPattern(node, innerExpression, operandType, node.Expression, hasErrors, diagnostics, out _);
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -112,6 +122,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
+            return BindConstantPattern(node, patternExpression.SkipParens(), operandType, patternExpression, hasErrors, diagnostics, out wasExpression);
+        }
+
+        internal BoundConstantPattern BindConstantPattern(
+            CSharpSyntaxNode node,
+            SyntaxNode innerExpression,
+            TypeSymbol operandType,
+            ExpressionSyntax patternExpression,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out bool wasExpression)
+        {
+            if (innerExpression.Kind() == SyntaxKind.IdentifierName &&
+                innerExpression is IdentifierNameSyntax name && name.Identifier.Text == "_")
+            {
+                diagnostics.Add(ErrorCode.ERR_ConstantPatternNamedUnderscore, innerExpression.Location);
+                hasErrors = true;
+            }
+
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);

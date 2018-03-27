@@ -3050,6 +3050,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A constant named &apos;_&apos; cannot be used as a pattern..
+        /// </summary>
+        internal static string ERR_ConstantPatternNamedUnderscore {
+            get {
+                return ResourceManager.GetString("ERR_ConstantPatternNamedUnderscore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
         /// </summary>
         internal static string ERR_ConstantStringTooLong {
@@ -9719,6 +9728,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The discard pattern &apos;_&apos; cannot be used where &apos;{0}&apos; is in scope..
+        /// </summary>
+        internal static string ERR_UnderscoreDeclaredAndDiscardPattern {
+            get {
+                return ResourceManager.GetString("ERR_UnderscoreDeclaredAndDiscardPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character must be escaped (by doubling) in an interpolated string..
         /// </summary>
         internal static string ERR_UnescapedCurly {
@@ -13804,6 +13822,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_IsDynamicIsConfusing_Title {
             get {
                 return ResourceManager.GetString("WRN_IsDynamicIsConfusing_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;_&apos; refers to the type &apos;{0}&apos;, not the discard pattern. Use &apos;@_&apos; for the type, or &apos;var _&apos; to discard..
+        /// </summary>
+        internal static string WRN_IsTypeNamedUnderscore {
+            get {
+                return ResourceManager.GetString("WRN_IsTypeNamedUnderscore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use &apos;_&apos; to refer to the type in an is-type expression..
+        /// </summary>
+        internal static string WRN_IsTypeNamedUnderscore_Title {
+            get {
+                return ResourceManager.GetString("WRN_IsTypeNamedUnderscore_Title", resourceCulture);
             }
         }
         

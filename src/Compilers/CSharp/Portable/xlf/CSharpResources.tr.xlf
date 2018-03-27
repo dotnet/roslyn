@@ -8770,6 +8770,26 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderscoreDeclaredAndDiscardPattern">
+        <source>The discard pattern '_' cannot be used where '{0}' is in scope.</source>
+        <target state="new">The discard pattern '_' cannot be used where '{0}' is in scope.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantPatternNamedUnderscore">
+        <source>A constant named '_' cannot be used as a pattern.</source>
+        <target state="new">A constant named '_' cannot be used as a pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore">
+        <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
+        <target state="new">The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
+        <source>Do not use '_' to refer to the type in an is-type expression.</source>
+        <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
