@@ -720,12 +720,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNonNullable(TypeSymbolWithAnnotations typeOpt)
         {
-            return (object)typeOpt != null && typeOpt.IsReferenceType && typeOpt.IsNullable == false;
+            return typeOpt?.IsNullable == false && typeOpt.IsReferenceType == true;
         }
 
         private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
         {
-            return (object)typeOpt != null && typeOpt.IsUnconstrainedTypeParameter();
+            return typeOpt?.IsUnconstrainedTypeParameter() == true;
         }
 
         private void ReportNullabilityMismatchInAssignmentIfNecessary(BoundExpression node, TypeSymbol sourceType, TypeSymbol destinationType)
@@ -1917,15 +1917,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                if (node.ExplicitCastInCode &&
-                    !node.IsExplicitlyNullable &&
-                    (targetType.IsReferenceType || IsUnconstrainedTypeParameter(targetType)) &&
-                    (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
+                if (node.ExplicitCastInCode && !node.IsExplicitlyNullable)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Should not report warning for explicit
-                    // user-defined conversion if the operator is defined from nullable to
-                    // non-nullable. See StaticNullChecking.ExplicitCast_UserDefined.
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
+                    bool reportNullable = false;
+                    if (targetType.IsReferenceType && IsUnconstrainedTypeParameter(operandType?.TypeSymbol))
+                    {
+                        reportNullable = true;
+                    }
+                    else if ((targetType.IsReferenceType || IsUnconstrainedTypeParameter(targetType)) &&
+                        (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
+                    {
+                        reportNullable = true;
+                    }
+                    if (reportNullable)
+                    {
+                        // PROTOTYPE(NullableReferenceTypes): Should not report warning for explicit
+                        // user-defined conversion if the operator is defined from nullable to
+                        // non-nullable. See StaticNullChecking.ExplicitCast_UserDefined.
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
+                    }
                 }
 
                 TypeSymbolWithAnnotations resultType;
@@ -3081,7 +3091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkType = true)
         {
             if (receiverOpt != null &&
-                (!checkType ||  ((object)receiverOpt.Type != null && (receiverOpt.Type.IsReferenceType || receiverOpt.Type.IsUnconstrainedTypeParameter()))) &&
+                (!checkType || ((object)receiverOpt.Type != null && (receiverOpt.Type.IsReferenceType || receiverOpt.Type.IsUnconstrainedTypeParameter()))) &&
                 this.State.Reachable &&
                 (_result.Type?.IsNullable == true || IsUnconstrainedTypeParameter(_result.Type?.TypeSymbol)))
             {
@@ -3109,6 +3119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Conversion:
                     {
                         var conversion = (BoundConversion)expr;
+                        // PROTOTYPE(NullableReferenceTypes): Check target type is unconstrained type parameter?
                         return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
                             IsDefaultOfUnconstrainedTypeParameter(conversion.Operand);
                     }

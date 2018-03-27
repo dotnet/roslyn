@@ -2009,6 +2009,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)type != null)
             {
                 // Report diagnostic if the type consists of no reference types.
+                // PROTOTYPE(NullableReferenceTypes): Rather than checking for reference types,
+                // check whether the suppression is necessary (in NullableWalker) and warn if not.
                 if ((object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType || t.IsUnconstrainedTypeParameter(), (object)null, canDigThroughNullable: true) == null)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.

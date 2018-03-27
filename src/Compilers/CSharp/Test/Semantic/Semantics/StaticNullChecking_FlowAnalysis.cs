@@ -1430,10 +1430,10 @@ class C
                 // (1,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(1, 7),
-                // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference.
+                // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             Create(x).F = null; // warn
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 27),
-                // (23,19): warning CS8625: Cannot convert null literal to non-nullable reference.
+                // (23,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             y.F = null; // warn
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 19));
         }

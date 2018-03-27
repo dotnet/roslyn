@@ -408,16 +408,28 @@ class C
 #pragma warning disable 0169
     private readonly T F1;
     private readonly T F2;
+    private T P1 { get; }
+    private T P2 { get; set; }
+    internal T P3 { get; }
+    internal T P4 { get; set; }
     private C(T t)
     {
         F1 = t;
+        P1 = t;
+        P4 = t;
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(10, 13),
+                // (10,13): warning CS8618: Non-nullable property 'P2' is uninitialized.
+                //     private C(T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(10, 13),
+                // (10,13): warning CS8618: Non-nullable property 'P3' is uninitialized.
+                //     private C(T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(10, 13));
         }
 
         [Fact]
@@ -429,15 +441,25 @@ class C
 #pragma warning disable 0169
     private readonly T F1;
     private readonly T? F2;
+    private T P1 { get; }
+    private T? P2 { get; set; }
+    internal T? P3 { get; }
+    internal T P4{ get; set; }
     private C()
     {
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,13): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // (10,13): warning CS8618: Non-nullable property 'P1' is uninitialized.
                 //     private C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(10, 13),
+                // (10,13): warning CS8618: Non-nullable property 'P4' is uninitialized.
+                //     private C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4").WithLocation(10, 13),
+                // (10,13): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                //     private C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(10, 13));
         }
 
         [Fact]
@@ -457,6 +479,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`.
         [Fact]
         public void TypeParameterConstraints()
         {

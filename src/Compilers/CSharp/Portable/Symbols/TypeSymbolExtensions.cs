@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             var typeParameter = (TypeParameterSymbol)type;
+            // PROTOTYPE(NullableReferenceTypes): Test `where T : unmanaged`. See
+            // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
             return !typeParameter.IsValueType && !typeParameter.IsReferenceType;
         }
 

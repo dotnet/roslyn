@@ -5305,10 +5305,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference.</value>
+    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
   </data>
   <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference.</value>
+    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
   </data>
   <data name="WRN_NoBestNullabilityConditionalExpression" xml:space="preserve">
     <value>No best nullability for operands of conditional expression '{0}' and '{1}'.</value>
