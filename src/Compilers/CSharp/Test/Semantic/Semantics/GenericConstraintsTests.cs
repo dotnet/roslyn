@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -446,6 +445,8 @@ public class Test2
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.False(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.Equal(SpecialType.System_Enum, typeParameter.ConstraintTypes().Single().SpecialType);
@@ -462,6 +463,8 @@ public class Test2
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.True(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
@@ -479,6 +482,8 @@ public class Test2
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.False(typeParameter.IsValueType);
+                Assert.True(typeParameter.IsReferenceType);
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
@@ -496,6 +501,8 @@ public class Test2
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.False(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.True(typeParameter.HasConstructorConstraint);
@@ -1815,7 +1822,7 @@ public class Test2
         public void UnmanagedConstraint_Compilation_ReferenceType()
         {
             var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
-            
+
             c.VerifyDiagnostics(
                 // (1,39): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : class, unmanaged {}
@@ -2105,6 +2112,9 @@ class Legacy
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+
+                Assert.True(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -2127,6 +2137,9 @@ public class Test
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").GetMethod("M").TypeParameters.Single();
+
+                Assert.True(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -2145,6 +2158,9 @@ public class Test
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("D").TypeParameters.Single();
+
+                Assert.True(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -2173,6 +2189,8 @@ public class Test
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__N|0_0").TypeParameters.Single();
 
+                Assert.True(typeParameter.IsValueType);
+                Assert.False(typeParameter.IsReferenceType);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -2385,7 +2403,7 @@ public class C1 : I1
     }
 }", references: new[] { reference }).EmitToImageReference(); ;
 
-        CompileAndVerify(@"
+            CompileAndVerify(@"
 struct S : System.IDisposable
 {
     public int a;
@@ -2407,8 +2425,8 @@ class Test
     }
 }",
 
-            // NOTE: must pass verification (IDisposable constraint is copied over to the implementing method) 
-            options: TestOptions.UnsafeReleaseExe, references: new[] { reference, reference1 }, verify: Verification.Passes, expectedOutput: "123");
+                // NOTE: must pass verification (IDisposable constraint is copied over to the implementing method) 
+                options: TestOptions.UnsafeReleaseExe, references: new[] { reference, reference1 }, verify: Verification.Passes, expectedOutput: "123");
         }
 
         [Fact]
@@ -2962,6 +2980,16 @@ public class Test
         IsEnum<Wrapper<int>.S>();               // Invalid
         IsStruct<Wrapper<int>.S>();
         IsNew<Wrapper<int>.S>();
+
+        IsUnmanaged<Wrapper<string>.E>();
+        IsEnum<Wrapper<string>.E>();
+        IsStruct<Wrapper<string>.E>();
+        IsNew<Wrapper<string>.E>();
+
+        IsUnmanaged<Wrapper<string>.S>();          // Invalid
+        IsEnum<Wrapper<string>.S>();               // Invalid
+        IsStruct<Wrapper<string>.S>();
+        IsNew<Wrapper<string>.S>();
     }
 }";
 
@@ -2971,13 +2999,19 @@ public class Test
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<int>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<int>.S").WithLocation(27, 9),
                 // (28,9): error CS0315: The type 'Wrapper<int>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<int>.S' to 'System.Enum'.
                 //         IsEnum<Wrapper<int>.S>();               // Invalid
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<int>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<int>.S").WithLocation(28, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<int>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<int>.S").WithLocation(28, 9),
+                // (37,9): error CS8377: The type 'Wrapper<string>.S' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.IsUnmanaged<T>()'
+                //         IsUnmanaged<Wrapper<string>.S>();          // Invalid
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "IsUnmanaged<Wrapper<string>.S>").WithArguments("Test.IsUnmanaged<T>()", "T", "Wrapper<string>.S").WithLocation(37, 9),
+                // (38,9): error CS0315: The type 'Wrapper<string>.S' cannot be used as type parameter 'T' in the generic type or method 'Test.IsEnum<T>()'. There is no boxing conversion from 'Wrapper<string>.S' to 'System.Enum'.
+                //         IsEnum<Wrapper<string>.S>();               // Invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<string>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<string>.S").WithLocation(38, 9));
         }
 
         [Fact]
         public void UnmanagedConstraints_PointerInsideStruct()
         {
-            CreateCompilation(@"
+            CompileAndVerify(@"
 unsafe struct S
 {
     public int a;
@@ -2991,16 +3025,95 @@ unsafe struct S
 }
 unsafe class Test
 {
-    static void M<T>() where T : unmanaged
+    static T* M<T>() where T : unmanaged
     {
-        T* ar = stackalloc T [10];
+        System.Console.WriteLine(typeof(T).FullName);
+
+        T* ar = null;
+        return ar;
     }
     static void Main()
     {
-        M<S>();
+        S* ar = M<S>();
     }
 }",
-    options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails,
+                expectedOutput: "S");
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_LambdaTypeParameters()
+        {
+            CompileAndVerify(@"
+public delegate T D<T>() where T : unmanaged;
+public class Test<U1> where U1 : unmanaged
+{
+    public static void Print<T>(D<T> lambda) where T : unmanaged
+    {
+        System.Console.WriteLine(lambda());
+    }
+    public static void User1(U1 arg)
+    {
+        Print(() => arg);
+    }
+    public static void User2<U2>(U2 arg) where U2 : unmanaged
+    {
+        Print(() => arg);
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        // Testing the constraint when the ambda type parameter is both coming from an enclosing type, or copied to the generated lambda class
+
+        Test<int>.User1(1);
+        Test<int>.User2(2);
+    }
+}",
+                expectedOutput: @"
+1
+2",
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    Assert.True(module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single().HasUnmanagedTypeConstraint);
+                    Assert.True(module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single().HasUnmanagedTypeConstraint);
+                    Assert.True(module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("<>c__DisplayClass2_0").TypeParameters.Single().HasUnmanagedTypeConstraint);
+                });
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_IsConsideredDuringOverloadResolution()
+        {
+            CompileAndVerify(@"
+public class Program
+{
+    static void Test<T>(T arg) where T : unmanaged
+    {
+        System.Console.WriteLine(""Unmanaged: "" + arg);
+    }
+    static void Test(object arg)
+    {
+        System.Console.WriteLine(""Object: "" + arg);
+    }
+
+    static void User<U>(U arg) where U : unmanaged
+    {
+        Test(1);                // should pick up the first, as it is better than the second one (which requires a conversion)
+        Test(""2"");            // should pick up the second, as it is the only candidate
+        Test(arg);              // should pick up the first, as it is the only candidate
+    }
+    static void Main()
+    {
+        User(3);
+    }
+}",
+                expectedOutput: @"
+Unmanaged: 1
+Object: 2
+Unmanaged: 3");
         }
     }
 }

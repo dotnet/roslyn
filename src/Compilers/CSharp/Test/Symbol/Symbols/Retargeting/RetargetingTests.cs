@@ -655,6 +655,24 @@ public class C<T> where T : int
             Assert.Equal(SpecialType.System_Int32, retargetingTypeParameterConstraint.SpecialType);
         }
 
+        [Fact]
+        public void RetargetingUnmanagedTypeParameters()
+        {
+            var sourceAssembly = (SourceAssemblySymbol)CreateCompilation(@"
+class Test<T> where T : unmanaged;
+{
+}").Assembly;
+
+            SourceTypeParameterSymbol sourceTypeParameter = (SourceTypeParameterSymbol)sourceAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.True(sourceTypeParameter.HasUnmanagedTypeConstraint);
+
+            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
+            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
+
+            RetargetingTypeParameterSymbol retargetingTypeParameter = (RetargetingTypeParameterSymbol)retargetingAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.True(retargetingTypeParameter.HasUnmanagedTypeConstraint);
+        }
+
         private void CheckTypes(ImmutableArray<TypeSymbol> source, ImmutableArray<TypeSymbol> retargeting)
         {
             Assert.Equal(source.Length, retargeting.Length);
