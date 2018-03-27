@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Struct containing information about a source declaration.
+    /// DO NOT MERGE THIS CHANGE. IT IS JUST FOR TESTING PURPOSES.
     /// </summary>
     internal struct DeclarationInfo
     {
