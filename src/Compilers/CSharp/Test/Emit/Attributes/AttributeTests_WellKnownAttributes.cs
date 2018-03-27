@@ -9110,7 +9110,7 @@ public class C
         }
 
         [Fact]
-        public void AnonymousTypeTemplateSymbolDelegatesToModuleWhenSkipLocalsInitAttributeIsNotFound()
+        public void AnonymousTypeTemplateSymbolDelegatesToModuleWhenAskedAboutSkipLocalsInitAttribute()
         {
             var source_init = @"
 namespace System.Runtime.CompilerServices
@@ -9166,7 +9166,7 @@ public class C
         }
 
         [Fact]
-        public void SynthesizedClosureEnvironmentDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
+        public void SynthesizedClosureEnvironmentNeverSkipsLocalsInit()
         {
             var source = @"
 namespace System.Runtime.CompilerServices
@@ -9176,18 +9176,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 
-public class C_init
-{
-    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
-    public void M()
-    {
-        int x = 1;
-        System.Action L = () => x = x + x + x;
-    }
-}
-
-[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
-public class C_skip
+public class C
 {
     [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
     public void M()
@@ -9200,13 +9189,11 @@ public class C_skip
 
             var comp = CompileAndVerify(source);
 
-            Assert.Null(comp.HasLocalsInit("C_init.<>c__DisplayClass0_0..ctor"));
-
-            Assert.Null(comp.HasLocalsInit("C_skip.<>c__DisplayClass0_0..ctor"));
+            Assert.Null(comp.HasLocalsInit("C.<>c__DisplayClass0_0..ctor"));
         }
 
         [Fact]
-        public void SynthesizedEmbeddedAttributeSymbolDelegatesToModuleWhenSkipLocalsInitAttributeIsNotFound()
+        public void SynthesizedEmbeddedAttributeSymbolDelegatesToModuleWhenAskedAboutSkipLocalsInitAttribute()
         {
             var source_init = @"
 namespace System.Runtime.CompilerServices
