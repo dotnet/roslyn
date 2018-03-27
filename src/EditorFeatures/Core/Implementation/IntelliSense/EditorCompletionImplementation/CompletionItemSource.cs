@@ -196,18 +196,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public bool TryGetApplicableSpan(char typeChar, SnapshotPoint triggerLocation, out SnapshotSpan applicableSpan)
         {
-            var text = SourceText.From(triggerLocation.Snapshot.GetText());
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                applicableSpan = default;
+                return false;
+            }
+            
             var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
-
             if (service == null)
             {
                 applicableSpan = default;
                 return false;
             }
 
+            if (!document.TryGetText(out var sourceText))
+            {
+                applicableSpan = default;
+                return false;
+            }
+
             // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better.
-            if (typeChar != 0 && !service.ShouldTriggerCompletion(text, triggerLocation.Position, RoslynTrigger.CreateInsertionTrigger(typeChar)))
+            if (typeChar != 0 && !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, RoslynTrigger.CreateInsertionTrigger(typeChar)))
             {
                 applicableSpan = default;
                 return false;
@@ -216,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // TODO: Check CompletionOptions.TriggerOnTyping
             // TODO: Check CompletionOptions.TriggerOnDeletion
 
-            applicableSpan = new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(text, triggerLocation.Position).ToSpan());
+            applicableSpan = new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan());
             return true;
         }
     }
