@@ -1574,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsTupleBinOp = 8382,
         WRN_TupleBinopLiteralNameMismatch = 8383,
         ERR_TupleSizesMismatchForBinOps = 8384,
-        ERR_ExprCannotBeFixed = 9385,
+        ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
     }
