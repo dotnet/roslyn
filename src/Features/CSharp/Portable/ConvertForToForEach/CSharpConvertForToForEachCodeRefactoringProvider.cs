@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             VariableDeclaratorSyntax>
     {
         protected override string GetTitle()
-            => CSharpFeaturesResources.Convert_for_to_foreach;
+            => CSharpFeaturesResources.Convert_to_foreach;
 
         protected override bool IsValidCursorPosition(ForStatementSyntax forStatement, int cursorPos)
         {

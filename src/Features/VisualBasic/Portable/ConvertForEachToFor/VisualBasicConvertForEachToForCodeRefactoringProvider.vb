@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
         Protected Overrides ReadOnly Property Title As String
             Get
-                Return VBFeaturesResources.Convert_For_Each_To_For
+                Return VBFeaturesResources.Convert_to_For
             End Get
         End Property
 
