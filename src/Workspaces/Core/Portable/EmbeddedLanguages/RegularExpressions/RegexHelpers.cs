@@ -36,5 +36,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public static RegexTrivia CreateTrivia(RegexKind kind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new RegexTrivia(kind, virtualChars, diagnostics);
+
+        public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
+        {
+            if (node.TypeToken.VirtualChars.Length > 0)
+            {
+                switch (node.TypeToken.VirtualChars[0].Char)
+                {
+                    case 'a':
+                    case 'b':
+                    case 'e':
+                    case 'f':
+                    case 'n':
+                    case 'r':
+                    case 't':
+                    case 'v':
+                        return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

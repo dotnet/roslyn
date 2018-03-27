@@ -166,9 +166,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal readonly ClassificationTypeDefinition RegexAlternationTypeDefinition;
 
         [Export]
-        [Name(ClassificationTypeNames.RegexEscape)]
+        [Name(ClassificationTypeNames.RegexOtherEscape)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexEscapeTypeDefinition;
+        internal readonly ClassificationTypeDefinition RegexOtherEscapeTypeDefinition;
+
+        [Export]
+        [Name(ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition RegexSelfEscapedCharacterTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.RegexGrouping)]

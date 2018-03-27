@@ -16,7 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             public static FormattedClassification Grouping(string value) => New(value, ClassificationTypeNames.RegexGrouping);
 
             [DebuggerStepThrough]
-            public static FormattedClassification Escape(string value) => New(value, ClassificationTypeNames.RegexEscape);
+            public static FormattedClassification OtherEscape(string value) => New(value, ClassificationTypeNames.RegexOtherEscape);
+
+            [DebuggerStepThrough]
+            public static FormattedClassification SelfEscapedCharacter(string value) => New(value, ClassificationTypeNames.RegexSelfEscapedCharacter);
 
             [DebuggerStepThrough]
             public static FormattedClassification Alternation(string value) => New(value, ClassificationTypeNames.RegexAlternation);

@@ -47,19 +47,34 @@
         <target state="new">Regex - Text</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Escape">
-        <source>Regex - Escape</source>
-        <target state="new">Regex - Escape</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Grouping">
         <source>Regex - Grouping</source>
         <target state="new">Regex - Grouping</target>
         <note />
       </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="new">Regex - Self Escaped Character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="new">Regex - Other Escape</target>
+        <note />
+      </trans-unit>
       <trans-unit id="JSON_Property_Name">
         <source>JSON Property Name</source>
         <target state="new">JSON Property Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_Array">
+        <source>JSON Array</source>
+        <target state="new">JSON Array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_Comment">
+        <source>JSON Comment</source>
+        <target state="new">JSON Comment</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_Keyword">
@@ -72,9 +87,19 @@
         <target state="new">JSON Number</target>
         <note />
       </trans-unit>
+      <trans-unit id="JSON_Object">
+        <source>JSON Object</source>
+        <target state="new">JSON Object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="JSON_Operator">
         <source>JSON Operator</source>
         <target state="new">JSON Operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_Punctuation">
+        <source>JSON Punctuation</source>
+        <target state="new">JSON Punctuation</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_String">
@@ -85,26 +110,6 @@
       <trans-unit id="JSON_Text">
         <source>JSON Text</source>
         <target state="new">JSON Text</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_Comment">
-        <source>JSON Comment</source>
-        <target state="new">JSON Comment</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_Array">
-        <source>JSON Array</source>
-        <target state="new">JSON Array</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_Object">
-        <source>JSON Object</source>
-        <target state="new">JSON Object</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_Punctuation">
-        <source>JSON Punctuation</source>
-        <target state="new">JSON Punctuation</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_Constructor_Name">

@@ -141,14 +141,17 @@
   <data name="Regex_Quantifier" xml:space="preserve">
     <value>Regex - Quantifier</value>
   </data>
-  <data name="Regex_Escape" xml:space="preserve">
-    <value>Regex - Escape</value>
+  <data name="Regex_SelfEscapedCharacter" xml:space="preserve">
+    <value>Regex - Self Escaped Character</value>
   </data>
   <data name="Regex_Grouping" xml:space="preserve">
     <value>Regex - Grouping</value>
   </data>
   <data name="Regex_Text" xml:space="preserve">
     <value>Regex - Text</value>
+  </data>
+  <data name="Regex_OtherEscape" xml:space="preserve">
+    <value>Regex - Other Escape</value>
   </data>
   <data name="JSON_Property_Name" xml:space="preserve">
     <value>JSON Property Name</value>
