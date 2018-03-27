@@ -72,9 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             return foreachInfo.ForEachStatement.Parent.IsKind(SyntaxKind.Block);
         }
 
-        protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(
-            ForEachStatementSyntax foreachStatement) =>
-            (foreachStatement.Statement, foreachStatement.Statement);
+        protected override (SyntaxNode start, SyntaxNode end) GetForEachBody(ForEachStatementSyntax foreachStatement)
+            => (foreachStatement.Statement, foreachStatement.Statement);
 
         protected override void ConvertToForStatement(
             SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, CancellationToken cancellationToken)
@@ -88,10 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var collectionVariable = GetCollectionVariableName(
                 model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
-            var collectionStatementType = foreachInfo.RequireExplicitCastInterface ?
-                generator.GetTypeExpression(foreachInfo.Options, foreachInfo.ExplicitCastInterface) :
-                generator.GetTypeExpression(foreachInfo.Options,
-                    model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object));
+            var collectionStatementType = foreachInfo.RequireExplicitCastInterface
+                ? generator.GetTypeExpression(foreachInfo.Options, foreachInfo.ExplicitCastInterface) :
+                  generator.GetTypeExpression(foreachInfo.Options,
+                     model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object));
 
             // first, see whether we need to introduce new statement to capture collection
             IntroduceCollectionStatement(

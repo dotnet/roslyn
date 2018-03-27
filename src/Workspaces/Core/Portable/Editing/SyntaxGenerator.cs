@@ -1408,20 +1408,20 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public SyntaxNode LocalDeclarationStatement(
-            ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false) =>
-                LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
+            ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
+                => LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public SyntaxNode LocalDeclarationStatement(string name, SyntaxNode initializer) =>
-            LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+        public SyntaxNode LocalDeclarationStatement(string name, SyntaxNode initializer)
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer) =>
-            LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+        internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer)
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
 
         /// <summary>
         /// Creates an if-statement

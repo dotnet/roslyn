@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFo
             Return New VisualBasicConvertForEachToForCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function EmptyBlockBody() As Task
             Dim initial = "
 Class Test
@@ -38,7 +38,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function EmptyBody() As Task
             Dim initial = "
 Class Test
@@ -51,7 +51,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Body() As Task
             Dim initial = "
 Class Test
@@ -64,7 +64,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function BlockBody() As Task
             Dim initial = "
 Class Test
@@ -91,7 +91,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Comment() As Task
             Dim initial = "
 Class Test
@@ -120,7 +120,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Comment2() As Task
             Dim initial = "
 Class Test
@@ -149,7 +149,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Comment3() As Task
             Dim initial = "
 Class Test
@@ -176,7 +176,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Comment4() As Task
             Dim initial = "
 Class Test
@@ -202,7 +202,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Comment7() As Task
             Dim initial = "
 Class Test
@@ -227,7 +227,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function CommentNotSupported() As Task
             Dim initial = "
 Class Test
@@ -243,7 +243,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function LineContinuation() As Task
             Dim initial = "
 Class Test
@@ -268,7 +268,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function CollectionStatement() As Task
             Dim initial = "
 Class Test
@@ -291,7 +291,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function CollectionConflict() As Task
             Dim initial = "
 Class Test
@@ -321,7 +321,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function IndexConflict() As Task
             Dim initial = "
 Class Test
@@ -349,7 +349,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function VariableWritten() As Task
             Dim initial = "
 Class Test
@@ -363,7 +363,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function WrongCaretPosition() As Task
             Dim initial = "
 Class Test
@@ -377,7 +377,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function WrongCaretPosition1() As Task
             Dim initial = "
 Class Test
@@ -390,7 +390,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function WrongCaretPosition2() As Task
             Dim initial = "
 Class Test
@@ -403,7 +403,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Field() As Task
             Dim initial = "
 Class Test
@@ -429,7 +429,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function [Interface]() As Task
             Dim initial = "
 Imports System.Collections.Generic
@@ -457,7 +457,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function ExplicitInterface() As Task
             Dim initial = "
 Imports System
@@ -542,7 +542,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function MultipleNext() As Task
             Dim initial = "
 Class Test
@@ -557,7 +557,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function MultipleNext2() As Task
             Dim initial = "
 Class Test
@@ -572,7 +572,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function WrongNext() As Task
             Dim initial = "
 Class Test
@@ -586,7 +586,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function KeepNext() As Task
             Dim initial = "
 Class Test
@@ -609,7 +609,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function IndexConflict2() As Task
             Dim initial = "
 Class Test
@@ -635,7 +635,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function UseTypeAsUsedInForeach() As Task
             Dim initial = "
 Class Test
@@ -661,7 +661,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function UniqueLocalName() As Task
             Dim initial = "
 Imports System

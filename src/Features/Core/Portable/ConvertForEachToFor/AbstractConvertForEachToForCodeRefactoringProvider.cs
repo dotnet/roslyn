@@ -77,14 +77,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         protected SyntaxToken CreateUniqueName(
-            ISemanticFactsService semanticFacts,
-            SemanticModel model,
-            SyntaxNode location,
-            string baseName,
-            CancellationToken cancellationToken)
-        {
-            return semanticFacts.GenerateUniqueLocalName(model, location, containerOpt: null, baseName, cancellationToken);
-        }
+            ISemanticFactsService semanticFacts, SemanticModel model, SyntaxNode location, string baseName, CancellationToken cancellationToken)
+            => semanticFacts.GenerateUniqueLocalName(model, location, containerOpt: null, baseName, cancellationToken);
 
         protected SyntaxNode GetCollectionVariableName(
             SemanticModel model, SyntaxGenerator generator,
@@ -94,14 +88,14 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             {
                 return generator.IdentifierName(
                     CreateUniqueName(foreachInfo.SemanticFacts,
-                    model, foreachInfo.ForEachStatement, foreachInfo.CollectionNameSuggestion, cancellationToken));
+                        model, foreachInfo.ForEachStatement, foreachInfo.CollectionNameSuggestion, cancellationToken));
             }
 
             return foreachCollectionExpression.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected void IntroduceCollectionStatement(
-            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor, 
+            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor,
             SyntaxNode type, SyntaxNode foreachCollectionExpression, SyntaxNode collectionVariable)
         {
             if (!foreachInfo.RequireCollectionStatement)
@@ -163,6 +157,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 return null;
             }
 
+            // it is okay to omit variable in Next, but if it presents, it must be same as one in the loop
             if (!operation.NextVariables.IsEmpty)
             {
                 var nextVariable = operation.NextVariables[0] as ILocalReferenceOperation;
@@ -348,9 +343,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         private static bool IsNullOrErrorType(ITypeSymbol type)
-        {
-            return type == null || type is IErrorTypeSymbol;
-        }
+            => type == null || type is IErrorTypeSymbol;
 
         private static IMethodSymbol GetInterfaceMember(ITypeSymbol interfaceType, string memberName)
         {
@@ -368,6 +361,17 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
         private static bool CheckRequireCollectionStatement(IOperation operation)
         {
+            // this lists type of references in collection part of foreach we will use
+            // as it is in
+            //    var element = reference[indexer];
+            //
+            // otherwise, we will introduce local variable for the expression first and then
+            // do "foreach to for" refactoring
+            //
+            // foreach(var a in new int[] {....}) 
+            // to
+            // var array = new int[] { ... }
+            // foreach(var a in array)
             switch (operation.Kind)
             {
                 case OperationKind.LocalReference:
@@ -383,12 +387,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
         private IOperation RemoveImplicitConversion(IOperation collection)
         {
-            if (collection is IConversionOperation conversion && conversion.IsImplicit)
-            {
-                return RemoveImplicitConversion(conversion.Operand);
-            }
-
-            return collection;
+            return (collection is IConversionOperation conversion && conversion.IsImplicit)
+                ? RemoveImplicitConversion(conversion.Operand) : collection;
         }
 
         private bool CheckIfForEachVariableIsWrittenInside(SemanticModel semanticModel, ISymbol foreachVariable, TForEachStatement foreachStatement)
@@ -437,23 +437,23 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 SemanticFacts = semanticFacts;
                 Options = options;
 
+                RequireExplicitCastInterface = explicitCastInterface != null;
+
                 CollectionNameSuggestion = collectionNameSuggestion;
                 CountName = countName;
 
-                // order of setting properties is important here
                 ExplicitCastInterface = explicitCastInterface;
                 ForEachElementType = forEachElementType;
 
-                RequireCollectionStatement = requireCollectionStatement || RequireExplicitCastInterface;
+                RequireCollectionStatement = requireCollectionStatement || (explicitCastInterface != null);
 
                 ForEachStatement = forEachStatement;
             }
 
-            public bool RequireExplicitCastInterface => ExplicitCastInterface != null;
-
             public ISemanticFactsService SemanticFacts { get; }
             public OptionSet Options { get; }
 
+            public bool RequireExplicitCastInterface { get; }
             public string CollectionNameSuggestion { get; }
             public string CountName { get; }
             public ITypeSymbol ExplicitCastInterface { get; }

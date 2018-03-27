@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 semanticModel.GetExistingSymbols(container, cancellationToken));
 
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, candidates.Where(filter ?? (_ => true)), cancellationToken);
+                semanticModel, location, containerOpt, baseName, filter != null ? candidates.Where(filter) : candidates, cancellationToken);
         }
 
         private SyntaxToken GenerateUniqueName(

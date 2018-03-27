@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string Classification = nameof(Classification);
             public const string ClassView = nameof(ClassView);
-            public const string ConvertForEachToFor = nameof(ConvertForEachToFor);
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
@@ -51,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
             public const string CodeActionsConvertForToForEach = "CodeActions.ConvertForToForEach";
+            public const string CodeActionsConvertForEachToFor = "CodeActions.ConvertForEachToFor";
             public const string CodeActionsConvertIfToSwitch = "CodeActions.ConvertIfToSwitch";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";

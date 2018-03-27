@@ -4038,9 +4038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode LocalDeclarationStatement(SyntaxNode type, string name, SyntaxNode initializer, bool isConst)
-        {
-            return LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
-        }
+            => LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
 
         internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
         {

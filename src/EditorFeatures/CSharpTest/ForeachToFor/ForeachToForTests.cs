@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBlockBody()
         {
             var text = @"
@@ -57,7 +57,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBody()
         {
             var text = @"
@@ -83,7 +83,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Body()
         {
             var text = @"
@@ -113,7 +113,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task BlockBody()
         {
             var text = @"
@@ -146,7 +146,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment()
         {
             var text = @"
@@ -178,7 +178,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment2()
         {
             var text = @"
@@ -210,7 +210,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment3()
         {
             var text = @"
@@ -236,7 +236,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment4()
         {
             var text = @"
@@ -266,7 +266,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment5()
         {
             var text = @"
@@ -296,7 +296,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment6()
         {
             var text = @"
@@ -328,7 +328,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment7()
         {
             var text = @"
@@ -359,7 +359,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task CommentNotSupported()
         {
             var text = @"
@@ -375,7 +375,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task CommentNotSupported2()
         {
             var text = @"
@@ -391,7 +391,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task CommentNotSupported3()
         {
             var text = @"
@@ -407,7 +407,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task CollectionStatement()
         {
             var text = @"
@@ -439,7 +439,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task CollectionConflict()
         {
             var text = @"
@@ -475,7 +475,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task IndexConflict()
         {
             var text = @"
@@ -508,7 +508,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task VariableWritten()
         {
             var text = @"
@@ -527,7 +527,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task WrongCaretPosition()
         {
             var text = @"
@@ -546,7 +546,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task WrongCaretPosition1()
         {
             var text = @"
@@ -564,7 +564,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task WrongCaretPosition2()
         {
             var text = @"
@@ -582,7 +582,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Field()
         {
             var text = @"
@@ -614,7 +614,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ArrayElement()
         {
             var text = @"
@@ -647,7 +647,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Parameter()
         {
             var text = @"
@@ -675,7 +675,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Property()
         {
             var text = @"
@@ -707,7 +707,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Interface()
         {
             var text = @"
@@ -744,7 +744,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task IListOfT()
         {
             var text = @"
@@ -781,7 +781,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task IReadOnlyListOfT()
         {
             var text = @"
@@ -838,7 +838,7 @@ class ReadOnly<T> : IReadOnlyList<T>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task IList()
         {
             var text = @"
@@ -917,7 +917,7 @@ class List : IList
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ImmutableArray()
         {
             var text = @"
@@ -961,7 +961,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ExplicitInterface()
         {
             var text = @"
@@ -1020,7 +1020,7 @@ class Explicit : IReadOnlyList<int>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task DoubleExplicitInterface()
         {
             var text = @"
@@ -1055,7 +1055,7 @@ class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task DoubleExplicitInterfaceWithExplicitType()
         {
             var text = @"
@@ -1122,7 +1122,7 @@ class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task MixedInterfaceImplementation()
         {
             var text = @"
@@ -1188,7 +1188,7 @@ class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task MixedInterfaceImplementationWithExplicitType()
         {
             var text = @"
@@ -1255,7 +1255,7 @@ class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task PreserveUserExpression()
         {
             var text = @"
@@ -1326,7 +1326,7 @@ namespace NS
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmbededStatement()
         {
             var text = @"
@@ -1342,7 +1342,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmbededStatement2()
         {
             var text = @"
@@ -1374,7 +1374,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task IndexConflict2()
         {
             var text = @"
@@ -1407,7 +1407,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task UseTypeAsUsedInForeach()
         {
             var text = @"
@@ -1440,7 +1440,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task String()
         {
             var text = @"
@@ -1473,7 +1473,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task StringLocalConst()
         {
             var text = @"
@@ -1506,7 +1506,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task StringConst()
         {
             var text = @"
@@ -1541,7 +1541,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ElementExplicitCast()
         {
             var text = @"
@@ -1574,7 +1574,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task NotAssignable()
         {
             var text = @"
@@ -1593,7 +1593,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ElementMissing()
         {
             var text = @"
@@ -1612,7 +1612,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ElementMissing2()
         {
             var text = @"
@@ -1630,7 +1630,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task StringExplicitType()
         {
             var text = @"
@@ -1663,7 +1663,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertForEachToFor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Var()
         {
             var text = @"
