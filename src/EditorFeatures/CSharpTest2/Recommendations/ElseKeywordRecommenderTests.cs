@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
@@ -97,14 +96,10 @@ dasd
 $$"));
         }
 
-        class Statements : DataAttribute
-        {
-            public override IEnumerable<object[]> GetData(MethodInfo testMethod)
-                => new[] { new[] { "Console.WriteLine();" }, new[] { "{ }" }, new[] { "while (true) { }" } };
-        }
-
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfStatement(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -114,7 +109,9 @@ $$"));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfStatement_BeforeElse(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -125,7 +122,9 @@ else"));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfNestedIfStatement(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -136,7 +135,9 @@ $@"if (true)
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfNestedIfStatement_BeforeElse(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -149,7 +150,9 @@ $@"if (true)
 
         [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfNestedIfElseStatement(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -163,7 +166,9 @@ $$"));
 
         [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfNestedIfElseStatement_BeforeElse(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -177,7 +182,9 @@ else"));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestNotAfterIfNestedIfElseElseStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -192,7 +199,9 @@ $$"));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestNotAfterIfStatementElse(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -203,7 +212,9 @@ else
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestNotAfterIfElseStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -215,7 +226,9 @@ $$"));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfElseNestedIfStatement(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -228,7 +241,9 @@ else
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterIfElseNestedIfStatement_BeforeElse(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -242,7 +257,9 @@ else
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestNotAfterIfElseNestedIfElseStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -257,7 +274,9 @@ $$"));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterWhileIfWhileNestedIfElseStatement(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -272,7 +291,9 @@ $@"while (true)
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestAfterWhileIfWhileNestedIfElseStatement_BeforeElse(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -288,7 +309,9 @@ $@"while (true)
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [Statements]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
         public async Task TestNotAfterWhileIfWhileNestedIfElseElseStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
