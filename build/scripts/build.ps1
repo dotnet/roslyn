@@ -180,7 +180,10 @@ function Restore-Packages() {
         Write-Host "Restoring $($both[0])"
         $projectFilePath = $both[1]
         $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-        $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        $logFilePath = ""
+        if ($binaryLog) { 
+            $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        }
         Restore-Project $dotnet $both[1] $logFilePath
     }
 }
