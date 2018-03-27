@@ -876,7 +876,7 @@
     <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
   </Node>
   <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression,BoundDagTemp)&gt;" Null="disallow"/>
+    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression left,BoundDagTemp dagTemp)&gt;" Null="disallow"/>
     <Field Name="WhenExpression" Type="BoundExpression" Null="allow"/>
     <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
     <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="allow"/>

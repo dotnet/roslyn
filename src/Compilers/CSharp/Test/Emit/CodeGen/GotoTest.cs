@@ -92,7 +92,7 @@ class C
 {
   // Code size       61 (0x3d)
   .maxstack  2
-  .locals init (string V_0)
+  .locals init (string V_0) //Fruit
   IL_0000:  ldstr      ""Apple""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0

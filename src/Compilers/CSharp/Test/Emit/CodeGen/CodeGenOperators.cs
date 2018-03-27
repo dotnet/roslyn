@@ -268,21 +268,29 @@ class C
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-  // Code size       24 (0x18)
+  // Code size       31 (0x1f)
   .maxstack  1
-  .locals init (bool V_0)
+  .locals init (object V_0,
+                bool V_1,
+                object V_2)
   IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""void System.Console.Write(bool)""
-  IL_0007:  nop
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  nop
-  IL_000b:  ldstr      "" Branch taken""
-  IL_0010:  call       ""void System.Console.Write(string)""
-  IL_0015:  nop
-  IL_0016:  nop
-  IL_0017:  ret
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""void System.Console.Write(bool)""
+  IL_0009:  nop
+  IL_000a:  ldnull
+  IL_000b:  stloc.2
+  IL_000c:  ldc.i4.1
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_001e
+  IL_0011:  nop
+  IL_0012:  ldstr      "" Branch taken""
+  IL_0017:  call       ""void System.Console.Write(string)""
+  IL_001c:  nop
+  IL_001d:  nop
+  IL_001e:  ret
 }");
         }
 
@@ -318,21 +326,29 @@ class C
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-  // Code size       24 (0x18)
+  // Code size       31 (0x1f)
   .maxstack  1
-  .locals init (bool V_0)
+  .locals init (string V_0,
+                bool V_1,
+                string V_2)
   IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""void System.Console.Write(bool)""
-  IL_0007:  nop
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  nop
-  IL_000b:  ldstr      "" Branch taken""
-  IL_0010:  call       ""void System.Console.Write(string)""
-  IL_0015:  nop
-  IL_0016:  nop
-  IL_0017:  ret
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""void System.Console.Write(bool)""
+  IL_0009:  nop
+  IL_000a:  ldnull
+  IL_000b:  stloc.2
+  IL_000c:  ldc.i4.1
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_001e
+  IL_0011:  nop
+  IL_0012:  ldstr      "" Branch taken""
+  IL_0017:  call       ""void System.Console.Write(string)""
+  IL_001c:  nop
+  IL_001d:  nop
+  IL_001e:  ret
 }");
         }
 

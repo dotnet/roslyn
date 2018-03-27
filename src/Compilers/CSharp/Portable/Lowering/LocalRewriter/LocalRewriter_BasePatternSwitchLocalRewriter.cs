@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -79,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundWhenDecisionDagNode w:
                             GetDagNodeLabel(node);
-                            //Debug.Assert(w.WhenTrue != null);
-                            //GetDagNodeLabel(w.WhenTrue);
                             if (w.WhenFalse != null)
                             {
                                 GetDagNodeLabel(w.WhenFalse);
@@ -142,7 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                // Code for the when clause goes in a separate code section for the switch section.
+                // Note that a when-clause can contain an assignment to a
+                // pattern variable declared in a different when-clause, so we only apply the optimization
+                // of using user-declared pattern variables as pattern-matching automaton temps
+                // when there are no nontrivial when-clauses at all.
+                if (!sortedNodes.OfType<BoundWhenDecisionDagNode>().Where(w => w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True).Any())
+                {
+                    ShareTemps(sortedNodes);
+                }
+
+                // Code for each when clause goes in the separate code section for its switch section.
                 foreach (BoundDecisionDagNode node in sortedNodes)
                 {
                     if (node is BoundWhenDecisionDagNode w)
@@ -397,9 +405,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                 Debug.Assert(foundSectionBuilder);
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));
-                foreach ((BoundExpression left, BoundDagTemp right) in whenClause.Bindings)
+                foreach ((BoundExpression leftExpression, BoundDagTemp dagTemp) in whenClause.Bindings)
                 {
-                    sectionBuilder.Add(_factory.Assignment(left, _tempAllocator.GetTemp(right)));
+                    BoundExpression rightExpression = _tempAllocator.GetTemp(dagTemp);
+                    if (leftExpression == rightExpression)
+                    {
+                        // In this case we would just be assigning the variable to itself, so we need generate no code.
+                        // This arises due to an optimization by which we use pattern variables as dag temps.
+                    }
+                    else
+                    {
+                        sectionBuilder.Add(_factory.Assignment(leftExpression, rightExpression));
+                    }
                 }
 
                 var whenFalse = whenClause.WhenFalse;

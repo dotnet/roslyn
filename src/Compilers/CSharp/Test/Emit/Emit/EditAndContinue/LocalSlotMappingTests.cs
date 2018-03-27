@@ -3604,38 +3604,34 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
                 [int] V_2,
-                [int] V_3,
-                int V_4,
-                int V_5)
+                int V_3)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_0017
+  IL_0007:  brfalse.s  IL_0013
   IL_0009:  ldarg.0
   IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.s    V_4
-  IL_0011:  ldloc.s    V_4
-  IL_0013:  stloc.0
-  IL_0014:  ldc.i4.1
-  IL_0015:  br.s       IL_0018
-  IL_0017:  ldc.i4.0
-  IL_0018:  stloc.1
- ~IL_0019:  ldloc.1
-  IL_001a:  brfalse.s  IL_0022
- -IL_001c:  nop
- -IL_001d:  ldloc.0
-  IL_001e:  stloc.s    V_5
-  IL_0020:  br.s       IL_0027
- -IL_0022:  ldc.i4.0
-  IL_0023:  stloc.s    V_5
-  IL_0025:  br.s       IL_0027
- -IL_0027:  ldloc.s    V_5
-  IL_0029:  ret
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.1
+ ~IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_001d
+ -IL_0018:  nop
+ -IL_0019:  ldloc.0
+  IL_001a:  stloc.3
+  IL_001b:  br.s       IL_0021
+ -IL_001d:  ldc.i4.0
+  IL_001e:  stloc.3
+  IL_001f:  br.s       IL_0021
+ -IL_0021:  ldloc.3
+  IL_0022:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
@@ -3771,38 +3767,34 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
                 [int] V_2,
-                [int] V_3,
-                int V_4,
-                int V_5)
+                int V_3)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_0017
+  IL_0007:  brfalse.s  IL_0013
   IL_0009:  ldarg.0
   IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.s    V_4
-  IL_0011:  ldloc.s    V_4
-  IL_0013:  stloc.0
-  IL_0014:  ldc.i4.1
-  IL_0015:  br.s       IL_0018
-  IL_0017:  ldc.i4.0
-  IL_0018:  stloc.1
- ~IL_0019:  ldloc.1
-  IL_001a:  brfalse.s  IL_0022
- -IL_001c:  nop
- -IL_001d:  ldloc.0
-  IL_001e:  stloc.s    V_5
-  IL_0020:  br.s       IL_0027
- -IL_0022:  ldc.i4.0
-  IL_0023:  stloc.s    V_5
-  IL_0025:  br.s       IL_0027
- -IL_0027:  ldloc.s    V_5
-  IL_0029:  ret
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.1
+ ~IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_001d
+ -IL_0018:  nop
+ -IL_0019:  ldloc.0
+  IL_001a:  stloc.3
+  IL_001b:  br.s       IL_0021
+ -IL_001d:  ldc.i4.0
+  IL_001e:  stloc.3
+  IL_001f:  br.s       IL_0021
+ -IL_0021:  ldloc.3
+  IL_0022:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 

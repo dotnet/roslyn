@@ -5297,46 +5297,44 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: @"True");
             compilation.VerifyIL("C.Main",
 @"{
-  // Code size       94 (0x5e)
+  // Code size       92 (0x5c)
   .maxstack  3
-  .locals init (int? V_0,
+  .locals init (int? V_0, //i
                 C.<>c__DisplayClass0_0 V_1, //CS$<>8__locals0
                 System.Func<object> V_2, //f
                 int V_3)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""int?""
-  IL_0008:  ldloc.0
-  IL_0009:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-  IL_000e:  stloc.1
-  IL_000f:  stloc.0
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""bool int?.HasValue.get""
-  IL_0017:  brfalse.s  IL_0024
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  call       ""int int?.GetValueOrDefault()""
-  IL_0020:  stloc.3
-  IL_0021:  ldloc.3
-  IL_0022:  brfalse.s  IL_0051
-  IL_0024:  ldloc.1
-  IL_0025:  ldnull
-  IL_0026:  stfld      ""object C.<>c__DisplayClass0_0.o""
-  IL_002b:  ldloc.1
-  IL_002c:  ldftn      ""object C.<>c__DisplayClass0_0.<Main>b__0()""
-  IL_0032:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
-  IL_0037:  stloc.2
-  IL_0038:  ldstr      ""{0}""
-  IL_003d:  ldloc.2
-  IL_003e:  callvirt   ""object System.Func<object>.Invoke()""
-  IL_0043:  ldnull
-  IL_0044:  ceq
-  IL_0046:  box        ""bool""
-  IL_004b:  call       ""void System.Console.Write(string, object)""
-  IL_0050:  ret
-  IL_0051:  ldloc.1
-  IL_0052:  ldc.i4.1
-  IL_0053:  box        ""int""
-  IL_0058:  stfld      ""object C.<>c__DisplayClass0_0.o""
-  IL_005d:  ret
+  IL_0008:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       ""bool int?.HasValue.get""
+  IL_0015:  brfalse.s  IL_0022
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int int?.GetValueOrDefault()""
+  IL_001e:  stloc.3
+  IL_001f:  ldloc.3
+  IL_0020:  brfalse.s  IL_004f
+  IL_0022:  ldloc.1
+  IL_0023:  ldnull
+  IL_0024:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_0029:  ldloc.1
+  IL_002a:  ldftn      ""object C.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0030:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_0035:  stloc.2
+  IL_0036:  ldstr      ""{0}""
+  IL_003b:  ldloc.2
+  IL_003c:  callvirt   ""object System.Func<object>.Invoke()""
+  IL_0041:  ldnull
+  IL_0042:  ceq
+  IL_0044:  box        ""bool""
+  IL_0049:  call       ""void System.Console.Write(string, object)""
+  IL_004e:  ret
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4.1
+  IL_0051:  box        ""int""
+  IL_0056:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_005b:  ret
 }");
         }
     }
