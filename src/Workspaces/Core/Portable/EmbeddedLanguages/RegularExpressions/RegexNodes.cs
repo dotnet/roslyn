@@ -1314,27 +1314,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
-
-        public bool IsSelfEscape
-        {
-            get
-            {
-                switch (this.TypeToken.VirtualChars[0].Char)
-                {
-                    case 'a':
-                    case 'b':
-                    case 'e':
-                    case 'f':
-                    case 'n':
-                    case 'r':
-                    case 't':
-                    case 'v':
-                        return false;
-                }
-
-                return true;
-            }
-        }
     }
 
 
