@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //     $$
             foreach (var ifStatement in token.GetAncestors<IfStatementSyntax>())
             {
-                if (ifStatement.Statement.GetLastToken(includeSkipped: true, includeZeroWidth: true) == token)
+                if (ifStatement.Statement.GetLastToken(includeZeroWidth: true) == token)
                 {
                     return true;
                 }
