@@ -475,6 +475,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Statement Visitors
 
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
+        }
+
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
             BoundSpillSequenceBuilder builder = null;
@@ -496,13 +503,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var condition = VisitExpression(ref builder, node.Condition);
             return UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label));
-        }
-
-        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
-        {
-            BoundSpillSequenceBuilder builder = null;
-            var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)

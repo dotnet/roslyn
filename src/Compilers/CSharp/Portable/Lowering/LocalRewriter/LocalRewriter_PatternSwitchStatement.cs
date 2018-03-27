@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// We revise the returned label for a leaf so that all leafs in the same switch section are given the same label.
-            /// This permits all the leafs in a
-            /// section to share the label, which enables the switch emitter to produce better code.
+            /// This enables the switch emitter to produce better code.
             /// </summary>
             protected override LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
             {

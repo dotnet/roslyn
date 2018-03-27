@@ -807,19 +807,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagValueTest v2:
-                            // Given that v!=null fails, v is null and v==K cannot succeed
+                            // !(v != null) --> !(v == K)
                             falseTestPermitsTrueOther = false;
                             break;
                         case BoundDagNullTest v2:
-                            trueTestPermitsTrueOther = false; // if v!=null is true, then v==null cannot succeed
-                            falseTestImpliesTrueOther = true; // if v!=null is false, then v==null has been proven true
+                            // v != null --> !(v == null)
+                            trueTestPermitsTrueOther = false;
+                            // !(v != null) --> v == null
+                            falseTestImpliesTrueOther = true;
                             break;
                         case BoundDagNonNullTest n2:
+                            // v != null --> v != null
                             trueTestImpliesTrueOther = true;
+                            // !(v != null) --> !(v != null)
                             falseTestPermitsTrueOther = false;
                             break;
                         default:
-                            // Once v!=null fails, it must fail a type test
+                            // !(v != null) --> !(v is T)
                             falseTestPermitsTrueOther = false;
                             break;
                     }
@@ -828,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
-                            // Once `v is T` is true, v!=null cannot fail
+                            // v is T --> v != null
                             trueTestImpliesTrueOther = true;
                             break;
                         case BoundDagTypeTest t2:
@@ -837,31 +841,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool? matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t1.Type, t2.Type, ref useSiteDiagnostics, out _);
                                 if (matches == false)
                                 {
-                                    // If T1 could never be T2, then success of T1 implies failure of T2.
+                                    // If T1 could never be T2
+                                    // v is T1 --> !(v is T2)
                                     trueTestPermitsTrueOther = false;
                                 }
                                 else if (matches == true)
                                 {
-                                    // Every T1 is a T2
+                                    // If T1: T2
+                                    // v is T1 --> v is T2
                                     trueTestImpliesTrueOther = true;
                                 }
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
+
                                 matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteDiagnostics, out _);
                                 _diagnostics.Add(syntax, useSiteDiagnostics);
                                 if (matches == true)
                                 {
-                                    // Once we know it is of the subtype, we do not need to test for the supertype.
+                                    // If T2: T1
+                                    // !(v is T1) --> !(v is T2)
                                     falseTestPermitsTrueOther = false;
                                 }
                             }
                             break;
                         case BoundDagValueTest v2:
-                            // PROTOTYPE(patterns2): what can knowing that the type is/isn't T1 imply about knowing the value is v2?
-                            // PROTOTYPE(patterns2): specifically, each value requires the input be a particular type, and a known type may indicate that is impossible.
                             break;
                         case BoundDagNullTest v2:
-                            trueTestPermitsTrueOther = false; // if v is T1 is true, then v==null cannot succeed
+                            // v is T --> !(v == null)
+                            trueTestPermitsTrueOther = false;
                             break;
                     }
                     break;
@@ -869,26 +876,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
-                            // v==K implies v!=null
+                            // v == K --> v != null
                             trueTestImpliesTrueOther = true;
                             break;
                         case BoundDagTypeTest t2:
                             break;
                         case BoundDagNullTest v2:
+                            // v == K --> !(v == null)
                             trueTestPermitsTrueOther = false;
                             break;
                         case BoundDagValueTest v2:
                             if (v1.Value == v2.Value)
                             {
+                                // if K1 == K2
+                                // v == K1 --> v == K2
                                 trueTestImpliesTrueOther = true;
+                                // !(v == K1) --> !(v == K2)
                                 falseTestPermitsTrueOther = false;
                             }
                             else
                             {
+                                // if K1 != K2
+                                // v == K1 --> !(v == K2)
                                 trueTestPermitsTrueOther = false;
                                 if (v1.Input.Type.SpecialType == SpecialType.System_Boolean)
                                 {
                                     // As a special case, we note that boolean values can only ever be true or false.
+                                    // !(v == true) --> v == false
+                                    // !(v == false) --> v == true
                                     falseTestImpliesTrueOther = true;
                                 }
                             }
@@ -900,18 +915,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
-                            trueTestPermitsTrueOther = false; // v==null being true does not permit v!=null to be true
-                            falseTestImpliesTrueOther = true; // v==null being false implies v!=null to be true
+                            // v == null --> !(v != null)
+                            trueTestPermitsTrueOther = false;
+                            // !(v == null) --> v != null
+                            falseTestImpliesTrueOther = true;
                             break;
                         case BoundDagTypeTest t2:
-                            // v==null does not permit v is T
+                            // v == null --> !(v is T)
                             trueTestPermitsTrueOther = false;
                             break;
                         case BoundDagNullTest v2:
+                            // v == null --> v == null
                             trueTestImpliesTrueOther = true;
+                            // !(v == null) --> !(v == null)
                             falseTestPermitsTrueOther = false;
                             break;
                         case BoundDagValueTest v2:
+                            // v == null --> !(v == K)
                             trueTestPermitsTrueOther = false;
                             break;
                     }
@@ -1114,6 +1134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class DagStateEquivalence : IEqualityComparer<DagState>
         {
             public static readonly DagStateEquivalence Instance = new DagStateEquivalence();
+
+            private DagStateEquivalence() { }
 
             public bool Equals(DagState x, DagState y)
             {

@@ -208,61 +208,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (test)
                 {
                     case BoundDagNonNullTest d:
-                        // If the actual input is a constant, short-circuit this test
-                        if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
-                        {
-                            bool testResult = _loweredInput.ConstantValue != ConstantValue.Null;
-                            if (!testResult)
-                            {
-                                return _factory.Literal(testResult);
-                            }
-                        }
-                        else
-                        {
-                            return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
-                        }
-
-                        return null;
+                        // If the actual input is a constant, the test should have been removed from the decision dag
+                        Debug.Assert(!(d.Input == _inputTemp && _loweredInput.ConstantValue != null));
+                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
 
                     case BoundDagTypeTest d:
-                        {
-                            // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
-                            return _factory.Is(input, d.Type);
-                        }
+                        // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
+                        return _factory.Is(input, d.Type);
 
                     case BoundDagNullTest d:
-                        if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
-                        {
-                            bool testResult = _loweredInput.ConstantValue == ConstantValue.Null;
-                            if (!testResult)
-                            {
-                                return _factory.Literal(testResult);
-                            }
-                        }
-                        else
-                        {
-                            return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
-                        }
-
-                        return null;
+                        // If the actual input is a constant, the test should have been removed from the decision dag
+                        Debug.Assert(!(d.Input == _inputTemp && _loweredInput.ConstantValue != null));
+                        return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
 
                     case BoundDagValueTest d:
-                        // If the actual input is a constant, short-circuit this test
-                        if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
-                        {
-                            bool testResult = _loweredInput.ConstantValue == d.Value;
-                            if (!testResult)
-                            {
-                                return _factory.Literal(testResult);
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(!input.Type.IsNullableType());
-                            return _localRewriter.MakeEqual(_localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type), input);
-                        }
-
-                        return null;
+                        // If the actual input is a constant, the test should have been removed from the decision dag
+                        Debug.Assert(!(d.Input == _inputTemp && _loweredInput.ConstantValue != null));
+                        Debug.Assert(!input.Type.IsNullableType());
+                        return _localRewriter.MakeEqual(_localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type), input);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(test);

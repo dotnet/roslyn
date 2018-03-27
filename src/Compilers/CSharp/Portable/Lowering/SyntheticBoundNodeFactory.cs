@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Produce an int switch.
         /// </summary>
-        public BoundStatement Switch(BoundExpression ex, params SyntheticSwitchSection[] sections)
+        public BoundStatement Switch(BoundExpression ex, ImmutableArray<SyntheticSwitchSection> sections)
         {
             Debug.Assert(ex.Type.SpecialType == CodeAnalysis.SpecialType.System_Int32);
 
@@ -874,19 +874,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Produce an int switch.
-        /// </summary>
-        public BoundStatement Switch(BoundExpression ex, IEnumerable<SyntheticSwitchSection> sections)
-        {
-            return Switch(ex, sections.ToArray());
-        }
-
-        /// <summary>
         /// Check for (and assert that there are no) duplicate case labels in the switch.
         /// </summary>
         /// <param name="sections"></param>
         [Conditional("DEBUG")]
-        private static void CheckSwitchSections(SyntheticSwitchSection[] sections)
+        private static void CheckSwitchSections(ImmutableArray<SyntheticSwitchSection> sections)
         {
             var labels = new HashSet<int>();
             foreach (var s in sections)
