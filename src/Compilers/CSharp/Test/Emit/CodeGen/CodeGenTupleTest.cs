@@ -24281,8 +24281,10 @@ public class Class1
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            var varType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single().Declaration.Type;
-            Assert.Equal("IResult<System.Int32>", model.GetTypeInfo(varType).Type.ToTestDisplayString());
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int x, int y) a) => a.x * a.y)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
         [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
@@ -24312,8 +24314,10 @@ public class Class1
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            var varType = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single().Declaration.Type;
-            Assert.Equal("IResult<System.Int32>", model.GetTypeInfo(varType).Type.ToTestDisplayString());
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do((dynamic a) => 1)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
     }
 }

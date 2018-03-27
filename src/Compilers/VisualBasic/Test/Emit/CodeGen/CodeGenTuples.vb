@@ -21511,9 +21511,11 @@ End Module
 
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
-            Dim case3 = nodes.OfType(Of LocalDeclarationStatementSyntax)().Single().Declarators.Single().Names.Single()
+            Dim actSyntax = nodes.OfType(Of InvocationExpressionSyntax)().Single()
+            Assert.Equal("impl.Act(Function(a As (x As Integer, y As Integer)) a.x * a.y)", actSyntax.ToString())
 
-            Assert.Equal("case3 As IResult(Of System.Int32)", model.GetDeclaredSymbol(case3).ToTestDisplayString())
+            Dim actSymbol = DirectCast(model.GetSymbolInfo(actSyntax).Symbol, IMethodSymbol)
+            Assert.Equal("IResult(Of System.Int32)", actSymbol.ReturnType.ToTestDisplayString())
         End Sub
 
     End Class
