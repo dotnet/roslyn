@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var matchingItems = itemsInList
                 .Where(r => r.MatchedFilterText)
-                .Select(t => t.CompletionItem.Properties.GetProperty<RoslynCompletionItem>("RoslynItem"))
+                .Select(t => GetOrCreateRoslynItem(t.CompletionItem))
                 .AsImmutable();
 
             var chosenItems = completionService.FilterItems(snapshot.GetOpenDocumentInCurrentContextWithChanges(), matchingItems, filterText);
@@ -307,6 +307,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem));
+        }
+
+        private RoslynCompletionItem GetOrCreateRoslynItem(EditorCompletion.CompletionItem item)
+        {
+            if (item.Properties.TryGetProperty<RoslynCompletionItem>("RoslynItem", out var roslynItem))
+            {
+                return roslynItem;
+            }
+
+            return RoslynCompletionItem.Create(item.DisplayText, item.FilterText, item.SortText);
         }
 
         private bool IsHardSelection(RoslynCompletionItem bestItem, ITextSnapshot snapshot, int? caretPosition, EditorCompletion.CompletionFilterReason filterReason, string filterText, CompletionTriggerReason triggerReason)
