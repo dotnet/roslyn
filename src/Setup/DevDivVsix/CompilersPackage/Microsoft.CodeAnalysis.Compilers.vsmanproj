@@ -16,15 +16,15 @@
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
 
-  <Target Name="BeforeBuild">
-    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
-  </Target>
-
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
+
+  <Target Name="BeforeBuild">
+    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
+  </Target>
 
   <Target Name="ValidateManifest" />
 

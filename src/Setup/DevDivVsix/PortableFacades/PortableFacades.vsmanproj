@@ -16,15 +16,15 @@
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
 
-  <Target Name="BeforeBuild">
-    <MSBuild Projects="PortableFacades.swixproj" Targets="Build" />
-  </Target>
-
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)PortableFacades.json" />
   </ItemGroup>
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
+
+  <Target Name="BeforeBuild">
+    <MSBuild Projects="PortableFacades.swixproj" Targets="Build" />
+  </Target>
 
   <Target Name="ValidateManifest" />
 
