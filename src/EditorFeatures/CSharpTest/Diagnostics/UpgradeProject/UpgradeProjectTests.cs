@@ -40,22 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
         }
 
         [Fact]
-        public async Task UpgradeProjectFromCSharp6ToDefault()
-        {
-            await TestLanguageVersionUpgradedAsync(
-@"
-class Program
-{
-    void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}",
-                LanguageVersion.Default.MapSpecifiedToEffectiveVersion(),
-                new CSharpParseOptions(LanguageVersion.CSharp6));
-        }
-
-        [Fact]
         public async Task UpgradeProjectFromCSharp6ToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -68,8 +52,7 @@ class Program
     }
 }",
                 LanguageVersion.CSharp7,
-                new CSharpParseOptions(LanguageVersion.CSharp6),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp6));
         }
 
         [Fact]
@@ -85,8 +68,7 @@ class Program
     }
 }",
                 LanguageVersion.CSharp6,
-                new CSharpParseOptions(LanguageVersion.CSharp5),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp5));
         }
 
         [Fact]
@@ -102,8 +84,7 @@ class Program
     }
 }",
                 LanguageVersion.CSharp5,
-                new CSharpParseOptions(LanguageVersion.CSharp4),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp4));
         }
 
         [Fact]
@@ -176,8 +157,7 @@ class Program
 #error [|version:7.1|]
 }",
                 LanguageVersion.CSharp7_1,
-                new CSharpParseOptions(LanguageVersion.CSharp7),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact]
@@ -193,8 +173,7 @@ class Program
     }
 }",
                 LanguageVersion.CSharp7_2,
-                new CSharpParseOptions(LanguageVersion.CSharp7_1),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7_1));
         }
 
         [Fact]
@@ -212,20 +191,19 @@ public class Program
 }
 ",
                 LanguageVersion.CSharp7_1,
-                new CSharpParseOptions(LanguageVersion.CSharp7),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
-#region C# 7.3
+        #region C# 7.3
         [Fact]
-        public async Task UpgradeProjectFromCSharp7_3ToLatest()
+        public async Task UpgradeProjectFromCSharp7_2ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
+$@"
 class Program
-{
-#error version:[|7.3|]
-}",
+{{
+#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
+}}",
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -254,8 +232,7 @@ class Program
 }
 ",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7_2),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
         
         [Fact]
@@ -267,8 +244,7 @@ class Program
 }
 ",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7_2),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
 
         [Fact]
@@ -280,8 +256,7 @@ class Program
 }
 ",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7_2),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
         #endregion C# 7.3
 
@@ -432,8 +407,7 @@ class Test<T> where T : [|unmanaged|]
 {
 }",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact]
@@ -463,8 +437,7 @@ class Test
     public void M<T>() where T : [|unmanaged|] { }
 }",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact]
@@ -491,8 +464,7 @@ class Test
             await TestLanguageVersionUpgradedAsync(
 @"delegate void D<T>() where T : [|unmanaged|];",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7),
-                index: 0);
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact]
