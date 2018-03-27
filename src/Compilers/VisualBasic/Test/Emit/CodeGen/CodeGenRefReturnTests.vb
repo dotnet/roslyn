@@ -1123,9 +1123,11 @@ public class B
 End Module",
                 referencedCompilations:={comp1},
                 compilationOptions:=TestOptions.DebugExe)
-            Dim verifier = CompileAndVerify(comp2, expectedOutput:="Public member 'G' on type 'A' not found.")
-            verifier.VerifyIL("M.F",
-            <![CDATA[
+
+            Using New EnsureEnglishUICulture()
+                Dim verifier = CompileAndVerify(comp2, expectedOutput:="Public member 'G' on type 'A' not found.")
+                verifier.VerifyIL("M.F",
+                <![CDATA[
 {
   // Code size       93 (0x5d)
   .maxstack  9
@@ -1177,7 +1179,8 @@ End Module",
   IL_005c:  ret
 }
 ]]>)
-            verifier.VerifyDiagnostics()
+                verifier.VerifyDiagnostics()
+            End Using
         End Sub
 
         <Fact()>
