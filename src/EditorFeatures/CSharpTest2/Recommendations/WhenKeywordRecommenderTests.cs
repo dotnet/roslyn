@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"try {} catch (Exception e) when (true) $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(24113, "https://github.com/dotnet/roslyn/issues/24113")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_AfterDeclarationPattern() =>
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ }"));
 
@@ -77,149 +77,77 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestForSwitchCase_AfterDeclarationPattern_BeforeWhen() =>
             await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ when }"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
-        public async Task TestForSwitchCase_AfterLiteral() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 $$ }"));
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("int.MinValue")]
+        [InlineData("1")]
+        [InlineData("1 + 1")]
+        [InlineData("true ? 1 : 1")]
+        [InlineData("(1 + )")]
+        public async Task TestForSwitchCase_AfterExpression(string expression) =>
+            await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("int.MinValue")]
+        [InlineData("1")]
+        [InlineData("1 + 1")]
+        [InlineData("true ? 1 : 1")]
+        [InlineData("(1 + )")]
+        public async Task TestForSwitchCase_AfterExpression_BeforeBreak(string expression) =>
+            await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("int.MinValue")]
+        [InlineData("1")]
+        [InlineData("1 + 1")]
+        [InlineData("true ? 1 : 1")]
+        [InlineData("(1 + )")]
+        public async Task TestForSwitchCase_AfterExpression_BeforeWhen(string expression) =>
+            await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("int.")]
+        [InlineData("1 +")]
+        [InlineData("true ?")]
+        [InlineData("true ? 1")]
+        [InlineData("true ? 1 :")]
+        [InlineData("(1")]
+        [InlineData("(1 + 1")]
+        public async Task TestForSwitchCase_NotAfterIncompleteExpression(string expression) =>
+            await VerifyAbsenceAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("int.")]
+        [InlineData("1 +")]
+        [InlineData("true ?")]
+        [InlineData("true ? 1")]
+        [InlineData("true ? 1 :")]
+        [InlineData("(1")]
+        [InlineData("(1 + 1")]
+        public async Task TestForSwitchCase_NotAfterIncompleteExpression_BeforeBreak(string expression) =>
+            await VerifyAbsenceAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("int.")]
+        [InlineData("1 +")]
+        [InlineData("true ?")]
+        [InlineData("true ? 1")]
+        [InlineData("true ? 1 :")]
+        [InlineData("(1")]
+        [InlineData("(1 + 1")]
+        public async Task TestForSwitchCase_NotAfterIncompleteExpression_BeforeWhen(string expression) =>
+            await VerifyAbsenceAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterLiteral_BeforeBreak() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterLiteral_BeforeWhen() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterMemberAccess() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int.MinValue $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterMemberAccess_BeforeBreak() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int.MinValue $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterMemberAccess_BeforeWhen() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int.MinValue $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterBinaryExpression() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 + 1 $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterBinaryExpression_BeforeBreak() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 + 1 $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterBinaryExpression_BeforeWhen() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case 1 + 1 $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterTernaryExpression() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case true ? 1 : 1 $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterTernaryExpression_BeforeBreak() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case true ? 1 : 1 $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterTernaryExpression_BeforeWhen() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case true ? 1 : 1 $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterParenthesesWithIncompleteExpressionInside() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case (1 + ) $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterParenthesesWithIncompleteExpressionInside_BeforeBreak() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case (1 + ) $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_AfterParenthesesWithIncompleteExpressionInside_BeforeWhen() =>
-            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case (1 + ) $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteMemberAccess() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case int.$$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteMemberAccess_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case int.$$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteMemberAccess_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case int.$$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteBinaryExpression() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1 + $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteBinaryExpression_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1 + $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteBinaryExpression_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1 + $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression1() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression1_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression1_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression2() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? 1 $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression2_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? 1 $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression2_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? 1 $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression3() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? 1 : $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression3_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? 1 : $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterIncompleteTernaryExpression3_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case true ? 1 : $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterMissingCloseParen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$ }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterMissingCloseParen_BeforeBreak() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$ break; }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotAfterMissingCloseParen_BeforeWhen() =>
-            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$ when }"));
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotInsideParentheses() =>
+        public async Task TestForSwitchCase_NotInsideExpression() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotInsideParentheses_BeforeBreak() =>
+        public async Task TestForSwitchCase_NotInsideExpression_BeforeBreak() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForSwitchCase_NotInsideParentheses_BeforeWhen() =>
+        public async Task TestForSwitchCase_NotInsideExpression_BeforeWhen() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
