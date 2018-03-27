@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            return VisitLocalFunctionOrLambda(node.Body);
+            VisitLocalFunctionOrLambda(node.BlockBody);
+            VisitLocalFunctionOrLambda(node.ExpressionBody);
+            return null;
         }
 
         private BoundNode VisitLocalFunctionOrLambda(BoundBlock body)

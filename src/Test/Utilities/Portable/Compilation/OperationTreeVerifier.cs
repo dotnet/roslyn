@@ -1423,7 +1423,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Body);
+            if (operation.BlockBody != null)
+            {
+                Visit(operation.BlockBody, "Block Body");
+            }
+            if (operation.ExpressionBody != null)
+            {
+                Visit(operation.ExpressionBody, "Expression Body");
+            }
         }
 
         private void LogCaseClauseCommon(ICaseClauseOperation operation)

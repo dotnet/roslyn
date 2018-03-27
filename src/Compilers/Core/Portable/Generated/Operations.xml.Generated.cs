@@ -5947,21 +5947,28 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Local function symbol.
         /// </summary>
         public IMethodSymbol Symbol { get; }
-        protected abstract IBlockOperation BodyImpl { get; }
+        protected abstract IBlockOperation BlockBodyImpl { get; }
+        protected abstract IBlockOperation ExpressionBodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Body != null)
+                if (BlockBody != null)
                 {
-                    yield return Body;
+                    yield return BlockBody;
+                }
+                if (ExpressionBody != null)
+                {
+                    yield return ExpressionBody;
                 }
             }
         }
         /// <summary>
         /// Body of the local function.
         /// </summary>
-        public IBlockOperation Body => Operation.SetParentOperation(BodyImpl, this);
+        public IBlockOperation Body => BlockBody ?? ExpressionBody;
+        public IBlockOperation BlockBody => Operation.SetParentOperation(BlockBodyImpl, this);
+        public IBlockOperation ExpressionBody => Operation.SetParentOperation(ExpressionBodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalFunction(this);
@@ -5977,13 +5984,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionOperation
     {
-        public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation blockBody, IBlockOperation expressionBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            BodyImpl = body;
+            BlockBodyImpl = blockBody;
+            ExpressionBodyImpl = expressionBody;
         }
 
-        protected override IBlockOperation BodyImpl { get; }
+        protected override IBlockOperation BlockBodyImpl { get; }
+        protected override IBlockOperation ExpressionBodyImpl { get; }
     }
 
     /// <summary>
@@ -5991,15 +6000,18 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LazyLocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionOperation
     {
-        private readonly Lazy<IBlockOperation> _lazyBody;
+        private readonly Lazy<IBlockOperation> _lazyBlockBody;
+        private readonly Lazy<IBlockOperation> _lazyExpressionBody;
 
-        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockOperation> blockBody, Lazy<IBlockOperation> expressionBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyBlockBody = blockBody ?? throw new System.ArgumentNullException(nameof(blockBody));
+            _lazyExpressionBody = expressionBody ?? throw new System.ArgumentNullException(nameof(expressionBody));
         }
 
-        protected override IBlockOperation BodyImpl => _lazyBody.Value;
+        protected override IBlockOperation BlockBodyImpl => _lazyBlockBody.Value;
+        protected override IBlockOperation ExpressionBodyImpl => _lazyExpressionBody.Value;
     }
 
     /// <summary>

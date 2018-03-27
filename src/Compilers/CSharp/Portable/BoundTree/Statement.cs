@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalFunctionStatement
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.BlockBody, this.ExpressionBody);
     }
 
     partial class BoundFixedStatement

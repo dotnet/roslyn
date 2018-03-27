@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-                    => VisitClosure(node.Symbol.OriginalDefinition, node.Body);
+                    => VisitClosure(node.Symbol.OriginalDefinition, node.BlockBody ?? node.ExpressionBody);
 
                 public override BoundNode VisitCall(BoundCall node)
                 {

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PendingBranches.Add(new PendingBranch(null, this.State));
             }
 
-            VisitAlways(localFunc.Body);
+            VisitAlways(localFunc.BlockBody ?? localFunc.ExpressionBody);
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
