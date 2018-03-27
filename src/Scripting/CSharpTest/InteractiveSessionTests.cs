@@ -1945,5 +1945,32 @@ int F() => i + j + k + l;
         }
 
         #endregion
+
+        #region Local Functions
+
+        [Fact]
+        public void LocalFunction_PreviousSubmissionAndGlobal()
+        {
+            var result =
+                CSharpScript.RunAsync(
+@"int InInitialSubmission()
+{
+    return LocalFunction();
+    int LocalFunction() => Y;
+}", globals: new C()).
+                ContinueWith(
+@"var lambda = new System.Func<int>(() =>
+{
+    return LocalFunction();
+    int LocalFunction() => Y + InInitialSubmission();
+});
+
+lambda.Invoke()").
+                Result.ReturnValue;
+
+            Assert.Equal(4, result);
+        }
+
+        #endregion
     }
 }

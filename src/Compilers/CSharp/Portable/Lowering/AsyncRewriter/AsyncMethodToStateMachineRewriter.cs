@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal void GenerateMoveNext(BoundStatement body, MethodSymbol moveNextMethod)
         {
-            F.CurrentMethod = moveNextMethod;
+            F.CurrentMethodOrNestedFunction = moveNextMethod;
 
             BoundStatement rewrittenBody = (BoundStatement)Visit(body);
 
