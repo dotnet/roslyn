@@ -498,6 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
             }
 
+            Assert.True(actions.Length > 0, "No action produced");
             Assert.InRange(index, 0, actions.Length - 1);
 
             var action = actions[index];

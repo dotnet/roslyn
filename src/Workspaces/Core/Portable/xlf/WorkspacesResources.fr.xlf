@@ -797,6 +797,11 @@
         <target state="translated">Le changement des propriétés du document n'est pas pris en charge</target>
         <note />
       </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="new">Variables captured:</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

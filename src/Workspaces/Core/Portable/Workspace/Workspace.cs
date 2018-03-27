@@ -1017,6 +1017,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     outputAssemblyToProjectIdMap[p.OutputFilePath] = p.Id;
                 }
+
+                if (!string.IsNullOrEmpty(p.OutputRefFilePath))
+                {
+                    outputAssemblyToProjectIdMap[p.OutputRefFilePath] = p.Id;
+                }
             }
 
             // now fix each project if necessary
@@ -1427,7 +1432,10 @@ namespace Microsoft.CodeAnalysis
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
+                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
+                project.IsSubmission,
+                project.State.HostObjectType,
+                project.OutputRefFilePath);
         }
 
         internal SourceText GetTextForced(TextDocument doc)

@@ -2,11 +2,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -113,12 +113,11 @@ class C
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
                 var commandHandler = new CommentUncommentSelectionCommandHandler(
-                    TestWaitIndicator.Default,
                     workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
                     workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
                 var textView = doc.GetTextView();
                 var textBuffer = doc.GetTextBuffer();
-                commandHandler.ExecuteCommand(textView, textBuffer, CommentUncommentSelectionCommandHandler.Operation.Uncomment);
+                commandHandler.ExecuteCommand(textView, textBuffer, CommentUncommentSelectionCommandHandler.Operation.Uncomment, TestCommandExecutionContext.Create());
 
                 Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText());
             }

@@ -56,6 +56,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 VisualStudio.Editor.SetText(code);
                 VisualStudio.Editor.MoveCaret(caretPosition);
+                VisualStudio.Editor.Activate();
             }
             finally
             {

@@ -197,7 +197,7 @@ class Program
         [Fact]
         public void RefReadOnlyLocalsAreDisallowed()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -224,7 +224,7 @@ class Test
         [Fact]
         public void LocalsWithRefReadOnlyExpressionsAreDisallowed()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -251,7 +251,7 @@ class Test
         [Fact]
         public void ReturnRefReadOnlyAreDisallowed()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     int value = 0;
@@ -277,7 +277,7 @@ class Test
         [Fact]
         public void RefReadOnlyForEachAreDisallowed()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -324,7 +324,7 @@ class Test
         [Fact]
         public void RefReadOnlyAtCallSite()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(in int p)
@@ -362,7 +362,7 @@ class Test
         [Fact]
         public void InAtCallSite()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(in int p)
@@ -379,7 +379,7 @@ class Test
         [Fact]
         public void NothingAtCallSite()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(in int p)
@@ -396,7 +396,7 @@ class Test
         [Fact]
         public void InverseReadOnlyRefShouldBeIllegal()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(readonly ref int p)
@@ -417,7 +417,7 @@ class Test
         [Fact]
         public void RefReadOnlyReturnIllegalInOperators()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public static ref readonly bool operator!(Test obj) => throw null;
@@ -439,7 +439,7 @@ public class Test
         [Fact]
         public void InNotAllowedInReturnType()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     in int M() => throw null;
@@ -452,7 +452,7 @@ class Test
         [Fact]
         public void RefReadOnlyNotAllowedInParameters()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(ref readonly int p) => throw null;

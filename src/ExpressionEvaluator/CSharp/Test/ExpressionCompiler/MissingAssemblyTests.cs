@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void ErrorsWithAssemblySymbolArguments()
         {
-            var assembly = CreateCompilation("").Assembly;
+            var assembly = CreateEmptyCompilation("").Assembly;
             var identity = assembly.Identity;
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, assembly));
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, assembly));
@@ -82,8 +82,8 @@ public class C
     }
 }
 ";
-            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
-            var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.DebugDll);
+            var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { libRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -122,7 +122,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -164,7 +164,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -230,7 +230,7 @@ namespace System.Linq
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -310,7 +310,7 @@ class C
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateStandardCompilation(csharp, new[] { ilRef });
+            var comp = CreateCompilation(csharp, new[] { ilRef });
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -371,7 +371,7 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Success()
         {
-            var comp = CreateStandardCompilation("public class C { }");
+            var comp = CreateCompilation("public class C { }");
             using (var pinned = new PinnedMetadata(GetMetadataBytes(comp)))
             {
                 IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
@@ -394,8 +394,8 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Mixed()
         {
-            var comp1 = CreateStandardCompilation("public class C { }", assemblyName: GetUniqueName());
-            var comp2 = CreateStandardCompilation("public class D { }", assemblyName: GetUniqueName());
+            var comp1 = CreateCompilation("public class C { }", assemblyName: GetUniqueName());
+            var comp2 = CreateCompilation("public class D { }", assemblyName: GetUniqueName());
             using (PinnedMetadata pinned1 = new PinnedMetadata(GetMetadataBytes(comp1)),
                 pinned2 = new PinnedMetadata(GetMetadataBytes(comp2)))
             {
@@ -517,7 +517,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { CSharpRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -554,7 +554,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
@@ -597,7 +597,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 
@@ -637,7 +637,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -680,7 +680,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -735,7 +735,7 @@ class UseLinq
     bool b = Enumerable.Any<int>(null);
 }";
 
-            var compilation = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef });
             WithRuntimeInstance(compilation, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -897,7 +897,7 @@ LanguageVersion.CSharp7_1);
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
             LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {

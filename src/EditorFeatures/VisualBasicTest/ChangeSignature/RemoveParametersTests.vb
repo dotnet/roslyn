@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
@@ -115,22 +116,13 @@ End Module
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New VisualBasicChangeSignatureCommandHandler(TestWaitIndicator.Default)
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                Dim handler = New VisualBasicChangeSignatureCommandHandler()
 
-                Dim state = handler.GetCommandState(New Commands.ReorderParametersCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
 
-                delegatedToNext = False
-                state = handler.GetCommandState(New Commands.RemoveParametersCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                state = handler.GetCommandState(New RemoveParametersCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
         End Sub
     End Class

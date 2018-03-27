@@ -25,12 +25,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
             Dim projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(Me)
 
-            Return New VisualBasicProjectShimWithServices(
+            Return New VisualBasicProject(
                 projectTracker,
-                pVbCompilerHost,
                 wszName,
+                pVbCompilerHost,
                 pProjHier,
                 Me,
+                Function(id) New ProjectExternalErrorReporter(id, "BC", serviceProvider:=Me),
                 Workspace,
                 hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt:=Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))

@@ -37,7 +37,7 @@ interface I0 : I1, I2
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (13,14): warning CS0109: The member 'I0.goo(int)' does not hide an accessible member. The new keyword is not required.
                 //     new void goo(int x);
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "goo").WithArguments("I0.goo(int)"));
@@ -81,7 +81,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -122,7 +122,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -160,7 +160,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ITop.M()"));
@@ -196,7 +196,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -231,7 +231,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -285,7 +285,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -323,7 +323,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ITop.M()"));
@@ -359,7 +359,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -395,7 +395,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"),
@@ -452,7 +452,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -490,7 +490,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ITop.M()"));
@@ -526,7 +526,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -562,7 +562,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"),
@@ -619,7 +619,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -660,7 +660,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M"),
@@ -702,7 +702,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,10): warning CS0108: 'IRight.M()' hides inherited member 'ITop.M'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IRight.M()", "ITop.M"),
@@ -744,7 +744,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,9): warning CS0108: 'IRight.M' hides inherited member 'ITop.M'. Use the new keyword if hiding was intended.
                 //     int M { get; set; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IRight.M", "ITop.M"),
@@ -777,7 +777,7 @@ public interface Derived2 : Base
      int M { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,9): error CS0102: The type 'Base' already contains a definition for 'M'
                 //     int M { get; set; } // NOTE: illegal, since there's already a method M.
@@ -817,7 +817,7 @@ public interface Derived2 : Base
 public class ITest : ITest.Test{
    public interface Test { }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -834,7 +834,7 @@ interface B : A
     void M(in int x);
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,10): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
                 //     void M(in int x);
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 10));
@@ -863,7 +863,7 @@ interface B : A
     ref readonly int M();
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 22));
@@ -892,7 +892,7 @@ interface B : A
     ref readonly int M();
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 22));
@@ -921,7 +921,7 @@ interface B : A
     ref int M();
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,13): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     ref readonly int M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(8, 13));
@@ -950,7 +950,7 @@ interface B : A
     ref readonly int Property { get; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     ref readonly int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 22));
@@ -979,7 +979,7 @@ interface B : A
     ref int Property { get; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,13): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     ref int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 13));
@@ -1008,7 +1008,7 @@ interface B : A
     ref readonly int Property { get; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,22): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     ref readonly int Property { get; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(8, 22));
@@ -1037,7 +1037,7 @@ interface B : A
     new void M(in int x);
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -1063,7 +1063,7 @@ interface B : A
     new ref readonly int M();
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -1089,7 +1089,7 @@ interface B : A
     new ref readonly int Property { get; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aProperty = comp.GetMember<PropertySymbol>("A.Property");
             var bProperty = comp.GetMember<PropertySymbol>("B.Property");
@@ -1115,7 +1115,7 @@ class B : A
     public void M(in int x) { }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1133,7 +1133,7 @@ class B : A
     public ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1151,7 +1151,7 @@ class B : A
     public ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1168,7 +1168,7 @@ class B : A
     public void M(ref int x) { }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS0535: 'B' does not implement interface member 'A.M(in int)'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.M(in int)").WithLocation(6, 11));
@@ -1194,7 +1194,7 @@ class DerivedClass : BaseInterface
     public ref readonly int this[int a] { get { return ref field; } }
 }";
 
-            var comp = CreateStandardCompilation(text).VerifyDiagnostics();
+            var comp = CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1213,7 +1213,7 @@ class ChildClass : BaseInterface
     public void Method2(ref int x) { }
 }";
 
-            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method2(in int)'
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2(in int)").WithLocation(7, 20),
@@ -1239,7 +1239,7 @@ class ChildClass : BaseInterface
     public ref int Method2() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (7,20): error CS8152: 'ChildClass' does not implement interface member 'BaseInterface.Method2()'. 'ChildClass.Method2()' cannot implement 'BaseInterface.Method2()' because it does not have matching return by reference.
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2()", "ChildClass.Method2()").WithLocation(7, 20),
@@ -1265,7 +1265,7 @@ class B : A
     public ref int Property2 { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (7,11): error CS8152: 'B' does not implement interface member 'A.Property2'. 'B.Property2' cannot implement 'A.Property2' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.Property2", "B.Property2").WithLocation(7, 11),
@@ -1289,7 +1289,7 @@ class B : A
     public ref readonly int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS8152: 'B' does not implement interface member 'A.this[int]'. 'B.this[int]' cannot implement 'A.this[int]' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.this[int]", "B.this[int]").WithLocation(6, 11));
@@ -1310,7 +1310,7 @@ class B : A
     public ref int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS8152: 'B' does not implement interface member 'A.this[int]'. 'B.this[int]' cannot implement 'A.this[int]' because it does not have matching return by reference.
                 // class B : A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "A").WithArguments("B", "A.this[int]", "B.this[int]").WithLocation(6, 11));
@@ -1330,7 +1330,7 @@ class B : A
     public int this[in int p] { get { return p; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1347,7 +1347,7 @@ class B : A
     public int this[int p] { get { return p; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS0535: 'B' does not implement interface member 'A.this[in int]'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[in int]").WithLocation(6, 11));
@@ -1367,7 +1367,7 @@ class B : A
     public int this[in int p] { get { return p; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,11): error CS0535: 'B' does not implement interface member 'A.this[int]'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[int]").WithLocation(6, 11));

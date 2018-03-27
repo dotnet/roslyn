@@ -497,7 +497,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+            OverloadResolution.MethodInvocationOverloadResolution(
+                methods: methodGroup.Methods,
+                typeArguments: methodGroup.TypeArguments,
+                receiver: methodGroup.Receiver,
+                arguments: analyzedArguments,
+                result: overloadResolutionResult,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments
@@ -943,8 +949,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Since there were no argument errors to report, we report an error on the invocation itself.
                     string name = (object)delegateTypeOpt == null ? methodName : null;
-                    result.ReportDiagnostics(this, GetLocationForOverloadResolutionDiagnostic(node, expression), diagnostics, name,
-                        methodGroup.Receiver, analyzedArguments, methodGroup.Methods.ToImmutable(),
+                    result.ReportDiagnostics(
+                        binder: this, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: name,
+                        receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
                         typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt,
                         queryClause: queryClause);
                 }

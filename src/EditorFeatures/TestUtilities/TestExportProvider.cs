@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies())));
+                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
             => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static IEnumerable<Assembly> GetCSharpAndVisualBasicAssemblies()
         {
-            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies());
+            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies());
         }
     }
 }

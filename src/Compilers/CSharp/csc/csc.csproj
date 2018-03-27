@@ -35,9 +35,6 @@
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\DesktopBuildClient.cs">
       <Link>DesktopBuildClient.cs</Link>
     </Compile>

@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         protected override void FreeCore()
         {
+            if (this == NoProperty)
+            {
+                return;
+            }
+
             if (_map != null)
             {
                 SharedPools.Default<Dictionary<string, object>>().ClearAndFree(_map);

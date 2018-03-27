@@ -43,7 +43,7 @@ End Class
     ]]></file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -70,7 +70,7 @@ End Class
     ]]></file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -94,7 +94,7 @@ End Class
     ]]></file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -133,7 +133,7 @@ End Module
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
 
             CompileAndVerify(compilation, expectedOutput:="False")
 
@@ -211,7 +211,7 @@ End Class
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithOutputKind(OutputKind.WindowsApplication).WithParseOptions(parseOptions).WithMainTypeName("Form1")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
             compilation.VerifyDiagnostics()
 
             CompileAndVerify(compilation, expectedOutput:="HelloWinform")
@@ -242,7 +242,7 @@ End Module
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
 
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
@@ -300,7 +300,7 @@ End Namespace
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
 
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")

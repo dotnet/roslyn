@@ -22,12 +22,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             // FindDialog will wait until the dialog is open, so the return value is unused.
             DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
+
+            // Wait for application idle to ensure the dialog is fully initialized
+            VisualStudioInstance.WaitForApplicationIdle();
         }
   
         public void VerifyClosed()
         {
             // FindDialog will wait until the dialog is closed, so the return value is unused.
             DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: false);
+        }
+
+        public bool CloseWindow()
+        {
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true, wait: false);
+            if (dialog == null)
+            {
+                return false;
+            }
+
+            ClickCancel();
+            return true;
         }
 
         public void Invoke()

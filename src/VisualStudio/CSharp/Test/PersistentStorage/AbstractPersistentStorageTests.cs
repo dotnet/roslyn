@@ -9,7 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.Storage;
+using Moq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -29,9 +32,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private readonly Encoding _encoding = Encoding.UTF8;
         internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
         {
-            { PersistentStorageOptions.Enabled, true }
+            { PersistentStorageOptions.Enabled, true },
+            { StorageOptions.SolutionSizeThreshold, 100 }
         });
 
+        private MockPersistentStorageLocationService _persistentLocationService;
         private readonly string _persistentFolder;
 
         private const int LargeSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
@@ -66,6 +71,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         public void Dispose()
         {
+            // This should cause the service to release the cached connection it maintains for the primary workspace
+            _persistentLocationService?.RaiseShutdown();
+
             if (Directory.Exists(_persistentFolder))
             {
                 Directory.Delete(_persistentFolder, true);
@@ -77,6 +85,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private string GetData2(Size size)
             => size == Size.Small ? SmallData2 : size == Size.Medium ? MediumData2 : LargeData2;
+
+        [Fact]
+        public async Task TestNullFilePaths()
+        {
+            var solution = CreateOrOpenSolution(nullPaths: true);
+
+            var streamName = "stream";
+
+            using (var storage = GetStorage(solution))
+            {
+                var project = solution.Projects.First();
+                var document = project.Documents.First();
+                Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
+                Assert.False(await storage.WriteStreamAsync(document, streamName, EncodeString("")));
+
+                Assert.Null(await storage.ReadStreamAsync(project, streamName));
+                Assert.Null(await storage.ReadStreamAsync(document, streamName));
+            }
+        }
 
         [Fact]
         public async Task PersistentService_Solution_WriteReadDifferentInstances()
@@ -370,11 +397,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         protected Solution CreateOrOpenSolution(bool nullPaths = false)
         {
             var solutionFile = Path.Combine(_persistentFolder, "Solution1.sln");
-            var newSolution = !File.Exists(solutionFile);
-            if (newSolution)
-            {
-                File.WriteAllText(solutionFile, "");
-            }
+            File.WriteAllText(solutionFile, "");
 
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile);
 
@@ -383,33 +406,79 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var solution = workspace.CurrentSolution;
 
-            if (newSolution)
-            {
-                var projectFile = Path.Combine(Path.GetDirectoryName(solutionFile), "Project1.csproj");
-                File.WriteAllText(projectFile, "");
-                solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp,
-                    filePath: nullPaths ? null : projectFile));
-                var project = solution.Projects.Single();
+            var projectFile = Path.Combine(Path.GetDirectoryName(solutionFile), "Project1.csproj");
+            File.WriteAllText(projectFile, "");
+            solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp,
+                filePath: nullPaths ? null : projectFile));
+            var project = solution.Projects.Single();
 
-                var documentFile = Path.Combine(Path.GetDirectoryName(projectFile), "Document1.cs");
-                File.WriteAllText(documentFile, "");
-                solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1",
-                    filePath: nullPaths ? null : documentFile));
-            }
+            var documentFile = Path.Combine(Path.GetDirectoryName(projectFile), "Document1.cs");
+            File.WriteAllText(documentFile, "");
+            solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1",
+                filePath: nullPaths ? null : documentFile));
 
-            return solution;
+            // Apply this to the workspace so our Solution is the primary branch ID, which matches our usual behavior
+            workspace.TryApplyChanges(solution);
+
+            return workspace.CurrentSolution;
         }
 
         internal IPersistentStorage GetStorage(
             Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
-            var storage = GetStorageService(faultInjectorOpt).GetStorage(solution);
+            // For the sake of tests, all solutions are bigger than our threshold, and thus deserve to get storage for them
+            var solutionSizeTrackerMock = new Mock<ISolutionSizeTracker>();
+            solutionSizeTrackerMock.Setup(m => m.GetSolutionSize(solution.Workspace, solution.Id))
+                                   .Returns(solution.Workspace.Options.GetOption(StorageOptions.SolutionSizeThreshold) + 1);
 
-            Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+            // If we handed out one for a previous test, we need to shut that down first
+            _persistentLocationService?.RaiseShutdown();
+            _persistentLocationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
+
+            var storage = GetStorageService(_persistentLocationService, solutionSizeTrackerMock.Object, faultInjectorOpt).GetStorage(solution);
+
+            // If we're injecting faults, we expect things to be strange
+            if (faultInjectorOpt == null)
+            {
+                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+            }
+
             return storage;
         }
 
-        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector);
+
+        private class MockPersistentStorageLocationService : IPersistentStorageLocationService
+        {
+            private readonly SolutionId _solutionId;
+            private readonly string _storageLocation;
+
+#pragma warning disable CS0067
+            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
+#pragma warning restore CS0067
+
+            public MockPersistentStorageLocationService(SolutionId solutionId, string storageLocation)
+            {
+                _solutionId = solutionId;
+                _storageLocation = storageLocation;
+            }
+
+            public bool IsSupported(Workspace workspace)
+            {
+                return true;
+            }
+
+            public string TryGetStorageLocation(SolutionId solutionId)
+            {
+                return solutionId == _solutionId ? _storageLocation : null;
+            }
+
+            public void RaiseShutdown()
+            {
+                StorageLocationChanging?.Invoke(this, new PersistentStorageLocationChangingEventArgs(_solutionId, null, mustUseNewStorageLocationImmediately: true));
+            }
+        }
+
+        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

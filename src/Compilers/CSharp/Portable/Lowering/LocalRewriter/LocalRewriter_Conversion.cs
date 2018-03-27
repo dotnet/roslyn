@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
                     if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
                     {
-                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
+                        return rewrittenOperand;
                     }
 
                     break;
@@ -1014,8 +1014,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // do not rewrite user defined conversion 
+            // - in expression trees or 
+            // - special situations when converting from array to ReadOnlySpan, which has special support in codegen
+            bool doNotLowerToCall = _inExpressionLambda ||
+                                    (rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType);
+
             BoundExpression result =
-                _inExpressionLambda
+                doNotLowerToCall
                 ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, true, default(ConstantValue), rewrittenType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
             Debug.Assert(result.Type == rewrittenType);

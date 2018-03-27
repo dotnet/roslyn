@@ -219,7 +219,7 @@ public class X
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
@@ -249,7 +249,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
@@ -3115,8 +3115,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(
-                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case System.ValueTuple<int, int> x: // error: subsumed
@@ -3156,7 +3155,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilationWithMscorlib40(
                 source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "Main");
@@ -3209,7 +3208,7 @@ static class Ex
         var y = q/*BIND*/;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case
@@ -3255,7 +3254,7 @@ static class Ex
         }
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case var q:
@@ -3330,7 +3329,7 @@ static class Ex
         }
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (1 of 12)

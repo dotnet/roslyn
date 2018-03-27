@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#if NET461
 
 using System.Collections.Immutable;
 using System.IO;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         private static CSharpCompilation CreateDummyCompilation(string assemblyName)
         {
-            return CreateStandardCompilation(
+            return CreateCompilation(
                 "public class C { }",
                 assemblyName: assemblyName,
                 options: TestOptions.DebugDll);
@@ -56,7 +57,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -136,7 +137,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -216,7 +217,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -296,7 +297,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -377,7 +378,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -401,7 +402,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -468,14 +469,14 @@ namespace X
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
 
             string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-            var compilation2 = CreateStandardCompilation(
+            var compilation2 = CreateCompilation(
                 source2,
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -489,7 +490,7 @@ class A { void M() {  } }
             compilation2.VerifyPdb("A.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -519,14 +520,14 @@ class A { void M() {  } }
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
 
             string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-            var compilation2 = CreateStandardCompilation(
+            var compilation2 = CreateCompilation(
                 source2,
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -540,7 +541,7 @@ class A { void M() {  } }
             compilation2.VerifyPdb("A.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -571,7 +572,7 @@ namespace N
 {
     public class C { }
 }";
-            var dummyCompilation = CreateStandardCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
+            var dummyCompilation = CreateCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
 
             var src2 = @"
 namespace M
@@ -588,7 +589,7 @@ namespace M
         }
     }
 }";
-            var compilation = CreateStandardCompilation(src2,
+            var compilation = CreateCompilation(src2,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -610,8 +611,8 @@ namespace N
 }
 ";
 
-            CSharpCompilation dummyCompilation1 = CreateStandardCompilation(dummySource, assemblyName: "A", options: TestOptions.DebugDll);
-            CSharpCompilation dummyCompilation2 = CreateStandardCompilation(dummySource, assemblyName: "B", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation1 = CreateCompilation(dummySource, assemblyName: "A", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation2 = CreateCompilation(dummySource, assemblyName: "B", options: TestOptions.DebugDll);
 
             var text = @"
 extern alias A;
@@ -622,7 +623,7 @@ using Z = global::N;
 
 class C { void M() { } }
 ";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -645,7 +646,7 @@ class C { void M() { } }
             compilation.VerifyPdb(@"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""C"" name=""M"">
@@ -675,7 +676,7 @@ class C { void M() { } }
         [Fact]
         public void TestExternAliasesInUsing()
         {
-            CSharpCompilation libComp = CreateStandardCompilation(@"
+            CSharpCompilation libComp = CreateCompilation(@"
 namespace N
 {
     public class A { }
@@ -695,7 +696,7 @@ namespace N
     class B { void M() { } }
 }
 ";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                 assemblyName: "Test",
                 options: TestOptions.DebugDll,
                 references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
@@ -705,7 +706,7 @@ namespace N
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""N.B"" name=""M"">
@@ -769,7 +770,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text,
+            var compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -819,7 +820,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -904,7 +905,7 @@ namespace X
 namespace N { public class D { } }
 namespace M { public class E { } }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -926,7 +927,7 @@ public class C
     }
 }";
 
-            var compilation2 = CreateStandardCompilation(source2,
+            var compilation2 = CreateCompilation(source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -937,7 +938,7 @@ public class C
             compilation2.VerifyPdb(@"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""C"" name=""Main"">
@@ -976,7 +977,7 @@ public class C
             var source1 = @"
 namespace N { public class D { } }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -992,7 +993,7 @@ public class C
     }
 }";
 
-            var compilation2 = CreateStandardCompilation(source2,
+            var compilation2 = CreateCompilation(source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -1003,7 +1004,7 @@ public class C
             compilation2.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -1072,7 +1073,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 text1,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
@@ -1123,7 +1124,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""X.C"" name=""M"">
@@ -1250,7 +1251,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 new string[] { text1, text2 },
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
@@ -1314,7 +1315,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""X.C"" name=""M"">
@@ -1423,7 +1424,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""X.C"" name="".ctor"">
@@ -1469,10 +1470,10 @@ class C
     });
 }
 ";
-            CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -1553,7 +1554,7 @@ class C
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""get_P1"">
@@ -1657,7 +1658,7 @@ class Derived : Base
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Base"" name=""get_P"">
@@ -1715,7 +1716,7 @@ class C : I1, I2
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
@@ -1809,7 +1810,7 @@ public class Outer
 }
 ";
 
-            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
 
             var source = @"
 using I = Outer.Inner;
@@ -1824,7 +1825,7 @@ public class Test
             CompileAndVerify(source, new[] { libRef }, options: TestOptions.DebugExe).VerifyPdb("Test.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
@@ -1870,13 +1871,13 @@ namespace @namespace
 
 class Test { static void Main() { } }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
 
             // As in dev12, we drop all '@'s.
             comp.VerifyPdb("Test.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
@@ -1903,7 +1904,7 @@ class Test { static void Main() { } }
         public void UsingExternAlias()
         {
             var libSource = "public class C { }";
-            var lib = CreateStandardCompilation(libSource, assemblyName: "Lib");
+            var lib = CreateCompilation(libSource, assemblyName: "Lib");
             var libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
 
             var source = @"
@@ -1922,11 +1923,11 @@ namespace N
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { libRef });
+            var comp = CreateCompilation(source, new[] { libRef });
             comp.VerifyPdb("N.D.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""N.D"" name=""Main"">
@@ -1964,11 +1965,11 @@ class D
     static void Main() { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyPdb("D.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""D"" name=""Main"">
@@ -2044,7 +2045,7 @@ public class Y<T>
   public class Z<U> {}
 }
 ";
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
 
             var source2 = @"
 using t1 = Y<W[]>;
@@ -2061,12 +2062,12 @@ public class C1
     }
 }
 ";
-            var comp2 = CreateStandardCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
 
             comp2.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""C1"" methodName=""Main"" />
   <methods>
@@ -2115,7 +2116,7 @@ namespace goo
     }
 }";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();
@@ -2140,11 +2141,11 @@ class D
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""D"" name=""Main"">
@@ -2183,7 +2184,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var comp = CreateCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
             var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
@@ -2228,7 +2229,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
@@ -2280,7 +2281,7 @@ class C
 }
 ";
 
-            var c = CreateStandardCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
+            var c = CreateCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
 
             var peStream1 = new MemoryStream();
             var peStream2 = new MemoryStream();
@@ -2363,8 +2364,8 @@ class C
     }
 }
 ";
-            var libRef = CreateStandardCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
-            var compilation = CreateStandardCompilation(source, new[] { libRef });
+            var libRef = CreateCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
+            var compilation = CreateCompilation(source, new[] { libRef });
             var v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
@@ -2385,7 +2386,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -2435,9 +2436,9 @@ class C
     }
 }
 ";
-            var libRef1 = CreateStandardCompilation(sourceLib1).EmitToImageReference();
-            var libRef2 = CreateStandardCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
-            var compilation = CreateStandardCompilation(source, new[] { libRef2 });
+            var libRef1 = CreateCompilation(sourceLib1).EmitToImageReference();
+            var libRef2 = CreateCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
+            var compilation = CreateCompilation(source, new[] { libRef2 });
             var v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
@@ -2448,7 +2449,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -2527,7 +2528,7 @@ using System;
 class C6 { void F() {} }
 " };
 
-            var c = CreateStandardCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var c = CreateCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             var pdbImage = pdbStream.ToImmutable();
@@ -2557,3 +2558,4 @@ ImportScope (index: 0x35, size: 36):
         }
     }
 }
+#endif

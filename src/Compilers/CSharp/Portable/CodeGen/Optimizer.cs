@@ -587,6 +587,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
+        public override BoundNode VisitConversion(BoundConversion node)
+        {
+            var context = _context == ExprContext.Sideeffects && !node.ConversionHasSideEffects() ?
+                            ExprContext.Sideeffects :
+                            ExprContext.Value;
+
+            return node.Update(
+                this.VisitExpression(node.Operand, context),
+                node.Conversion,
+                node.IsBaseConversion,
+                node.Checked,
+                node.ExplicitCastInCode,
+                node.ConstantValue,
+                node.Type);
+        }
+
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            var context = _context == ExprContext.Sideeffects ?
+                            ExprContext.Sideeffects :
+                            ExprContext.Value;
+
+            return node.Update(
+                this.VisitExpression(node.Expression, context),
+                node.Type);
+        }
+
         public override BoundNode VisitBlock(BoundBlock node)
         {
             Debug.Assert(EvalStackIsEmpty(), "entering blocks when evaluation stack is not empty?");
@@ -945,6 +972,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 LocalSymbol localSymbol = assignmentLocal.LocalSymbol;
 
+                // If the LHS is a readonly ref and the result is used later we cannot stack
+                // schedule since we may be converting a writeable value on the RHS to a readonly
+                // one on the LHS.
+                if (localSymbol.RefKind == RefKind.RefReadOnly &&
+                    (_context == ExprContext.Address || _context == ExprContext.Value))
+                {
+                    ShouldNotSchedule(localSymbol);
+                }
+
                 // Special Case: If the RHS is a pointer conversion, then the assignment functions as
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
@@ -970,9 +1006,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            Debug.Assert(!node.IsRef || lhs is BoundLocal local &&
-                         local.LocalSymbol.RefKind != RefKind.None,
-                                "only ref locals can be a target of a ref assignment");
+            Debug.Assert(!node.IsRef || 
+              (lhs is BoundLocal local && local.LocalSymbol.RefKind != RefKind.None) ||
+              (lhs is BoundParameter param && param.ParameterSymbol.RefKind != RefKind.None),
+                                "only ref symbols can be a target of a ref assignment");
             
             switch (lhs.Kind)
             {

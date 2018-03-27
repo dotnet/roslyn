@@ -4,16 +4,18 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Windows.Threading
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -81,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(Of SignatureHelpItems)(Nothing))
 
-            DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+            DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
-                Sub() GetMocks(controller).Buffer.Insert(0, " "))
+                Sub() GetMocks(controller).Buffer.Insert(0, " "), TestCommandExecutionContext.Create())
 
             Dim handled = controller.TryHandleUpKey() ' this will block on the model being updated which should dismiss the session
 
@@ -147,9 +149,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                               Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                                           End Function)
 
-                             dispatcher.Invoke(Sub() DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+                             dispatcher.Invoke(Sub() DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                                  New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), " "c),
-                                 Sub() GetMocks(controller).Buffer.Insert(0, " ")))
+                                 Sub() GetMocks(controller).Buffer.Insert(0, " "), TestCommandExecutionContext.Create()))
 
                              Dim handled = dispatcher.InvokeAsync(Function() controller.TryHandleUpKey()) ' Send the controller an up key, which should block on the computation
                              checkpoint.Release() ' Allow slowprovider to finish
@@ -201,9 +203,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub RetriggerActiveSessionOnClosingBrace()
             Dim controller = CreateController(waitForPresentation:=True)
 
-            DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+            DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), ")"c),
-                Sub() GetMocks(controller).Buffer.Insert(0, ")"))
+                Sub() GetMocks(controller).Buffer.Insert(0, ")"), TestCommandExecutionContext.Create())
             controller.WaitForController()
 
             ' GetItemsAsync is called once initially, and then once as a result of handling the typechar command
@@ -215,9 +217,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub TypingNonTriggerCharacterShouldNotRequestDocument()
             Dim controller = CreateController(triggerSession:=False)
 
-            DirectCast(controller, ICommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
+            DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), "a"c),
-                Sub() GetMocks(controller).Buffer.Insert(0, "a"))
+                Sub() GetMocks(controller).Buffer.Insert(0, "a"), TestCommandExecutionContext.Create())
 
             GetMocks(controller).DocumentProvider.Verify(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken)), Times.Never)
         End Sub
@@ -288,7 +290,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                       TryCast(provider, MockSignatureHelpProvider)))
 
             If triggerSession Then
-                DirectCast(controller, ICommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing)
+                DirectCast(controller, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(
+                    New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing, TestCommandExecutionContext.Create())
                 If waitForPresentation Then
                     controller.WaitForController()
                 End If

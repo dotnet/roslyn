@@ -29,6 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // indicate whether pool should be used.
             private readonly bool _enableConnectionPool;
 
+            // indicate whether connection manager has shutdown
+            private bool _shutdown;
+
             public ConnectionManager(
                 HubClient hubClient,
                 HostGroup hostGroup,
@@ -37,6 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 TimeSpan timeout,
                 ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
+                _shutdown = false;
+
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
                 _timeout = timeout;
@@ -123,9 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (_shutdownLock.DisposableRead())
                 {
-                    if (!_enableConnectionPool)
+                    if (!_enableConnectionPool || _shutdown)
                     {
-                        // pool is not being used.
+                        // pool is not being used or 
+                        // manager is already shutdown
                         connection.Dispose();
                         return;
                     }
@@ -148,6 +154,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (_shutdownLock.DisposableWrite())
                 {
+                    _shutdown = true;
+
                     // let ref count this one is holding go
                     _remotableDataRpc.Dispose();
 

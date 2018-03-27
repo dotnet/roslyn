@@ -24,7 +24,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         /// <param name="expectedTitle"></param>
         public void VerifyOpen(string expectedTitle)
-            => DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: true);
+        {
+            DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: true);
+
+            // Wait for application idle to ensure the dialog is fully initialized
+            VisualStudioInstance.WaitForApplicationIdle();
+        }
 
         public void VerifyClosed(string expectedTitle)
             => DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: false);

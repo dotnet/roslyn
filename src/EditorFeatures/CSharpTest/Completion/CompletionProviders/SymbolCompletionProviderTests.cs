@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9376,6 +9377,33 @@ class C
 @"public static class Extensions { public static T Get<T>(this object o) => $$}
 ";
             await VerifyItemExistsAsync(markup, "o");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task EnumConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Enum");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Delegate");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task MulticastDelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "MulticastDelegate");
         }
     }
 }

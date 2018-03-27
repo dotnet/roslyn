@@ -264,6 +264,7 @@
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring.Tests" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding.Tests" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
+    <InternalsVisibleToMonodevelop Include="Xamarin.Ide" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />

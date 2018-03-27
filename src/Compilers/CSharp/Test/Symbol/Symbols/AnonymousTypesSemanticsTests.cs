@@ -73,6 +73,9 @@ public class ClassA
                             data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
                             9, 10, 11);
 
+            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetType().Name);
+            Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
+
             Assert.Equal(info0.Type, info2.Type);
             Assert.NotEqual(info0.Type, info1.Type);
 
@@ -1430,7 +1433,7 @@ public class A
     const int i = /*<bind>*/(new {a = 2}).a/*</bind>*/;
 }";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
             var info = tuple.Item2.GetSymbolInfo(tuple.Item1);
             Assert.NotNull(info.Symbol);
@@ -1492,7 +1495,7 @@ public class Program
         var db = new DB();
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.ProductName, p.SupplierID } : new { p.ProductID, p.ProductName, p.SupplierID } }).ToList();
     }
-}", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
+}").VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1602,7 +1605,7 @@ public class Program
         var db = new DB();
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.ProductName, p.SupplierID } : new { p.ProductID, p.ProductName, p.SupplierID } }).ToList();
     }
-}", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
+}").VerifyDiagnostics();
         }
 
         [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
@@ -1631,7 +1634,7 @@ public class Program
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.SupplierID } : new { p.ProductID, p.SupplierID } }).ToList();
         var q1 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.SupplierID } : new { p.ProductID, p.SupplierID } }).ToList();
     }
-}", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
+}").VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

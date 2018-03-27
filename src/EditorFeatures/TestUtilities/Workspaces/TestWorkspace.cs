@@ -144,38 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
-
-            if (exceptions.Count > 0)
-            {
-                var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine(
-$@"{exceptions.Count} exception(s) were thrown during test.
-Note: exceptions may have been thrown by another test running concurrently with
-this test.  This can happen with any tests that share the same ExportProvider.
-Examining individual exception stacks may help reveal the original test and source 
-of the problem.");
-
-                messageBuilder.AppendLine();
-                for (int i = 0; i < exceptions.Count; i++)
-                {
-                    var exception = exceptions[i];
-                    messageBuilder.AppendLine($"Exception {i}:");
-                    messageBuilder.AppendLine(exception.ToString());
-                    messageBuilder.AppendLine();
-                }
-
-                var message = messageBuilder.ToString();
-                if (exceptions.Count == 1)
-                {
-                    throw new Exception(message, exceptions[0]);
-                }
-                else
-                {
-                    throw new AggregateException(message, exceptions);
-                }
-            }
-
             if (SynchronizationContext.Current != null)
             {
                 Dispatcher.CurrentDispatcher.DoEvents();

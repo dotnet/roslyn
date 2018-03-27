@@ -93,7 +93,7 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19232")]
+        [Fact]
         public void TypingHelpDirectiveWorks()
         {
             VisualStudio.Workspace.SetUseSuggestionMode(true);

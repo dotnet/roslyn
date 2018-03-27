@@ -646,7 +646,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
 
             // Roslyn and native compiler both produce ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD 
             // for straight conversions. 
@@ -712,7 +712,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (15,13): error CS0030: Cannot convert type 'double' to 'int?'
                 //         i = (int?)double.MaxValue;
