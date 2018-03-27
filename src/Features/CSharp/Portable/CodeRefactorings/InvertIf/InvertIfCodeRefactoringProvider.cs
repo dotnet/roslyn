@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -56,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             // For single line statment, we swap the TrailingTrivia to preserve the single line
             StatementSyntax newIfNodeStatement = null;
             ElseClauseSyntax newElseStatement = null;
-            var newCondition = Negate(ifNode.Condition, model, cancellationToken);
 
-            if (ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia))
+            var isMultiLine = ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+            if (isMultiLine)
             {
                 // multiline if
-                newIfNodeStatement = ifNode.Else.Statement.Kind() != SyntaxKind.Block // if it's an else-if
+                newIfNodeStatement = ifNode.Else.Statement.Kind() != SyntaxKind.Block
                 ? SyntaxFactory.Block(ifNode.Else.Statement)
                 : ifNode.Else.Statement;
                 newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
@@ -73,12 +74,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
                 newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
                 newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
-                }
+            }
 
             ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
-                            .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ? SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
-                            .WithElse(newElseStatement)
-                            .WithAdditionalAnnotations(Formatter.Annotation);
+                .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ? SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
+                .WithElse(newElseStatement);
+
+            if (isMultiLine)
+            {
+                ifNode = ifNode.WithAdditionalAnnotations(Formatter.Annotation);
+            }
 
             // get new root
             return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
