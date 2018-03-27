@@ -134,22 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             editor.ReplaceNode(foreachStatement, forStatement);
         }
 
-        private static TypeSyntax GetTypeExpression(
-            SyntaxGenerator generator, OptionSet options, ITypeSymbol explicitType)
-        {
-            // types are not apparent in foreach statements.
-            var isBuiltInTypeContext = TypeStyleHelper.IsBuiltInType(explicitType);
-            if (TypeStyleHelper.IsImplicitStylePreferred(
-                    options, isBuiltInTypeContext, isTypeApparentContext: false))
-            {
-                return SyntaxFactory.IdentifierName("var");
-            }
-            else
-            {
-                return (TypeSyntax)generator.TypeExpression(explicitType);
-            }
-        }
-
         private StatementSyntax GetForLoopBody(
             SyntaxGenerator generator, ForEachInfo foreachInfo, SyntaxNode collectionVariableName, SyntaxToken indexVariable)
         {
@@ -164,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             {
                 // create variable statement
                 var variableStatement = AddItemVariableDeclaration(
-                    generator, GetTypeExpression(generator, foreachInfo.Options, foreachInfo.ForEachElementType),
+                    generator, generator.GetTypeExpression(foreachInfo.Options, foreachInfo.ForEachElementType),
                     foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(
