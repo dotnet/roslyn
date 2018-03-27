@@ -1975,7 +1975,7 @@ class Test : System.Attribute
                 // (9,15): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(p = x4 && TakeOutParam(out int x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 15),
-                // (11,40): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,40): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //               TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 40),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -1983,15 +1983,12 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out int x5) && 
               TakeOutParam(52, out int x5) && 
               x5 > 0").WithLocation(10, 15),
-                // (14,37): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,37): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           p2 = TakeOutParam(out int x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 37),
                 // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p1 = TakeOutParam(out int x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(13, 16),
-                // (14,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //           p2 = TakeOutParam(out int x6) && x6 > 0)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(14, 16),
                 // (15,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = TakeOutParam(out int x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x7) && x7 > 0").WithLocation(15, 15),
@@ -2085,7 +2082,7 @@ class Test : System.Attribute
                 // (9,11): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(x4 && TakeOutParam(out int x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 11),
-                // (11,36): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,36): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //           TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 36),
                 // (10,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2093,15 +2090,12 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out int x5) && 
           TakeOutParam(52, out int x5) && 
           x5 > 0").WithLocation(10, 11),
-                // (14,32): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,32): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           TakeOutParam(out int x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 32),
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out int x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(13, 11),
-                // (14,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //           TakeOutParam(out int x6) && x6 > 0)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(14, 11),
                 // (15,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out int x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x7) && x7 > 0").WithLocation(15, 11),
@@ -2197,7 +2191,7 @@ class Test : System.Attribute
                 // (9,15): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(p = x4 && TakeOutParam(out var x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 15),
-                // (11,40): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,40): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //               TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 40),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2205,15 +2199,12 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out var x5) && 
               TakeOutParam(52, out var x5) && 
               x5 > 0").WithLocation(10, 15),
-                // (14,37): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,37): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           p2 = TakeOutParam(out var x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 37),
                 // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p1 = TakeOutParam(out var x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(13, 16),
-                // (14,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //           p2 = TakeOutParam(out var x6) && x6 > 0)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(14, 16),
                 // (15,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = TakeOutParam(out var x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x7) && x7 > 0").WithLocation(15, 15),
@@ -2307,7 +2298,7 @@ class Test : System.Attribute
                 // (9,11): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(x4 && TakeOutParam(out var x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 11),
-                // (11,36): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,36): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //           TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 36),
                 // (10,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2315,15 +2306,12 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out var x5) && 
           TakeOutParam(52, out var x5) && 
           x5 > 0").WithLocation(10, 11),
-                // (14,32): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,32): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           TakeOutParam(out var x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 32),
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out var x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(13, 11),
-                // (14,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //           TakeOutParam(out var x6) && x6 > 0)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(14, 11),
                 // (15,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out var x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x7) && x7 > 0").WithLocation(15, 11),
@@ -11472,9 +11460,6 @@ public class X
                 // (94,15): error CS0103: The name 'u7' does not exist in the current context
                 //         Dummy(u7); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(94, 15),
-                // (88,68): error CS0165: Use of unassigned local variable 'u7'
-                //                           x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 68),
                 // (102,15): error CS0103: The name 'z8' does not exist in the current context
                 //         Dummy(z8); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
@@ -24125,10 +24110,7 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(82, 7),
                 // (83,7): error CS0103: The name 'u9' does not exist in the current context
                 // Dummy(u9); 
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
-                // (62,62): error CS0165: Use of unassigned local variable 'u7'
-                //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -32989,18 +32971,12 @@ class MyAttribute: System.Attribute
                 // (2,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 5),
-                // (2,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 39),
                 // (3,16): error CS8081: Expression does not have a name.
                 // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 16),
                 // (3,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 5),
-                // (3,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 39)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 5)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -33043,18 +33019,12 @@ class MyAttribute: System.Attribute
                 // (2,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 15),
-                // (2,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 49),
                 // (3,26): error CS8081: Expression does not have a name.
                 // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 26),
                 // (3,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 15),
-                // (3,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 49)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 15)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
