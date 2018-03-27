@@ -9972,6 +9972,93 @@ class C
             Assert.False(comp.HasLocalsInit("C.M"));
         }
 
+        [Fact]
+        public void SkipLocalsInitAttributeOnExeModule()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    public static void Main()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.Main"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnNetmodule()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.DebugModule, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnModuleAsReferenceDoesNotAlterBehavior()
+        {
+            var metadata_source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+";
+
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var metadata_comp = CreateCompilation(metadata_source, options: TestOptions.DebugModule);
+            var comp = CompileAndVerify(source, references: new[] { metadata_comp.EmitToImageReference() });
+
+            Assert.True(comp.HasLocalsInit("C.M"));
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
