@@ -309,7 +309,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 => AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
 
             public void Visit(RegexSimpleEscapeNode node)
-                => ClassifyWholeNode(node, ClassificationTypeNames.RegexSelfEscapedCharacter);
+                => ClassifyWholeNode(node, node.IsSelfEscape 
+                    ? ClassificationTypeNames.RegexSelfEscapedCharacter
+                    : ClassificationTypeNames.RegexOtherEscape);
         }
     }
 }
