@@ -229,10 +229,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // But only if it's an item that would have been hard selected.  We don't want
                 // to aggressively select an item that was only going to be softly offered.
 
-                var item1Priority = item1.Properties.GetProperty<CompletionItemSelectionBehavior>("SelectionBehavior") == CompletionItemSelectionBehavior.HardSelection
-                    ? GetMatchPriority(item1) : MatchPriority.Default;
-                var item2Priority = item2.Properties.GetProperty<CompletionItemSelectionBehavior>("SelectionBehavior") == CompletionItemSelectionBehavior.HardSelection
-                    ? GetMatchPriority(item2) : MatchPriority.Default;
+                var item1Priority = CalculatePriority(item1);
+                var item2Priority = CalculatePriority(item2);
 
                 if (item1Priority > item2Priority)
                 {
@@ -241,6 +239,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             return false;
+        }
+
+        private int CalculatePriority(EditorCompletion.CompletionItem item)
+        {
+            if (!item.Properties.TryGetProperty<CompletionItemSelectionBehavior>("SelectionBehavior", out var itemSelectionBehavior) ||
+                itemSelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+            {
+                return MatchPriority.Default;
+            }
+            else
+            {
+                return GetMatchPriority(item);
+            }
         }
 
         private Task<FilteredCompletionModel> HandleNormalFiltering(
