@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -520,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ImplicitReturnIsOkay(localSymbol))
                     {
-                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node.Body);
+                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
                     }
                     else
                     {
@@ -2855,7 +2856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e;} or { e; }.
         /// </summary>
-        internal BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
+        internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
                                                       DiagnosticBag diagnostics)
         {
             Binder bodyBinder = this.GetBinder(expressionBody);
@@ -2901,6 +2902,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            switch (syntax)
+            {
+                case BaseMethodDeclarationSyntax method:
+                    if (method.Kind() == SyntaxKind.ConstructorDeclaration)
+                    {
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
+                    }
+
+                    return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
+
+                case AccessorDeclarationSyntax accessor:
+                    return BindMethodBody(accessor, accessor.Body, accessor.ExpressionBody, diagnostics);
+
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    return BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+            }
+        }
+
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)
+        {
+            if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
+            {
+                return null;
+            }
+
+            Binder bodyBinder = this.GetBinder(constructor);
+            Debug.Assert(bodyBinder != null);
+
+            // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
+            return new BoundConstructorMethodBody(constructor,
+                                                  bodyBinder.GetDeclaredLocalsForScope(constructor),
+                                                  constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
+                                                  constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
+                                                  constructor.ExpressionBody == null ? 
+                                                      null : 
+                                                      bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
+                                                                                           constructor.Body == null ? diagnostics : new DiagnosticBag()));
+        }
+
+        internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, DiagnosticBag diagnostics)
+        {
+            BoundExpression initializerInvocation = GetBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
+            //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
+            Debug.Assert(!this.ContainingMember().IsImplicitlyDeclared);
+            var constructorInitializer = new BoundExpressionStatement(initializer, initializerInvocation);
+            Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+            return constructorInitializer;
+        }
+
+        private BoundNode BindMethodBody(CSharpSyntaxNode declaration, BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody, DiagnosticBag diagnostics)
+        {
+            if (blockBody == null && expressionBody == null)
+            {
+                return null;
+            }
+
+            // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
+            return new BoundNonConstructorMethodBody(declaration,
+                                                     blockBody == null ? null : (BoundBlock)BindStatement(blockBody, diagnostics),
+                                                     expressionBody == null ? 
+                                                         null : 
+                                                         BindExpressionBodyAsBlock(expressionBody, 
+                                                                                   blockBody == null ? diagnostics : new DiagnosticBag()));
+        }
 
         internal virtual ImmutableArray<LocalSymbol> Locals
         {

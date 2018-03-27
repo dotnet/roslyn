@@ -19,6 +19,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                    </Workspace>
         End Function
 
+        Protected Function GetWorkspaceDefinition(code As XElement, metaDataCode As XElement, commonReferences As Boolean) As XElement
+            Return <Workspace>
+                       <Project Language=<%= LanguageName %> CommonReferences=<%= commonReferences %>>
+                           <Document><%= code.Value.Trim() %></Document>
+                           <MetadataReferenceFromSource Language=<%= LanguageName %> CommonReferences="true">
+                               <Document><%= metaDataCode.Value.Trim() %></Document>
+                           </MetadataReferenceFromSource>
+                       </Project>
+                   </Workspace>
+        End Function
+
         <HandleProcessCorruptedStateExceptions()>
         Friend Function CreateLibraryManager(definition As XElement) As TestState
             Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)

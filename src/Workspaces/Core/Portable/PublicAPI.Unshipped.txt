@@ -3,6 +3,9 @@ Microsoft.CodeAnalysis.Project.OutputRefFilePath.get -> string
 Microsoft.CodeAnalysis.ProjectInfo.OutputRefFilePath.get -> string
 Microsoft.CodeAnalysis.ProjectInfo.WithOutputRefFilePath(string outputRefFilePath) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.Solution.WithProjectOutputRefFilePath(Microsoft.CodeAnalysis.ProjectId projectId, string outputRefFilePath) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol symbol) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumMemberName = "enum member name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EventName = "event name" -> string

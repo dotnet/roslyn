@@ -155,6 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12737,
         IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12738,
         IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12739,
+        IDS_FeatureStackAllocInitializer = MessageBase + 12740,
+        IDS_FeatureTupleEquality = MessageBase + 12741,
+        IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -197,12 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
+                case MessageID.IDS_FeatureTupleEquality: // semantic check
                 case MessageID.IDS_FeatureRefReassignment:
                 case MessageID.IDS_FeatureRefFor:
                 case MessageID.IDS_FeatureRefForEach:
                 case MessageID.IDS_FeatureEnumGenericTypeConstraint: // semantic check
                 case MessageID.IDS_FeatureDelegateGenericTypeConstraint: // semantic check
                 case MessageID.IDS_FeatureUnmanagedGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureStackAllocInitializer:
+                case MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers: // semantic check
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.

@@ -1394,7 +1394,7 @@ Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldı
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
-        <target state="translated">Anonim işlevler yerine yerel işlevleri tercih et</target>
+        <target state="translated">Anonim işlev yerine yerel işlevi tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1501,6 +1501,16 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Canlı kod analizi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' Analiz Ediliyor</target>
         <note />
       </trans-unit>
     </body>

@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outLocals.ToImmutableAndFree();
         }
 
-        BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
+        private BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
             ref ArrayBuilder<LocalSymbol> temps)
         {
             if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true))
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return assignmentTargets;
         }
 
-        internal class DeconstructionSideEffects
+        private class DeconstructionSideEffects
         {
             internal ArrayBuilder<BoundExpression> init;
             internal ArrayBuilder<BoundExpression> deconstructions;

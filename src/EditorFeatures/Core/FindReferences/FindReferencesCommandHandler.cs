@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
     [Name(PredefinedCommandHandlerNames.FindReferences)]
     internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -38,15 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
-            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            Contract.ThrowIfNull(synchronousPresenters);
             Contract.ThrowIfNull(streamingPresenters);
             Contract.ThrowIfNull(listenerProvider);
 
-            _synchronousPresenters = synchronousPresenters;
             _streamingPresenters = streamingPresenters;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
@@ -95,17 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             if (streamingService != null && streamingPresenter != null)
             {
                 StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
-                return true;
-            }
-
-            // Otherwise, either the language doesn't support streaming results,
-            // or the host has no way to present results in a streaming manner.
-            // Fall back to the old non-streaming approach to finding and presenting 
-            // results.
-            var synchronousService = document.GetLanguageService<IFindReferencesService>();
-            if (synchronousService != null)
-            {
-                FindReferences(document, synchronousService, caretPosition, context);
                 return true;
             }
 
@@ -159,27 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-            }
-        }
-
-        internal void FindReferences(
-            Document document, IFindReferencesService service, int caretPosition, CommandExecutionContext context)
-        {
-            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_references))
-            using (Logger.LogBlock(
-                FunctionId.CommandHandler_FindAllReference,
-                KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "legacy"),
-                context.OperationContext.UserCancellationToken))
-            {
-                if (!service.TryFindReferences(document, caretPosition, new WaitContextAdapter(waitScope)))
-                {
-                    // The service failed, so just present an empty list of references
-                    foreach (var presenter in _synchronousPresenters)
-                    {
-                        presenter.DisplayResult(DefinitionsAndReferences.Empty);
-                        return;
-                    }
-                }
             }
         }
     }
