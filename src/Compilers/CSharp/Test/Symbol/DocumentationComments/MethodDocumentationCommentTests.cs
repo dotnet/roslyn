@@ -231,12 +231,12 @@ class Test
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
             var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
 
             compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
 
             compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
