@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                 model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
             var collectionStatementType = foreachInfo.RequireExplicitCastInterface ?
-                GetTypeExpression(generator, foreachInfo.Options, foreachInfo.ExplicitCastInterface) :
-                GetTypeExpression(generator, foreachInfo.Options,
+                generator.GetTypeExpression(foreachInfo.Options, foreachInfo.ExplicitCastInterface) :
+                generator.GetTypeExpression(foreachInfo.Options,
                     model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object));
 
             // first, see whether we need to introduce new statement to capture collection
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
                 SyntaxFactory.VariableDeclaration(
-                    GetTypeExpression(
-                        generator, foreachInfo.Options, model.Compilation.GetSpecialType(SpecialType.System_Int32)),
+                    generator.GetTypeExpression(
+                        foreachInfo.Options, model.Compilation.GetSpecialType(SpecialType.System_Int32)),
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
