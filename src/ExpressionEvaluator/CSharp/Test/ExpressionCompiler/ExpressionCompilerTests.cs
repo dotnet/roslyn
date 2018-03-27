@@ -6409,5 +6409,43 @@ class C
                 Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
             });
         }
+
+        [Fact]
+        public void OutVarInExpression()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+    }
+
+    static object Test(out int x)
+    {
+        x = 1;
+        return x;
+    }
+}";
+            var testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "Test(out var z)");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            methodData.VerifyIL(
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  4
+  .locals init (System.Guid V_0)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""z""
+  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  call       ""object C.Test(out int)""
+  IL_002d:  ret
+}");
+        }
     }
 }

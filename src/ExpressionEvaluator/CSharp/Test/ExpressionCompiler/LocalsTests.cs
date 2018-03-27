@@ -3888,6 +3888,1154 @@ class C
             });
         }
 
+        [Fact]
+        public void LocalsInFieldInitializer_01()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+        
+        [Fact]
+        public void LocalsInFieldInitializer_02()
+        {
+            var source =
+@"class C : Base
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1), 
+         Test2 = TakeOutParam(2, out var x2);
+
+    C()     
+#line 2000
+    : base(TakeOutParam(0, out var x0))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1,
+                int V_2)
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1001);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, //x2
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, //x2
+                int V_2)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 2000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, 
+                int V_2) //x0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x0", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, 
+                int V_2) //x0
+  IL_0000:  ldloc.2
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInFieldInitializer_03()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1) && F(() => x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInFieldInitializer_04()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1) && F(() => x1),
+         Test2 = TakeOutParam(2, out var x2) && F(() => x2);
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0, //CS$<>8__locals0
+                C.<>c__DisplayClass4_1 V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0, //CS$<>8__locals0
+                C.<>c__DisplayClass4_1 V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass4_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1001);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0,
+                C.<>c__DisplayClass4_1 V_1) //CS$<>8__locals1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0,
+                C.<>c__DisplayClass4_1 V_1) //CS$<>8__locals1
+  IL_0000:  ldloc.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_1.x2""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass4_1.<.ctor>b__1", atLineNumber: 1001);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_1.x2""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInPropertyInitializer_01()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 { get; } = TakeOutParam(1, out var x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInPropertyInitializer_02()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 { get; } = TakeOutParam(1, out var x1) && F(() => x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass3_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_01()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+#line 1000
+    : base(TakeOutParam(1, out var x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_02()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+    {
+#line 1000 
+        ;
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_03()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+#line 1000 
+    => System.Console.WriteLine();
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_04()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+    {
+        int x2 = 1;
+#line 1000 
+        System.Console.WriteLine(x2);
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 3);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_05()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+#line 1000 
+    => System.Console.WriteLine(TakeOutParam(2, out var x2));
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 3);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_06()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+#line 1000
+    : base(TakeOutParam(1, out var x1) && F(() => x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_07()
+        {
+            var source =
+@"class C
+{
+    C() 
+#line 1000
+    : this(TakeOutParam(1, out var x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+
+    C(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInQuery_01()
+        {
+            var source =
+@"
+using System.Linq;
+
+class C
+{
+    C() 
+    {
+#line 1000
+        var q = from a in new [] {1} 
+                where 
+                      TakeOutParam(a, out var x1)   
+                select a;
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c.<.ctor>b__0_0", atLineNumber: 1002);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInQuery_02()
+        {
+            var source =
+@"
+using System.Linq;
+
+class C
+{
+    C() 
+    {
+#line 1000
+        var q = from a in new [] {1} 
+                where 
+                      TakeOutParam(a, out var x1) && F(() => x1)   
+                select a;
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c.<.ctor>b__0_0", atLineNumber: 1002);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<.ctor>b__1", atLineNumber: 1002);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);

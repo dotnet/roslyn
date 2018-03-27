@@ -51,6 +51,7 @@ Daily NuGet builds of the project are also available in our MyGet feed:
 
 > [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
 
+See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/wiki/Changelog-for-C%23-and-VB-compilers).
 
 ### Source code
 

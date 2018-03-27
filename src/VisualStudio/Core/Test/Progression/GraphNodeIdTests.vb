@@ -2,6 +2,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 

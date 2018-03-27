@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
 using Xunit;
 using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
@@ -75,7 +75,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20991"), Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1

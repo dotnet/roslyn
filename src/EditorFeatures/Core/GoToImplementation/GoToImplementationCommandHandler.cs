@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,34 +33,32 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             _streamingPresenters = streamingPresenters;
         }
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
-
-        private (Document, IGoToImplementationService, IFindUsagesService) GetDocumentAndServices(ITextSnapshot snapshot)
+        private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document,
-                    document?.GetLanguageService<IGoToImplementationService>(),
-                    document?.GetLanguageService<IFindUsagesService>());
+            return (document, document?.GetLanguageService<IFindUsagesService>());
         }
+
+        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
-            var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
-            return implService != null || findUsagesService != null
+            var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return findUsagesService != null
                 ? VSCommanding.CommandState.Available
                 : VSCommanding.CommandState.Unavailable;
         }
 
         public bool ExecuteCommand(GoToImplementationCommandArgs args, CommandExecutionContext context)
         {
-            var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
-            if (implService != null || findUsagesService != null)
+            var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            if (findUsagesService != null)
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (caret.HasValue)
                 {
-                    ExecuteCommand(document, caret.Value, implService, findUsagesService, context);
+                    ExecuteCommand(document, caret.Value, findUsagesService, context);
                     return true;
                 }
             }
@@ -71,17 +68,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         private void ExecuteCommand(
             Document document, int caretPosition,
-            IGoToImplementationService synchronousService,
             IFindUsagesService streamingService,
             CommandExecutionContext context)
         {
             var streamingPresenter = GetStreamingPresenter();
 
-            var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingGoToImplementation, document.Project.Language);
-            var canUseStreamingWindow = streamingEnabled && streamingService != null;
-            var canUseSynchronousWindow = synchronousService != null;
-
-            if (canUseStreamingWindow || canUseSynchronousWindow)
+            if (streamingService != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
                 string messageToShow = null;
@@ -89,24 +81,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
                 {
                     var userCancellationToken = context.OperationContext.UserCancellationToken;
-                    if (canUseStreamingWindow)
-                    {
-                        StreamingGoToImplementation(
-                            document, caretPosition,
-                            streamingService, streamingPresenter,
-                            userCancellationToken, out messageToShow);
-                    }
-                    else
-                    {
-                        synchronousService.TryGoToImplementation(
-                            document, caretPosition, userCancellationToken, out messageToShow);
-                    }
+                    StreamingGoToImplementation(
+                        document, caretPosition,
+                        streamingService, streamingPresenter,
+                        userCancellationToken, out messageToShow);
                 }
 
                 if (messageToShow != null)
                 {
                     // We are about to show a modal UI dialog so we should take over the command execution
-                    // wait context. That means the command system won't attempt to show its own wait dialog 
+                    // wait context. That means the command system won't attempt to show its own wait dialog
                     // and also will take it into consideration when measuring command handling duration.
                     context.OperationContext.TakeOwnership();
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
@@ -124,14 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             CancellationToken cancellationToken,
             out string messageToShow)
         {
-            // We create our own context object, simply to capture all the definitions reported by 
-            // the individual IFindUsagesService.  Once we get the results back we'll then decide 
-            // what to do with them.  If we get only a single result back, then we'll just go 
+            // We create our own context object, simply to capture all the definitions reported by
+            // the individual IFindUsagesService.  Once we get the results back we'll then decide
+            // what to do with them.  If we get only a single result back, then we'll just go
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
             var goToImplContext = new SimpleFindUsagesContext(cancellationToken);
             findUsagesService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
 
-            // If finding implementations reported a message, then just stop and show that 
+            // If finding implementations reported a message, then just stop and show that
             // message to the user.
             messageToShow = goToImplContext.Message;
             if (messageToShow != null)
