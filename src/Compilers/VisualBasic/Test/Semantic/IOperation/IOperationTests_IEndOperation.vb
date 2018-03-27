@@ -28,7 +28,7 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (ProgramTermination) Block[null]
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -69,7 +69,7 @@ Block[B1] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
     Next (ProgramTermination) Block[null]
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2')
@@ -81,7 +81,7 @@ Block[B2] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
     Next (Regular) Block[B3]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ]]>.Value
@@ -139,7 +139,7 @@ Block[B0] - Entry
         Next (ProgramTermination) Block[null]
 }
 
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -182,7 +182,7 @@ Block[B1] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
     Next (ProgramTermination) Block[null]
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -218,7 +218,7 @@ Block[B1] - Block
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
 
     Next (ProgramTermination) Block[null]
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -276,7 +276,7 @@ Block[B3] - Block
     Predecessors: [B1] [B2]
     Statements (0)
     Next (ProgramTermination) Block[null]
-Block[B4] - Exit
+Block[B4] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -324,7 +324,7 @@ Block[B1] - Block
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next (ProgramTermination) Block[null]
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value
@@ -463,7 +463,7 @@ Block[B0] - Entry
 }
 .finally {R3}
 {
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1')
@@ -477,7 +477,7 @@ Block[B0] - Entry
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ]]>.Value

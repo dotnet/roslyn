@@ -1050,7 +1050,7 @@ Block[B1] - Block
             Leaving: {R6} {R1}
 }
 
-Block[B5] - Block
+Block[B5] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true;')

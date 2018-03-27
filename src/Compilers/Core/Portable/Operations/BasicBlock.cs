@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public int Ordinal { get; internal set; } = -1;
 
+        public bool IsReachable { get; internal set; } = false;
+
         /// <summary>
         /// Enclosing region
         /// </summary>

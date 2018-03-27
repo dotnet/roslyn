@@ -39,7 +39,7 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (ReThrow) Block[null]
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -88,7 +88,7 @@ Block[B1] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
     Next (ReThrow) Block[null]
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
@@ -100,7 +100,7 @@ Block[B2] - Block
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
     Next (Regular) Block[B3]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
@@ -133,7 +133,7 @@ Block[B1] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -186,7 +186,7 @@ Block[B0] - Entry
 
         Next (Throw) Block[null]
             IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-    Block[B2] - Block
+    Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
@@ -201,7 +201,7 @@ Block[B0] - Entry
             Leaving: {R1}
 }
 
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
@@ -249,7 +249,7 @@ Block[B1] - Block
             IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex')
           Right: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = throw ex + x;')
@@ -267,7 +267,7 @@ Block[B2] - Block
                           IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex + x')
 
     Next (Regular) Block[B3]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
@@ -308,7 +308,7 @@ Block[B1] - Block
 
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = (throw ex) + x;')
@@ -330,7 +330,7 @@ Block[B2] - Block
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 
     Next (Regular) Block[B3]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
@@ -375,7 +375,7 @@ Block[B1] - Block
 
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex')
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = x + throw ex;')
@@ -397,7 +397,7 @@ Block[B2] - Block
                               IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
 
     Next (Regular) Block[B3]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
@@ -442,7 +442,7 @@ Block[B1] - Block
 
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = x + (throw ex);')
@@ -464,7 +464,7 @@ Block[B2] - Block
                               IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
 
     Next (Regular) Block[B3]
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
@@ -522,7 +522,7 @@ Block[B3] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B4] - Block
+Block[B4] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'throw ex')
@@ -606,7 +606,7 @@ Block[B3] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B4] - Block
+Block[B4] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'throw ex')
@@ -779,7 +779,7 @@ Block[B0] - Entry
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
         Next (ReThrow) Block[null]
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'u = 3;')
@@ -885,7 +885,7 @@ Block[B0] - Entry
         Next (Throw) Block[null]
             IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
               Children(0)
-    Block[B5] - Block
+    Block[B5] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw')
@@ -958,7 +958,7 @@ Block[B1] - Block
 
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B2] - Exit
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -1072,7 +1072,7 @@ Block[B2] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -1195,7 +1195,7 @@ Block[B2] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -1345,7 +1345,7 @@ Block[B0] - Entry
         Statements (0)
         Next (Throw) Block[null]
             IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
@@ -1425,7 +1425,7 @@ Block[B0] - Entry
         Predecessors: [B3]
         Statements (0)
         Next (ReThrow) Block[null]
-    Block[B3] - Block
+    Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 2;')
@@ -1486,7 +1486,7 @@ Block[B2] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -1541,7 +1541,7 @@ Block[B2] - Block
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -1843,7 +1843,7 @@ Block[B0] - Entry
         Next (ReThrow) Block[null]
 }
 
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ";
@@ -1906,7 +1906,7 @@ Block[B0] - Entry
             IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
 }
 
-Block[B3] - Exit
+Block[B3] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ";

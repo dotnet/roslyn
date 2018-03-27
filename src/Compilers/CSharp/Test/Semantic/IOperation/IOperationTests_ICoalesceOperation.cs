@@ -622,7 +622,7 @@ Block[B1] - Block
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
@@ -717,7 +717,7 @@ Block[B1] - Block
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'null')
@@ -810,7 +810,7 @@ Block[B1] - Block
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Block [UnReachable]
     Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
@@ -1203,7 +1203,7 @@ Block[B2] - Block
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, Constant: ""a"", IsImplicit) (Syntax: 'input')
 
     Next (Regular) Block[B4]
-Block[B3] - Block
+Block[B3] - Block [UnReachable]
     Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
