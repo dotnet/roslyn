@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Operations
             var continueDispatchAfterFilterOrFinally = PooledDictionary<ControlFlowGraph.Region, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowGraph.Region>.GetInstance();
             MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1, 
-                                outOfRangeBlocksToVist: null, 
+                                outOfRangeBlocksToVisit: null, 
                                 continueDispatchAfterFilterOrFinally,
                                 dispatchedExceptionsFromRegions,
                                 out _);
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Operations
             ArrayBuilder<BasicBlock> blocks, 
             int firstBlockOrdinal, 
             int lastBlockOrdinal, 
-            ArrayBuilder<BasicBlock> outOfRangeBlocksToVist, 
+            ArrayBuilder<BasicBlock> outOfRangeBlocksToVisit, 
             PooledDictionary<ControlFlowGraph.Region, bool> continueDispatchAfterFilterOrFinally,
             PooledHashSet<ControlFlowGraph.Region> dispatchedExceptionsFromRegions,
             out bool fellThrough)
         {
-            var status = BitVector.Empty;
+            var visited = BitVector.Empty;
             var toVisit = ArrayBuilder<BasicBlock>.GetInstance();
 
             fellThrough = false;
@@ -101,16 +101,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
                 {
-                    outOfRangeBlocksToVist.Push(current);
+                    outOfRangeBlocksToVisit.Push(current);
                     continue;
                 }
 
-                if (status[current.Ordinal])
+                if (visited[current.Ordinal])
                 {
                     continue;
                 }
 
-                status[current.Ordinal] = true;
+                visited[current.Ordinal] = true;
                 current.IsReachable = true;
                 bool canThrow = false;
                 bool fallThrough = true;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Operations
             while (toVisit.Count != 0);
 
             toVisit.Free();
-            return status;
+            return visited;
 
             // A simplified, imprecise way to detect if operation can throw 
             bool operationCanThrow(IOperation operation)
@@ -240,20 +240,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool stepThroughFinally(ControlFlowGraph.Region region, BasicBlock destination)
             {
                 int destinationOrdinal = destination.Ordinal;
-                while (region.FirstBlockOrdinal > destinationOrdinal || region.LastBlockOrdinal < destinationOrdinal)
+                while (!region.ContainsBlock(destinationOrdinal))
                 {
                     ControlFlowGraph.Region enclosing = region.Enclosing;
-                    if (region.Kind == ControlFlowGraph.RegionKind.Try)
+                    if (region.Kind == ControlFlowGraph.RegionKind.Try && enclosing.Kind == ControlFlowGraph.RegionKind.TryAndFinally)
                     {
-                        if (enclosing.Kind == ControlFlowGraph.RegionKind.TryAndFinally)
+                        Debug.Assert(enclosing.Regions[0] == region);
+                        Debug.Assert(enclosing.Regions[1].Kind == ControlFlowGraph.RegionKind.Finally);
+                        if (!stepThroughFilterOrFinally(enclosing.Regions[1]))
                         {
-                            Debug.Assert(enclosing.Regions[0] == region);
-                            Debug.Assert(enclosing.Regions[1].Kind == ControlFlowGraph.RegionKind.Finally);
-                            if (!stepThroughFilterOrFinally(enclosing.Regions[1]))
-                            {
-                                // The point that continues dispatch is not reachable. Cancel the dispatch.
-                                return false;
-                            }
+                            // The point that continues dispatch is not reachable. Cancel the dispatch.
+                            return false;
                         }
                     }
 
@@ -271,23 +268,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (!continueDispatchAfterFilterOrFinally.TryGetValue(filterOrFinally, out bool continueDispatch))
                 {
-
-                    // Visit "finally". 
-                    // For simplicity, we do a complite walk of the finally/filter region in isolation
+                    // For simplicity, we do a complete walk of the finally/filter region in isolation
                     // to make sure that the resume dispatch point is reachable from its beginning.
-                    // It could also be reachable trough invalid branches into the finally and we don't want to consider 
+                    // It could also be reachable through invalid branches into the finally and we don't want to consider 
                     // these cases for regular finally handling.
                     BitVector isolated = MarkReachableBlocks(blocks, 
                                                              filterOrFinally.FirstBlockOrdinal, 
-                                                             filterOrFinally.LastBlockOrdinal, 
-                                                             toVisit, 
+                                                             filterOrFinally.LastBlockOrdinal,
+                                                             outOfRangeBlocksToVisit: toVisit, 
                                                              continueDispatchAfterFilterOrFinally, 
                                                              dispatchedExceptionsFromRegions,
                                                              out bool isolatedFellThrough);
-                    status.UnionWith(isolated);
+                    visited.UnionWith(isolated);
 
-                    continueDispatch = blocks[filterOrFinally.LastBlockOrdinal].Next.Branch.Kind == BasicBlock.BranchKind.StructuredExceptionHandling &&
-                                       isolatedFellThrough;
+                    continueDispatch = isolatedFellThrough &&
+                                       blocks[filterOrFinally.LastBlockOrdinal].Next.Branch.Kind == BasicBlock.BranchKind.StructuredExceptionHandling;
 
                     continueDispatchAfterFilterOrFinally.Add(filterOrFinally, continueDispatch);
                 }
@@ -352,10 +347,8 @@ namespace Microsoft.CodeAnalysis.Operations
                             fromRegion = tryAndCatch;
                             continue;
                         }
-                        else
-                        {
-                            throw ExceptionUtilities.Unreachable;
-                        }
+
+                        throw ExceptionUtilities.Unreachable;
                     }
 
                     fromRegion = enclosing;
@@ -463,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 builder.Clear();
 
-                while (source.FirstBlockOrdinal > destinationOrdinal || source.LastBlockOrdinal < destinationOrdinal)
+                while (!source.ContainsBlock(destinationOrdinal))
                 {
                     builder.Add(source);
                     source = source.Enclosing;
