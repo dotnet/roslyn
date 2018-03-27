@@ -124,15 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regex - Escape.
-        /// </summary>
-        internal static string Regex_Escape {
-            get {
-                return ResourceManager.GetString("Regex_Escape", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Regex - Grouping.
         /// </summary>
         internal static string Regex_Grouping {
@@ -142,11 +133,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regex - Other Escape.
+        /// </summary>
+        internal static string Regex_OtherEscape {
+            get {
+                return ResourceManager.GetString("Regex_OtherEscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex - Quantifier.
         /// </summary>
         internal static string Regex_Quantifier {
             get {
                 return ResourceManager.GetString("Regex_Quantifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex - Self Escaped Character.
+        /// </summary>
+        internal static string Regex_SelfEscapedCharacter {
+            get {
+                return ResourceManager.GetString("Regex_SelfEscapedCharacter", resourceCulture);
             }
         }
         

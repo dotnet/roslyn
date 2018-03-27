@@ -356,22 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
-                this.ForegroundColor = Color.FromRgb(87, 166, 74);
-            }
-        }
-        [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexText)]
-        [Name(ClassificationTypeNames.RegexText)]
-        [Order(After = ClassificationTypeNames.StringLiteral)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [UserVisible(true)]
-        [ExcludeFromCodeCoverage]
-        private class RegexTextFormatDefinition : ClassificationFormatDefinition
-        {
-            private RegexTextFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
-                this.ForegroundColor = Color.FromRgb(0, 0, 0);
+                this.ForegroundColor = Color.FromRgb(0, 128, 0);
             }
         }
 
@@ -387,23 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_class;
-                this.ForegroundColor = Color.FromRgb(0x07, 0xbf, 0xb6);
-            }
-        }
-
-        [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexQuantifier)]
-        [Name(ClassificationTypeNames.RegexQuantifier)]
-        [Order(After = ClassificationTypeNames.StringLiteral)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [UserVisible(true)]
-        [ExcludeFromCodeCoverage]
-        private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
-        {
-            private RegexQuantifierFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
-                this.ForegroundColor = Color.FromRgb(128, 0, 0);
+                this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
             }
         }
 
@@ -419,23 +388,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
-                this.ForegroundColor = Color.FromRgb(128, 0, 0);
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
 
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAlternation)]
-        [Name(ClassificationTypeNames.RegexAlternation)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexQuantifier)]
+        [Name(ClassificationTypeNames.RegexQuantifier)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
+        private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexAlternationFormatDefinition()
+            private RegexQuantifierFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
-                this.ForegroundColor = Color.FromRgb(0xff, 0x78, 0x00);
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
 
@@ -451,23 +420,72 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
-                this.ForegroundColor = Color.FromRgb(0xff, 0x78, 0x00);
+                this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
 
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexEscape)]
-        [Name(ClassificationTypeNames.RegexEscape)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAlternation)]
+        [Name(ClassificationTypeNames.RegexAlternation)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexEscapeFormatDefinition : ClassificationFormatDefinition
+        private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexEscapeFormatDefinition()
+            private RegexAlternationFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Escape;
-                this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexText)]
+        [Name(ClassificationTypeNames.RegexText)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexTextFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexTextFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
+                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [Name(ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexSelfEscapedCharacterFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
+                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
+                this.IsBold = true;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexOtherEscape)]
+        [Name(ClassificationTypeNames.RegexOtherEscape)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexOtherEscapeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
 #endregion

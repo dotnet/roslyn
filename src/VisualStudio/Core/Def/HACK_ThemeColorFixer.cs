@@ -81,8 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.RegexQuantifier, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.RegexAnchor, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.RegexAlternation, sourceFormatMap, targetFormatMap);
-            UpdateForegroundColor(ClassificationTypeNames.RegexEscape, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.RegexGrouping, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexOtherEscape, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexSelfEscapedCharacter, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);

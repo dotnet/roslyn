@@ -263,25 +263,22 @@ namespace Microsoft.CodeAnalysis.Classification
 
             #endregion
 
-            #region Escapes
+            #region Other Escapes
 
             public void Visit(RegexControlEscapeNode node)
-                => ClassifyEscape(node);
+                => ClassifyOtherEscape(node);
 
             public void Visit(RegexHexEscapeNode node)
-                => ClassifyEscape(node);
+                => ClassifyOtherEscape(node);
 
             public void Visit(RegexUnicodeEscapeNode node)
-                => ClassifyEscape(node);
+                => ClassifyOtherEscape(node);
 
             public void Visit(RegexOctalEscapeNode node)
-                => ClassifyEscape(node);
+                => ClassifyOtherEscape(node);
 
-            public void Visit(RegexSimpleEscapeNode node)
-                => ClassifyEscape(node);
-
-            public void ClassifyEscape(RegexNode node)
-                => ClassifyWholeNode(node, ClassificationTypeNames.RegexEscape);
+            public void ClassifyOtherEscape(RegexNode node)
+                => ClassifyWholeNode(node, ClassificationTypeNames.RegexOtherEscape);
 
             #endregion 
 
@@ -310,6 +307,9 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public void Visit(RegexAlternationNode node)
                 => AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
+
+            public void Visit(RegexSimpleEscapeNode node)
+                => ClassifyWholeNode(node, ClassificationTypeNames.RegexSelfEscapedCharacter);
         }
     }
 }
