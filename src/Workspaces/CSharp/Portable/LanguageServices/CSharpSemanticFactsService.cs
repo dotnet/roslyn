@@ -296,5 +296,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.SingletonEnumerable(
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
+
+        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case OrderByClauseSyntax orderByClauseSyntax:
+                    if (token.Kind() == SyntaxKind.CommaToken)
+                    {
+                        // Returning SymbolInfo for a comma token is the last resort
+                        // in an order by clause if no other tokens to bind to a are present.
+                        // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
+                        var separators = orderByClauseSyntax.Orderings.GetSeparators().ToImmutableList();
+                        var index = separators.IndexOf(token);
+                        if (index >= 0 && (index + 1) < orderByClauseSyntax.Orderings.Count)
+                        {
+                            var ordering = orderByClauseSyntax.Orderings[index + 1];
+                            if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                            {
+                                return semanticModel.GetSymbolInfo(ordering, cancellationToken);
+                            }
+                        }
+                    }
+                    else if (orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                    {
+                        // The first ordering is displayed on the "orderby" keyword itself if there isn't a 
+                        // ascending/descending keyword.
+                        return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
+                    }
+
+                    return default;
+                case QueryClauseSyntax queryClauseSyntax:
+                    var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
+                    var hasCastInfo = queryInfo.CastInfo.Symbol != null;
+                    var hasOperationInfo = queryInfo.OperationInfo.Symbol != null;
+
+                    if (hasCastInfo && hasOperationInfo)
+                    {
+                        // In some cases a single clause binds to more than one method. In those cases 
+                        // the tokens in the clause determine which of the two SymbolInfos are returned.
+                        // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
+                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo : queryInfo.OperationInfo;
+                    }
+
+                    if (hasCastInfo)
+                    {
+                        return queryInfo.CastInfo;
+                    }
+
+                    return queryInfo.OperationInfo;
+            }
+
+            //Only in the orderby clause a comma can bind to a symbol.
+            if (token.IsKind(SyntaxKind.CommaToken))
+            {
+                return default;
+            }
+
+            return semanticModel.GetSymbolInfo(node, cancellationToken);
+        }
     }
 }

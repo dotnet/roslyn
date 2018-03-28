@@ -16096,16 +16096,11 @@ class Test
 {
   // Code size       49 (0x31)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1)
-  IL_0000:  ldc.i4.s   33
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.u
-  IL_0005:  ldc.i4.4
-  IL_0006:  mul.ovf.un
-  IL_0007:  localloc
-  IL_0009:  ldloc.1
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4     0x84
+  IL_0005:  conv.u
+  IL_0006:  localloc
+  IL_0008:  ldc.i4.s   33
   IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0

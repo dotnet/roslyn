@@ -1290,10 +1290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightNeverNull = NullableAlwaysHasValue(loweredRight);
 
             BoundExpression boundTempX = leftNeverNull ?? loweredLeft;
-            boundTempX = CaptureNullableOperandInTempIfNeeded(boundTempX, sideeffects, locals);
+            boundTempX = CaptureExpressionInTempIfNeeded(boundTempX, sideeffects, locals);
 
             BoundExpression boundTempY = rightNeverNull ?? loweredRight;
-            boundTempY = CaptureNullableOperandInTempIfNeeded(boundTempY, sideeffects, locals);
+            boundTempY = CaptureExpressionInTempIfNeeded(boundTempY, sideeffects, locals);
 
             BoundExpression callX_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempX);
             BoundExpression callY_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempY);
@@ -1330,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type);
         }
 
-        private BoundExpression CaptureNullableOperandInTempIfNeeded(BoundExpression operand, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol> locals)
+        private BoundExpression CaptureExpressionInTempIfNeeded(BoundExpression operand, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol> locals)
         {
             if (CanChangeValueBetweenReads(operand))
             {

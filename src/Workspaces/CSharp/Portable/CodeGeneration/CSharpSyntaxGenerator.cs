@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.UsingDirective((NameSyntax)name);
         }
 
+        public override SyntaxNode AliasImportDeclaration(string aliasIdentifierName, SyntaxNode name)
+            => SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(aliasIdentifierName), (NameSyntax)name);
+
         public override SyntaxNode NamespaceDeclaration(SyntaxNode name, IEnumerable<SyntaxNode> declarations)
         {
             return SyntaxFactory.NamespaceDeclaration(
@@ -3186,9 +3189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-#endregion
+        #endregion
 
-#region Remove, Replace, Insert
+        #region Remove, Replace, Insert
 
         public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
         {
@@ -3525,9 +3528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override bool IsRegularOrDocComment(SyntaxTrivia trivia)
             => trivia.IsRegularOrDocComment();
 
-#endregion
+        #endregion
 
-#region Statements and Expressions
+        #region Statements and Expressions
 
         public override SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler)
         {
@@ -3962,6 +3965,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
+        public override SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+            => namespaceOrTypeSymbol.GenerateNameSyntax();
+
         public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
         {
             return typeSymbol.GenerateTypeSyntax();
@@ -4214,6 +4220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
-#endregion
+        #endregion
     }
 }

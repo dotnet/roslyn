@@ -201,10 +201,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
 
-                allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken)
-                    .GetBestOrAllSymbols()
-                    .WhereAsArray(s => !s.Equals(declaredSymbol))
-                    .SelectAsArray(s => MapSymbol(s, type));
+                var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
+                allSymbols = skipSymbolInfoLookup
+                    ? ImmutableArray<ISymbol>.Empty
+                    : semanticFacts
+                        .GetSymbolInfo(semanticModel, bindableParent, token, cancellationToken)
+                        .GetBestOrAllSymbols()
+                        .WhereAsArray(s => !s.Equals(declaredSymbol))
+                        .SelectAsArray(s => MapSymbol(s, type));
             }
 
             // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
@@ -229,6 +233,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         type = null;
                     }
                 }
+            }
+
+            if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
+            {
+                type = null;
             }
 
             return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);

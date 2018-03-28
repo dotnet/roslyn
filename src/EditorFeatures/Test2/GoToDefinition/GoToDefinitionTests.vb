@@ -2330,5 +2330,890 @@ End Namespace
         End Sub
 #End Region
 
+#Region "CSharp Query expressions Tests"
+
+        Private Function GetExpressionPatternDefinition(highlight As String, Optional index As Integer = 0) As String
+            Dim definition As String =
+"
+using System;
+namespace QueryPattern
+{
+    public class C
+    {
+        public C<T> Cast<T>() => throw new NotImplementedException();
+    }
+
+    public class C<T> : C
+    {
+        public C<T> Where(Func<T, bool> predicate) => throw new NotImplementedException();
+        public C<U> Select<U>(Func<T, U> selector) => throw new NotImplementedException();
+        public C<V> SelectMany<U, V>(Func<T, C<U>> selector, Func<T, U, V> resultSelector) => throw new NotImplementedException();
+        public C<V> Join<U, K, V>(C<U> inner, Func<T, K> outerKeySelector, Func<U, K> innerKeySelector, Func<T, U, V> resultSelector) => throw new NotImplementedException();
+        public C<V> GroupJoin<U, K, V>(C<U> inner, Func<T, K> outerKeySelector, Func<U, K> innerKeySelector, Func<T, C<U>, V> resultSelector) => throw new NotImplementedException();
+        public O<T> OrderBy<K>(Func<T, K> keySelector) => throw new NotImplementedException();
+        public O<T> OrderByDescending<K>(Func<T, K> keySelector) => throw new NotImplementedException();
+        public C<G<K, T>> GroupBy<K>(Func<T, K> keySelector) => throw new NotImplementedException();
+        public C<G<K, E>> GroupBy<K, E>(Func<T, K> keySelector, Func<T, E> elementSelector) => throw new NotImplementedException();
+    }
+
+    public class O<T> : C<T>
+    {
+        public O<T> ThenBy<K>(Func<T, K> keySelector) => throw new NotImplementedException();
+        public O<T> ThenByDescending<K>(Func<T, K> keySelector) => throw new NotImplementedException();
+    }
+
+    public class G<K, T> : C<T>
+    {
+        public K Key { get; }
+    }
+}
+"
+            If highlight = "" Then
+                Return definition
+            End If
+            Dim searchStartPosition As Integer = 0
+            Dim searchFound As Integer
+            For i As Integer = 0 To index
+                searchFound = definition.IndexOf(highlight, searchStartPosition)
+                If searchFound < 0 Then
+                    Exit For
+                End If
+            Next
+            If searchFound >= 0 Then
+                definition = definition.Insert(searchFound + highlight.Length, "|]")
+                definition = definition.Insert(searchFound, "[|")
+                Return definition
+            End If
+            Throw New InvalidOperationException("Highlight not found")
+        End Function
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQuerySelect()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Select") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i in new C<int>()
+                  $$select i;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryWhere()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Where") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i in new C<int>()
+                  $$where true
+                  select i;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQuerySelectMany1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("SelectMany") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$from i2 in new C<int>()
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQuerySelectMany2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("SelectMany") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  from i2 $$in new C<int>()
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryJoin1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Join") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$join i2 in new C<int>() on i2 equals i1
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryJoin2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Join") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join i2 $$in new C<int>() on i1 equals i2
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryJoin3()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Join") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join i2 in new C<int>() $$on i1 equals i2
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryJoin4()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Join") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join i2 in new C<int>() on i1 $$equals i2
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryGroupJoin1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("GroupJoin") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$join i2 in new C<int>() on i1 equals i2 into g
+                  select g;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryGroupJoin2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("GroupJoin") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join i2 $$in new C<int>() on i1 equals i2 into g
+                  select g;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryGroupJoin3()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("GroupJoin") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join i2 in new C<int>() $$on i1 equals i2 into g
+                  select g;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryGroupJoin4()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("GroupJoin") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join i2 in new C<int>() on i1 $$equals i2 into g
+                  select g;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryGroupBy1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("GroupBy") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$group i1 by i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryGroupBy2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("GroupBy") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  group i1 $$by i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryFromCast1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Cast") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = $$from int i1 in new C<int>()
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryFromCast2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Cast") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from int i1 $$in new C<int>()
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryJoinCast1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Cast") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  join int i2 $$in new C<int>() on i1 equals i2
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryJoinCast2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Join") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$join int i2 in new C<int>() on i1 equals i2
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQuerySelectManyCast1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Cast") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  from int i2 $$in new C<int>()
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQuerySelectManyCast2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("SelectMany") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$from int i2 in new C<int>()
+                  select i2;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryOrderBySingleParameter()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("OrderBy") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$orderby i1
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryOrderBySingleParameterWithOrderClause()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("OrderByDescending") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  orderby i1 $$descending
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryOrderByTwoParameterWithoutOrderClause()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("ThenBy") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  orderby i1,$$ i2
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryOrderByTwoParameterWithOrderClause()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("ThenByDescending") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  orderby i1, i2 $$descending
+                  select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryDegeneratedSelect()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  where true
+                  $$select i1;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, False)
+        End Sub
+
+        <WorkItem(23049, "https://github.com/dotnet/roslyn/pull/23049")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestQueryLet()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="QueryPattern">
+        <Document>
+            <%= GetExpressionPatternDefinition("Select") %>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpProj">
+        <ProjectReference>QueryPattern</ProjectReference>
+        <Document>
+            <![CDATA[
+using QueryPattern;
+class Test
+{
+    static void M()
+    {
+        var qry = from i1 in new C<int>()
+                  $$let i2=1
+                  select new { i1, i2 };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+#End Region
+
     End Class
 End Namespace

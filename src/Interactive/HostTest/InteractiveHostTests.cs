@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Traits = Roslyn.Test.Utilities.Traits;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
