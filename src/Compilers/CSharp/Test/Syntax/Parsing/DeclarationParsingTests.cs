@@ -6461,41 +6461,5 @@ public class Program
                 //         abstract ref remove => throw null; 
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(7, 9));
         }
-
-        [Fact]
-        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
-        public void AsyncAsType_ExpressionBodiedProperty()
-        {
-            UsingTree("class a { async b => null; }");
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "a");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.PropertyDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "async");
-                        }
-                        N(SyntaxKind.IdentifierToken, "b");
-                        N(SyntaxKind.ArrowExpressionClause);
-                        {
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
     }
 }
