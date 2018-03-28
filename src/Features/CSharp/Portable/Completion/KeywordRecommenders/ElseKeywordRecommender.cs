@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //     $$
             foreach (var ifStatement in token.GetAncestors<IfStatementSyntax>())
             {
+                // If there's a missing token at the end of the statement, it's incomplete and we do not offer 'else'.
+                // context.TargetToken does not include zero width so in that case these will never be equal.
                 if (ifStatement.Statement.GetLastToken(includeZeroWidth: true) == token)
                 {
                     return true;
