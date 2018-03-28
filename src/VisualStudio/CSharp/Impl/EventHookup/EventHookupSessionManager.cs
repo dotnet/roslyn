@@ -1,26 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Windows;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
+    [Export]
     internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
     {
+        private readonly IToolTipService _toolTipService;
+        private IToolTipPresenter _toolTipPresenter;
+
         internal EventHookupSession CurrentSession { get; set; }
 
         // For test purposes only!
-        internal FrameworkElement TEST_MostRecentQuickInfoContent { get; set; }
+        internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-        internal EventHookupSessionManager()
+        [ImportingConstructor]
+        internal EventHookupSessionManager(IToolTipService toolTipService)
         {
+            _toolTipService = toolTipService;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
@@ -29,14 +38,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
+            // only generate tooltip if it is not already shown (_toolTipPresenter == null)
             // Ensure the analyzed session matches the current session and that the caret is still
             // in the session's tracking span.
-            if (CurrentSession == analyzedSession &&
+            if (_toolTipPresenter == null &&
+                CurrentSession == analyzedSession &&
                 caretPoint.HasValue &&
                 analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
             {
-                // Watch all text buffer changes & caret moves while this quick info session is
-                // active
+                // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
+                _toolTipPresenter = this._toolTipService.CreatePresenter(analyzedSession.TextView,
+                    new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
+
+                // tooltips text is: Program_MyEvents;      (Press TAB to insert)
+                // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
+                var eventText = analyzedSession.GetEventNameTask.Result + ";";
+                var texts = new[] { eventText, CSharpEditorResources.Press_TAB_to_insert };
+                var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Text, s));
+                var content = new[] { new ClassifiedTextElement(textRuns) };
+
+                // Issue tracked in https://github.com/dotnet/roslyn/issues/25608
+                // Use string[] for now to unblock tests for now, otherwise editor throws ArgumentNullException when running unit tests
+                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, new[] { string.Join(string.Empty, texts)});
+
+                // For test purposes only!
+                TEST_MostRecentToolTipContent = content;
+
+                // Watch all text buffer changes & caret moves while this event hookup session is active
                 analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
 
@@ -64,6 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 CurrentSession.Cancel();
                 CurrentSession = null;
             }
+
+            if (_toolTipPresenter != null)
+            {
+                _toolTipPresenter.Dismiss();
+                _toolTipPresenter = null;
+            }
+
+            // For test purposes only!
+            TEST_MostRecentToolTipContent = null;
         }
 
         /// <summary>

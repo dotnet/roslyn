@@ -1,13 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition
-Imports System.Runtime.InteropServices
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -167,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Dim typeNameToBind = documentation.TryGetTypeNameParameter(expression, i)
 
                 If typeNameToBind IsNot Nothing Then
-                    ' We'll try to bind the type name 
+                    ' We'll try to bind the type name
                     Dim typeInfo = semanticModel.GetTypeInfo(typeNameToBind, cancellationToken)
 
                     If typeInfo.Type IsNot Nothing Then
