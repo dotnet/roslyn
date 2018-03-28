@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             Func<ISymbol, bool> filter = s =>
                 s.Kind == SymbolKind.Local ||
                 s.Kind == SymbolKind.Parameter ||
+                s.Kind == SymbolKind.RangeVariable ||
                 s.Kind == SymbolKind.Field ||
                 s.Kind == SymbolKind.Property;
 
