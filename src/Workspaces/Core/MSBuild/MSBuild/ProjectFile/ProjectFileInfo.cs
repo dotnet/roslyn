@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.MSBuild.Logging;
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     /// <summary>
-    /// Represents a project file loaded from disk.
+    /// Provides information about a project that has been loaded from disk and
+    /// built with MSBuild. If the project is multi-targeting, this represents
+    /// the information from a single target framework.
     /// </summary>
     internal sealed class ProjectFileInfo
     {
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         /// <summary>
         /// The target framework of this project.
+        /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
         public string TargetFramework { get; }
 
