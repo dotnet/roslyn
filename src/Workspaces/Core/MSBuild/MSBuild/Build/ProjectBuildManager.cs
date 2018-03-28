@@ -85,9 +85,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 // check the extra global properties.
 
                 var found = true;
-                foreach (var globalProp in globalProperties)
+                foreach (var (key, value) in globalProperties)
                 {
-                    if (!loadedProject.GlobalProperties.Contains(globalProp))
+                    // MSBuild escapes the values of a project's global properties, so we must too.
+                    var escapedValue = MSB.Evaluation.ProjectCollection.Escape(value);
+
+                    if (!loadedProject.GlobalProperties.TryGetValue(key, out var actualValue) ||
+                        !string.Equals(actualValue, escapedValue, StringComparison.Ordinal))
                     {
                         found = false;
                         break;
