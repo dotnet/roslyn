@@ -154,12 +154,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 isStatic = false;
                 return;
             }
-            else if (syntaxFacts.IsIsPatternExpressionExpression(expression))
+            else if (syntaxFacts.IsIsPatternExpressionExpression(expression) &&
+                     syntaxFacts.IsConstantPattern(expression.Parent.Parent) &&
+                     syntaxFacts.IsSubPatternElement(expression.Parent.Parent.Parent) &&
+                     syntaxFacts.IsPropertySubPattern(expression.Parent.Parent.Parent.Parent) &&
+                     syntaxFacts.IsPropertyPattern(expression.Parent.Parent.Parent.Parent.Parent))
             {
-                var propertyPattern = syntaxFacts.GetPropertyPatternType(expression.Parent.Parent);
-                typeToGenerateIn = semanticModel.GetTypeInfo(propertyPattern, cancellationToken).Type as INamedTypeSymbol;
-                isStatic = false;
-                return;
+                var type = syntaxFacts.GetTypeOfPropertyPattern(expression.Parent.Parent.Parent.Parent.Parent);
+                if (type != null)
+                {
+                    typeToGenerateIn = semanticModel.GetTypeInfo(type, cancellationToken).Type as INamedTypeSymbol;
+                    isStatic = false;
+                    return;
+                }
             }
 
             // Generating into the containing type.

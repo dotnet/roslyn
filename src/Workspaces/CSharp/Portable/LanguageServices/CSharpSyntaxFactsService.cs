@@ -731,15 +731,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsIsPatternExpressionExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.IsPatternExpression) &&
-                ((IsPatternExpressionSyntax)node.Parent).Expression == node;
-        }
+            => node.IsParentKind(SyntaxKind.IsPatternExpression) &&
+               ((IsPatternExpressionSyntax)node.Parent).Expression == node;
 
-        public SyntaxNode GetPropertyPatternType(SyntaxNode node)
-        {
-            return (node as PropertyPatternSyntax)?.Type;
-        }
+        public bool IsConstantPattern(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ConstantPattern;
+
+        public bool IsSubPatternElement(SyntaxNode node)
+            => node.Kind() == SyntaxKind.SubpatternElement;
+
+        public bool IsPropertySubPattern(SyntaxNode node)
+            => node.Kind() == SyntaxKind.PropertySubpattern;
+
+        public bool IsPropertyPattern(SyntaxNode node)
+            => node.Kind() == SyntaxKind.PropertyPattern;
+
+        public SyntaxNode GetTypeOfPropertyPattern(SyntaxNode node)
+            => ((PropertyPatternSyntax)node).Type;
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
         {

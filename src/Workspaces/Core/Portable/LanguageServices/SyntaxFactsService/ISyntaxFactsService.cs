@@ -187,8 +187,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node);
         bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node, out SyntaxNode initializedInstance);
 
-        bool IsIsPatternExpressionExpression(SyntaxNode node);
-
         bool IsDirective(SyntaxNode node);
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
@@ -312,7 +310,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
-        SyntaxNode GetPropertyPatternType(SyntaxNode node);
+        bool IsIsPatternExpressionExpression(SyntaxNode node);
+        bool IsConstantPattern(SyntaxNode node);
+        bool IsSubPatternElement(SyntaxNode node);
+        bool IsPropertySubPattern(SyntaxNode node);
+        bool IsPropertyPattern(SyntaxNode node);
+        SyntaxNode GetTypeOfPropertyPattern(SyntaxNode node);
 
         ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
         bool IsOnTypeHeader(SyntaxNode root, int position);
