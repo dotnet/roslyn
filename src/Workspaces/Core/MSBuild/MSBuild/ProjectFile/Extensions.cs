@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IEnumerable<ProjectFileReference> GetProjectReferences(this MSB.Execution.ProjectInstance executedProject)
             => executedProject
                 .GetItems(ItemNames.ProjectReference)
-                .Where(i => !i.IsReferenceOutputAssembly())
+                .Where(i => !i.HasReferenceOutputAssemblyMetadataEqualToTrue())
                 .Select(CreateProjectFileReference);
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
             => new ProjectFileReference(reference.EvaluatedInclude, reference.GetAliases());
 
-        public static bool IsReferenceOutputAssembly(this MSB.Framework.ITaskItem item)
+        public static bool HasReferenceOutputAssemblyMetadataEqualToTrue(this MSB.Framework.ITaskItem item)
             => string.Equals(item.GetMetadata(MetadataNames.ReferenceOutputAssembly), bool.TrueString, StringComparison.OrdinalIgnoreCase);
 
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
