@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
 
             // Wait for application idle to ensure the dialog is fully initialized
-            VisualStudioInstance.WaitForApplicationIdle();
+            VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
 
         public void VerifyClosed()

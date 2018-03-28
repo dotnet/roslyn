@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using AutomationProperty = System.Windows.Automation.AutomationProperty;
@@ -32,20 +33,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static IUIAutomationElement FindDialogByAutomationId(IntPtr visualStudioHWnd, string dialogAutomationId, bool isOpen, bool wait = true)
         {
             return Retry(
-                () => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
-                stoppingCondition: automationElement => !wait || (isOpen ? automationElement != null : automationElement == null),
-                delay: TimeSpan.FromMilliseconds(250));
+                _ => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
+                stoppingCondition: (automationElement, _) => !wait || (isOpen ? automationElement != null : automationElement == null),
+                delay: TimeSpan.FromMilliseconds(250),
+                CancellationToken.None);
         }
 
         /// <summary>
         /// Used to find legacy dialogs that don't have an AutomationId
         /// </summary>
-        public static IUIAutomationElement FindDialogByName(IntPtr visualStudioHWnd, string dialogName, bool isOpen)
+        public static IUIAutomationElement FindDialogByName(IntPtr visualStudioHWnd, string dialogName, bool isOpen, CancellationToken cancellationToken)
         {
             return Retry(
-                () => FindDialogByNameWorker(visualStudioHWnd, dialogName),
-                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250));
+                _ => FindDialogByNameWorker(visualStudioHWnd, dialogName),
+                stoppingCondition: (automationElement, _) => isOpen ? automationElement != null : automationElement == null,
+                delay: TimeSpan.FromMilliseconds(250),
+                cancellationToken);
         }
 
         /// <summary>
@@ -121,7 +124,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void PressButtonWithNameFromDialogWithName(IntPtr visualStudioHWnd, string dialogName, string buttonName)
         {
-            var dialogAutomationElement = FindDialogByName(visualStudioHWnd, dialogName, isOpen: true);
+            var dialogAutomationElement = FindDialogByName(visualStudioHWnd, dialogName, isOpen: true, CancellationToken.None);
 
             var buttonAutomationElement = dialogAutomationElement.FindDescendantByName(buttonName);
             buttonAutomationElement.Invoke();
@@ -147,34 +150,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
                 });
 
-            return vsAutomationElement.FindFirst(UIAutomationClient.TreeScope.TreeScope_Children, elementCondition);
+            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Children, elementCondition);
         }
 
-        private static T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
+        private static T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
             DateTime beginTime = DateTime.UtcNow;
             T retval = default(T);
 
             do
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
-                    retval = action();
+                    retval = action(cancellationToken);
                 }
                 catch (COMException)
                 {
                     // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-                    Thread.Sleep(delay);
+                    Task.Delay(delay, cancellationToken).GetAwaiter().GetResult();
                     continue;
                 }
 
-                if (stoppingCondition(retval))
+                if (stoppingCondition(retval, cancellationToken))
                 {
                     return retval;
                 }
                 else
                 {
-                    Thread.Sleep(delay);
+                    Task.Delay(delay, cancellationToken).GetAwaiter().GetResult();
                 }
             }
             while (true);

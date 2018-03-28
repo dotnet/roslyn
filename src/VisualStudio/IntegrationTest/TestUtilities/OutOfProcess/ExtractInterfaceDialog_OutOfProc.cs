@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
 
             // Wait for application idle to ensure the dialog is fully initialized
-            VisualStudioInstance.WaitForApplicationIdle();
+            VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
 
         /// <summary>
