@@ -1334,6 +1334,18 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
+  <data name="Alias_ambiguous_type_0" xml:space="preserve">
+    <value>Alias ambiguous type '{0}'</value>
+  </data>
+  <data name="Warning_colon_Collection_was_modified_during_iteration" xml:space="preserve">
+    <value>Warning: Collection was modified during iteration.</value>
+  </data>
+  <data name="Warning_colon_Iteration_variable_crossed_function_boundary" xml:space="preserve">
+    <value>Warning: Iteration variable crossed function boundary.</value>
+  </data>
+  <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
+    <value>Warning: Collection may be modified during iteration.</value>
+  </data>
   <data name="Add_readonly_modifier" xml:space="preserve">
     <value>Add readonly modifier</value>
   </data>

@@ -438,6 +438,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
+        /// </summary>
+        internal static string Alias_ambiguous_type_0 {
+            get {
+                return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
         internal static string All_lowercase {
@@ -3654,15 +3663,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
-        /// </summary>
-        internal static string Variable_declaration_can_be_deconstructed {
-            get {
-                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
         /// </summary>
         internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
@@ -3690,6 +3690,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
+        /// </summary>
+        internal static string Variable_declaration_can_be_deconstructed {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variable declaration can be inlined.
         /// </summary>
         internal static string Variable_declaration_can_be_inlined {
@@ -3708,11 +3717,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Collection may be modified during iteration..
+        /// </summary>
+        internal static string Warning_colon_Collection_may_be_modified_during_iteration {
+            get {
+                return ResourceManager.GetString("Warning_colon_Collection_may_be_modified_during_iteration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Collection was modified during iteration..
+        /// </summary>
+        internal static string Warning_colon_Collection_was_modified_during_iteration {
+            get {
+                return ResourceManager.GetString("Warning_colon_Collection_was_modified_during_iteration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
         /// </summary>
         internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
             get {
                 return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Iteration variable crossed function boundary..
+        /// </summary>
+        internal static string Warning_colon_Iteration_variable_crossed_function_boundary {
+            get {
+                return ResourceManager.GetString("Warning_colon_Iteration_variable_crossed_function_boundary", resourceCulture);
             }
         }
         
