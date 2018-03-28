@@ -389,6 +389,37 @@ $@"if (true)
 $$"));
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfIncompleteStatementElseStatement(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console // Incomplete, but that's fine. This is not the if statement we care about.
+    else
+        {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfIncompleteStatementElseStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console // Incomplete, but that's fine. This is not the if statement we care about.
+    else
+        {statement}
+$$
+else"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSkippedToken()
         {
