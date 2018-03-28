@@ -174,45 +174,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 commandLineArgs = ReadCommandLineArgs(project);
             }
 
-            return AdjustPlatformCommandLineArg(commandLineArgs);
-        }
-
-        private static ImmutableArray<string> AdjustPlatformCommandLineArg(ImmutableArray<string> commandLineArgs)
-        {
-            // If /tplatform is anycpu32bitpreferred, we may need to adjust it depending
-            // on the value of /target.
-
-            string platform = null, target = null;
-            var platformIndex = -1;
-
-            for (var i = 0; i < commandLineArgs.Length; i++)
-            {
-                var arg = commandLineArgs[i];
-
-                if (platform == null && arg.StartsWith("/platform:", StringComparison.OrdinalIgnoreCase))
-                {
-                    platform = arg.Substring("/platform:".Length);
-                    platformIndex = i;
-                }
-                else if (target == null && arg.StartsWith("/target:", StringComparison.OrdinalIgnoreCase))
-                {
-                    target = arg.Substring("/target:".Length);
-                }
-
-                if (platform != null && target != null)
-                {
-                    break;
-                }
-            }
-
-            if (string.Equals("anycpu32bitpreferred", platform, StringComparison.OrdinalIgnoreCase)
-                && (string.Equals("library", target, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals("module", target, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals("winmdobj", target, StringComparison.OrdinalIgnoreCase)))
-            {
-                return commandLineArgs.SetItem(platformIndex, "/platform:anycpu");
-            }
-
+            // return AdjustPlatformCommandLineArg(commandLineArgs);
             return commandLineArgs;
         }
 

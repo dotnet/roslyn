@@ -427,7 +427,7 @@ class C1
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
                 var compilation = await project.GetCompilationAsync();
-                Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
+                Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
             }
         }
 
@@ -567,7 +567,7 @@ class C1
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
                 var compilation = await project.GetCompilationAsync();
-                Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
+                Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
             }
         }
 
@@ -693,6 +693,7 @@ class C1
             using (var workspace = CreateMSBuildWorkspace())
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
+                Assert.Empty(workspace.Diagnostics);
                 Assert.NotEmpty(project.OutputFilePath);
             }
         }
