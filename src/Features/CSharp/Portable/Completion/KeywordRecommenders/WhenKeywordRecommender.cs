@@ -50,28 +50,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // Also note that if there's a missing token inside the expression, that's fine and we do offer 'when':
             // case (1 + ) |
 
+            // context.TargetToken does not include zero width so in case of a missing token, these will never be equal.
             var lastToken = expressionOrPattern.GetLastToken(includeZeroWidth: true);
-            if (lastToken.IsMissing)
+            if (lastToken == context.TargetToken)
             {
-                return false;
+                return true;
             }
 
-            if (lastToken == context.LeftToken && context.LeftToken != context.TargetToken &&
-                expressionOrPattern is DeclarationPatternSyntax declarationPattern)
+            if (lastToken == context.LeftToken && expressionOrPattern is DeclarationPatternSyntax declarationPattern)
             {
                 // case constant w|
 
                 // The user is typing a new word (might be a partially written 'when' keyword), which causes this to be parsed
                 // as a declaration pattern. lastToken will be 'w' (LeftToken) as opposed to 'constant' (TargetToken).
                 // However we'd like to pretend that this is not the case and that we just a have single expression
-                // with 'constant' as if the new word didn't exist. So let's do that by adjusting our variables.
+                // with 'constant' as if the new word didn't exist. Let's do that by adjusting our variable.
 
-                lastToken = context.TargetToken;
                 expressionOrPattern = declarationPattern.Type;
+                return true;
             }
 
-            // Only offer if we're at the last token of the expression/pattern, not inside it.
-            return lastToken == context.TargetToken;
+            return false;
         }
 
         private static bool IsTypeName(SyntaxNode expressionOrPattern, SemanticModel semanticModel,
