@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ReportDiagnostic generalDiagnosticOption = 0;
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
-            IEnumerable<(SyntaxTree, IEnumerable<(string, ReportDiagnostic)>)> perTreeDiagnosticOptions = null;
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> perTreeDiagnosticOptions = null;
             bool concurrentBuild = false;
             bool deterministic = false;
             DateTime currentLocalTime = default(DateTime);

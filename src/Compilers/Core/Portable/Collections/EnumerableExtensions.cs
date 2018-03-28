@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class EnumerableExtensions
     {
-        public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<(K, V)> items)
-            => ToImmutableDictionaryOrEmpty(items.Select(tuple => new KeyValuePair<K, V>(tuple.Item1, tuple.Item2)));
-
         public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>> items)
         {
             if (items == null)

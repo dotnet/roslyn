@@ -324,22 +324,6 @@ namespace Microsoft.CodeAnalysis
             });
         }
 
-        private protected static ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>>
-            PerTreeOptionsToImmutableDictionary(IEnumerable<(SyntaxTree, IEnumerable<(string, ReportDiagnostic)>)> options)
-        {
-            if (options == null)
-            {
-                return ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>>.Empty;
-            }
-
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>>();
-            foreach (var element in options)
-            {
-                builder.Add(element.Item1, element.Item2.ToImmutableDictionaryOrEmpty());
-            }
-            return builder.ToImmutableDictionaryOrEmpty();
-        }
-
         internal bool CanReuseCompilationReferenceManager(CompilationOptions other)
         {
             // This condition has to include all options the Assembly Manager depends on when binding references.

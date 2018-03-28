@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional publicSign As Boolean = False,
             Optional reportSuppressedDiagnostics As Boolean = False,
             Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public,
-            Optional perTreeDiagnosticOptions As IEnumerable(Of (SyntaxTree, IEnumerable(Of (String, ReportDiagnostic)))) = Nothing)
+            Optional perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)) = Nothing)
 
             MyClass.New(
                 outputKind,
@@ -122,18 +122,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions,
                 perTreeDiagnosticOptions,
                 concurrentBuild,
-                deterministic:=deterministic,
-                currentLocalTime:=Nothing,
-                suppressEmbeddedDeclarations:=False,
-                debugPlusMode:=False,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                Deterministic:=deterministic,
+                CurrentLocalTime:=Nothing,
+                SuppressEmbeddedDeclarations:=False,
+                DebugPlusMode:=False,
+                XmlReferenceResolver:=xmlReferenceResolver,
+                SourceReferenceResolver:=sourceReferenceResolver,
+                MetadataReferenceResolver:=metadataReferenceResolver,
+                AssemblyIdentityComparer:=assemblyIdentityComparer,
+                StrongNameProvider:=strongNameProvider,
+                MetadataImportOptions:=metadataImportOptions,
+                ReferencesSupersedeLowerVersions:=False,
+                IgnoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
 #Enable Warning RS0026 ' Do not add multiple overloads with optional parameters
@@ -162,20 +162,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             platform As Platform,
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
-            perTreeDiagnosticOptions As IEnumerable(Of (SyntaxTree, IEnumerable(Of (String, ReportDiagnostic)))),
-            concurrentBuild As Boolean,
-            deterministic As Boolean,
-            currentLocalTime As Date,
-            suppressEmbeddedDeclarations As Boolean,
-            debugPlusMode As Boolean,
-            xmlReferenceResolver As XmlReferenceResolver,
-            sourceReferenceResolver As SourceReferenceResolver,
-            metadataReferenceResolver As MetadataReferenceResolver,
-            assemblyIdentityComparer As AssemblyIdentityComparer,
-            strongNameProvider As StrongNameProvider,
-            metadataImportOptions As MetadataImportOptions,
-            referencesSupersedeLowerVersions As Boolean,
-            ignoreCorLibraryDuplicatedTypes As Boolean)
+            perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)),
+            ConcurrentBuild As Boolean,
+            Deterministic As Boolean,
+            CurrentLocalTime As Date,
+            SuppressEmbeddedDeclarations As Boolean,
+            DebugPlusMode As Boolean,
+            XmlReferenceResolver As XmlReferenceResolver,
+            SourceReferenceResolver As SourceReferenceResolver,
+            MetadataReferenceResolver As MetadataReferenceResolver,
+            AssemblyIdentityComparer As AssemblyIdentityComparer,
+            StrongNameProvider As StrongNameProvider,
+            MetadataImportOptions As MetadataImportOptions,
+            ReferencesSupersedeLowerVersions As Boolean,
+            IgnoreCorLibraryDuplicatedTypes As Boolean)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -194,18 +194,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption:=generalDiagnosticOption,
                 warningLevel:=1,
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
-                perTreeDiagnosticOptions:=PerTreeOptionsToImmutableDictionary(perTreeDiagnosticOptions),
-                concurrentBuild:=concurrentBuild,
-                deterministic:=deterministic,
-                currentLocalTime:=currentLocalTime,
-                debugPlusMode:=debugPlusMode,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
+                perTreeDiagnosticOptions:=CreateCaseInsensitivePerTreeOptions(perTreeDiagnosticOptions),
+                concurrentBuild:=ConcurrentBuild,
+                deterministic:=Deterministic,
+                currentLocalTime:=CurrentLocalTime,
+                debugPlusMode:=DebugPlusMode,
+                xmlReferenceResolver:=XmlReferenceResolver,
+                sourceReferenceResolver:=SourceReferenceResolver,
+                metadataReferenceResolver:=MetadataReferenceResolver,
+                assemblyIdentityComparer:=AssemblyIdentityComparer,
+                strongNameProvider:=StrongNameProvider,
+                metadataImportOptions:=MetadataImportOptions,
+                referencesSupersedeLowerVersions:=ReferencesSupersedeLowerVersions)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -214,13 +214,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _optionExplicit = optionExplicit
             _optionCompareText = optionCompareText
             _embedVbCoreRuntime = embedVbCoreRuntime
-            _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
+            _suppressEmbeddedDeclarations = SuppressEmbeddedDeclarations
             _parseOptions = parseOptions
-            _ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes
+            _ignoreCorLibraryDuplicatedTypes = IgnoreCorLibraryDuplicatedTypes
 
             Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
         End Sub
+
+        Private Shared Function CreateCaseInsensitivePerTreeOptions(perTreeOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))
+            Dim finalPerTreeOptions = If(perTreeOptions,
+                ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)).Empty)
+
+            ' If all of the values have case insensitive comparers, we can reuse this dictionary. Otherwise, we'll create a new one
+            For Each diagOptions In finalPerTreeOptions.Values
+                If diagOptions.KeyComparer IsNot CaseInsensitiveComparison.Comparer Then
+                    finalPerTreeOptions = ImmutableDictionary.CreateRange(finalPerTreeOptions.Select(
+                    Function(kvp)
+                        Return KeyValuePair.Create(kvp.Key, ImmutableDictionary.CreateRange(CaseInsensitiveComparison.Comparer, kvp.Value))
+                    End Function).ToImmutableDictionaryOrEmpty())
+                    Exit For
+                End If
+            Next
+            Return finalPerTreeOptions
+        End Function
 
         Friend Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
@@ -237,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionCompareText:=other.OptionCompareText,
                 parseOptions:=other.ParseOptions,
                 embedVbCoreRuntime:=other.EmbedVbCoreRuntime,
-                suppressEmbeddedDeclarations:=other.SuppressEmbeddedDeclarations,
+                SuppressEmbeddedDeclarations:=other.SuppressEmbeddedDeclarations,
                 optimizationLevel:=other.OptimizationLevel,
                 checkOverflow:=other.CheckOverflow,
                 cryptoKeyContainer:=other.CryptoKeyContainer,
@@ -247,20 +264,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform:=other.Platform,
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
-                perTreeDiagnosticOptions:=other.PerTreeDiagnosticOptions.Select(Function(kvp) (kvp.Key, kvp.Value.Select(Function(options) (options.Key, options.Value)))),
-                concurrentBuild:=other.ConcurrentBuild,
-                deterministic:=other.Deterministic,
-                currentLocalTime:=other.CurrentLocalTime,
-                debugPlusMode:=other.DebugPlusMode,
-                xmlReferenceResolver:=other.XmlReferenceResolver,
-                sourceReferenceResolver:=other.SourceReferenceResolver,
-                metadataReferenceResolver:=other.MetadataReferenceResolver,
-                assemblyIdentityComparer:=other.AssemblyIdentityComparer,
-                strongNameProvider:=other.StrongNameProvider,
-                metadataImportOptions:=other.MetadataImportOptions,
-                referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
+                perTreeDiagnosticOptions:=other.PerTreeDiagnosticOptions,
+                ConcurrentBuild:=other.ConcurrentBuild,
+                Deterministic:=other.Deterministic,
+                CurrentLocalTime:=other.CurrentLocalTime,
+                DebugPlusMode:=other.DebugPlusMode,
+                XmlReferenceResolver:=other.XmlReferenceResolver,
+                SourceReferenceResolver:=other.SourceReferenceResolver,
+                MetadataReferenceResolver:=other.MetadataReferenceResolver,
+                AssemblyIdentityComparer:=other.AssemblyIdentityComparer,
+                StrongNameProvider:=other.StrongNameProvider,
+                MetadataImportOptions:=other.MetadataImportOptions,
+                ReferencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign,
-                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
+                IgnoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
