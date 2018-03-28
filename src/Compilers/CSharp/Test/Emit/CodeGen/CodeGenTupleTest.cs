@@ -4382,7 +4382,7 @@ namespace System
             Assert.True(mItem1.CustomModifiers.IsEmpty);
             Assert.True(mItem1.GetAttributes().IsEmpty);
             Assert.Equal("error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
-                         mItem1.GetUseSiteDiagnostic().ToString());
+                         mItem1.GetUseSiteDiagnostic().ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.True(mItem1.Locations.IsEmpty);
             Assert.True(mItem1.DeclaringSyntaxReferences.IsEmpty);
             Assert.True(mItem1.IsImplicitlyDeclared);
