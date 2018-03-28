@@ -16,13 +16,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, CancellationToken cancellationToken)
         {
-            // model should exist already
-            if (!document.TryGetSemanticModel(out var model))
-            {
-                return Contract.FailWithReturn<IEnumerable<SyntaxToken>>("we should never reach here");
-            }
-
-            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts == null)
@@ -36,11 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
             this Document document, string identifier, CancellationToken cancellationToken)
         {
-            // model should exist already
-            if (!document.TryGetSemanticModel(out var model))
-            {
-                return Contract.FailWithReturn<ImmutableArray<SyntaxToken>>("we should never reach here");
-            }
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
@@ -56,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SyntaxToken>.Empty;
             }
 
-            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             SourceText text = null;
