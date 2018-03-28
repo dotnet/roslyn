@@ -587,7 +587,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsPossibleSubpatternElement()
         {
-            return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+            var tk = this.CurrentToken.Kind;
+            return this.IsPossibleExpression() && !(SyntaxFacts.IsBinaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk)) ||
+                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
         private PostSkipAction SkipBadPatternListTokens(
