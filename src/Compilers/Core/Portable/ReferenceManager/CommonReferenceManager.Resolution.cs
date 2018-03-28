@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             [Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectiveMap,
+            out IDictionary<(string, string), ImmutableArray<MetadataReference>> boundReferenceDirectiveMap,
             out ImmutableArray<MetadataReference> boundReferenceDirectives,
             out ImmutableArray<AssemblyData> assemblies,
             out ImmutableArray<PEModule> modules,
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             DiagnosticBag diagnostics,
             out ImmutableArray<(MetadataReference MetadataReference, Location Location)> references,
-            out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectives)
+            out IDictionary<(string, string), ImmutableArray<MetadataReference>> boundReferenceDirectives)
         {
             boundReferenceDirectives = null;
 
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (boundReferenceDirectives == null)
                     {
-                        boundReferenceDirectives = new Dictionary<(string, string), MetadataReference[]>();
+                        boundReferenceDirectives = new Dictionary<(string, string), ImmutableArray<MetadataReference>>();
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     referenceDirectiveLocationsBuilder.Add(referenceDirective.Location);
-                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences);
+                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences.ToImmutableArray<MetadataReference>());
                 }
 
                 // add external reference at the end, so that they are processed first:
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis
                 if (boundReferenceDirectives == null)
                 {
                     // no directive references resolved successfully:
-                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), MetadataReference[]>();
+                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), ImmutableArray<MetadataReference>>();
                 }
 
                 references = referencesBuilder.ToImmutable();
