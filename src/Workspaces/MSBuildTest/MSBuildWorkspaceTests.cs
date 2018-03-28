@@ -2620,7 +2620,7 @@ class C1
 
             CreateFiles(files);
 
-            using (var workspace = new AdhocWorkspace(MSBuildMefHostServices.DefaultServices))
+            using (var workspace = new AdhocWorkspace(MSBuildMefHostServices.DefaultServices, WorkspaceKind.MSBuild))
             {
                 var projectFullPath = GetSolutionFileName(@"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
 

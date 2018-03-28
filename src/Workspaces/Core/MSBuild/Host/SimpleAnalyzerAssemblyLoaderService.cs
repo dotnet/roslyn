@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(IAnalyzerService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceService(typeof(IAnalyzerService), WorkspaceKind.MSBuild), Shared]
     internal sealed class SimpleAnalyzerAssemblyLoaderService : IAnalyzerService
     {
         private readonly DesktopAnalyzerAssemblyLoader _loader = new DesktopAnalyzerAssemblyLoader();

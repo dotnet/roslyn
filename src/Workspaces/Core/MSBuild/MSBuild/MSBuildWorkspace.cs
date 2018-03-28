@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private MSBuildWorkspace(
             HostServices hostServices,
             ImmutableDictionary<string, string> properties)
-            : base(hostServices, "MSBuildWorkspace")
+            : base(hostServices, WorkspaceKind.MSBuild)
         {
             var diagnosticReporter = new DiagnosticReporter(this);
             _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(this, diagnosticReporter);
