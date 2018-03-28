@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var commandLineArgs = GetCompilerCommandLineArgs(project)
                 .Select(item => item.ItemSpec)
-                .Where(item => item.StartsWith("/"))
                 .ToImmutableArray();
 
             if (commandLineArgs.Length == 0)
