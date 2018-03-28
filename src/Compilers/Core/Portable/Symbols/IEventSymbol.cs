@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis
         IEventSymbol OverriddenEvent { get; }
 
         /// <summary>
+        /// Returns the hidden event, or null.
+        /// </summary>
+        IEventSymbol HiddenEvent { get; }
+
+        /// <summary>
         /// Returns interface properties explicitly implemented by this event.
         /// </summary>
         /// <remarks>

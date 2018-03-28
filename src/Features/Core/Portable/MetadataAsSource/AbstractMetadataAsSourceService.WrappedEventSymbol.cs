@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol AddMethod => _symbol.AddMethod;
             public bool IsWindowsRuntimeEvent => _symbol.IsWindowsRuntimeEvent;
             public IEventSymbol OverriddenEvent => _symbol.OverriddenEvent;
+            public IEventSymbol HiddenEvent => _symbol.HiddenEvent;
             public IMethodSymbol RaiseMethod => _symbol.RaiseMethod;
             public IMethodSymbol RemoveMethod => _symbol.RemoveMethod;
             public ITypeSymbol Type => _symbol.Type;

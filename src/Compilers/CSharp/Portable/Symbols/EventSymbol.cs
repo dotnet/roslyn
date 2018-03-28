@@ -134,6 +134,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public EventSymbol HiddenEvent
+        {
+            get
+            {  
+                if (IsDefinition)
+                {
+                    return (EventSymbol)OverriddenOrHiddenMembers.GetHiddenMember();
+                }
+
+                return (EventSymbol)OverriddenOrHiddenMembersResult.GetHiddenMember(this, OriginalDefinition.HiddenEvent);             
+            }
+        }
+
         internal virtual OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
         {
             get
@@ -379,6 +392,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.OverriddenEvent;
+            }
+        }
+
+        IEventSymbol IEventSymbol.HiddenEvent
+        {
+            get
+            {
+                return this.HiddenEvent;
             }
         }
 

@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return (MethodSymbol)OverriddenOrHiddenMembers.GetHiddenMember();
                     }
 
-                    return (MethodSymbol)OverriddenOrHiddenMembersResult.GetHiddenMember(this, OriginalDefinition.OverriddenMethod);
+                    return (MethodSymbol)OverriddenOrHiddenMembersResult.GetHiddenMember(this, OriginalDefinition.HiddenMethod);
                 }
 
                 return null;

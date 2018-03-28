@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol.Kind)
             {
                 case SymbolKind.Event:
-                    throw new NotImplementedException();
+                    return ((IEventSymbol)symbol).HiddenEvent;
 
                 case SymbolKind.Method:
                     return ((IMethodSymbol)symbol).HiddenMethod;
 
                 case SymbolKind.Property:
-                    throw new NotImplementedException();
+                    return ((IPropertySymbol)symbol).HiddenProperty;
             }
 
             return null;
