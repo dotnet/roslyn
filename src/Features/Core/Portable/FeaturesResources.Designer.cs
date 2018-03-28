@@ -252,6 +252,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add readonly modifier.
+        /// </summary>
+        internal static string Add_readonly_modifier {
+            get {
+                return ResourceManager.GetString("Add_readonly_modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
         internal static string Add_reference_to_0 {
@@ -2004,6 +2013,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_containing_scope_async_return_Task {
             get {
                 return ResourceManager.GetString("Make_containing_scope_async_return_Task", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make field readonly.
+        /// </summary>
+        internal static string Make_field_readonly {
+            get {
+                return ResourceManager.GetString("Make_field_readonly", resourceCulture);
             }
         }
         
