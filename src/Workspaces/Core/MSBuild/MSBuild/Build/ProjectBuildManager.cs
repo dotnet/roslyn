@@ -240,15 +240,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 registration = cancellationToken.Register(() =>
                 {
-                    try
-                    {
-                        buildManager.CancelAllSubmissions();
-                        registration.Dispose();
-                    }
-                    finally
-                    {
-                        taskSource.TrySetCanceled();
-                    }
+                    taskSource.TrySetCanceled();
+                    buildManager.CancelAllSubmissions();
+                    registration.Dispose();
                 });
             }
 
