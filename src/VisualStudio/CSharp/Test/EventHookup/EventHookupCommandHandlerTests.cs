@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
     public class EventHookupCommandHandlerTests
     {
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_EventInThisClass()
         {
             var markup = @"
@@ -32,7 +32,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_EventOnLocal()
         {
             var markup = @"
@@ -58,7 +58,7 @@ class D
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_EventOnFieldOfObject()
         {
             var markup = @"
@@ -124,7 +124,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_DefaultHandlerNameAlreadyExistsWithSameNonStaticState()
         {
             var markup = @"
@@ -150,7 +150,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_DefaultHandlerNameAlreadyExistsWithDifferentStaticState()
         {
             var markup = @"
@@ -176,7 +176,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_DefaultHandlerNameAlreadyExistsAsField()
         {
             var markup = @"
@@ -198,7 +198,7 @@ class C
             }
         }
 
-        [WpfFact(Skip ="Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HookupInLambdaInLocalDeclaration()
         {
             var markup = @"
@@ -220,7 +220,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task TypingSpacesDoesNotDismiss()
         {
             var markup = @"
@@ -244,7 +244,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task TypingLettersDismisses()
         {
             var markup = @"
@@ -268,7 +268,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task TypingEqualsInSessionDismisses()
         {
             var markup = @"
@@ -292,7 +292,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task CancelViaLeftKey()
         {
             var markup = @"
@@ -324,7 +324,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task CancelViaBackspace()
         {
             var markup = @"
@@ -739,7 +739,7 @@ class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task EnsureNameUniquenessInPartialClasses()
         {
             var markup = @"
@@ -767,7 +767,7 @@ public partial class C
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task EnsureNameUniquenessAgainstBaseClasses()
         {
             var markup = @"
@@ -791,7 +791,7 @@ class Program : Base
             }
         }
 
-        [WpfFact(Skip = "Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task EnsureNameUniquenessAgainstParameters()
         {
             var markup = @"
