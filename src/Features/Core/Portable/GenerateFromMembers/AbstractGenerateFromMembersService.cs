@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
             switch (symbol)
             {
-                case IFieldSymbol field when IsViableField(field): return true;
-                case IPropertySymbol property when IsViableProperty(property): return !property.IsWriteOnly;
+                case IFieldSymbol field: return IsViableField(field);
+                case IPropertySymbol property: return IsViableProperty(property) && !property.IsWriteOnly;
                 default: return false;
             }
         }
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             switch (symbol)
             {
                 // Can use non const fields and properties with setters in them.
-                case IFieldSymbol field when IsViableField(field): return !field.IsConst;
-                case IPropertySymbol property when IsViableProperty(property): return property.IsWritableInConstructor();
+                case IFieldSymbol field: return IsViableField(field) && !field.IsConst;
+                case IPropertySymbol property: return IsViableProperty(property) && property.IsWritableInConstructor();
                 default: return false;
             }
         }
