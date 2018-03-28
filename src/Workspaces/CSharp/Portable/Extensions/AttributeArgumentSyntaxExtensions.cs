@@ -14,12 +14,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// is true, the last parameter will be returned if it is params parameter and the index of
         /// the specified argument is greater than the number of parameters.
         /// </summary>
+        /// <remarks>
+        /// Returns null if the <paramref name="argument"/> is a named argument.
+        /// </remarks>
         public static IParameterSymbol DetermineParameter(
             this AttributeArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            // if argument is a named argument it can't map to a parameter.
+            if (argument.NameEquals != null)
+            {
+                return null;
+            }
+
             var argumentList = argument.Parent as AttributeArgumentListSyntax;
             if (argumentList == null)
             {

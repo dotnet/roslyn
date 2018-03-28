@@ -4084,6 +4084,41 @@ static class Program
 }");
         }
 
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnCallToAttributeWithCastInPropertySetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute()
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(Prop = [|(int)1|])]
+static class Program
+{
+}",
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute()
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(Prop = 1)]
+static class Program
+{
+}");
+        }
+
         [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [InlineData("-")]
