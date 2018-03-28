@@ -1,0 +1,53 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Xaml;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
+{
+    [ExportCodeFixProvider(StringConstants.XamlLanguageName, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
+    internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
+    {
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+        {
+            get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }
+        }
+
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        {
+            context.RegisterCodeFix(
+                new MyCodeAction(
+                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                context.Diagnostics);
+            return SpecializedTasks.EmptyTask;
+        }
+
+        private Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document, CancellationToken cancellationToken)
+        {
+            var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
+            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
+            {
+            }
+        }
+    }
+}

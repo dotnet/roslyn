@@ -2,10 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
@@ -18,30 +16,39 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
-        MyClass.New(responseFile, baseDirectory, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
+        MyClass.New(responseFile, CreateBuildPaths(baseDirectory, Path.GetTempPath()), args, analyzer)
     End Sub
 
-    Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New SimpleAnalyzerAssemblyLoader())
+    Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), Optional analyzer As DiagnosticAnalyzer = Nothing)
+        MyClass.New(responseFile, buildPaths, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
+    End Sub
+
+    Public Sub New(responseFile As String, workingDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
+        MyClass.New(responseFile, CreateBuildPaths(workingDirectory, Path.GetTempPath()), args, analyzers)
+    End Sub
+
+    Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
 
-    Protected Overrides Function GetSqmAppID() As UInteger
-        Return SqmServiceProvider.BASIC_APPID
+    Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
+        Return New BuildPaths(
+            clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
+            workingDir:=workingDirectory,
+            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory(),
+            tempDir:=tempDirectory)
     End Function
 
-    Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
-        Throw New NotImplementedException
-    End Sub
+    Protected Overrides Function ResolveAnalyzersFromArguments(
+        diagnostics As List(Of DiagnosticInfo),
+        messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
 
-    Protected Overrides Function ResolveAnalyzersFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of DiagnosticAnalyzer)
-        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, touchedFiles)
-
+        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
-
         Return analyzers
     End Function
 

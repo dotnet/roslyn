@@ -24,6 +24,7 @@ namespace Roslyn.Utilities
 
                 public void Clear()
                 {
+                    throw new NotSupportedException();
                 }
 
                 public bool Contains(T item)
@@ -35,21 +36,9 @@ namespace Roslyn.Utilities
                 {
                 }
 
-                public int Count
-                {
-                    get
-                    {
-                        return 0;
-                    }
-                }
+                public int Count => 0;
 
-                public bool IsReadOnly
-                {
-                    get
-                    {
-                        return true;
-                    }
-                }
+                public bool IsReadOnly => true;
 
                 public bool Remove(T item)
                 {

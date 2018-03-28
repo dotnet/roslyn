@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -3564,6 +3564,48 @@ partial class C&lt;{|Conflict:T|}&gt; {}
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="T")
+
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(10469, "https://github.com/dotnet/roslyn/issues/10469")>
+        Public Sub RenameTypeToCurrent()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+partial class {|current:$$C|} { }
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Current")
+
+                result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(16567, "https://github.com/dotnet/roslyn/issues/16567")>
+        Public Sub RenameMethodToFinalizeWithDestructorPresent()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    ~{|Conflict:C|}() { }
+    void $$[|M|]() 
+    { 
+        int x = 7;
+        int y = ~x;
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Finalize")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using

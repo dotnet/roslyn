@@ -3,10 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -23,18 +19,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         public MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
         {
-            if (createReference == null)
-            {
-                throw new ArgumentNullException(nameof(createReference));
-            }
-
-            _createReference = createReference;
+            _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
         }
 
         public MetadataReference GetReference(string path, MetadataReferenceProperties properties)
         {
-            ReferenceSet referenceSet;
-            if (!_referenceSets.TryGetValue(path, out referenceSet))
+            if (!_referenceSets.TryGetValue(path, out var referenceSet))
             {
                 referenceSet = ImmutableInterlocked.GetOrAdd(ref _referenceSets, path, new ReferenceSet(this));
             }
@@ -64,10 +54,8 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 using (_gate.DisposableWait())
                 {
-                    WeakReference<MetadataReference> weakref;
                     MetadataReference mref = null;
-
-                    if (!(_references.TryGetValue(properties, out weakref) && weakref.TryGetTarget(out mref)))
+                    if (!(_references.TryGetValue(properties, out var weakref) && weakref.TryGetTarget(out mref)))
                     {
                         // try to base this metadata reference off of an existing one, so we don't load the metadata bytes twice.
                         foreach (var wr in _references.Values)

@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(false, droot.HasAnnotation(annotation1));
         }
 
-        private static void RoundTrip(string text)
+        private static void RoundTrip(string text, bool expectRecursive = true)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetCompilationUnitRoot();
@@ -210,7 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             root.SerializeTo(stream);
 
             stream.Position = 0;
-
             var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             var newText = newRoot.ToFullString();
 
@@ -285,40 +284,20 @@ class C { }");
             Assert.True(newRoot.ContainsDirectives);
         }
 
-#if false
         [Fact]
-        public void RoundTripBigSyntaxNode()
+        public void RoundTripDeepSyntaxNode()
         {
-            var path = Path.GetFullPath(@"..\..\open\compilers\csharp\source\syntax\generated.cs");
-            var text = File.ReadAllText(path);
+            // trees with excessively deep expressions tend to overflow the stack when using recursive encoding.
+            // test that the tree is successfully serialized using non-recursive encoding.
+            var text = @"
+public class C
+{
+    public string B = " + string.Join(" + ", Enumerable.Range(0, 1000).Select(i => "\"" + i.ToString() + "\"").ToArray()) + @";
+}";
 
-            var parseStart = DateTime.UtcNow;
-            var tree = SyntaxTree.ParseCompilationUnit(text);
-            var parseEnd = DateTime.UtcNow;
-
-            var root = tree.GetCompilationUnitRoot();
-
-            var stream = new MemoryStream();
-
-            var serializeStart = DateTime.UtcNow;
-            root.SerializeTo(stream);
-            var serializeEnd = DateTime.UtcNow;
-
-            stream.Position = 0;
-
-            var deserializeStart = DateTime.UtcNow;
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
-            var deserializeEnd = DateTime.UtcNow;
-
-            var dtext = droot.ToString();
-
-            Assert.Equal(text, dtext);
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
-
-            var parseTime = (parseEnd - parseStart).TotalMilliseconds;
-            var serializeTime = (serializeEnd - serializeStart).TotalMilliseconds;
-            var deserializeTime = (deserializeEnd - deserializeStart).TotalMilliseconds;
+            // serialization should fail to encode stream using recursive object encoding and
+            // succeed with non-recursive object encoding.
+            RoundTrip(text, expectRecursive: false);
         }
-#endif
     }
 }

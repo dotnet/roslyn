@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -68,9 +68,9 @@ End Class
                         </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
             ' Compilation to Compilation
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(src2, {comp1.ToMetadataReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(src2, {comp1.ToMetadataReference()})
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType).OrderBy(Function(s) s.Name).ToList()
             Assert.Equal(5, originalSymbols.Count)
@@ -88,11 +88,11 @@ End Class
             ' 'E'
             Dim mtSym05 = (TryCast(typesym.GetMembers("Item").[Single](), IPropertySymbol)).Type
 
-            ResolveAndVerifySymbol(mtSym03, comp2, originalSymbols(0), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym01, comp2, originalSymbols(1), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym05, comp2, originalSymbols(2), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym02, comp2, originalSymbols(3), comp1, SymbolIdComparison.CaseInsensitive)
-            ResolveAndVerifySymbol(mtSym04, comp2, originalSymbols(4), comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(mtSym03, originalSymbols(0), comp1, SymbolIdComparison.None)
+            ResolveAndVerifySymbol(mtSym01, originalSymbols(1), comp1, SymbolIdComparison.None)
+            ResolveAndVerifySymbol(mtSym05, originalSymbols(2), comp1, SymbolIdComparison.None)
+            ResolveAndVerifySymbol(mtSym02, originalSymbols(3), comp1, SymbolIdComparison.IgnoreCase)
+            ResolveAndVerifySymbol(mtSym04, originalSymbols(4), comp1, SymbolIdComparison.IgnoreCase)
         End Sub
 
         <Fact>
@@ -105,7 +105,7 @@ Imports System.Collections.Generic
 
 Namespace N1
 
-    Public Interface IFoo
+    Public Interface IGoo
         Sub M(p1 As Integer, p2 As Integer)
         Sub M(ParamArray ary As Short())
         Sub M(p1 As String)
@@ -115,7 +115,7 @@ Namespace N1
     Public Structure S
 
         Public Event PublicEvent As Action(Of S)
-        Public PublicField As IFoo
+        Public PublicField As IGoo
         Public Property PublicProp As String
         Default Public Property Item(p As SByte) As Short
             Get
@@ -137,11 +137,11 @@ Public Class App
     Shared Sub Main()
         Dim obj = New AN.S()
         obj.Publicevent += EH           'BIND1:"obj.Publicevent"
-        Dim ifoo = obj.Publicfield      'BIND2:"obj.Publicfield"
-        ifoo.M(obj.PublicProp)          'BIND3:"obj.PublicProp"
-        ifoo.M(obj(12), obj(123))       'BIND4:"obj(123)"
+        Dim igoo = obj.Publicfield      'BIND2:"obj.Publicfield"
+        igoo.M(obj.PublicProp)          'BIND3:"obj.PublicProp"
+        igoo.M(obj(12), obj(123))       'BIND4:"obj(123)"
         Dim x As Short = -1
-        ifoo.m(x, x)                    'BIND5:"ifoo.m(x, x)"
+        igoo.m(x, x)                    'BIND5:"igoo.m(x, x)"
     End Sub
 
     Shared Sub EH(s As AN.S)
@@ -150,9 +150,9 @@ End Class
                         </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
             ' Compilation to Compilation
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(src2, {comp1.ToMetadataReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(src2, {comp1.ToMetadataReference()})
 
             ''  ---------------------------
             ''  Source symbols
@@ -167,15 +167,15 @@ End Class
             Dim list = GetBindNodes(Of ExpressionSyntax)(comp2, "b.vb", 5)
             Assert.Equal(5, list.Count)
 
-            ResolveAndVerifySymbol(list(0), originalSymbols(5), model, comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(list(0), originalSymbols(5), model, comp1, SymbolIdComparison.IgnoreCase)
             ''  field
-            ResolveAndVerifySymbol(list(1), originalSymbols(6), model, comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(list(1), originalSymbols(6), model, comp1, SymbolIdComparison.IgnoreCase)
             ''  prop
-            ResolveAndVerifySymbol(list(2), originalSymbols(7), model, comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(list(2), originalSymbols(7), model, comp1, SymbolIdComparison.None)
             ''  default prop
-            ResolveAndVerifySymbol(list(3), originalSymbols(0), model, comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(list(3), originalSymbols(0), model, comp1, SymbolIdComparison.None)
             ''  M(params short[] ary)
-            ResolveAndVerifySymbol(list(4), originalSymbols(2), model, comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(list(4), originalSymbols(2), model, comp1, SymbolIdComparison.IgnoreCase)
         End Sub
 
 #End Region
@@ -230,9 +230,9 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
             ' "Compilation 2 Assembly"
-            Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
+            Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember Or SymbolCategory.Parameter).OrderBy(Function(s) s.Name).ToList()
             Assert.Equal(5, ver20Symbols.Count)
@@ -245,13 +245,13 @@ End Class
             Dim localSymbols = ver40Symbols.OrderBy(Function(s) s.Name).[Select](Function(s) DirectCast(s, ILocalSymbol)).ToList()
 
             ' a
-            ResolveAndVerifySymbol(localSymbols(0).Type, comp40, typeA, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(0).Type, typeA, comp20, SymbolIdComparison.IgnoreCase)
             ' ary
-            ResolveAndVerifySymbol(localSymbols(1).Type, comp40, DirectCast(ver20Symbols(0), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(1).Type, DirectCast(ver20Symbols(0), IParameterSymbol).Type, comp20, SymbolIdComparison.IgnoreCase)
             ' dt
-            ResolveAndVerifySymbol(localSymbols(2).Type, comp40, DirectCast(ver20Symbols(4), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(2).Type, DirectCast(ver20Symbols(4), IParameterSymbol).Type, comp20, SymbolIdComparison.IgnoreCase)
             ' fi
-            ResolveAndVerifySymbol(localSymbols(3).Type, comp40, DirectCast(ver20Symbols(1), IMethodSymbol).ReturnType, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(3).Type, DirectCast(ver20Symbols(1), IMethodSymbol).ReturnType, comp20, SymbolIdComparison.IgnoreCase)
 
         End Sub
 
@@ -264,16 +264,16 @@ End Class
 Imports System
 Namespace Mscorlib20
 
-    Public Interface IFoo
+    Public Interface IGoo
         ' interface
         ReadOnly Property Prop As IDisposable
     End Interface
 
-    Public Class CFoo
-        Implements IFoo
+    Public Class CGoo
+        Implements IGoo
         ' enum
         Public PublicField As DayOfWeek
-        Public ReadOnly Property Prop As IDisposable Implements IFoo.Prop
+        Public ReadOnly Property Prop As IDisposable Implements IGoo.Prop
             Get
                 Return Nothing
             End Get
@@ -290,10 +290,10 @@ Imports N20 = Mscorlib20
 
 Class Test
     Public Function M() As IDisposable
-        Dim obj = New N20.CFoo()
-        Dim ifoo As N20.IFoo = obj
+        Dim obj = New N20.CGoo()
+        Dim igoo As N20.IGoo = obj
         If obj.Publicfield = DayOfWeek.Friday Then  'BIND1:"obj.Publicfield"
-            Return ifoo.Prop                        'BIND2:"ifoo.Prop"
+            Return igoo.Prop                        'BIND2:"igoo.Prop"
         End If
 
         Return Nothing
@@ -305,13 +305,13 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
             '
-            Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
+            Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name)
             ' ver20Symbols = ver20Symbols.Where(Function(s) Not IsAccessor(s) And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).[Select](Function(s) s).ToList()
-            ''  IFoo.Prop, CFoo.Prop, Field
+            ''  IGoo.Prop, CGoo.Prop, Field
             Assert.Equal(3, ver20Symbols.Count)
 
             ' ====================
@@ -340,17 +340,17 @@ Imports System
 
 Namespace Mscorlib20
 
-    Public Interface IFoo
+    Public Interface IGoo
         ' class
         Default Property Item(t As ArgumentException) As Exception
     End Interface
 
-    Public Class CFoo
-        Implements IFoo
+    Public Class CGoo
+        Implements IGoo
         ' delegate
         Public Event PublicEventField As System.Threading.ParameterizedThreadStart
 
-        Default Public Property Item(t As ArgumentException) As Exception Implements IFoo.Item
+        Default Public Property Item(t As ArgumentException) As Exception Implements IGoo.Item
             Get
                 Return t
             End Get
@@ -370,10 +370,10 @@ Imports N20 = Mscorlib20
 
 Class Test
     Public Sub M()
-        Dim obj = New N20.CFoo()
+        Dim obj = New N20.CGoo()
         AddHandler obj.Publiceventfield, AddressOf MyEveHandler 'BIND1:"obj.Publiceventfield"
-        Dim ifoo As N20.IFoo = obj
-        Dim local = ifoo(Nothing)                               'BIND2:"ifoo(Nothing)"
+        Dim igoo As N20.IGoo = obj
+        Dim local = igoo(Nothing)                               'BIND2:"igoo(Nothing)"
     End Sub
 
     Public Sub MyEveHandler(o As Object)
@@ -382,11 +382,11 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
-            Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).ToList()
-            ' default property IFoo.Item, CFoo.Item, Event 
+            ' default property IGoo.Item, CGoo.Item, Event 
             Assert.Equal(3, ver20Symbols.Count)
 
             ' ====================
@@ -398,14 +398,12 @@ End Class
             ResolveAndVerifySymbol(list(0), ver20Symbols(2), model, comp20)
             ResolveAndVerifyTypeSymbol(list(0), DirectCast(ver20Symbols(2), IEventSymbol).Type, model, comp20)
 
-            ' ifoo(Nothing)
+            ' igoo(Nothing)
             ResolveAndVerifySymbol(list(1), ver20Symbols(0), model, comp20)
             ResolveAndVerifyTypeSymbol(list(1), DirectCast(ver20Symbols(0), IPropertySymbol).Type, model, comp20)
-
         End Sub
 
 #End Region
 
     End Class
-
 End Namespace

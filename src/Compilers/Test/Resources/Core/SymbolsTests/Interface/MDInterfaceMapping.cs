@@ -7,22 +7,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-public interface IFoo
+public interface IGoo
 {
-    void Foo();
+    void Goo();
 }
 
 public class A
 {
-    public void Foo() { Console.WriteLine("A.Foo"); }
+    public void Goo() { Console.WriteLine("A.Goo"); }
 }
 
-public class B : A, IFoo
+public class B : A, IGoo
 {
 }
 
 public class C : B
 {
-    public new void Foo() { Console.WriteLine("C.Foo"); }
+    public new void Goo() { Console.WriteLine("C.Goo"); }
 }
 

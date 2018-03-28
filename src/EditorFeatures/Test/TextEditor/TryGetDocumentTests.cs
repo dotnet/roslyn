@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
     {
         [Fact]
         [WorkItem(624315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
-        public async Task MultipleTextChangesTest()
+        public void MultipleTextChangesTest()
         {
             var code = @"class C
 ";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
         }
 
         [Fact]
-        public async Task EmptyTextChanges()
+        public void EmptyTextChanges()
         {
             var code = @"class C";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -71,10 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 Assert.True(buffer.CurrentSnapshot.Version.ReiteratedVersionNumber == 1);
 
                 var newText = buffer.CurrentSnapshot.AsText();
-                Assert.Same(text, newText);
+
+                // different buffer snapshot should never return same roslyn text snapshot
+                Assert.NotSame(text, newText);
 
                 Document newDocument = newText.GetRelatedDocumentsWithChanges().First();
-                Assert.Same(document, newDocument);
+
+                // different text snapshot never gives back same roslyn snapshot
+                Assert.NotSame(document, newDocument);
             }
         }
     }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,14 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
-            var invocation = node as InvocationExpressionSyntax;
-            if (invocation != null)
+            if (node is InvocationExpressionSyntax invocation)
             {
                 return invocation.Expression.GetRightmostName();
             }
 
-            var memberBindingExpression = node as MemberBindingExpressionSyntax;
-            if (memberBindingExpression != null)
+            if (node is MemberBindingExpressionSyntax memberBindingExpression)
             {
                 return memberBindingExpression.Name;
             }
@@ -55,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
             return node;
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateConversionService>();
             return service.GenerateConversionAsync(document, node, cancellationToken);

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -111,6 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case value.Kind
+                Case BoundKind.Call
+                    Return UseTwiceCall(containingMember, DirectCast(value, BoundCall), temporaries)
                 Case BoundKind.ArrayAccess
                     Return UseTwiceArrayAccess(containingMember, DirectCast(value, BoundArrayAccess), temporaries)
                 Case BoundKind.FieldAccess
@@ -196,11 +199,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
+        Private Shared Function UseTwiceCall(containingMember As Symbol, node As BoundCall, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
+            Debug.Assert(node.IsLValue)
+            Return UseTwiceLValue(containingMember, node, arg)
+        End Function
+
         Private Shared Function UseTwiceArrayAccess(containingMember As Symbol, node As BoundArrayAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
 
             Debug.Assert(node.IsLValue)
 
 #If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
+#Else
+            If IsInvariantArray(node.Expression.Type) Then
+                Return UseTwiceLValue(containingMember, node, arg)
+            End If
+#End If
+
             ' Note, as an alternative we could capture reference to the array element in a ByRef temp.
             ' However, without an introduction of an indirect assignment node, IL-gen is unable to distinguish 
             ' when it should assign indirect or should assign a reference. For now, decided to not introduce 
@@ -224,9 +238,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(first.IsLValue AndAlso second.IsLValue)
             Return New Result(first, second)
-#Else
-            Return UseTwiceLValue(containingMember, node, arg)
-#End If
+
+        End Function
+
+        Private Shared Function IsInvariantArray(type As TypeSymbol) As Boolean
+            Dim value = TryCast(type, ArrayTypeSymbol)?.ElementType.IsNotInheritable
+            Return value.GetValueOrDefault()
         End Function
 
         Private Shared Function UseTwiceLValue(containingMember As Symbol, lvalue As BoundExpression, temporaries As ArrayBuilder(Of SynthesizedLocal)) As Result
@@ -266,8 +283,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' easier to implement.
 
                 Dim receiver As Result = UseTwiceReceiver(containingMember, node.ReceiverOpt, arg)
-                Dim first = node.Update(receiver.First, fieldSymbol, node.IsLValue, node.ConstantsInProgressOpt, node.Type)
-                Dim second = node.Update(receiver.Second, fieldSymbol, node.IsLValue, node.ConstantsInProgressOpt, node.Type)
+                Dim first = node.Update(receiver.First, fieldSymbol, node.IsLValue, suppressVirtualCalls:=False, node.ConstantsInProgressOpt, node.Type)
+                Dim second = node.Update(receiver.Second, fieldSymbol, node.IsLValue, suppressVirtualCalls:=False, node.ConstantsInProgressOpt, node.Type)
 
                 Debug.Assert(first.IsLValue AndAlso second.IsLValue)
                 Return New Result(first, second)
@@ -337,19 +354,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             propertySymbol,
                             node.PropertyGroupOpt,
                             node.AccessKind,
-                            node.IsWriteable,
-                            receiver.First,
-                            firstArgs,
-                            node.Type)
+                            isWriteable:=node.IsWriteable,
+                            isLValue:=node.IsLValue,
+                            receiverOpt:=receiver.First,
+                            arguments:=firstArgs,
+                            type:=node.Type)
 
             Dim second = node.Update(
                             propertySymbol,
                             node.PropertyGroupOpt,
                             node.AccessKind,
-                            node.IsWriteable,
-                            receiver.Second,
-                            secondArgs,
-                            node.Type)
+                            isWriteable:=node.IsWriteable,
+                            isLValue:=node.IsLValue,
+                            receiverOpt:=receiver.Second,
+                            arguments:=secondArgs,
+                            type:=node.Type)
 
             Return New Result(first, second)
         End Function
@@ -486,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 #If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then
-        Private Shared Function UseTwiceReceiver(containingMember As Symbol, receiverOpt As BoundExpression, arg As ArrayBuilder(Of TempLocalSymbol)) As Result
+        Private Shared Function UseTwiceReceiver(containingMember As Symbol, receiverOpt As BoundExpression, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             If receiverOpt Is Nothing Then
                 Return New Result(Nothing, Nothing)
             ElseIf receiverOpt.IsLValue AndAlso receiverOpt.Type.IsReferenceType Then

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -49,10 +50,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       tempLockObjectLocal,
                                                       objectType)
 
-            If GenerateDebugInfo Then
+            Dim instrument As Boolean = Me.Instrument(node)
+
+            If instrument Then
                 ' create a sequence point that contains the whole SyncLock statement as the first reachable sequence point
                 ' of the SyncLock statement. 
-                statements.Add(New BoundSequencePoint(syntaxNode.SyncLockStatement, Nothing))
+                Dim prologue = _instrumenterOpt.CreateSyncLockStatementPrologue(node)
+                If prologue IsNot Nothing Then
+                    statements.Add(prologue)
+                End If
             End If
 
             ' assign the lock expression / object to it to avoid changes to it
@@ -60,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                          boundLockObjectLocal,
                                                                                          visitedLockExpression,
                                                                                          suppressObjectClone:=True,
-                                                                                         Type:=objectType).ToStatement
+                                                                                         type:=objectType).ToStatement
 
             boundLockObjectLocal = boundLockObjectLocal.MakeRValue()
 
@@ -70,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim saveState As UnstructuredExceptionHandlingContext = LeaveUnstructuredExceptionHandlingContext(node)
 
-            If GenerateDebugInfo Then
-                tempLockObjectAssignment = New BoundSequencePoint(visitedLockExpression.Syntax, tempLockObjectAssignment)
+            If instrument Then
+                tempLockObjectAssignment = _instrumenterOpt.InstrumentSyncLockObjectCapture(node, tempLockObjectAssignment)
             End If
 
             statements.Add(tempLockObjectAssignment)
@@ -129,19 +135,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            ImmutableArray(Of LocalSymbol).Empty,
                                                            ImmutableArray.Create(Of BoundStatement)(statementInFinally))
 
-            If GenerateDebugInfo Then
+            If instrument Then
                 ' Add a sequence point to highlight the "End SyncLock" syntax in case the body has thrown an exception
-                finallyBody = DirectCast(InsertEndBlockSequencePoint(finallyBody,
-                                                                     syntaxNode.EndSyncLockStatement), BoundBlock)
+                finallyBody = DirectCast(Concat(finallyBody, _instrumenterOpt.CreateSyncLockExitDueToExceptionEpilogue(node)), BoundBlock)
             End If
 
             Dim rewrittenSyncLock = RewriteTryStatement(syntaxNode, tryBody, ImmutableArray(Of BoundCatchBlock).Empty, finallyBody, Nothing)
             statements.Add(rewrittenSyncLock)
 
-            If GenerateDebugInfo Then
+            If instrument Then
                 ' Add a sequence point to highlight the "End SyncLock" syntax in case the body has been complete executed and
                 ' exited normally
-                statements.Add(New BoundSequencePoint(syntaxNode.EndSyncLockStatement, Nothing))
+                Dim epilogue = _instrumenterOpt.CreateSyncLockExitNormallyEpilogue(node)
+                If epilogue IsNot Nothing Then
+                    statements.Add(epilogue)
+                End If
             End If
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)
@@ -153,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GenerateMonitorEnter(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             boundLockObject As BoundExpression,
             <Out> ByRef boundLockTakenLocal As BoundLocal,
             <Out> ByRef boundLockTakenInitialization As BoundStatement
@@ -212,11 +220,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return boundMonitorEnterCallStatement
             End If
 
-            Return New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, StaticCast(Of BoundNode).From(parameters), ErrorTypeSymbol.UnknownResultType, hasErrors:=True).ToStatement()
+            Return New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, parameters, ErrorTypeSymbol.UnknownResultType, hasErrors:=True).ToStatement()
         End Function
 
         Private Function GenerateMonitorExit(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             boundLockObject As BoundExpression,
             boundLockTakenLocal As BoundLocal
         ) As BoundStatement
@@ -236,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      exitMethod.ReturnType,
                                                      suppressObjectClone:=True)
             Else
-                boundMonitorExitCall = New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(boundLockObject), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+                boundMonitorExitCall = New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(boundLockObject), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             End If
 
             Dim boundMonitorExitCallStatement = boundMonitorExitCall.ToStatement
@@ -253,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              New BoundLiteral(syntaxNode, ConstantValue.True, boundLockTakenLocal.Type),
                                                              False,
                                                              boundLockTakenLocal.Type)
-                statementInFinally = RewriteIfStatement(syntaxNode, syntaxNode, boundCondition, boundMonitorExitCallStatement, Nothing, generateDebugInfo:=False)
+                statementInFinally = RewriteIfStatement(syntaxNode, boundCondition, boundMonitorExitCallStatement, Nothing, instrumentationTargetOpt:=Nothing)
             Else
                 statementInFinally = boundMonitorExitCallStatement
             End If

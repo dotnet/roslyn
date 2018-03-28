@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -21,41 +24,50 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         }
 
         protected abstract bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool IsClassDeclarationGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
-        protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract bool TryInitializeClassDeclarationGenerationState(SemanticDocument document, SyntaxNode classDeclaration, CancellationToken cancellationToken, out SyntaxToken token, out IMethodSymbol constructor, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out IList<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames = null);
-        protected virtual IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames = null) { return null; }
-        protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument);
-        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument) { return null; }
+        protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
+        protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
+        protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out ImmutableArray<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
+        protected abstract ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken);
+        protected virtual ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
+            => default;
+
+        protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
+        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
         protected abstract RefKind GetRefKind(TArgumentSyntax argument);
         protected abstract bool IsNamedArgument(TArgumentSyntax argument);
         protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
         protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
 
-        public async Task<IEnumerable<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateConstructor, cancellationToken))
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
+                if (state != null)
                 {
-                    return SpecializedCollections.EmptyEnumerable<CodeAction>();
+                    var result = ArrayBuilder<CodeAction>.GetInstance();
+                    var codeAction = new GenerateConstructorCodeAction((TService)this, document, state, withFields: true);
+                    result.Add(codeAction);
+
+                    // First see the type of edit our regular code action would create.  If it 
+                    // creates fields, then also offer to perform the code action without creating
+                    // any fields.
+                    var edit = await codeAction.GetEditAsync(cancellationToken).ConfigureAwait(false);
+                    if (edit.addedFields)
+                    {
+                        result.Add(
+                            new GenerateConstructorCodeAction((TService)this, document, state, withFields: false));
+                    }
+
+                    return result.ToImmutableAndFree();
                 }
-
-                return GetActions(document, state);
             }
-        }
 
-        private IEnumerable<CodeAction> GetActions(Document document, State state)
-        {
-            yield return new GenerateConstructorCodeAction((TService)this, document, state);
+            return ImmutableArray<CodeAction>.Empty;
         }
 
         protected static bool IsSymbolAccessible(

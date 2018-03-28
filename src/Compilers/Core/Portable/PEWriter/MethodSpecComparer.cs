@@ -22,15 +22,15 @@ namespace Microsoft.Cci
             }
 
             return
-                _metadataWriter.GetMethodDefOrRefCodedIndex(x.GetGenericMethod(_metadataWriter.Context)) == _metadataWriter.GetMethodDefOrRefCodedIndex(y.GetGenericMethod(_metadataWriter.Context)) &&
-                _metadataWriter.GetMethodInstanceSignatureIndex(x) == _metadataWriter.GetMethodInstanceSignatureIndex(y);
+                _metadataWriter.GetMethodDefinitionOrReferenceHandle(x.GetGenericMethod(_metadataWriter.Context)) == _metadataWriter.GetMethodDefinitionOrReferenceHandle(y.GetGenericMethod(_metadataWriter.Context)) &&
+                _metadataWriter.GetMethodSpecificationSignatureHandle(x) == _metadataWriter.GetMethodSpecificationSignatureHandle(y);
         }
 
         public int GetHashCode(IGenericMethodInstanceReference methodInstanceReference)
         {
             return Hash.Combine(
-                (int)_metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)),
-                _metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference).GetHashCode());
+                _metadataWriter.GetMethodDefinitionOrReferenceHandle(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)).GetHashCode(),
+                _metadataWriter.GetMethodSpecificationSignatureHandle(methodInstanceReference).GetHashCode());
         }
     }
 }

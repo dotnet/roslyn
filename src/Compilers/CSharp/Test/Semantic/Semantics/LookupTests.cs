@@ -17,26 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region helpers
 
-        internal List<string> GetLookupNames(string testSrc, bool experimental = false)
+        internal List<string> GetLookupNames(string testSrc)
         {
-            var compilation = experimental
-                ? CreateExperimentalCompilationWithMscorlib45(testSrc)
-                : CreateCompilationWithMscorlib45(testSrc);
+            var parseOptions = TestOptions.Regular;
+            var compilation = CreateCompilationWithMscorlib45(testSrc, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupNames(position);
         }
 
-        internal List<string> GetExperimentalLookupNames(string testSrc)
-        {
-            return GetLookupNames(testSrc, experimental: true);
-        }
-
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
         {
             var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupSymbols(position, container, name).Where(s => !arity.HasValue || arity == ((Symbol)s).GetMemberArity()).ToList();
@@ -54,7 +48,7 @@ class C
 {
     public int P => /*<bind>*/10/*</bind>*/;
 }";
-            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+            var actual = GetLookupNames(text).ListToSortedString();
 
             var expected_lookupNames = new List<string>
             {
@@ -82,7 +76,7 @@ class C
 {
     public int M() => /*<bind>*/10/*</bind>*/;
 }";
-            var actual = GetExperimentalLookupNames(text).ListToSortedString();
+            var actual = GetLookupNames(text).ListToSortedString();
 
             var expected_lookupNames = new List<string>
             {
@@ -423,7 +417,7 @@ class Test
                 "Test"
             };
 
-            var comp = CreateCompilationWithMscorlib(testSrc);
+            var comp = CreateCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var position = GetPositionForBinding(tree);
@@ -579,7 +573,7 @@ class Test
             };
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            var comp = CreateCompilationWithMscorlib(testSrc);
+            var comp = CreateCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var position = testSrc.IndexOf("return", StringComparison.Ordinal);
@@ -650,26 +644,26 @@ class Test
             Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_ignoreAcc_as_string);
         }
 
-        [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
         /// <summary>
         /// Verify that there's a way to look up only the members of the base type that are visible
         /// from the current type.
         /// </summary>
         [Fact]
+        [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
         public void LookupProtectedInBase()
         {
             var testSrc = @"
 class A
 {
     private void Hidden() { }
-    protected void Foo() { }
+    protected void Goo() { }
 }
  
 class B : A
 {
     void Bar()
     {
-        /*<bind>*/base/*</bind>*/.Foo();
+        /*<bind>*/base/*</bind>*/.Goo();
     }
 }
 ";
@@ -694,10 +688,10 @@ class B : A
             Assert.Equal("A", baseExprType.Name);
 
             var symbols = model.LookupBaseMembers(baseExprLocation);
-            Assert.Equal("void A.Foo()", symbols.Single().ToTestDisplayString());
+            Assert.Equal("void A.Goo()", symbols.Single().ToTestDisplayString());
 
             var names = model.LookupNames(baseExprLocation, useBaseReferenceAccessibility: true);
-            Assert.Equal("Foo", names.Single());
+            Assert.Equal("Goo", names.Single());
         }
 
         [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
@@ -1231,7 +1225,7 @@ public class NumberSpecification<TCandidate>
         var key = candidate.Key;
     }
 }";
-            CreateCompilationWithMscorlib(testSrc).VerifyDiagnostics();
+            CreateCompilation(testSrc).VerifyDiagnostics();
         }
 
         [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
@@ -1280,7 +1274,7 @@ class Program
 {
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilationWithMscorlib40(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var eof = tree.GetCompilationUnitRoot().FullSpan.End;
             Assert.NotEqual(eof, 0);
@@ -1411,7 +1405,7 @@ class Q : P
         return 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "m.M").Single();
@@ -1428,7 +1422,7 @@ class Q : P
         public void TestLookupVerbatimVar()
         {
             var source = "class C { public static void Main() { @var v = 1; } }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 // class C { public static void Main() { @var v = 1; } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
@@ -1472,7 +1466,7 @@ class C
         /*<bind>*/this.F/*</bind>*/();
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             compilation.VerifyDiagnostics();
@@ -1504,7 +1498,7 @@ class C
         (new System.Action(/*<bind1>*/this.F/*</bind1>*/))();
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             compilation.VerifyDiagnostics();
@@ -1528,7 +1522,7 @@ class C
         public void GenericNameLookup()
         {
             var source = @"using A = List<int>;";
-            var compilation = CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (1,11): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 // using A = List<int>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(1, 11),
@@ -1552,7 +1546,7 @@ class C
     {
         int result = 0;
         Dels Test : Base";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             SemanticModel imodel = model;
@@ -1579,7 +1573,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             SemanticModel imodel = model;
@@ -1620,7 +1614,7 @@ class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1666,7 +1660,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1694,7 +1688,7 @@ public class C<T>
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -1729,7 +1723,7 @@ public class Outer
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1747,7 +1741,7 @@ public class Outer
             const string source = @"
 class C
 {
-    static void Foo<T>()
+    static void Goo<T>()
     {
         /*<bind>*/T/*</bind>*/();
     }
@@ -1766,14 +1760,14 @@ class C
 class C
 {
     const int T = 42;
-    static void Foo<T>(int x = /*<bind>*/T/*</bind>*/)
+    static void Goo<T>(int x = /*<bind>*/T/*</bind>*/)
     {
         System.Console.Write(x);
     }
 
     static void Main()
     {
-        Foo<object>();
+        Goo<object>();
     }
 }";
 
@@ -1794,7 +1788,7 @@ class C
 {
     const int T = 42;
 
-    static void Foo<T>([A(/*<bind>*/T/*</bind>*/)] int x)
+    static void Goo<T>([A(/*<bind>*/T/*</bind>*/)] int x)
     {
     }
 }";
@@ -1817,7 +1811,7 @@ class C
     const int T = 42;
 
     [A(/*<bind>*/T/*</bind>*/)]
-    static void Foo<T>(int x)
+    static void Goo<T>(int x)
     {
     }
 }";
@@ -1839,7 +1833,7 @@ class C
 {
     const int T = 42;
 
-    static void Foo<[A(/*<bind>*/T/*</bind>*/)] T>(int x)
+    static void Goo<[A(/*<bind>*/T/*</bind>*/)] T>(int x)
     {
     }
 }";
@@ -1856,14 +1850,14 @@ class C
 {
     class T { }
 
-    static void Foo<T>(T x = default(/*<bind>*/T/*</bind>*/))
+    static void Goo<T>(T x = default(/*<bind>*/T/*</bind>*/))
     {
         System.Console.Write((object)x == null);
     }
 
     static void Main()
     {
-        Foo<object>();
+        Goo<object>();
     }
 }";
 
@@ -1879,18 +1873,18 @@ class C
 {
     class T { }
 
-    static void Foo<T>(T x = default(/*<bind>*/T/*</bind>*/))
+    static void Goo<T>(T x = default(/*<bind>*/T/*</bind>*/))
     {
         System.Console.Write((object)x == null);
     }
 
     static void Main()
     {
-        Foo<object>();
+        Goo<object>();
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1918,7 +1912,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var ms = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").OfType<MethodSymbol>();
@@ -1949,7 +1943,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
@@ -1979,7 +1973,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
@@ -2007,7 +2001,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

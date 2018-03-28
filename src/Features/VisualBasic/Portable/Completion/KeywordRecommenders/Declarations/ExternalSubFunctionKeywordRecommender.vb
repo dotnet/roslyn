@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Dim targetToken = context.TargetToken
             If targetToken.IsKind(SyntaxKind.DeclareKeyword, SyntaxKind.AnsiKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.AutoKeyword) AndAlso
                targetToken.GetAncestor(Of DeclareStatementSyntax)() IsNot Nothing Then
-                Return {New RecommendedKeyword("Function", VBFeaturesResources.ExternFunctionKeywordToolTip),
-                        New RecommendedKeyword("Sub", VBFeaturesResources.ExternSubKeywordToolTip)}
+                Return {New RecommendedKeyword("Function", VBFeaturesResources.Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Function),
+                        New RecommendedKeyword("Sub", VBFeaturesResources.Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Sub)}
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

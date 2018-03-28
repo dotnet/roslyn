@@ -147,15 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         symbol.TypeArguments[0].Accept(this.NotFirstVisitor);
-
-                        if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
-                        {
-                            var namedType = symbol as NamedTypeSymbol;
-                            if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
-                            {
-                                AddCustomModifiersIfRequired(namedType.TypeArgumentsCustomModifiers[0], leadingSpace: true, trailingSpace: false);
-                            }
-                        }
+                        AddCustomModifiersIfRequired(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
 
                         AddPunctuation(SyntaxKind.QuestionToken);
 
@@ -165,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (this.IsMinimizing)
+            if (this.IsMinimizing || symbol.IsTupleType)
             {
                 MinimallyQualify(symbol);
                 return;
@@ -178,10 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
                     var invokeMethod = symbol.DelegateInvokeMethod;
-                    var invokeMethodSymbol = invokeMethod as MethodSymbol;
-                    if (invokeMethodSymbol != null)
+                    if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefKindIfRequired(invokeMethodSymbol.RefKind);
+                        AddRefIfRequired();
+                    }
+                    else if (invokeMethod.ReturnsByRefReadonly)
+                    {
+                        AddRefReadonlyIfRequired();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -237,6 +232,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddAnonymousTypeName(symbol);
                 return;
+            }
+            else if (symbol.IsTupleType)
+            {
+                // If top level tuple uses non-default names, there is no way to preserve them
+                // unless we use tuple syntax for the type. So, we give them priority.
+                if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
+                {
+                    AddTupleTypeName(symbol);
+                    return;
+                }
+
+                // Fall back to displaying the underlying type.
+                symbol = symbol.TupleUnderlyingType;
             }
 
             string symbolName = null;
@@ -312,18 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
-                    if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
-                    {
-                        var namedType = symbol as NamedTypeSymbol;
-                        if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
-                        {
-                            modifiers = namedType.TypeArgumentsCustomModifiers;
-                        }
-                    }
-
-                    AddTypeArguments(symbol.TypeArguments, modifiers);
+                    AddTypeArguments(symbol.TypeArguments, symbol);
 
                     AddDelegateParameters(symbol);
 
@@ -376,6 +373,70 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = $"<anonymous type: {members}>";
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name));
             }
+        }
+
+        /// <summary>
+        /// Returns true if tuple type syntax can be used to refer to the tuple type without loss of information.
+        /// For example, it cannot be used when extension tuple is using non-default friendly names. 
+        /// </summary>
+        /// <param name="tupleSymbol"></param>
+        /// <returns></returns>
+        private bool CanUseTupleTypeName(INamedTypeSymbol tupleSymbol)
+        {
+            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
+
+            if (currentUnderlying.Arity == 1)
+            {
+                return false;
+            }
+
+            while (currentUnderlying.Arity == TupleTypeSymbol.RestPosition)
+            {
+                tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[TupleTypeSymbol.RestPosition - 1];
+                Debug.Assert(tupleSymbol.IsTupleType);
+
+                if (HasNonDefaultTupleElements(tupleSymbol))
+                {
+                    return false;
+                }
+
+                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+            }
+
+            return true;
+        }
+
+        private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
+        {
+            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
+        }
+
+        private void AddTupleTypeName(INamedTypeSymbol symbol)
+        {
+            Debug.Assert(symbol.IsTupleType);
+
+            ImmutableArray<IFieldSymbol> elements = symbol.TupleElements;
+
+            AddPunctuation(SyntaxKind.OpenParenToken);
+            for (int i = 0; i < elements.Length; i++)
+            {
+                var element = elements[i];
+
+                if (i != 0)
+                {
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                element.Type.Accept(this.NotFirstVisitor);
+                if (!element.IsImplicitlyDeclared)
+                {
+                    AddSpace();
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
+                }
+            }
+
+            AddPunctuation(SyntaxKind.CloseParenToken);
         }
 
         private string CreateAnonymousTypeMember(IPropertySymbol property)
@@ -479,35 +540,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "AnonymousType"));
                     AddSpace();
                 }
+                else if (symbol.IsTupleType)
+                {
+                    builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "Tuple"));
+                    AddSpace();
+                }
                 else
                 {
-                    var kindKeyword = GetKindKeyword(symbol.TypeKind);
-                    if (kindKeyword != SyntaxKind.None)
+                    switch (symbol.TypeKind)
                     {
-                        AddKeyword(kindKeyword);
-                        AddSpace();
+                        case TypeKind.Module:
+                        case TypeKind.Class:
+                            AddKeyword(SyntaxKind.ClassKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Enum:
+                            AddKeyword(SyntaxKind.EnumKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Delegate:
+                            AddKeyword(SyntaxKind.DelegateKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Interface:
+                            AddKeyword(SyntaxKind.InterfaceKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Struct:
+                            if (symbol is NamedTypeSymbol csharpType)
+                            {
+                                if (csharpType.IsReadOnly)
+                                {
+                                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                    AddSpace();
+                                }
+
+                                if (csharpType.IsByRefLikeType)
+                                {
+                                    AddKeyword(SyntaxKind.RefKeyword);
+                                    AddSpace();
+                                }
+                            }
+
+                            AddKeyword(SyntaxKind.StructKeyword);
+                            AddSpace();
+                            break;
                     }
                 }
-            }
-        }
-
-        private static SyntaxKind GetKindKeyword(TypeKind typeKind)
-        {
-            switch (typeKind)
-            {
-                case TypeKind.Module:
-                case TypeKind.Class:
-                    return SyntaxKind.ClassKeyword;
-                case TypeKind.Enum:
-                    return SyntaxKind.EnumKeyword;
-                case TypeKind.Delegate:
-                    return SyntaxKind.DelegateKeyword;
-                case TypeKind.Interface:
-                    return SyntaxKind.InterfaceKeyword;
-                case TypeKind.Struct:
-                    return SyntaxKind.StructKeyword;
-                default:
-                    return SyntaxKind.None;
             }
         }
 
@@ -530,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         //returns true if there are constraints
-        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<ImmutableArray<CustomModifier>> modifiers)
+        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, INamedTypeSymbol modifiersSourceOpt = null)
         {
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
@@ -558,12 +641,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        typeArg.Accept(this.NotFirstVisitor);
+                        typeArg.Accept(this.NotFirstVisitorNamespaceOrType);
                     }
 
-                    if (!modifiers.IsDefault)
+                    if (modifiersSourceOpt != null)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfRequired(modifiersSourceOpt.GetTypeArgumentCustomModifiers(i), leadingSpace: true, trailingSpace: false);
                     }
                 }
 
@@ -605,6 +688,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
+                                needComma = true;
+                            }
+                            else if (typeParam.HasUnmanagedTypeConstraint)
+                            {
+                                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "unmanaged"));
                                 needComma = true;
                             }
                             else if (typeParam.HasValueTypeConstraint)

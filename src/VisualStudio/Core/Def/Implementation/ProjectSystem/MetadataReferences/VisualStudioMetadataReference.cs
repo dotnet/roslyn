@@ -12,7 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class VisualStudioMetadataReference : IDisposable
     {
         private readonly VisualStudioMetadataReferenceManager _provider;
-        private readonly IVisualStudioHostProject _hostProject;
         private readonly MetadataReferenceProperties _properties;
         private readonly FileChangeTracker _fileChangeTracker;
 
@@ -22,14 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioMetadataReference(
             VisualStudioMetadataReferenceManager provider,
-            IVisualStudioHostProject hostProject,
             string filePath,
             MetadataReferenceProperties properties)
         {
             Contract.ThrowIfTrue(properties.Kind != MetadataImageKind.Assembly);
 
             _provider = provider;
-            _hostProject = hostProject;
             _properties = properties;
 
             // We don't track changes to netmodules linked to the assembly.
@@ -42,11 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string FilePath
         {
             get { return _fileChangeTracker.FilePath; }
-        }
-
-        public IVisualStudioHostProject Project
-        {
-            get { return _hostProject; }
         }
 
         public MetadataReferenceProperties Properties

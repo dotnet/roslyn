@@ -74,14 +74,14 @@ namespace Roslyn.Utilities
         /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was
         /// canceled.</exception>
         /// <exception cref="LockRecursionException">The caller already holds the lock</exception>
-        public void Wait(CancellationToken cancellationToken = default(CancellationToken))
+        public void Wait(CancellationToken cancellationToken = default)
         {
             if (this.IsOwnedByMe)
             {
                 throw new LockRecursionException();
             }
 
-            CancellationTokenRegistration cancellationTokenRegistration = default(CancellationTokenRegistration);
+            CancellationTokenRegistration cancellationTokenRegistration = default;
 
             if (cancellationToken.CanBeCanceled)
             {
@@ -229,7 +229,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public SemaphoreDisposer DisposableWait(CancellationToken cancellationToken = default(CancellationToken))
+        public SemaphoreDisposer DisposableWait(CancellationToken cancellationToken = default)
         {
             this.Wait(cancellationToken);
             return new SemaphoreDisposer(this);

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For example, if were binding attributes on delegate type symbol for below code snippet:
         //      [A1]
         //      [return: A2]
-        //      public delegate void Foo();
+        //      public delegate void Goo();
         // attributesToBind will only contain first attribute syntax.
         internal static void BindAttributeTypes(ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes, DiagnosticBag diagnostics)
         {
@@ -158,6 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
             }
 
+            if (attributeConstructor?.Parameters.Any(p => p.RefKind == RefKind.In) == true)
+            {
+                Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            }
+
             var constructorArguments = analyzedArguments.ConstructorArguments;
             ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
@@ -230,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // When early binding attributes, we don't want to determine if the attribute type is conditional and if so, must be emitted or not.
             // Invoking IsConditional property on attributeType can lead to a cycle, hence we delay this computation until after early binding.
@@ -265,10 +271,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private AnalyzedAttributeArguments BindAttributeArguments(AttributeArgumentListSyntax attributeArgumentList, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private AnalyzedAttributeArguments BindAttributeArguments(
+            AttributeArgumentListSyntax attributeArgumentList,
+            NamedTypeSymbol attributeType,
+            DiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
             var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
+
             if (attributeArgumentList != null)
             {
                 ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
@@ -279,20 +289,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // matching Dev10 compiler behavior.
                 bool hadError = false;
 
+                // Only report the first "non-trailing named args required C# 7.2" error,
+                // so as to avoid "cascading" errors.
+                bool hadLangVersionError = false;
+
+                var shouldHaveName = false;
+
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
                     if (argument.NameEquals == null)
                     {
+                        if (shouldHaveName)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NamedArgumentExpected, argument.Expression.GetLocation());
+                        }
+
                         // Constructor argument
-                        hadError |= this.BindArgumentAndName(
+                        this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
-                            hadError,
+                            ref hadError,
+                            ref hadLangVersionError,
                             argument,
-                            argument.Expression,
+                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,
-                            refKind: RefKind.None,
-                            allowArglist: false);
+                            refKind: RefKind.None);
 
                         if (boundNamedArgumentsBuilder != null)
                         {
@@ -303,6 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        shouldHaveName = true;
+
                         // Named argument
                         // TODO: use fully qualified identifier name for boundNamedArgumentsSet
                         string argumentName = argument.NameEquals.Name.Identifier.ValueText;
@@ -509,9 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// if named constructor arguments are used.
         /// 
         /// For example:
-        ///     void Foo(int x, int y, int z, int w = 3);
+        ///     void Goo(int x, int y, int z, int w = 3);
         /// 
-        ///     Foo(0, z: 2, y: 1);
+        ///     Goo(0, z: 2, y: 1);
         ///     
         ///     Arguments returned: 0, 1, 2, 3
         /// </summary>
@@ -560,8 +583,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (parameter.IsParams && parameter.Type.IsSZArray() && i + 1 == parameterCount)
                 {
-                    reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, argumentsCount, argsConsumedCount, this.Conversions);
-                    sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
+                    reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, constructorArgumentNamesOpt, argumentsCount,
+                        argsConsumedCount, this.Conversions, out bool foundNamed);
+                    if (!foundNamed)
+                    {
+                        sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
+                    }
                 }
                 else if (argsConsumedCount < argumentsCount)
                 {
@@ -802,41 +829,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray, int argumentsCount, int argsConsumedCount, Conversions conversions)
+        private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
+            ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions, out bool foundNamed)
         {
             Debug.Assert(argsConsumedCount <= argumentsCount);
 
+            // If there's a named argument, we'll use that
+            if (!constructorArgumentNamesOpt.IsDefault)
+            {
+                int argIndex = constructorArgumentNamesOpt.IndexOf(parameter.Name);
+                if (argIndex >= 0)
+                {
+                    foundNamed = true;
+                    if (TryGetNormalParamValue(parameter, constructorArgsArray, argIndex, conversions, out var namedValue))
+                    {
+                        return namedValue;
+                    }
+
+                    // A named argument for a params parameter is necessarily the only one for that parameter
+                    return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[argIndex]));
+                }
+            }
+
             int paramArrayArgCount = argumentsCount - argsConsumedCount;
+            foundNamed = false;
+
+            // If there are zero arguments left
             if (paramArrayArgCount == 0)
             {
                 return new TypedConstant(parameter.Type, ImmutableArray<TypedConstant>.Empty);
             }
 
-            // If there's exactly one argument and it's an array of an appropriate type, then just return it.
-            if (paramArrayArgCount == 1 && constructorArgsArray[argsConsumedCount].Kind == TypedConstantKind.Array)
+            // If there's exactly one argument left, we'll try to use it in normal form
+            if (paramArrayArgCount == 1 &&
+                TryGetNormalParamValue(parameter, constructorArgsArray, argsConsumedCount, conversions, out var lastValue))
             {
-                TypeSymbol argumentType = (TypeSymbol)constructorArgsArray[argsConsumedCount].Type;
-
-                // Easy out (i.e. don't both classifying conversion).
-                if (argumentType == parameter.Type)
-                {
-                    return constructorArgsArray[argsConsumedCount];
-                }
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-                Conversion conversion = conversions.ClassifyConversion(argumentType, parameter.Type, ref useSiteDiagnostics, builtinOnly: true);
-
-                // NOTE: Won't always succeed, even though we've performed overload resolution.
-                // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
-                if (conversion.IsValid && conversion.Kind == ConversionKind.ImplicitReference)
-                {
-                    return constructorArgsArray[argsConsumedCount];
-                }
+                return lastValue;
             }
 
             Debug.Assert(!constructorArgsArray.IsDefault);
             Debug.Assert(argsConsumedCount <= constructorArgsArray.Length);
 
+            // Take the trailing arguments as an array for expanded form
             var values = new TypedConstant[paramArrayArgCount];
 
             for (int i = 0; i < paramArrayArgCount; i++)
@@ -845,6 +879,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new TypedConstant(parameter.Type, values.AsImmutableOrNull());
+        }
+
+        private static bool TryGetNormalParamValue(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
+            int argIndex, Conversions conversions, out TypedConstant result)
+        {
+            TypedConstant argument = constructorArgsArray[argIndex];
+            if (argument.Kind != TypedConstantKind.Array)
+            {
+                result = default;
+                return false;
+            }
+
+            TypeSymbol argumentType = (TypeSymbol)argument.Type;
+            // Easy out (i.e. don't bother classifying conversion).
+            if (argumentType == parameter.Type)
+            {
+                result = argument;
+                return true;
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
+            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
+
+            // NOTE: Won't always succeed, even though we've performed overload resolution.
+            // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
+            if (conversion.IsValid && conversion.Kind == ConversionKind.ImplicitReference)
+            {
+                result = argument;
+                return true;
+            }
+
+            result = default;
+            return false;
         }
 
         #endregion

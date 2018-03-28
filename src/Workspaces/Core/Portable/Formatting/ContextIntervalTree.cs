@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -27,12 +25,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             _edgeExclusivePredicate = ContainsEdgeExclusive;
             _edgeInclusivePredicate = ContainsEdgeInclusive;
             _containPredicate = (value, start, end) => Contains(value, start, end, Introspector);
-        }
-
-        public void AddIntervalInPlace(T value)
-        {
-            var newNode = new Node(value);
-            this.root = Insert(root, newNode, Introspector);
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
@@ -131,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         if (predicate(currentNode.Value, start, length))
                         {
                             // hold onto best answer
-                            if (EqualityComparer<T>.Default.Equals(result, default(T)) ||
+                            if (EqualityComparer<T>.Default.Equals(result, default) ||
                                 (Introspector.GetStart(result) <= Introspector.GetStart(currentNode.Value) &&
                                  Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result)))
                             {
@@ -162,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                             {
                                 // right side tree doesn't have any answer or if the right side has
                                 // an answer but left side can have better answer then try left side
-                                if (EqualityComparer<T>.Default.Equals(result, default(T)) ||
+                                if (EqualityComparer<T>.Default.Equals(result, default) ||
                                     Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
                                 {
                                     // put left as new root, and break out inner loop

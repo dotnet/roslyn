@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -17,10 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void AddProject(AbstractProject project)
         {
-            var provider = project as IProjectCodeModelProvider;
-            if (provider != null)
+            if (project.ProjectCodeModel is ProjectCodeModel projectCodeModel)
             {
-                var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
+                var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
 
                 foreach (var fcm in fcms)
                 {

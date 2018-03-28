@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<SymbolDisplayPart> ToSymbolDisplayParts(this string text)
         {
-            return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text));
+            return ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text));
         }
 
         public static int GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(this string line, int tabSize)
@@ -225,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var caseSensitive = builder.KeyComparer == StringComparer.Ordinal;
             Contract.Requires(builder.KeyComparer == StringComparer.Ordinal || builder.KeyComparer == StringComparer.OrdinalIgnoreCase);
-
-            string aliasWithoutAttribute;
-            if (alias.TryGetWithoutAttributeSuffix(caseSensitive, out aliasWithoutAttribute))
+            if (alias.TryGetWithoutAttributeSuffix(caseSensitive, out var aliasWithoutAttribute))
             {
                 builder.Add(aliasWithoutAttribute);
                 return;

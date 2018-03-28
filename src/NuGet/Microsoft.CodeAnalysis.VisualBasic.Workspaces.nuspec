@@ -1,12 +1,16 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-  <metadata>
+  <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.VisualBasic.Workspaces</id>
+    <summary>
+      .NET Compiler Platform ("Roslyn") support for analyzing Visual Basic projects and solutions.
+    </summary>
     <description>
       .NET Compiler Platform ("Roslyn") support for analyzing Visual Basic projects and solutions.
-      
-Supported Platforms:
-- .NET Framework 4.5
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.VisualBasic" version="[$version$]" />
@@ -21,14 +25,13 @@ Supported Platforms:
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\netstandard1.3" />
+    <!-- Include PDB unless embedded into DLL -->
+    <file src="Dlls\BasicWorkspace\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicWorkspace\Microsoft.CodeAnalysis.VisualBasic.Workspaces.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicWorkspace\Microsoft.CodeAnalysis.VisualBasic.Workspaces.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

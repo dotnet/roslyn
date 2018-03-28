@@ -3,19 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Evaluation;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Tasks.Hosting;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -33,14 +24,15 @@ namespace Microsoft.CodeAnalysis.VisualBasic
         {
         }
 
-        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
+        protected override ProjectFile CreateProjectFile(LoadedProjectInfo info)
         {
-            return new VisualBasicProjectFile(this, loadedProject);
+            return new VisualBasicProjectFile(this, info.Project, info.ErrorMessage);
         }
 
         internal class VisualBasicProjectFile : ProjectFile
         {
-            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject) : base(loader, loadedProject)
+            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage) 
+                : base(loader, loadedProject, errorMessage)
             {
             }
 
@@ -63,31 +55,35 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
             {
                 var compilerInputs = new VisualBasicCompilerInputs(this);
-                var executedProject = await BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(false);
+                var buildInfo = await BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
                 if (!compilerInputs.Initialized)
                 {
-                    InitializeFromModel(compilerInputs, executedProject);
+                    InitializeFromModel(compilerInputs, buildInfo.Project);
                 }
 
-                return CreateProjectFileInfo(compilerInputs, executedProject);
+                return CreateProjectFileInfo(compilerInputs, buildInfo);
             }
 
-            private ProjectFileInfo CreateProjectFileInfo(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, ProjectInstance executedProject)
+            private ProjectFileInfo CreateProjectFileInfo(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, BuildInfo buildInfo)
             {
                 string outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 string assemblyName = this.GetAssemblyName();
+                var documents = buildInfo.Project != null ? this.GetDocuments(compilerInputs.Sources, buildInfo.Project) : SpecializedCollections.EmptyEnumerable<DocumentFileInfo>();
+                var additionalDocuments = buildInfo.Project != null ? this.GetDocuments(compilerInputs.AdditionalFiles, buildInfo.Project) : SpecializedCollections.EmptyEnumerable<DocumentFileInfo>();
+                var projectRefeferences = buildInfo.Project != null ? base.GetProjectReferences(buildInfo.Project) : SpecializedCollections.EmptyEnumerable<ProjectFileReference>();
 
                 return new ProjectFileInfo(
                     outputPath,
                     assemblyName,
                     compilerInputs.CommandLineArgs,
-                    this.GetDocuments(compilerInputs.Sources, executedProject),
-                    this.GetDocuments(compilerInputs.AdditionalFiles, executedProject),
-                    base.GetProjectReferences(executedProject));
+                    documents,
+                    additionalDocuments,
+                    projectRefeferences,
+                    buildInfo.ErrorMessage);
             }
 
-            private IEnumerable<DocumentFileInfo> GetDocuments(IEnumerable<ITaskItem> sources, ProjectInstance executedProject)
+            private IEnumerable<DocumentFileInfo> GetDocuments(IEnumerable<MSB.Framework.ITaskItem> sources, MSB.Execution.ProjectInstance executedProject)
             {
                 IEnumerable<DocumentFileInfo> result;
                 if (sources == null)
@@ -106,7 +102,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     .Select(s => new DocumentFileInfo(GetDocumentFilePath(s), GetDocumentLogicalPath(s, projectDirectory), IsDocumentLinked(s), IsDocumentGenerated(s))).ToImmutableArray();
             }
 
-            private void InitializeFromModel(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, ProjectInstance executedProject)
+            private void InitializeFromModel(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
             {
                 compilerInputs.BeginInitialization();
                 compilerInputs.SetBaseAddress(base.ReadPropertyString(executedProject, "OutputType"), base.ReadPropertyString(executedProject, "BaseAddress"));
@@ -180,27 +176,25 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.SetVBRuntime(base.ReadPropertyString(executedProject, "VbRuntime"));
                 compilerInputs.SetWarningsAsErrors(base.ReadPropertyString(executedProject, "WarningsAsErrors"));
                 compilerInputs.SetWarningsNotAsErrors(base.ReadPropertyString(executedProject, "WarningsNotAsErrors"));
-                compilerInputs.SetReferences(this.GetMetadataReferencesFromModel(executedProject).ToArray<ITaskItem>());
-                compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray<ITaskItem>());
-                compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray<ITaskItem>());
-                compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray<ITaskItem>());
+                compilerInputs.SetReferences(this.GetMetadataReferencesFromModel(executedProject).ToArray());
+                compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
+                compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
+                compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
                 compilerInputs.EndInitialization();
             }
 
             private class VisualBasicCompilerInputs :
                 MSB.Tasks.Hosting.IVbcHostObject5,
-                MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
-#if !MSBUILD12
-                , IAnalyzerHostObject
-#endif
+                MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded,
+                MSB.Tasks.Hosting.IAnalyzerHostObject
             {
                 private readonly VisualBasicProjectFile _projectFile;
                 private bool _initialized;
                 private string _projectDirectory;
                 private string _outputDirectory;
                 private List<string> _commandLineArgs;
-                private IEnumerable<ITaskItem> _sources;
-                private IEnumerable<ITaskItem> _additionalFiles;
+                private IEnumerable<MSB.Framework.ITaskItem> _sources;
+                private IEnumerable<MSB.Framework.ITaskItem> _additionalFiles;
 
                 private string _outputFileName;
                 private bool _emitDocComments;
@@ -212,8 +206,8 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 {
                     _projectFile = projectFile;
                     _commandLineArgs = new List<string>();
-                    _sources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
-                    _additionalFiles = SpecializedCollections.EmptyEnumerable<ITaskItem>(); ;
+                    _sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _additionalFiles = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>(); ;
                     _projectDirectory = Path.GetDirectoryName(projectFile.FilePath);
                     _outputDirectory = projectFile.GetOutputDirectory();
                 }
@@ -228,12 +222,12 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     get { return _commandLineArgs; }
                 }
 
-                public IEnumerable<ITaskItem> Sources
+                public IEnumerable<MSB.Framework.ITaskItem> Sources
                 {
                     get { return _sources; }
                 }
 
-                public IEnumerable<ITaskItem> AdditionalFiles
+                public IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles
                 {
                     get { return _additionalFiles; }
                 }
@@ -274,7 +268,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return false;
                 }
 
-                bool IVbcHostObjectFreeThreaded.Compile()
+                bool MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded.Compile()
                 {
                     return Compile1();
                 }
@@ -284,7 +278,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return 0;
                 }
 
-                public IVbcHostObjectFreeThreaded GetFreeThreadedHostObject()
+                public MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded GetFreeThreadedHostObject()
                 {
                     return null;
                 }
@@ -396,6 +390,16 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                             this.CommandLineArgs.Add("/debug:full");
                             return true;
                         }
+                        else if (string.Equals(debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                            return true;
+                        }
+                        else if (string.Equals(debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
+                            return true;
+                        }
                     }
 
                     return false;
@@ -478,7 +482,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetImports(ITaskItem[] importsList)
+                public bool SetImports(MSB.Framework.ITaskItem[] importsList)
                 {
                     if (importsList != null)
                     {
@@ -509,7 +513,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetLinkResources(ITaskItem[] linkResources)
+                public bool SetLinkResources(MSB.Framework.ITaskItem[] linkResources)
                 {
                     if (linkResources != null && linkResources.Length > 0)
                     {
@@ -643,7 +647,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetReferences(ITaskItem[] references)
+                public bool SetReferences(MSB.Framework.ITaskItem[] references)
                 {
                     if (references != null && references.Length > 0)
                     {
@@ -659,7 +663,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetAnalyzers(ITaskItem[] analyzerReferences)
+                public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
                 {
                     if (analyzerReferences != null && analyzerReferences.Length > 0)
                     {
@@ -672,7 +676,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetAdditionalFiles(ITaskItem[] additionalFiles)
+                public bool SetAdditionalFiles(MSB.Framework.ITaskItem[] additionalFiles)
                 {
                     if (additionalFiles != null)
                     {
@@ -697,7 +701,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetResources(ITaskItem[] resources)
+                public bool SetResources(MSB.Framework.ITaskItem[] resources)
                 {
                     if (resources != null && resources.Length > 0)
                     {
@@ -710,7 +714,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetResponseFiles(ITaskItem[] responseFiles)
+                public bool SetResponseFiles(MSB.Framework.ITaskItem[] responseFiles)
                 {
                     if (responseFiles != null && responseFiles.Length > 0)
                     {
@@ -743,7 +747,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetSources(ITaskItem[] sources)
+                public bool SetSources(MSB.Framework.ITaskItem[] sources)
                 {
                     if (sources != null)
                     {
@@ -867,7 +871,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 {
                     if (!string.IsNullOrWhiteSpace(languageVersion))
                     {
-                        _commandLineArgs.Add("/languageversion:" + languageVersion);
+                        _commandLineArgs.Add("/langversion:" + languageVersion);
                     }
 
                     return true;

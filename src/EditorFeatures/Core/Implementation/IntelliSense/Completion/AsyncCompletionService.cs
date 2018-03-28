@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -27,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
-        private readonly IList<Lazy<CompletionListProvider, OrderableLanguageAndRoleMetadata>> _allCompletionProviders;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
@@ -37,13 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
-            [ImportMany] IEnumerable<Lazy<CompletionListProvider, OrderableLanguageAndRoleMetadata>> allCompletionProviders,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
-            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
+            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService, listenerProvider,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                  asyncListeners, allCompletionProviders, autoBraceCompletionChars)
+                  autoBraceCompletionChars)
         {
         }
 
@@ -51,30 +48,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            IEnumerable<Lazy<CompletionListProvider, OrderableLanguageAndRoleMetadata>> allCompletionProviders,
             IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
             _completionPresenter = completionPresenter;
-            _asyncListeners = asyncListeners;
-            _allCompletionProviders = ExtensionOrderer.Order(allCompletionProviders);
+            _listener = listenerProvider.GetListener(FeatureAttribute.CompletionSet);
+
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
-        }
-
-        public bool WaitForComputation(ITextView textView, ITextBuffer subjectBuffer)
-        {
-            Controller controller;
-            if (!TryGetController(textView, subjectBuffer, out controller))
-            {
-                return false;
-            }
-
-            return controller.WaitForComputation();
         }
 
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
@@ -82,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             // check whether this feature is on.
-            if (!subjectBuffer.GetOption(InternalFeatureOnOffOptions.CompletionSet))
+            if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
             {
                 controller = null;
                 return false;
@@ -102,16 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
                 _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
-                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
-                _allCompletionProviders, autobraceCompletionCharSet);
+                _listener,
+                autobraceCompletionCharSet);
 
             return true;
         }
 
         private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(IContentType bufferContentType)
         {
-            ImmutableHashSet<char> set;
-            if (!_autoBraceCompletionCharSet.TryGetValue(bufferContentType, out set))
+            if (!_autoBraceCompletionCharSet.TryGetValue(bufferContentType, out var set))
             {
                 var builder = ImmutableHashSet.CreateBuilder<char>();
                 foreach (var completion in _autoBraceCompletionChars)

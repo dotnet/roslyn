@@ -2,36 +2,41 @@
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundTryCast
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, ConstantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, constantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             relaxationLambdaOpt As BoundLambda,
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, ConstantValueOpt:=Nothing, relaxationLambdaOpt:=relaxationLambdaOpt, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, constantValueOpt:=Nothing, relaxationLambdaOpt:=relaxationLambdaOpt, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            Me.New(syntax, operand, conversionKind, constantValueOpt, RelaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+        Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            Me.New(syntax, operand, conversionKind, constantValueOpt, relaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
+
+        Public Overrides ReadOnly Property ExplicitCastInCode As Boolean
+            Get
+                Return True
+            End Get
+        End Property
 
 #If DEBUG Then
         Private Sub Validate()

@@ -2,9 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -31,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (!seenNodes.Add(this))
                 {
                     // Cycle detected in extensions
-                    throw new ArgumentException(WorkspacesResources.CycleDetectedInExtensions);
+                    throw new ArgumentException(WorkspacesResources.Cycle_detected_in_extensions);
                 }
 
                 foreach (var before in this.ExtensionsBeforeMeSet)

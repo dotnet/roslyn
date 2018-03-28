@@ -29,8 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             protected override string GetDisplayText()
             {
-                var display = _reference.Display ?? ServicesVSResources.PreviewChangesUnknownReferenceName;
-                return string.Format(ServicesVSResources.PreviewChangesAnalyzerReference, display, this.ProjectName);
+                var display = _reference.Display ?? ServicesVSResources.Unknown1;
+                return string.Format(ServicesVSResources.Analyzer_reference_to_0_in_project_1, display, this.ProjectName);
             }
         }
     }

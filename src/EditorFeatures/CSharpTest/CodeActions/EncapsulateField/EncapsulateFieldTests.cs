@@ -1,11 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,16 +17,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
 {
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new EncapsulateFieldRefactoringProvider();
+
+        private IDictionary<OptionKey, object> AllOptionsOff =>
+            OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+
+        internal Task TestAllOptionsOffAsync(
+            string initialMarkup, string expectedMarkup,
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null,
+            int index = 0, IDictionary<OptionKey, object> options = null)
         {
-            return new EncapsulateFieldRefactoringProvider();
+            options = options ?? new Dictionary<OptionKey, object>();
+            foreach (var kvp in AllOptionsOff)
+            {
+                options.Add(kvp);
+            }
+
+            return TestAsync(initialMarkup, expectedMarkup,
+                parseOptions, compilationOptions, index, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PrivateFieldToPropertyIgnoringReferences()
         {
             var text = @"
-class foo
+class goo
 {
     private int b[|a|]r;
 
@@ -34,7 +57,7 @@ class foo
 ";
 
             var expected = @"
-class foo
+class goo
 {
     private int bar;
 
@@ -57,14 +80,14 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PrivateFieldToPropertyUpdatingReferences()
         {
             var text = @"
-class foo
+class goo
 {
     private int b[|a|]r;
 
@@ -76,7 +99,7 @@ class foo
 ";
 
             var expected = @"
-class foo
+class goo
 {
     private int bar;
 
@@ -99,14 +122,91 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task TestCodeStyle1()
+        {
+            var text = @"
+class goo
+{
+    private int b[|a|]r;
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+
+            var expected = @"
+class goo
+{
+    private int bar;
+
+    public int Bar
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, 
+                options: OptionsSet(
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task TestCodeStyle2()
+        {
+            var text = @"
+class goo
+{
+    private int b[|a|]r;
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+
+            var expected = @"
+class goo
+{
+    private int bar;
+
+    public int Bar { get => bar; set => bar = value; }
+
+    void baz()
+    {
+        var q = Bar;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected,
+                options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PublicFieldIntoPublicPropertyIgnoringReferences()
         {
             var text = @"
-class foo
+class goo
 {
     public int b[|a|]r;
 
@@ -118,7 +218,7 @@ class foo
 ";
 
             var expected = @"
-class foo
+class goo
 {
     private int bar;
 
@@ -141,14 +241,14 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PublicFieldIntoPublicPropertyUpdatingReferences()
         {
             var text = @"
-class foo
+class goo
 {
     public int b[|a|]r;
 
@@ -160,7 +260,7 @@ class foo
 ";
 
             var expected = @"
-class foo
+class goo
 {
     private int bar;
 
@@ -183,7 +283,7 @@ class foo
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -191,27 +291,27 @@ class foo
         {
             var text = @"class Program
 {
-    static int [|foo|];
+    static int [|goo|];
 }";
 
             var expected = @"class Program
 {
-    static int foo;
+    static int goo;
 
-    public static int Foo
+    public static int Goo
     {
         get
         {
-            return foo;
+            return goo;
         }
 
         set
         {
-            foo = value;
+            goo = value;
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -220,30 +320,30 @@ class foo
             var text = @"
 class Program
 {
-    [|int foo|];
-    string Foo;
+    [|int goo|];
+    string Goo;
 }";
 
             var expected = @"
 class Program
 {
-    int foo;
-    string Foo;
+    int goo;
+    string Goo;
 
-    public int Foo1
+    public int Goo1
     {
         get
         {
-            return foo;
+            return goo;
         }
 
         set
         {
-            foo = value;
+            goo = value;
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -252,42 +352,42 @@ class Program
             var text = @"
 class C<T>
 {
-    private [|T foo|];
+    private [|T goo|];
 }";
 
             var expected = @"
 class C<T>
 {
-    private T foo;
+    private T goo;
 
-    public T Foo
+    public T Goo
     {
         get
         {
-            return foo;
+            return goo;
         }
 
         set
         {
-            foo = value;
+            goo = value;
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task NewFieldNameIsUnique()
         {
             var text = @"
-class foo
+class goo
 {
     public [|int X|];
     private string x;
 }";
 
             var expected = @"
-class foo
+class goo
 {
     private int x1;
     private string x;
@@ -305,20 +405,20 @@ class foo
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task RespectReadonly()
         {
             var text = @"
-class foo
+class goo
 {
     private readonly [|int x|];
 }";
 
             var expected = @"
-class foo
+class goo
 {
     private readonly int x;
 
@@ -330,7 +430,7 @@ class foo
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -339,49 +439,49 @@ class foo
             var text = @"
 class c
 {
-    protected int foo;
+    protected int goo;
 
-    protected int Foo { get; set; }
+    protected int Goo { get; set; }
 }
 
 class d : c
 {
-    protected new int [|foo|];
+    protected new int [|goo|];
 }";
 
             var expected = @"
 class c
 {
-    protected int foo;
+    protected int goo;
 
-    protected int Foo { get; set; }
+    protected int Goo { get; set; }
 }
 
 class d : c
 {
-    private new int foo;
+    private new int goo;
 
-    protected int Foo1
+    protected int Goo1
     {
         get
         {
-            return foo;
+            return goo;
         }
 
         set
         {
-            foo = value;
+            goo = value;
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateMultiplePrivateFields()
         {
             var text = @"
-class foo
+class goo
 {
     private int [|x, y|];
 
@@ -393,7 +493,7 @@ class foo
 }";
 
             var expected = @"
-class foo
+class goo
 {
     private int x, y;
 
@@ -429,14 +529,14 @@ class foo
         Y = 2;
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateMultiplePrivateFields2()
         {
             var text = @"
-class foo
+class goo
 {
     [|private int x;
     private int y|];
@@ -449,7 +549,7 @@ class foo
 }";
 
             var expected = @"
-class foo
+class goo
 {
     private int x;
     private int y;
@@ -486,14 +586,14 @@ class foo
         Y = 2;
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateSinglePublicFieldInMultipleVariableDeclarationAndUpdateReferences()
         {
             var text = @"
-class foo
+class goo
 {
     public int [|x|], y;
 
@@ -505,7 +605,7 @@ class foo
 }";
 
             var expected = @"
-class foo
+class goo
 {
     public int y;
     private int x;
@@ -529,7 +629,7 @@ class foo
         y = 2;
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057")]
@@ -557,7 +657,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -585,7 +685,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -618,7 +718,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")]
@@ -660,7 +760,7 @@ class Program
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -672,7 +772,7 @@ class Program
         <Document>
 public class C
 {
-    public int [|foo|];
+    public int [|goo|];
 }
         </Document>
     </Project>
@@ -684,7 +784,7 @@ public class D
     void bar()
     {
         var c = new C;
-        c.foo = 3;
+        c.goo = 3;
     }
 }
         </Document>
@@ -697,18 +797,18 @@ public class D
         <Document>
 public class C
 {
-    private int foo;
+    private int goo;
 
-    public int Foo
+    public int Goo
     {
         get
         {
-            return foo;
+            return goo;
         }
 
         set
         {
-            foo = value;
+            goo = value;
         }
     }
 }
@@ -722,13 +822,13 @@ public class D
     void bar()
     {
         var c = new C;
-        c.Foo = 3;
+        c.Goo = 3;
     }
 }
         </Document>
     </Project>
 </Workspace>";
-            await TestAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe, compareTokens: false);
+            await TestAllOptionsOffAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe);
         }
 
         [WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269")]
@@ -738,30 +838,30 @@ public class D
             var text = @"
 class C
 {
-    unsafe int* [|foo|];
+    unsafe int* [|goo|];
 }
 ";
 
             var expected = @"
 class C
 {
-    unsafe int* foo;
+    unsafe int* goo;
 
-    public unsafe int* Foo
+    public unsafe int* Goo
     {
         get
         {
-            return foo;
+            return goo;
         }
 
         set
         {
-            foo = value;
+            goo = value;
         }
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240")]
@@ -804,7 +904,7 @@ internal enum State
     WA
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -840,7 +940,7 @@ class Program
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -876,7 +976,7 @@ class Program
         }
     }
 }";
-            await TestAsync(text, expected, compareTokens: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959")]
@@ -894,7 +994,7 @@ partial class Program {
 partial class Program {}
 
 partial class Program {
-    private int x;
+   private int x;
 
     public int X
     {
@@ -902,6 +1002,7 @@ partial class Program {
         {
             return x;
         }
+
         set
         {
             x = value;
@@ -909,7 +1010,7 @@ partial class Program {
     }
 }
 ";
-            await TestAsync(text, expected);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [WorkItem(829178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178")]
@@ -921,11 +1022,7 @@ partial class Program {
     a b c [|b|]
 }";
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
-            {
-                var result = await GetCodeRefactoringAsync(workspace);
-                Assert.NotNull(result);
-            }
+            await TestActionCountAsync(text, count: 2);
         }
 
         [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
@@ -937,14 +1034,10 @@ class Program
 {
     public const string [|s|] = ""S"";
     public const string s = ""S"";
-    }
+}
 ";
 
-            using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
-            {
-                var result = await GetCodeRefactoringAsync(workspace);
-                Assert.NotNull(result);
-            }
+            await TestActionCountAsync(text, count: 2);
         }
 
         [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
@@ -983,26 +1076,27 @@ namespace ConsoleApplication1
             }
         }
     }
-}";
+}
+";
 
-            await TestAsync(text, expected);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotEncapsulateOutsideTypeDeclaration()
         {
-            await TestMissingAsync(@"
-var [|x|] = 1;");
+            await TestMissingInRegularAndScriptAsync(
+@"var [|x|] = 1;");
 
-            await TestMissingAsync(@"
-namespace N
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
 {
     var [|x|] = 1;
 }");
 
-            await TestMissingAsync(@"
-enum E
+            await TestMissingInRegularAndScriptAsync(
+@"enum E
 {
     [|x|] = 1;
 }");
@@ -1012,15 +1106,14 @@ enum E
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI()
         {
-            using (new CultureContext("tr-TR"))
+            using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
             {
-                await TestAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|iyi|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int iyi;
 
@@ -1030,13 +1123,13 @@ class C
         {
             return iyi;
         }
+
         set
         {
             iyi = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1044,15 +1137,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI()
         {
-            using (new CultureContext("tr-TR"))
+            using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
             {
-                await TestAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|ırak|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int ırak;
 
@@ -1062,13 +1154,13 @@ class C
         {
             return ırak;
         }
+
         set
         {
             ırak = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1076,15 +1168,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic()
         {
-            using (new CultureContext("ar-EG"))
+            using (new CultureContext(new CultureInfo("ar-EG", useUserOverride: false)))
             {
-                await TestAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|بيت|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int بيت;
 
@@ -1094,13 +1185,13 @@ class C
         {
             return بيت;
         }
+
         set
         {
             بيت = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1108,15 +1199,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish()
         {
-            using (new CultureContext("es-ES"))
+            using (new CultureContext(new CultureInfo("es-ES", useUserOverride: false)))
             {
-                await TestAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|árbol|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int árbol;
 
@@ -1126,13 +1216,13 @@ class C
         {
             return árbol;
         }
+
         set
         {
             árbol = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1140,15 +1230,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek()
         {
-            using (new CultureContext("el-GR"))
+            using (new CultureContext(new CultureInfo("el-GR", useUserOverride: false)))
             {
-                await TestAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|σκύλος|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int σκύλος;
 
@@ -1158,20 +1247,20 @@ class C
         {
             return σκύλος;
         }
+
         set
         {
             σκύλος = value;
         }
     }
-}
-");
+}");
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task TestEncapsulateEscapedIdentifier()
         {
-            await TestAsync(@"
+            await TestAllOptionsOffAsync(@"
 class C
 {
     int [|@class|];
@@ -1194,13 +1283,13 @@ class C
         }
     }
 }
-", compareTokens: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task TestEncapsulateEscapedIdentifierAndQualifiedAccess()
         {
-            await TestAsync(@"
+            await TestAllOptionsOffAsync(@"
 class C
 {
     int [|@class|];
@@ -1223,20 +1312,19 @@ class C
         }
     }
 }
-", compareTokens: false, options: Option(SimplificationOptions.QualifyFieldAccess, true));
+", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task ApplyCurrentThisPrefixStyle()
         {
-            await TestAsync(@"
-class C
+            await TestAllOptionsOffAsync(
+@"class C
 {
     int [|i|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int i;
 
@@ -1246,14 +1334,99 @@ class C
         {
             return this.i;
         }
+
         set
         {
             this.i = value;
         }
     }
+}", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+        }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TestTuple()
+        {
+            var text = @"
+class C
+{
+    private (int, string) b[|o|]b;
+
+    void M()
+    {
+        var q = bob;
+    }
 }
-", options: Option(SimplificationOptions.QualifyFieldAccess, true));
+";
+
+            var expected = @"
+class C
+{
+    private (int, string) bob;
+
+    public (int, string) Bob
+    {
+        get
+        {
+            return bob;
+        }
+
+        set
+        {
+            bob = value;
+        }
+    }
+
+    void M()
+    {
+        var q = bob;
+    }
+}
+";
+            await TestAllOptionsOffAsync(
+                text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNames()
+        {
+            var text = @"
+class C
+{
+    private (int a, string b) b[|o|]b;
+
+    void M()
+    {
+        var q = bob.b;
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    private (int a, string b) bob;
+
+    public (int a, string b) Bob
+    {
+        get
+        {
+            return bob;
+        }
+
+        set
+        {
+            bob = value;
+        }
+    }
+
+    void M()
+    {
+        var q = bob.b;
+    }
+}
+";
+            await TestAllOptionsOffAsync(
+                text, expected, index: 1);
         }
     }
 }

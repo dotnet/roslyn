@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpEditorResources {
@@ -63,27 +63,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to      (Press TAB to insert).
         /// </summary>
-        internal static string PressTABToInsert {
+        internal static string Press_TAB_to_insert {
             get {
-                return ResourceManager.GetString("PressTABToInsert", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Properties.
-        /// </summary>
-        internal static string Properties {
-            get {
-                return ResourceManager.GetString("Properties", resourceCulture);
+                return ResourceManager.GetString("Press_TAB_to_insert", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Smart Indenting.
         /// </summary>
-        internal static string SmartIndenting {
+        internal static string Smart_Indenting {
             get {
-                return ResourceManager.GetString("SmartIndenting", resourceCulture);
+                return ResourceManager.GetString("Smart_Indenting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split string.
+        /// </summary>
+        internal static string Split_string {
+            get {
+                return ResourceManager.GetString("Split_string", resourceCulture);
             }
         }
     }

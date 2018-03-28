@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -138,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefValueExpression:
                         return ((RefValueExpressionSyntax)parent).Type == node;
 
+                    case RefType:
+                        return ((RefTypeSyntax)parent).Type == node;
+
                     case Parameter:
                         return ((ParameterSyntax)parent).Type == node;
 
@@ -187,8 +191,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
 
-                    case PropertyPattern:
-                        return ((PropertyPatternSyntax)parent).Type == node;
+                    case TupleElement:
+                        return ((TupleElementSyntax)parent).Type == node;
+
+                    case DeclarationExpression:
+                        return ((DeclarationExpressionSyntax)parent).Type == node;
+
+                    case IncompleteMember:
+                        return ((IncompleteMemberSyntax)parent).Type == node;
                 }
             }
 
@@ -239,27 +249,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
 
             if (!node.IsKind(IdentifierName))
+            { 
                 return false;
+            }
 
             var parent1 = node.Parent;
             if (parent1 == null || !parent1.IsKind(NameColon))
+            {
                 return false;
+            }
 
             var parent2 = parent1.Parent;
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
+            {
                 return false;
+            }
 
             var parent3 = parent2.Parent;
-            if (parent3 == null || !(parent3 is BaseArgumentListSyntax || parent3.IsKind(AttributeArgumentList)))
+            if (parent3 == null)
+            {
                 return false;
+            }
+
+            if (parent3.IsKind(SyntaxKind.TupleExpression))
+            {
+                return true;
+            }
+
+            if (!(parent3 is BaseArgumentListSyntax || parent3.IsKind(AttributeArgumentList)))
+            {
+                return false;
+            }
 
             var parent4 = parent3.Parent;
             if (parent4 == null)
+            {
                 return false;
+            }
 
             switch (parent4.Kind())
             {
                 case InvocationExpression:
+                case TupleExpression:
                 case ObjectCreationExpression:
                 case ObjectInitializerExpression:
                 case ElementAccessExpression:
@@ -299,9 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Private:
                     return SyntaxFacts.GetText(PrivateKeyword);
                 case Accessibility.ProtectedAndInternal:
-                    // TODO: C# doesn't have a representation for this.
-                    // For now, use Reflector's representation.
-                    return SyntaxFacts.GetText(InternalKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
+                    return SyntaxFacts.GetText(PrivateKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.Internal:
                     return SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Protected:
@@ -315,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        internal static bool IsStatementExpression(SyntaxNode syntax)
         {
             // The grammar gives:
             //
@@ -364,11 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case IdentifierName:
                     return syntax.IsMissing;
 
-                // TODO: The native implementation also disallows delegate
-                // creation expressions with the ERR_IllegalStatement error, 
-                // so that needs to go into the semantic analysis somewhere
-                // if we intend to carry it forward.
-
                 default:
                     return false;
             }
@@ -378,6 +402,81 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsLambdaBody(SyntaxNode node)
         {
             return LambdaUtilities.IsLambdaBody(node);
+        }
+
+        internal static bool IsIdentifierVar(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.ContextualKind == SyntaxKind.VarKeyword;
+        }
+
+        internal static bool IsIdentifierVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
+        }
+
+        internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
+        {
+            parent = node.Parent as DeclarationExpressionSyntax;
+            return node == parent?.Type;
+        }
+
+        /// <summary>
+        /// Given an initializer expression infer the name of anonymous property or tuple element.
+        /// Returns null if unsuccessful
+        /// </summary>
+        public static string TryGetInferredMemberName(this SyntaxNode syntax)
+        {
+            SyntaxToken nameToken;
+            switch (syntax.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    nameToken = ((SingleVariableDesignationSyntax)syntax).Identifier;
+                    break;
+
+                case SyntaxKind.DeclarationExpression:
+                    var declaration = (DeclarationExpressionSyntax)syntax;
+                    var designationKind = declaration.Designation.Kind();
+                    if (designationKind == SyntaxKind.ParenthesizedVariableDesignation ||
+                        designationKind == SyntaxKind.DiscardDesignation)
+                    {
+                        return null;
+                    }
+
+                    nameToken = ((SingleVariableDesignationSyntax)declaration.Designation).Identifier;
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                case SyntaxKind.DiscardDesignation:
+                    return null;
+
+                default:
+                    if (syntax is ExpressionSyntax expr)
+                    {
+                        nameToken = expr.ExtractAnonymousTypeMemberName();
+                        break;
+                    }
+                    return null;
+            }
+
+            return nameToken.ValueText;
+        }
+
+        /// <summary>
+        /// Checks whether the element name is reserved.
+        ///
+        /// For example:
+        /// "Item3" is reserved (at certain positions).
+        /// "Rest", "ToString" and other members of System.ValueTuple are reserved (in any position).
+        /// Names that are not reserved return false.
+        /// </summary>
+        public static bool IsReservedTupleElementName(string elementName)
+        {
+            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+        }
+
+        internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
+        {
+            return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
         }
     }
 }

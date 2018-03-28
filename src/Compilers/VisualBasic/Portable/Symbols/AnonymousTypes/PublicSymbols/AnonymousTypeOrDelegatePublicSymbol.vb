@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+            Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
                 Get
                     Return False
                 End Get
@@ -89,7 +89,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+            Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
                 Get
                     Return False
                 End Get
@@ -300,6 +306,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End Function
 
+            Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+                Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+            End Function
         End Class
 
     End Class

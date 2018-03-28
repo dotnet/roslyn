@@ -61,12 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -197,6 +194,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public override bool IsAbstract
         {
             get
@@ -246,6 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             throw new NotImplementedException();
         }
 
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
         internal sealed override bool IsManagedType
         {
             get
@@ -287,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return DefaultMarshallingCharSet; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return false; }
         }

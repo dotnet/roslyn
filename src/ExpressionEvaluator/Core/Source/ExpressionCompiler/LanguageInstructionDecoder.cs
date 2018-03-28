@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -45,6 +45,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
 
                 return _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames);
+            }
+            catch (NotImplementedMetadataException)
+            {
+                return languageInstructionAddress.GetMethodName(argumentFlags);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {

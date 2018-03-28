@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -20,18 +21,28 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public Script Script { get; }
 
+        /// <summary>
+        /// Caught exception originating from the script top-level code.
+        /// </summary>
+        /// <remarks>
+        /// Exceptions are only caught and stored here if the API returning the <see cref="ScriptState"/> is instructed to do so. 
+        /// By default they are propagated to the caller of the API.
+        /// </remarks>
+        public Exception Exception { get; }
+
         internal ScriptExecutionState ExecutionState { get; }
 
         private ImmutableArray<ScriptVariable> _lazyVariables;
         private IReadOnlyDictionary<string, int> _lazyVariableMap;
 
-        internal ScriptState(ScriptExecutionState executionState, Script script)
+        internal ScriptState(ScriptExecutionState executionState, Script script, Exception exceptionOpt)
         {
             Debug.Assert(executionState != null);
             Debug.Assert(script != null);
 
             ExecutionState = executionState;
             Script = script;
+            Exception = exceptionOpt;
         }
 
         /// <summary>
@@ -39,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public object ReturnValue => GetReturnValue();
         internal abstract object GetReturnValue();
-
+        
         /// <summary>
         /// Returns variables defined by the scripts in the declaration order.
         /// </summary>
@@ -78,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private ImmutableArray<ScriptVariable> CreateVariables()
         {
-            var result = ImmutableArray.CreateBuilder<ScriptVariable>();
+            var result = ArrayBuilder<ScriptVariable>.GetInstance();
 
             var executionState = ExecutionState;
 
@@ -98,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private IReadOnlyDictionary<string, int> GetVariableMap()
@@ -117,15 +128,53 @@ namespace Microsoft.CodeAnalysis.Scripting
             return _lazyVariableMap;
         }
 
-        public Task<ScriptState<object>> ContinueWithAsync(string code, ScriptOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return ContinueWithAsync<object>(code, options, cancellationToken);
-        }
+        /// <summary>
+        /// Continues script execution from the state represented by this instance by running the specified code snippet.
+        /// </summary>
+        /// <param name="code">The code to be executed.</param>
+        /// <param name="options">Options.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="ScriptState"/> that represents the state after running <paramref name="code"/>, including all declared variables and return value.</returns>
+        public Task<ScriptState<object>> ContinueWithAsync(string code, ScriptOptions options, CancellationToken cancellationToken)
+            => ContinueWithAsync<object>(code, options, null, cancellationToken);
 
-        public Task<ScriptState<TResult>> ContinueWithAsync<TResult>(string code, ScriptOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return Script.ContinueWith<TResult>(code, options).RunFromAsync(this, cancellationToken);
-        }
+        /// <summary>
+        /// Continues script execution from the state represented by this instance by running the specified code snippet.
+        /// </summary>
+        /// <param name="code">The code to be executed.</param>
+        /// <param name="options">Options.</param>
+        /// <param name="catchException">
+        /// If specified, any exception thrown by the script top-level code is passed to <paramref name="catchException"/>.
+        /// If it returns true the exception is caught and stored on the resulting <see cref="ScriptState"/>, otherwise the exception is propagated to the caller.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="ScriptState"/> that represents the state after running <paramref name="code"/>, including all declared variables, return value and caught exception (if applicable).</returns>
+        public Task<ScriptState<object>> ContinueWithAsync(string code, ScriptOptions options = null, Func<Exception, bool> catchException = null, CancellationToken cancellationToken = default(CancellationToken))
+            => Script.ContinueWith<object>(code, options).RunFromAsync(this, catchException, cancellationToken);
+
+        /// <summary>
+        /// Continues script execution from the state represented by this instance by running the specified code snippet.
+        /// </summary>
+        /// <param name="code">The code to be executed.</param>
+        /// <param name="options">Options.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="ScriptState"/> that represents the state after running <paramref name="code"/>, including all declared variables and return value.</returns>
+        public Task<ScriptState<TResult>> ContinueWithAsync<TResult>(string code, ScriptOptions options, CancellationToken cancellationToken)
+            => ContinueWithAsync<TResult>(code, options, null, cancellationToken);
+
+        /// <summary>
+        /// Continues script execution from the state represented by this instance by running the specified code snippet.
+        /// </summary>
+        /// <param name="code">The code to be executed.</param>
+        /// <param name="options">Options.</param>
+        /// <param name="catchException">
+        /// If specified, any exception thrown by the script top-level code is passed to <paramref name="catchException"/>.
+        /// If it returns true the exception is caught and stored on the resulting <see cref="ScriptState"/>, otherwise the exception is propagated to the caller.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A <see cref="ScriptState"/> that represents the state after running <paramref name="code"/>, including all declared variables, return value and caught exception (if applicable).</returns>
+        public Task<ScriptState<TResult>> ContinueWithAsync<TResult>(string code, ScriptOptions options = null, Func<Exception, bool> catchException = null, CancellationToken cancellationToken = default(CancellationToken))
+            => Script.ContinueWith<TResult>(code, options).RunFromAsync(this, catchException, cancellationToken);
 
         // How do we resolve overloads? We should use the language semantics.
         // https://github.com/dotnet/roslyn/issues/3720
@@ -219,8 +268,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         public new T ReturnValue { get; }
         internal override object GetReturnValue() => ReturnValue;
 
-        internal ScriptState(ScriptExecutionState executionState, T value, Script script)
-            : base(executionState, script)
+        internal ScriptState(ScriptExecutionState executionState, Script script, T value, Exception exceptionOpt)
+            : base(executionState, script, exceptionOpt)
         {
             ReturnValue = value;
         }

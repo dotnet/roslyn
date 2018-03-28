@@ -5,10 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -27,15 +24,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = projectGroup.Key;
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var documentGroup in projectGroup)
+                if (project.SupportsCompilation)
                 {
-                    var document = documentGroup.Key;
-                    await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
-                }
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                GC.KeepAlive(compilation);
+                    foreach (var documentGroup in projectGroup)
+                    {
+                        var document = documentGroup.Key;
+                        await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    GC.KeepAlive(compilation);
+                }
             }
 
             return result;
@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
                 if (containingSymbol != null)
                 {
-                    List<Location> locations;
-                    if (!result.TryGetValue(containingSymbol, out locations))
+                    if (!result.TryGetValue(containingSymbol, out var locations))
                     {
                         locations = new List<Location>();
                         result.Add(containingSymbol, locations);

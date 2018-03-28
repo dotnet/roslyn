@@ -50,21 +50,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
 
             var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            if (vsShell != null)
-            {
-                object varImageList;
-                int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out varImageList);
-                if (ErrorHandler.Succeeded(hresult) && varImageList != null)
-                {
-                    _imageList = (IntPtr)(int)varImageList;
-                }
-            }
+            vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageList);
 
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             _editorAdaptersFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-
-            IVsTextView pTextView;
-            codeWindow.GetPrimaryView(out pTextView);
+            codeWindow.GetPrimaryView(out var pTextView);
             StartTrackingView(pTextView);
 
             pTextView = null;
@@ -89,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         private NavigationBarItem GetCurrentTypeItem()
         {
-            int currentTypeIndex;
-            _dropdownBar.GetCurrentSelection(1, out currentTypeIndex);
+            _dropdownBar.GetCurrentSelection(1, out var currentTypeIndex);
 
             return currentTypeIndex >= 0
                 ? _currentTypeItems[currentTypeIndex]
@@ -149,10 +138,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.GetComboTipText(int iCombo, out string pbstrText)
         {
-            int selectionIndex;
             var selectedItemPreviewText = string.Empty;
 
-            if (_dropdownBar.GetCurrentSelection(iCombo, out selectionIndex) == VSConstants.S_OK && selectionIndex >= 0)
+            if (_dropdownBar.GetCurrentSelection(iCombo, out var selectionIndex) == VSConstants.S_OK && selectionIndex >= 0)
             {
                 selectedItemPreviewText = GetItem(iCombo, selectionIndex).Text;
             }
@@ -163,18 +151,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
                     var keybindingString = KeyBindingHelper.GetGlobalKeyBinding(VSConstants.GUID_VSStandardCommandSet97, (int)VSConstants.VSStd97CmdID.MoveToDropdownBar);
                     if (!string.IsNullOrWhiteSpace(keybindingString))
                     {
-                        pbstrText = string.Format(ServicesVSResources.ProjectNavBarTooltipWithShortcut, selectedItemPreviewText, keybindingString);
+                        pbstrText = string.Format(ServicesVSResources.Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to, selectedItemPreviewText, keybindingString);
                     }
                     else
                     {
-                        pbstrText = string.Format(ServicesVSResources.ProjectNavBarTooltipWithoutShortcut, selectedItemPreviewText);
+                        pbstrText = string.Format(ServicesVSResources.Project_colon_0_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to, selectedItemPreviewText);
                     }
 
                     return VSConstants.S_OK;
 
                 case 1:
                 case 2:
-                    pbstrText = string.Format(ServicesVSResources.NavBarTooltip, selectedItemPreviewText);
+                    pbstrText = string.Format(ServicesVSResources._0_Use_the_dropdown_to_view_and_navigate_to_other_items_in_this_file, selectedItemPreviewText);
                     return VSConstants.S_OK;
 
                 default:
@@ -295,10 +283,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             // If this is a project item, try to get the actual proper image from the VSHierarchy it 
             // represents.  That way the icon will always look right no matter which type of project
             // it is.  For example, if phone/Windows projects have different icons, then this can 
-            // ensure we get the right icon, and not just a hardcoded C#/VB icon.
-            if (item is NavigationBarProjectItem)
+            // ensure we get the right icon, and not just a hard-coded C#/VB icon.
+            if (item is NavigationBarProjectItem projectItem)
             {
-                var projectItem = (NavigationBarProjectItem)item;
                 if (_workspace.TryGetImageListAndIndex(_imageService, projectItem.DocumentId.ProjectId, out phImageList, out piImageIndex))
                 {
                     return VSConstants.S_OK;
@@ -363,9 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
         {
-            ITextView view;
-
-            if (_trackedTextViews.TryGetValue(pView, out view))
+            if (_trackedTextViews.TryGetValue(pView, out var view))
             {
                 view.Caret.PositionChanged -= OnCaretPositionChanged;
                 view.GotAggregateFocus -= OnViewGotAggregateFocus;
@@ -402,8 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         ITextView INavigationBarPresenter.TryGetCurrentView()
         {
-            IVsTextView lastActiveView;
-            _codeWindow.GetLastActiveView(out lastActiveView);
+            _codeWindow.GetLastActiveView(out var lastActiveView);
             return _editorAdaptersFactoryService.GetWpfTextView(lastActiveView);
         }
     }

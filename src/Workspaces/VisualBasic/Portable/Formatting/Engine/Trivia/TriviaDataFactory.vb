@@ -136,19 +136,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                    Not result.HasColonTrivia AndAlso
                    Not result.HasPreprocessor AndAlso
                    Not result.HasSkippedOrDisabledText AndAlso
-                   Not result.HasUnknownWhitespace
+                   Not result.HasUnknownWhitespace AndAlso
+                   Not result.HasConflictMarker
         End Function
 
         Private Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
-            If result.HasComments OrElse
-               result.HasColonTrivia OrElse
-               result.HasPreprocessor OrElse
-               result.HasSkippedOrDisabledText OrElse
-               result.HasLineContinuation Then
-                Return False
-            End If
-
-            Return True
+            Return Not result.HasComments AndAlso
+                   Not result.HasColonTrivia AndAlso
+                   Not result.HasPreprocessor AndAlso
+                   Not result.HasSkippedOrDisabledText AndAlso
+                   Not result.HasLineContinuation AndAlso
+                   Not result.HasConflictMarker
         End Function
 
         Private Function GetWhitespaceOnlyTriviaInfo(token1 As SyntaxToken, token2 As SyntaxToken, result As Analyzer.AnalysisResult) As TriviaData

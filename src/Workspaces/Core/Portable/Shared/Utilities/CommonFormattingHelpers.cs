@@ -367,5 +367,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             return !IsNull(t);
         }
+
+        public static TextSpan GetFormattingSpan(SyntaxNode root, TextSpan span)
+        {
+            Contract.ThrowIfNull(root);
+
+            var startToken = root.FindToken(span.Start).GetPreviousToken();
+            var endToken = root.FindTokenFromEnd(span.End).GetNextToken();
+
+            var startPosition = startToken.SpanStart;
+            var endPosition = endToken.RawKind == 0 ? root.Span.End : endToken.Span.End;
+
+            return TextSpan.FromBounds(startPosition, endPosition);
+        }
     }
 }

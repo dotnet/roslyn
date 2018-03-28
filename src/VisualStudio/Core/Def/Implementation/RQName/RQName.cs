@@ -1,7 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.RQName;
+using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
@@ -19,9 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <returns>A string suitable to pass as the pszRQName argument to methods in <see cref="IVsRefactorNotify"/>
         /// and <see cref="IVsSymbolicNavigationNotify"/>.</returns>
         public static string From(ISymbol symbol)
-        {
-            var node = RQNodeBuilder.Build(symbol);
-            return (node != null) ? ParenthesesTreeWriter.ToParenthesesFormat(node.ToSimpleTree()) : null;
-        }
+            => RQNameInternal.From(symbol);
     }
 }

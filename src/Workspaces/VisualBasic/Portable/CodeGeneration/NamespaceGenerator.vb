@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As CompilationUnitSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
-                Throw New ArgumentException(VBWorkspaceResources.NamespaceCannotBeAdded)
+                Throw New ArgumentException(VBWorkspaceResources.Namespace_can_not_be_added_in_this_destination)
             End If
 
             Dim members = Insert(destination.Members, DirectCast(declaration, StatementSyntax), options, availableIndices)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As NamespaceBlockSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
-                Throw New ArgumentException(VBWorkspaceResources.NamespaceCannotBeAdded)
+                Throw New ArgumentException(VBWorkspaceResources.Namespace_can_not_be_added_in_this_destination)
             End If
 
             Dim members = Insert(destination.Members, DirectCast(declaration, StatementSyntax), options, availableIndices)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 service.AddMembers(declaration, innermostNamespace.GetMembers().AsEnumerable(), options, cancellationToken),
                 declaration)
 
-            Return AddCleanupAnnotationsTo(declaration)
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(declaration)
         End Function
 
         Public Function UpdateCompilationUnitOrNamespaceDeclaration(service As ICodeGenerationService,
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                                            cancellationToken As CancellationToken) As SyntaxNode
             declaration = RemoveAllMembers(declaration)
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken)
-            Return AddCleanupAnnotationsTo(declaration)
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(declaration)
         End Function
 
         Private Function GetDeclarationSyntaxWithoutMembers([namespace] As INamespaceSymbol, innermostNamespace As INamespaceSymbol, name As String, options As CodeGenerationOptions) As SyntaxNode

@@ -1,8 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -18,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal sealed partial class CodeModelProjectCache
     {
         private readonly CodeModelState _state;
-        private readonly AbstractProject _project;
+        private readonly ProjectId _projectId;
+        private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
 
         private readonly Dictionary<string, CacheEntry> _cache = new Dictionary<string, CacheEntry>(StringComparer.OrdinalIgnoreCase);
         private readonly object _cacheGate = new object();
@@ -26,10 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private EnvDTE.CodeModel _rootCodeModel;
         private bool _zombied;
 
-        internal CodeModelProjectCache(AbstractProject project, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
         {
-            _project = project;
             _state = new CodeModelState(serviceProvider, languageServices, workspace);
+            _projectId = projectId;
+            _codeModelInstanceFactory = codeModelInstanceFactory;
         }
 
         private bool IsZombied
@@ -45,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             lock (_cacheGate)
             {
-                CacheEntry cacheEntry;
-                if (_cache.TryGetValue(fileName, out cacheEntry))
+                if (_cache.TryGetValue(fileName, out var cacheEntry))
                 {
                     return cacheEntry;
                 }
@@ -55,11 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return null;
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string fileName)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
         {
             // First try
             {
-                var cacheEntry = GetCacheEntry(fileName);
+                var cacheEntry = GetCacheEntry(filePath);
                 if (cacheEntry != null)
                 {
                     var comHandle = cacheEntry.Value.ComHandle;
@@ -72,25 +75,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // This ultimately ends up calling GetOrCreateFileCodeModel(fileName, parent) with the correct "parent" object
             // through the project system.
-            var provider = (IProjectCodeModelProvider)_project;
-            var newFileCodeModel = (EnvDTE80.FileCodeModel2)provider.ProjectCodeModel.CreateFileCodeModelThroughProject(fileName);
+            var newFileCodeModel = (EnvDTE80.FileCodeModel2)_codeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(filePath);
             return new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(newFileCodeModel);
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? GetComHandleForFileCodeModel(string fileName)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? GetComHandleForFileCodeModel(string filePath)
         {
-            var cacheEntry = GetCacheEntry(fileName);
+            var cacheEntry = GetCacheEntry(filePath);
 
             return cacheEntry != null
                 ? cacheEntry.Value.ComHandle
                 : null;
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string fileName, object parent)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
         {
             // First try
             {
-                var cacheEntry = GetCacheEntry(fileName);
+                var cacheEntry = GetCacheEntry(filePath);
                 if (cacheEntry != null)
                 {
                     var comHandle = cacheEntry.Value.ComHandle;
@@ -102,21 +104,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Check that we know about this file!
-            var hostDocument = _project.GetCurrentDocumentFromPath(fileName);
-            if (hostDocument == null)
+            var documentId = _state.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
+            if (documentId == null)
             {
                 // Matches behavior of native (C#) implementation
                 throw Exceptions.ThrowENotImpl();
             }
 
             // Create object (outside of lock)
-            var newFileCodeModel = FileCodeModel.Create(_state, parent, hostDocument.Id, new TextManagerAdapter());
+            var newFileCodeModel = FileCodeModel.Create(_state, parent, documentId, new TextManagerAdapter());
             var newCacheEntry = new CacheEntry(newFileCodeModel);
 
             // Second try (object might have been added by another thread at this point!)
             lock (_cacheGate)
             {
-                var cacheEntry = GetCacheEntry(fileName);
+                var cacheEntry = GetCacheEntry(filePath);
                 if (cacheEntry != null)
                 {
                     var comHandle = cacheEntry.Value.ComHandle;
@@ -128,13 +130,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 // Note: Using the indexer here (instead of "Add") is relevant since the old
                 //       WeakReference entry is likely still in the cache (with a Null target, of course)
-                _cache[fileName] = newCacheEntry;
+                _cache[filePath] = newCacheEntry;
 
                 return newFileCodeModel;
             }
         }
 
-        public EnvDTE.CodeModel GetOrCreateRootCodeModel(object parent)
+        public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
         {
             if (this.IsZombied)
             {
@@ -144,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (_rootCodeModel == null)
             {
-                _rootCodeModel = RootCodeModel.Create(_state, parent, _project.Id);
+                _rootCodeModel = RootCodeModel.Create(_state, parent, _projectId);
             }
 
             return _rootCodeModel;
@@ -192,8 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             lock (_cacheGate)
             {
-                CacheEntry cacheEntry;
-                if (_cache.TryGetValue(fileName, out cacheEntry))
+                if (_cache.TryGetValue(fileName, out var cacheEntry))
                 {
                     comHandle = cacheEntry.ComHandle;
                     _cache.Remove(fileName);
@@ -208,28 +209,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void OnSourceFileRenaming(string oldFileName, string newFileName)
         {
-            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandle = null;
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandleToRename = null;
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandleToShutDown = null;
 
             lock (_cacheGate)
             {
-                CacheEntry cacheEntry;
-                if (_cache.TryGetValue(oldFileName, out cacheEntry))
+                if (_cache.TryGetValue(oldFileName, out var cacheEntry))
                 {
-                    comHandle = cacheEntry.ComHandle;
+                    comHandleToRename = cacheEntry.ComHandle;
 
                     _cache.Remove(oldFileName);
 
-                    if (comHandle != null)
+                    if (comHandleToRename != null)
                     {
+                        // We might already have a code model for this new filename. This can happen if
+                        // we were to rename Goo.cs to Goocs, which will call this method, and then rename
+                        // it back, which does not call this method. This results in both Goo.cs and Goocs
+                        // being in the cache. We could fix that "correctly", but the zombied Goocs code model
+                        // is pretty broken, so there's no point in trying to reuse it.
+                        if (_cache.TryGetValue(newFileName, out cacheEntry))
+                        {
+                            comHandleToShutDown = cacheEntry.ComHandle;
+                        }
+
                         _cache.Add(newFileName, cacheEntry);
                     }
                 }
             }
 
-            if (comHandle != null)
-            {
-                comHandle.Value.Object.OnRename(newFileName);
-            }
+            comHandleToShutDown?.Object.Shutdown();
+            comHandleToRename?.Object.OnRename(newFileName);
         }
     }
 }

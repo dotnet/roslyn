@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return node;
                 }
 
-                var structuredTrivia = node as IStructuredTriviaSyntax;
-                if (structuredTrivia != null)
+                if (node is IStructuredTriviaSyntax structuredTrivia)
                 {
                     node = structuredTrivia.ParentTrivia.Token.Parent;
                 }

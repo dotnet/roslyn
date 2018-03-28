@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -51,10 +51,10 @@ public class App : C
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1);
+            var comp1 = CreateCompilation(src1);
 
             // Compilation to Compilation
-            var comp2 = CreateCompilationWithMscorlib(src2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
+            var comp2 = CreateCompilation(src2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType).OrderBy(s => s.Name).ToList();
             Assert.Equal(5, originalSymbols.Count);
@@ -70,7 +70,7 @@ public class App : C
             var member02 = (typesym.GetMembers("Prop").Single() as PropertySymbol).Type;
 
             // 'C'
-            var member03 = typesym.BaseType;
+            var member03 = typesym.BaseType();
 
             // 'S'
             var member04 = (typesym.GetMembers("M").Single() as MethodSymbol).Parameters[0].Type;
@@ -78,11 +78,11 @@ public class App : C
             // 'E'
             var member05 = (typesym.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol).Type;
 
-            ResolveAndVerifySymbol(member03, comp2, originalSymbols[0], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member01, comp2, originalSymbols[1], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member05, comp2, originalSymbols[2], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member02, comp2, originalSymbols[3], comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(member04, comp2, originalSymbols[4], comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(member03, originalSymbols[0], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member01, originalSymbols[1], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member05, originalSymbols[2], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member02, originalSymbols[3], comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(member04, originalSymbols[4], comp1, SymbolKeyComparison.None);
         }
 
         [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
@@ -93,7 +93,7 @@ public class App : C
 
 namespace N1
 {
-    public interface IFoo
+    public interface IGoo
     {
         void M(int p1, int p2);
         void M(params short[] ary);
@@ -105,7 +105,7 @@ namespace N1
     public struct S
     {
         public event Action<S> PublicEvent { add { } remove { } }
-        public IFoo PublicField;
+        public IGoo PublicField;
         public string PublicProp { get; set; }
         public short this[sbyte p] { get { return p; } }
     }
@@ -123,21 +123,21 @@ public class App
 
         /*<bind0>*/obj.PublicEvent/*</bind0>*/ += EH;
 
-        var ifoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
+        var igoo = /*<bind1>*/obj.PublicField/*</bind1>*/;
 
-        /*<bind3>*/ifoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
+        /*<bind3>*/igoo.M(/*<bind2>*/obj.PublicProp/*</bind2>*/)/*</bind3>*/;
 
-        /*<bind5>*/ifoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
+        /*<bind5>*/igoo.M(obj[12], /*<bind4>*/obj[123]/*</bind4>*/)/*</bind5>*/;
     }
 
     static void EH(AN.S s) { }
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1);
+            var comp1 = CreateCompilation(src1);
 
             // Compilation to Assembly
-            var comp2 = CreateCompilationWithMscorlib(src2, new MetadataReference[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilation(src2, new MetadataReference[] { comp1.EmitToImageReference() });
 
             // ---------------------------
             // Source symbols
@@ -153,22 +153,22 @@ public class App
             Assert.Equal(6, list.Count);
 
             // event
-            ResolveAndVerifySymbol(list[0], originalSymbols[4], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[0], originalSymbols[4], model, comp1, SymbolKeyComparison.None);
 
             // field
-            ResolveAndVerifySymbol(list[1], originalSymbols[5], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[1], originalSymbols[5], model, comp1, SymbolKeyComparison.None);
 
             // prop
-            ResolveAndVerifySymbol(list[2], originalSymbols[6], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[2], originalSymbols[6], model, comp1, SymbolKeyComparison.None);
 
             // index:
-            ResolveAndVerifySymbol(list[4], originalSymbols[7], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[4], originalSymbols[7], model, comp1, SymbolKeyComparison.None);
 
             // M(string p1)
-            ResolveAndVerifySymbol(list[3], originalSymbols[2], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[3], originalSymbols[2], model, comp1, SymbolKeyComparison.None);
 
             // M(params short[] ary)
-            ResolveAndVerifySymbol(list[5], originalSymbols[1], model, comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(list[5], originalSymbols[1], model, comp1, SymbolKeyComparison.None);
         }
 
         #endregion
@@ -221,10 +221,10 @@ class Test
     }
 }
 ";
-            var comp20 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation 2 Assembly"
-            var comp40 = CreateCompilationWithMscorlib(src2, new MetadataReference[] { comp20.EmitToImageReference() });
+            var comp40 = CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
 
             var typeA = comp20.SourceModule.GlobalNamespace.GetTypeMembers("A").Single();
             var mem20_1 = typeA.GetMembers("GetFileInfo").Single() as MethodSymbol;
@@ -249,24 +249,21 @@ class Test
             foreach (var body in list)
             {
                 var df = model.AnalyzeDataFlow(body.Statements.First(), body.Statements.Last());
-                if (df.VariablesDeclared != null)
+                foreach (var local in df.VariablesDeclared)
                 {
-                    foreach (var local in df.VariablesDeclared)
-                    {
-                        var localType = ((LocalSymbol)local).Type;
+                    var localType = ((LocalSymbol)local).Type;
 
-                        if (local.Name == "fi")
-                        {
-                            ResolveAndVerifySymbol(localType, comp40, mtsym20_1, comp20, SymbolKeyComparison.CaseSensitive);
-                        }
-                        else if (local.Name == "ary")
-                        {
-                            ResolveAndVerifySymbol(localType, comp40, mtsym20_2, comp20, SymbolKeyComparison.CaseSensitive);
-                        }
-                        else if (local.Name == "dt")
-                        {
-                            ResolveAndVerifySymbol(localType, comp40, mtsym20_3, comp20, SymbolKeyComparison.CaseSensitive);
-                        }
+                    if (local.Name == "fi")
+                    {
+                        ResolveAndVerifySymbol(localType, mtsym20_1, comp20, SymbolKeyComparison.None);
+                    }
+                    else if (local.Name == "ary")
+                    {
+                        ResolveAndVerifySymbol(localType, mtsym20_2, comp20, SymbolKeyComparison.None);
+                    }
+                    else if (local.Name == "dt")
+                    {
+                        ResolveAndVerifySymbol(localType, mtsym20_3, comp20, SymbolKeyComparison.None);
                     }
                 }
             }
@@ -278,7 +275,7 @@ class Test
             var src1 = @"using System;
 namespace Mscorlib20
 {
-    public interface IFoo
+    public interface IGoo
     {
         // interface
         IDisposable Prop { get; set; }
@@ -286,7 +283,7 @@ namespace Mscorlib20
         Exception this[ArgumentException t] { get; }
     }
 
-    public class CFoo : IFoo
+    public class CGoo : IGoo
     {
         // enum
         public DayOfWeek PublicField;
@@ -306,15 +303,15 @@ class Test
 {
     public IDisposable M()
     {
-        var obj = new N20::CFoo();
-        N20.IFoo ifoo = obj;
+        var obj = new N20::CGoo();
+        N20.IGoo igoo = obj;
 
         /*<bind0>*/obj.PublicEventField/*</bind0>*/ += /*<bind1>*/MyEveHandler/*</bind1>*/;
-        var local = /*<bind2>*/ifoo[null]/*</bind2>*/;
+        var local = /*<bind2>*/igoo[null]/*</bind2>*/;
 
         if (/*<bind3>*/obj.PublicField /*</bind3>*/== DayOfWeek.Friday)
         {
-            return /*<bind4>*/(obj as N20.IFoo).Prop/*</bind4>*/;
+            return /*<bind4>*/(obj as N20.IGoo).Prop/*</bind4>*/;
         }
         return null;
     }
@@ -322,15 +319,15 @@ class Test
     public void MyEveHandler(object o) { }
 }
 ";
-            var comp20 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation ref Compilation"
-            var comp40 = CreateCompilationWithMscorlib(src2, new[] { new CSharpCompilationReference(comp20) });
+            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
 
             var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
             var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();
 
-            // IFoo.Prop, CFoo.Prop, Event, Field, IFoo.This, CFoo.This
+            // IGoo.Prop, CGoo.Prop, Event, Field, IGoo.This, CGoo.This
             Assert.Equal(6, originalSymbols.Count);
 
             // ====================
@@ -373,7 +370,7 @@ class Test
             var src1 = @"using System;
 namespace Mscorlib20
 {
-    public interface IFoo
+    public interface IGoo
     {
         // interface
         IDisposable Prop { get; set; }
@@ -381,11 +378,11 @@ namespace Mscorlib20
         Exception this[ArgumentException t] { get; }
     }
 
-    public class CFoo : IFoo
+    public class CGoo : IGoo
     {
         // explicit
-        IDisposable IFoo.Prop { get; set; }
-        Exception IFoo.this[ArgumentException t] { get { return t; } }
+        IDisposable IGoo.Prop { get; set; }
+        Exception IGoo.this[ArgumentException t] { get { return t; } }
     }
 }
 ";
@@ -397,22 +394,22 @@ class Test
 {
     public IDisposable M()
     {
-        N20.IFoo ifoo = new N20::CFoo();
+        N20.IGoo igoo = new N20::CGoo();
 
-        var local = /*<bind0>*/ifoo[new ArgumentException()]/*</bind0>*/;
-        return /*<bind1>*/ifoo.Prop/*</bind1>*/;
+        var local = /*<bind0>*/igoo[new ArgumentException()]/*</bind0>*/;
+        return /*<bind1>*/igoo.Prop/*</bind1>*/;
     }
 }
 ";
-            var comp20 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation ref Compilation"
-            var comp40 = CreateCompilationWithMscorlib(src2, new[] { new CSharpCompilationReference(comp20) });
+            var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
 
             var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
             var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();
 
-            // CFoo.Prop, CFoo.This, IFoo.Prop, IFoo.This
+            // CGoo.Prop, CGoo.This, IGoo.Prop, IGoo.This
             Assert.Equal(4, originalSymbols.Count);
 
             // ====================

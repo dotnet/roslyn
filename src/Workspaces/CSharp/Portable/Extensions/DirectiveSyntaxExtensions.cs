@@ -61,9 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
-
-            DirectiveTriviaSyntax result;
-            directiveSyntaxMap.TryGetValue(directive, out result);
+            directiveSyntaxMap.TryGetValue(directive, out var result);
 
             return result;
         }
@@ -76,9 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
-
-            IReadOnlyList<DirectiveTriviaSyntax> result;
-            directiveConditionalMap.TryGetValue(directive, out result);
+            directiveConditionalMap.TryGetValue(directive, out var result);
 
             return result;
         }

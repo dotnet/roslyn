@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         <Fact, WorkItem(547015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547015")>
         Public Sub IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
             Dim source = TestResources.MetadataTests.Invalid.ManyMethodSpecs
-            CompileAndVerify(VisualBasicCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
+            CompileAndVerify(VisualBasicCompilation.Create("Goo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
         End Sub
 
         <Fact>
@@ -165,7 +165,7 @@ End Class
 
         <Fact>
         Public Sub FakeILGen()
-            Dim comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"> 
 Public Class D
@@ -296,7 +296,19 @@ End Class
 
                 Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName))
-                Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType))
+
+                Dim actual = From h In reader.ExportedTypes
+                             Let et = reader.GetExportedType(h)
+                             Select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{CInt(et.Attributes):X4}"
+
+                AssertEx.Equal(
+                {
+                    "NS1.Class4 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class7 0x27000001 (ExportedType) 0x0002",
+                    ".Class1 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class3 0x27000003 (ExportedType) 0x0002",
+                    ".Class2 0x26000002 (AssemblyFile) 0x0001"
+                }, actual)
             End Using
         End Sub
 
@@ -637,7 +649,7 @@ End Class
 
         <Fact()>
         Public Sub GenericMethods2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 
@@ -908,7 +920,7 @@ End Class
          WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190"),
          WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")>
         Public Sub EmitWithNoResourcesAllPlatforms()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file>
 Class Test

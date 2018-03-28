@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,29 +19,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IPropertySymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId, 
+            Solution solution, 
+            IImmutableSet<Project> projects, 
+            CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-            baseSymbols = baseSymbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-            var backingField = symbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Where(f => symbol.Equals(f.AssociatedSymbol));
+            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
-            var result = baseSymbols.Concat(backingField);
+            var symbol = symbolAndProjectId.Symbol;
+            var backingFields = symbol.ContainingType.GetMembers()
+                                      .OfType<IFieldSymbol>()
+                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
+                                      .Select(f => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(f))
+                                      .ToImmutableArray();
+
+            var result = baseSymbols.Concat(backingFields);
 
             if (symbol.GetMethod != null)
             {
-                result = result.Concat(symbol.GetMethod);
+                result = result.Add(symbolAndProjectId.WithSymbol(symbol.GetMethod));
             }
 
             if (symbol.SetMethod != null)
             {
-                result = result.Concat(symbol.SetMethod);
+                result = result.Add(symbolAndProjectId.WithSymbol(symbol.SetMethod));
             }
 
             return result;
         }
 
-        protected override async Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IPropertySymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -51,17 +59,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var forEachDocuments = IsForEachProperty(symbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                : ImmutableArray<Document>.Empty;
 
             var elementAccessDocument = symbol.IsIndexer
                 ? await FindDocumentWithElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                : ImmutableArray<Document>.Empty;
 
             var indexerMemberCrefDocument = symbol.IsIndexer
                 ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments).Concat(elementAccessDocument).Concat(indexerMemberCrefDocument);
+            return ordinaryDocuments.Concat(forEachDocuments)
+                                    .Concat(elementAccessDocument)
+                                    .Concat(indexerMemberCrefDocument);
         }
 
         private static bool IsForEachProperty(IPropertySymbol symbol)
@@ -69,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.Name == WellKnownMemberNames.CurrentPropertyName;
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -78,36 +88,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var forEachReferences = IsForEachProperty(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                : ImmutableArray<ReferenceLocation>.Empty;
 
             var elementAccessReferences = symbol.IsIndexer
                 ? await FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                : ImmutableArray<ReferenceLocation>.Empty;
 
-            return nameReferences.Concat(forEachReferences).Concat(elementAccessReferences);
+            return nameReferences.Concat(forEachReferences)
+                                 .Concat(elementAccessReferences);
         }
 
-        private Task<IEnumerable<Document>> FindDocumentWithElementAccessExpressionsAsync(
+        private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
             Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsElementAccessExpression;
             }, cancellationToken);
         }
 
-        private Task<IEnumerable<Document>> FindDocumentWithIndexerMemberCrefAsync(
+        private Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
             Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsIndexerMemberCref;
             }, cancellationToken);
         }
 
-        private async Task<IEnumerable<ReferenceLocation>> FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(
+        private async Task<ImmutableArray<ReferenceLocation>> FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(
             IPropertySymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -124,14 +135,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var elementAccessExpressionsAndIndexerMemberCref = elementAccessExpressions.Concat(indexerMemberCref);
 
-            var locations = new List<ReferenceLocation>();
+            var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
 
             foreach (var node in elementAccessExpressionsAndIndexerMemberCref)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var match = symbolsMatch(node, semanticModel);
-                if (match.Item1)
+                if (match.matched)
                 {
                     SyntaxNode nodeToBeReferenced = null;
 
@@ -143,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     {
                         var childNodes = node.ChildNodes();
                         var leftOfInvocation = childNodes.First();
-                        if (symbolsMatch(leftOfInvocation, semanticModel).Item1)
+                        if (symbolsMatch(leftOfInvocation, semanticModel).matched)
                         {
                             // Element access with explicit member name (allowed in VB).
                             // We have already added a reference location for the member name identifier, so skip this one.
@@ -156,12 +167,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     if (nodeToBeReferenced != null)
                     {
                         var location = nodeToBeReferenced.SyntaxTree.GetLocation(new TextSpan(nodeToBeReferenced.SpanStart, 0));
-                        locations.Add(new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.Item2));
+                        locations.Add(new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason));
                     }
                 }
             }
 
-            return locations;
+            return locations.ToImmutableAndFree();
         }
     }
 }

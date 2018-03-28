@@ -7,6 +7,8 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <summary>
         ''' Determines if a SyntaxNodeOrToken is a specified kind.
         ''' </summary>
-        ''' <param name="nodeOrToken">The source SyntaxNodeOrToke.</param>
+        ''' <param name="nodeOrToken">The source SyntaxNodeOrToken.</param>
         ''' <param name="kind">The SyntaxKind to test for.</param>
         ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
         <Extension>
@@ -266,12 +268,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxNode.DoGetSyntaxErrors(tree, token)
         End Function
 
-        <Extension>
-        Friend Function AddError(node As GreenNode, diagnostic As DiagnosticInfo) As GreenNode
-            Dim green = TryCast(node, InternalSyntax.VisualBasicSyntaxNode)
-            Return green.AddError(diagnostic)
-        End Function
-
         ''' <summary>
         ''' Checks to see if SyntaxToken is a bracketed identifier.
         ''' </summary>
@@ -396,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If list.Count = 0 Then
                 Return SyntaxFactory.TokenList(items)
             Else
-                Dim builder = New Syntax.SyntaxTokenListBuilder(list.Count + items.Length)
+                Dim builder = New SyntaxTokenListBuilder(list.Count + items.Length)
                 If index > 0 Then
                     builder.Add(list, 0, index)
                 End If
@@ -831,6 +827,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
             If vbmodel IsNot Nothing Then
                 Return vbmodel.GetDeclaredSymbol(identifierSyntax, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the corresponding symbol for a specified tuple element.
+        ''' </summary>
+        ''' <param name="semanticModel">A source semantic model.</param>
+        ''' <param name="elementSyntax">A TupleElementSyntax object.</param>
+        ''' <param name="cancellationToken">A cancellation token.</param>
+        ''' <returns>A symbol, for the specified element; otherwise Nothing. </returns>
+        <Extension>
+        Public Function GetDeclaredSymbol(semanticModel As SemanticModel, elementSyntax As TupleElementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
+            If vbmodel IsNot Nothing Then
+                Return vbmodel.GetDeclaredSymbol(elementSyntax, cancellationToken)
             Else
                 Return Nothing
             End If
@@ -1345,6 +1358,106 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return vbmodel.GetConversion(expression, cancellationToken)
             Else
                 Return Nothing
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from an <see cref="IConversionOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="conversionExpression">The conversion expression to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/>.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
+            Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
+            If basicConversionExpression IsNot Nothing Then
+                Return basicConversionExpression.ConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
+                                                          NameOf(IConversionOperation)),
+                                            NameOf(conversionExpression))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for InConversion of <see cref="IArgumentOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the InConversion.</returns>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetInConversion(argument As IArgumentOperation) As Conversion
+            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
+            If basicArgument IsNot Nothing Then
+                Return basicArgument.InConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgumentOperation)),
+                                            NameOf(argument))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for OutConversion of <see cref="IArgumentOperation"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the OutConversion.</returns>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
+            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
+            If basicArgument IsNot Nothing Then
+                Return basicArgument.OutConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgumentOperation)),
+                                            NameOf(argument))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        ''' conversion is applied before the operator is applied to the result of this conversion and <see cref="IAssignmentOperation.Value"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' This compound assignment must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetInConversion(compoundAssignment As ICompoundAssignmentOperation) As Conversion
+            If compoundAssignment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundAssignment))
+            End If
+
+            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
+            If basicCompoundOperation IsNot Nothing Then
+                Return basicCompoundOperation.InConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundAssignment)),
+                                            NameOf(compoundAssignment))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        ''' conversion is applied after the operator is applied, before the result is assigned to <see cref="IAssignmentOperation.Target"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' This compound assignment must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetOutConversion(compoundAssignment As ICompoundAssignmentOperation) As Conversion
+            If compoundAssignment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(compoundAssignment))
+            End If
+
+            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
+            If basicCompoundOperation IsNot Nothing Then
+                Return basicCompoundOperation.OutConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
+                                                          NameOf(compoundAssignment)),
+                                            NameOf(compoundAssignment))
             End If
         End Function
 

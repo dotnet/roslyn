@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(stateMachineType As StateMachineTypeSymbol,
                        name As String,
                        interfacePropertyGetter As MethodSymbol,
-                       syntax As VisualBasicSyntaxNode,
+                       syntax As SyntaxNode,
                        declaredAccessibility As Accessibility)
 
             Me._name = name
@@ -97,12 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property SetMethod As MethodSymbol
             Get
                 Return Nothing
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ReturnsByRef As Boolean
-            Get
-                Return False
             End Get
         End Property
 

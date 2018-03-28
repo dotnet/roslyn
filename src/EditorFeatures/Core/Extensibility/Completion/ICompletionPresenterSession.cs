@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         void PresentItems(
             ITrackingSpan triggerSpan, IList<CompletionItem> items, CompletionItem selectedItem,
-            CompletionItem presetBuilder, bool suggestionMode, bool isSoftSelected,
+            CompletionItem suggestionModeItem, bool suggestionMode, bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText);
+            string filterText);
 
         void SelectPreviousItem();
         void SelectNextItem();

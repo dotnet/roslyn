@@ -131,8 +131,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a non fatal error.
+        /// Report a non-fatal error.
         /// Calls <see cref="NonFatalHandler"/> and doesn't pass the exception through (the method returns true).
+        /// This is generally expected to be used within an exception filter as that allows us to
+        /// capture data at the point the exception is thrown rather than when it is handled.
+        /// However, it can also be used outside of an exception filter. If the exception has not
+        /// already been thrown the method will throw and catch it itself to ensure we get a useful
+        /// stack trace.
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]

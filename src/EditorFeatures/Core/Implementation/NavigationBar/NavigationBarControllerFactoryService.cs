@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal class NavigationBarControllerFactoryService : INavigationBarControllerFactoryService
     {
         private readonly IWaitIndicator _waitIndicator;
-        private readonly AggregateAsynchronousOperationListener _asyncListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         public NavigationBarControllerFactoryService(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _waitIndicator = waitIndicator;
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.NavigationBar);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
         }
 
         public INavigationBarController CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)

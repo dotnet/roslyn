@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatterHelpers;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -131,8 +132,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     builder.Append(", ");
                 }
 
-                builder.Append(FormatRefKind(parameter));
-                builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType, options));
+                if (parameter.ParameterType.IsByRef)
+                {
+                    builder.Append(FormatRefKind(parameter));
+                    builder.Append(' ');
+                    builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType.GetElementType(), options));
+                }
+                else
+                {
+                    builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType, options));
+                }
             }
 
             builder.Append(')');

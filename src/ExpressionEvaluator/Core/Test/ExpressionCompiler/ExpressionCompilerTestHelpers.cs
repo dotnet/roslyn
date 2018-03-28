@@ -1,7 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias PDB;
-
 
 using System;
 using System.Collections.Generic;
@@ -17,16 +16,19 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.Metadata.Tools;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PDB::Roslyn.Test.MetadataUtilities;
+using PDB::Roslyn.Test.Utilities;
 using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -347,8 +349,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var names = ArrayBuilder<string>.GetInstance();
             foreach (var scope in scopes)
             {
-                var locals = scope.GetLocals();
-                foreach (var local in locals)
+                foreach (var local in scope.GetLocals())
                 {
                     var name = local.GetName();
                     int slot;
@@ -365,7 +366,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         }
 
         internal static void VerifyIL(
-            this ImmutableArray<byte> assembly,
+            this byte[] assembly,
+            int methodToken,
             string qualifiedName,
             string expectedIL,
             [CallerLineNumber]int expectedValueSourceLine = 0,
@@ -381,16 +383,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 var module = metadata.Module;
                 var reader = module.MetadataReader;
-                var typeDef = reader.GetTypeDef(parts[0]);
-                var methodName = parts[1];
-                var methodHandle = reader.GetMethodDefHandle(typeDef, methodName);
+                var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+                var methodDef = reader.GetMethodDefinition(methodHandle);
+                var typeDef = reader.GetTypeDefinition(methodDef.GetDeclaringType());
+                Assert.True(reader.StringComparer.Equals(typeDef.Name, parts[0]));
+                Assert.True(reader.StringComparer.Equals(methodDef.Name, parts[1]));
                 var methodBody = module.GetMethodBodyOrThrow(methodHandle);
 
                 var pooled = PooledStringBuilder.GetInstance();
                 var builder = pooled.Builder;
-                var writer = new StringWriter(pooled.Builder);
-                var visualizer = new MetadataVisualizer(reader, writer);
-                visualizer.VisualizeMethodBody(methodBody, methodHandle, emitHeader: false);
+
+                if (!methodBody.LocalSignature.IsNil)
+                {
+                    var visualizer = new MetadataVisualizer(reader, new StringWriter(), MetadataVisualizerOptions.NoHeapReferences);
+                    var signature = reader.GetStandaloneSignature(methodBody.LocalSignature);
+                    builder.AppendFormat("Locals: {0}", visualizer.StandaloneSignature(signature.Signature));
+                    builder.AppendLine();
+                }
+
+                ILVisualizer.Default.DumpMethod(
+                    builder,
+                    methodBody.MaxStack,
+                    methodBody.GetILContent(),
+                    ImmutableArray.Create<ILVisualizer.LocalInfo>(),
+                    ImmutableArray.Create<ILVisualizer.HandlerSpan>());
+
                 var actualIL = pooled.ToStringAndFree();
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
@@ -414,7 +431,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
             var scopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             method.GetAllScopes(scopes);
-            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), s.GetLocals().SelectAsArray(l => l.GetName()), isEndInclusive));
+            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), ImmutableArray.CreateRange(s.GetLocals().Select(l => l.GetName())), isEndInclusive));
             scopes.Free();
             return result;
         }
@@ -443,7 +460,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         private static bool IsReferenced(MetadataReference reference, HashSet<string> referenceNames)
         {
-            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadata() as AssemblyMetadata;
+            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadataNoCopy() as AssemblyMetadata;
             if (assemblyMetadata == null)
             {
                 // Netmodule. Assume it is referenced.
@@ -497,7 +514,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
         {
             // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata().Copy();
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
             return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
         }
 
@@ -735,6 +752,74 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 new string[0] :
                 parameters.Split(',');
             return methodName;
+        }
+
+        internal unsafe static ModuleMetadata ToModuleMetadata(this PEMemoryBlock metadata, bool ignoreAssemblyRefs)
+        {
+            return ModuleMetadata.CreateFromMetadata(
+                (IntPtr)metadata.Pointer,
+                metadata.Length,
+                includeEmbeddedInteropTypes: false,
+                ignoreAssemblyRefs: ignoreAssemblyRefs);
+        }
+
+        internal unsafe static MetadataReader ToMetadataReader(this PEMemoryBlock metadata)
+        {
+            return new MetadataReader(metadata.Pointer, metadata.Length, MetadataReaderOptions.None);
+        }
+
+        internal static void EmitCorLibWithAssemblyReferences(
+            Compilation comp,
+            string pdbPath,
+            Func<CommonPEModuleBuilder, EmitOptions, CommonPEModuleBuilder> getModuleBuilder,
+            out ImmutableArray<byte> peBytes,
+            out ImmutableArray<byte> pdbBytes)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var emitOptions = EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0").WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
+            var moduleBuilder = comp.CheckOptionsAndCreateModuleBuilder(
+                diagnostics,
+                null,
+                emitOptions,
+                null,
+                null,
+                null,
+                null,
+                default(CancellationToken));
+
+            // Wrap the module builder in a module builder that
+            // reports the "System.Object" type as having no base type.
+            moduleBuilder = getModuleBuilder(moduleBuilder, emitOptions);
+            bool result = comp.Compile(
+                moduleBuilder,
+                emittingPdb: pdbPath != null,
+                diagnostics: diagnostics,
+                filterOpt: null,
+                cancellationToken: default(CancellationToken));
+
+            using (var peStream = new MemoryStream())
+            {
+                using (var pdbStream = new MemoryStream())
+                {
+                    PeWriter.WritePeToStream(
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                        comp.MessageProvider,
+                        () => peStream,
+                        () => pdbStream,
+                        null, null,
+                        metadataOnly: true,
+                        isDeterministic: false,
+                        emitTestCoverageData: false,
+                        privateKeyOpt: null,
+                        cancellationToken: default(CancellationToken));
+
+                    peBytes = peStream.ToImmutable();
+                    pdbBytes = pdbStream.ToImmutable();
+                }
+            }
+
+            diagnostics.Verify();
+            diagnostics.Free();
         }
     }
 }

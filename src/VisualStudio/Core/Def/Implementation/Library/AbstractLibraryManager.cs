@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
@@ -17,15 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             _serviceProvider = serviceProvider;
 
             var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            if (vsShell != null)
-            {
-                object varImageList;
-                int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out varImageList);
-                if (ErrorHandler.Succeeded(hresult) && varImageList != null)
-                {
-                    _imageListPtr = (IntPtr)(int)varImageList;
-                }
-            }
+            vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageListPtr);
         }
 
         public IServiceProvider ServiceProvider

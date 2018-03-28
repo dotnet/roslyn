@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _previousSubmissionFieldMap == null ? SpecializedCollections.EmptyArray<FieldSymbol>() : (IEnumerable<FieldSymbol>)_previousSubmissionFieldMap.Values;
+                return _previousSubmissionFieldMap == null ? Array.Empty<FieldSymbol>() : (IEnumerable<FieldSymbol>)_previousSubmissionFieldMap.Values;
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -23,6 +24,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
             var emptyProperty = exceptionType.GetProperty("Empty");
             return (string)emptyProperty.GetValue(exceptionType.Instantiate());
+        }
+
+        internal static DkmClrCustomTypeInfo MakeCustomTypeInfo(params bool[] dynamicFlags)
+        {
+            if (dynamicFlags == null || dynamicFlags.Length == 0)
+            {
+                return null;
+            }
+
+            var builder = ArrayBuilder<bool>.GetInstance(dynamicFlags.Length);
+            builder.AddRange(dynamicFlags);
+            var result = CustomTypeInfo.Create(DynamicFlagsCustomTypeInfo.ToBytes(builder), tupleElementNames: null);
+            builder.Free();
+            return result;
         }
 
         private readonly DkmInspectionSession _inspectionSession;
@@ -158,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return FormatResult(name, name, value, declaredType, inspectionContext: inspectionContext);
         }
 
-        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
+        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, DkmClrCustomTypeInfo declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
             var asyncResult = FormatAsyncResult(name, fullName, value, declaredType, declaredTypeInfo, inspectionContext);
             var exception = asyncResult.Exception;
@@ -169,14 +184,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return asyncResult.Result;
         }
 
-        internal DkmEvaluationAsyncResult FormatAsyncResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
+        internal DkmEvaluationAsyncResult FormatAsyncResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, DkmClrCustomTypeInfo declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
             DkmEvaluationAsyncResult asyncResult = default(DkmEvaluationAsyncResult);
             var workList = new DkmWorkList();
             value.GetResult(
                 workList,
                 DeclaredType: declaredType ?? value.Type,
-                CustomTypeInfo: DynamicFlagsCustomTypeInfo.Create(declaredTypeInfo).GetCustomTypeInfo(),
+                CustomTypeInfo: declaredTypeInfo,
                 InspectionContext: inspectionContext ?? DefaultInspectionContext,
                 FormatSpecifiers: Formatter.NoFormatSpecifiers,
                 ResultName: name,
@@ -344,11 +359,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static string ToString(DkmEvaluationResult result)
         {
-            var success = result as DkmSuccessEvaluationResult;
-            if (success != null) return ToString(success);
+            if (result is DkmSuccessEvaluationResult success) return ToString(success);
 
-            var intermediate = result as DkmIntermediateEvaluationResult;
-            if (intermediate != null) return ToString(intermediate);
+            if (result is DkmIntermediateEvaluationResult intermediate) return ToString(intermediate);
 
             return ToString((DkmFailedEvaluationResult)result);
         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.CodeAnalysis.Scripting
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Public Overrides ReadOnly Property CommandLineParser As CommandLineParser
             Get
-                Return VisualBasicCommandLineParser.ScriptRunner
+                Return VisualBasicCommandLineParser.Script
             End Get
         End Property
 
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Public Overrides ReadOnly Property Logo As String
             Get
-                Return String.Format(VBInteractiveEditorResources.VBReplLogo,
+                Return String.Format(VBInteractiveEditorResources.Microsoft_R_Roslyn_Visual_Basic_Compiler_version_0,
                                      FileVersionInfo.GetVersionInfo(GetType(VisualBasicCommandLineArguments).Assembly.Location).FileVersion)
             End Get
         End Property

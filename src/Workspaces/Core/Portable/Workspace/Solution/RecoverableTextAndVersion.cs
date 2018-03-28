@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -34,10 +33,11 @@ namespace Microsoft.CodeAnalysis
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
+        public ITemporaryTextStorage Storage => _text?.Storage;
+
         public override bool TryGetValue(out TextAndVersion value)
         {
-            SourceText text;
-            if (_text != null && _text.TryGetValue(out text))
+            if (_text != null && _text.TryGetValue(out var text))
             {
                 value = TextAndVersion.Create(text, _version, _filePath);
                 return true;
@@ -55,19 +55,18 @@ namespace Microsoft.CodeAnalysis
 
             // if the TextAndVersion has not been stored yet, but it has been observed
             // then try to get version from cached value.
-            if (version == default(VersionStamp))
+            if (version == default)
             {
-                TextAndVersion textAndVersion;
-                if (this.TryGetValue(out textAndVersion))
+                if (this.TryGetValue(out var textAndVersion))
                 {
                     version = textAndVersion.Version;
                 }
             }
 
-            return version != default(VersionStamp);
+            return version != default;
         }
 
-        public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
         {
             if (_text == null)
             {
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             return TextAndVersion.Create(_text.GetValue(cancellationToken), _version, _filePath);
         }
 
-        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
         {
             if (_text == null)
             {
@@ -121,6 +120,8 @@ namespace Microsoft.CodeAnalysis
                 _parent = parent;
             }
 
+            public ITemporaryTextStorage Storage => _storage;
+
             protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(_storage);
@@ -141,12 +142,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            protected override Task SaveAsync(SourceText text, CancellationToken cancellationToken)
+            protected override async Task SaveAsync(SourceText text, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
 
-                _storage = _parent._storageService.CreateTemporaryTextStorage(CancellationToken.None);
-                return _storage.WriteTextAsync(text);
+                var storage = _parent._storageService.CreateTemporaryTextStorage(cancellationToken);
+                await storage.WriteTextAsync(text).ConfigureAwait(false);
+
+                // make sure write is done before setting _storage field
+                Interlocked.CompareExchange(ref _storage, storage, null);
             }
         }
     }

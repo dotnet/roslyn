@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
             finally
             {
-                this.CurrentlyExecutingCommand = default(uint);
+                this.CurrentlyExecutingCommand = default;
             }
         }
 
@@ -82,10 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.AppCommandCmdID)commandId)
             {
@@ -108,10 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd14CmdID)commandId)
             {
@@ -130,10 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd12CmdID)commandId)
             {
@@ -156,10 +156,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd97CmdID)commandId)
             {
@@ -214,9 +214,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             {
                                 count = 1;
                             }
-                            else if (o is int)
+                            else if (o is int i)
                             {
-                                count = (int)o;
+                                count = i;
                             }
                             else
                             {
@@ -252,23 +252,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch (commandId)
             {
-                case ID.CSharpCommands.OrganizeSortUsings:
-                case ID.CSharpCommands.ContextOrganizeSortUsings:
-                    ExecuteSortUsings(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case ID.CSharpCommands.OrganizeRemoveUnusedUsings:
-                case ID.CSharpCommands.ContextOrganizeRemoveUnusedUsings:
-                    ExecuteRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case ID.CSharpCommands.OrganizeRemoveAndSort:
                 case ID.CSharpCommands.ContextOrganizeRemoveAndSort:
                     ExecuteSortAndRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
@@ -285,10 +275,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch (commandId)
             {
@@ -307,10 +297,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {
@@ -469,11 +459,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteParameterInfo(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.QUICKINFO:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteQuickInfo(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.RENAME:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecuteRename(subjectBuffer, contentType, executeNextCommandTarget);
@@ -575,10 +560,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch (commandId)
             {
@@ -653,13 +638,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new RenameCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteQuickInfo(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new InvokeQuickInfoCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -944,20 +922,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private void ExecuteSortUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new SortImportsCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new RemoveUnnecessaryImportsCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
         private void ExecuteSortAndRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
@@ -985,8 +949,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private void ExecuteBrowserNavigationCommand(bool navigateBackward, Action executeNextCommandTarget)
         {
             // We just want to delegate to the shell's NavigateBackward/Forward commands
-            var target = _serviceProvider.GetService(typeof(SUIHostCommandDispatcher)) as IOleCommandTarget;
-            if (target != null)
+            if (_serviceProvider.GetService(typeof(SUIHostCommandDispatcher)) is IOleCommandTarget target)
             {
                 var cmd = (uint)(navigateBackward ?
                      VSConstants.VSStd97CmdID.ShellNavBackward :

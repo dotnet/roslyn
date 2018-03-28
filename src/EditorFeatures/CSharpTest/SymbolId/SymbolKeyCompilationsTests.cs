@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         {
             var src1 = @"using System;
 
-public delegate void DFoo(int p1, string p2);
+public delegate void DGoo(int p1, string p2);
 
 namespace N1.N2
 {
-    public interface IFoo { }
+    public interface IGoo { }
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
-                public enum EFoo { Zero, One }
+                public enum EGoo { Zero, One }
             }
         }
     }
@@ -39,24 +39,24 @@ namespace N1.N2
 
             var src2 = @"using System;
 
-public delegate void DFoo(int p1, string p2);
+public delegate void DGoo(int p1, string p2);
 
 namespace N1.N2
 {
-    public interface IFoo 
+    public interface IGoo 
     {
         // Add member
-        N3.CFoo GetClass();
+        N3.CGoo GetClass();
     }
 
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
                 // Update member
-                public enum EFoo { Zero, One, Two }
+                public enum EGoo { Zero, One, Two }
             }
             // Add member
             public void M(int n) { Console.WriteLine(n); }
@@ -65,13 +65,13 @@ namespace N1.N2
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src2, assemblyName: "Test");
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
@@ -86,8 +86,8 @@ public void Method()
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1);
-            var comp2 = CreateCompilationWithMscorlib(src2);
+            var comp1 = CreateCompilation(src1);
+            var comp2 = CreateCompilation(src2);
 
             var symbol01 = comp1.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             var symbol02 = comp1.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
@@ -101,7 +101,7 @@ public void Method()
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(src, assemblyName: "Test");
+            var comp = CreateCompilation(src, assemblyName: "Test");
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type = ns.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
@@ -127,8 +127,8 @@ namespace NS
             var implementation = definition.PartialImplementationPart;
 
             // Assert that both the definition and implementation resolve back to themselves
-            Assert.Equal(definition, ResolveSymbol(definition, comp, comp, SymbolKeyComparison.None));
-            Assert.Equal(implementation, ResolveSymbol(implementation, comp, comp, SymbolKeyComparison.None));
+            Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+            Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
         [Fact]
@@ -164,16 +164,49 @@ class C<T> : I<T>, I
 
 ";
 
-            var compilation = CreateCompilationWithMscorlib(src, assemblyName: "Test");
+            var compilation = CreateCompilation(src, assemblyName: "Test");
 
             var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single() as NamedTypeSymbol;
             var indexer1 = type.GetMembers().Where(m => m.MetadataName == "I.Item").Single() as IPropertySymbol;
             var indexer2 = type.GetMembers().Where(m => m.MetadataName == "I<T>.Item").Single() as IPropertySymbol;
 
-            AssertSymbolKeysEqual(indexer1, compilation, indexer2, compilation, SymbolKeyComparison.None, expectEqual: false);
+            AssertSymbolKeysEqual(indexer1, indexer2, SymbolKeyComparison.None, expectEqual: false);
 
-            Assert.Equal(indexer1, ResolveSymbol(indexer1, compilation, compilation, SymbolKeyComparison.None));
-            Assert.Equal(indexer2, ResolveSymbol(indexer2, compilation, compilation, SymbolKeyComparison.None));
+            Assert.Equal(indexer1, ResolveSymbol(indexer1, compilation, SymbolKeyComparison.None));
+            Assert.Equal(indexer2, ResolveSymbol(indexer2, compilation, SymbolKeyComparison.None));
+        }
+
+        [Fact]
+        public void RecursiveReferenceToConstructedGeneric()
+        {
+            var src1 =
+@"using System.Collections.Generic;
+
+class C
+{
+    public void M<Z>(List<Z> list)
+    {
+        var v = list.Add(default(Z));
+    }
+}";
+
+            var comp1 = CreateCompilation(src1);
+            var comp2 = CreateCompilation(src1);
+
+            var symbols1 = GetSourceSymbols(comp1, includeLocal: true).ToList();
+            var symbols2 = GetSourceSymbols(comp1, includeLocal: true).ToList();
+
+            // First, make sure that all the symbols in this file resolve properly 
+            // to themselves.
+            ResolveAndVerifySymbolList(symbols1, symbols2, comp1);
+
+            // Now do this for the members of types we see.  We want this 
+            // so we hit things like the members of the constructed type
+            // List<Z>
+            var members1 = symbols1.OfType<INamespaceOrTypeSymbol>().SelectMany(n => n.GetMembers()).ToList();
+            var members2 = symbols2.OfType<INamespaceOrTypeSymbol>().SelectMany(n => n.GetMembers()).ToList();
+
+            ResolveAndVerifySymbolList(members1, members2, comp1);
         }
 
         #endregion
@@ -185,19 +218,19 @@ class C<T> : I<T>, I
         {
             var src1 = @"using System;
 
-public delegate void DFoo(int p1);
+public delegate void DGoo(int p1);
 
 namespace N1.N2
 {
     public interface IBase { }
-    public interface IFoo { }
+    public interface IGoo { }
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
-                public enum EFoo { Zero, One }
+                public enum EGoo { Zero, One }
             }
         }
     }
@@ -206,35 +239,35 @@ namespace N1.N2
 
             var src2 = @"using System;
 
-public delegate void DFoo(int p1, string p2); // add 1 more parameter
+public delegate void DGoo(int p1, string p2); // add 1 more parameter
 
 namespace N1.N2
 {
     public interface IBase { }
-    public interface IFoo : IBase // add base interface
+    public interface IGoo : IBase // add base interface
     {
     }
 
     namespace N3
     {
-        public class CFoo : IFoo // impl interface
+        public class CGoo : IGoo // impl interface
         {
-            private struct SFoo // change modifier
+            private struct SGoo // change modifier
             {
-                internal enum EFoo : long { Zero, One } // change base class, and modifier
+                internal enum EGoo : long { Zero, One } // change base class, and modifier
             }
         }
     }
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src2, assemblyName: "Test");
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [Fact]
@@ -264,8 +297,8 @@ namespace NS
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src2, assemblyName: "Test");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var typeSym00 = namespace1.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
@@ -275,10 +308,10 @@ namespace NS
             var typeSym02 = namespace2.GetTypeMembers("C2").Single() as NamedTypeSymbol;
 
             // new C1 resolve to old C1
-            ResolveAndVerifySymbol(typeSym01, comp2, typeSym00, comp1);
+            ResolveAndVerifySymbol(typeSym01, typeSym00, comp1);
 
             // old C1 (new C2) NOT resolve to old C1
-            var symkey = SymbolKey.Create(typeSym02, comp1, CancellationToken.None);
+            var symkey = SymbolKey.Create(typeSym02, CancellationToken.None);
             var syminfo = symkey.Resolve(comp1);
             Assert.Null(syminfo.Symbol);
         }
@@ -311,8 +344,8 @@ public class Test
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src2, assemblyName: "Test");
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.NonTypeMember | SymbolCategory.Parameter)
                                       .Where(s => !s.IsAccessor()).OrderBy(s => s.Name);
@@ -320,7 +353,7 @@ public class Test
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.NonTypeMember | SymbolCategory.Parameter)
                                  .Where(s => !s.IsAccessor()).OrderBy(s => s.Name);
 
-            ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
+            ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
         [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
@@ -344,8 +377,8 @@ public class Test
     protected long this[long p1] { get { return 0; } set { } }  // add 'get'
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src2, assemblyName: "Test");
 
             var typeSym1 = comp1.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
             var originalSymbols = typeSym1.GetMembers(WellKnownMemberNames.Indexer);
@@ -353,8 +386,8 @@ public class Test
             var typeSym2 = comp2.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
             var newSymbols = typeSym2.GetMembers(WellKnownMemberNames.Indexer);
 
-            ResolveAndVerifySymbol(newSymbols.First(), comp2, originalSymbols.First(), comp1, SymbolKeyComparison.CaseSensitive);
-            ResolveAndVerifySymbol(newSymbols.Last(), comp2, originalSymbols.Last(), comp1, SymbolKeyComparison.CaseSensitive);
+            ResolveAndVerifySymbol(newSymbols.First(), originalSymbols.First(), comp1, SymbolKeyComparison.None);
+            ResolveAndVerifySymbol(newSymbols.Last(), originalSymbols.Last(), comp1, SymbolKeyComparison.None);
         }
 
         [Fact]
@@ -369,8 +402,8 @@ namespace NS
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly1");
-            var comp2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly2");
+            var comp1 = CreateCompilation(src, assemblyName: "Assembly1");
+            var comp2 = CreateCompilation(src, assemblyName: "Assembly2");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var typeSym01 = namespace1.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
@@ -379,10 +412,10 @@ namespace NS
             var typeSym02 = namespace2.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
 
             // new C1 resolves to old C1 if we ignore assembly and module ids
-            ResolveAndVerifySymbol(typeSym02, comp2, typeSym01, comp1, SymbolKeyComparison.CaseSensitive | SymbolKeyComparison.IgnoreAssemblyIds);
+            ResolveAndVerifySymbol(typeSym02, typeSym01, comp1, SymbolKeyComparison.IgnoreAssemblyIds);
 
             // new C1 DOES NOT resolve to old C1 if we don't ignore assembly and module ids
-            Assert.Null(ResolveSymbol(typeSym02, comp2, comp1, SymbolKeyComparison.CaseSensitive));
+            Assert.Null(ResolveSymbol(typeSym02,  comp1, SymbolKeyComparison.None));
         }
 
         [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
@@ -391,26 +424,26 @@ namespace NS
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
 
             // same identity
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
-            var comp2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
+            var comp1 = CreateCompilation(src, assemblyName: "Assembly");
+            var comp2 = CreateCompilation(src, assemblyName: "Assembly");
 
             Symbol sym1 = comp1.Assembly;
             Symbol sym2 = comp2.Assembly;
 
             // Not ignoreAssemblyAndModules
-            ResolveAndVerifySymbol(sym1, comp2, sym2, comp2);
+            ResolveAndVerifySymbol(sym1, sym2, comp2);
 
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.IgnoreAssemblyIds, true);
-            Assert.NotNull(ResolveSymbol(sym1, comp1, comp2, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(sym1, sym2, SymbolKeyComparison.IgnoreAssemblyIds, true);
+            Assert.NotNull(ResolveSymbol(sym1, comp2, SymbolKeyComparison.IgnoreAssemblyIds));
 
             // Module
             sym1 = comp1.Assembly.Modules[0];
             sym2 = comp2.Assembly.Modules[0];
 
-            ResolveAndVerifySymbol(sym1, comp1, sym2, comp2);
+            ResolveAndVerifySymbol(sym1, sym2, comp2);
 
-            AssertSymbolKeysEqual(sym2, comp2, sym1, comp1, SymbolKeyComparison.IgnoreAssemblyIds, true);
-            Assert.NotNull(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(sym2, sym1, SymbolKeyComparison.IgnoreAssemblyIds, true);
+            Assert.NotNull(ResolveSymbol(sym2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
         [Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
@@ -420,32 +453,32 @@ namespace NS
 
             // -------------------------------------------------------
             // different name
-            var compilation1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly1");
-            var compilation2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly2");
+            var compilation1 = CreateCompilation(src, assemblyName: "Assembly1");
+            var compilation2 = CreateCompilation(src, assemblyName: "Assembly2");
 
             ISymbol assembly1 = compilation1.Assembly;
             ISymbol assembly2 = compilation2.Assembly;
 
             // different
-            AssertSymbolKeysEqual(assembly2, compilation2, assembly1, compilation1, SymbolKeyComparison.CaseSensitive, expectEqual: false);
-            Assert.Null(ResolveSymbol(assembly2, compilation2, compilation1, SymbolKeyComparison.CaseSensitive));
+            AssertSymbolKeysEqual(assembly2, assembly1, SymbolKeyComparison.None, expectEqual: false);
+            Assert.Null(ResolveSymbol(assembly2, compilation1, SymbolKeyComparison.None));
 
             // ignore means ALL assembly/module symbols have same ID
-            AssertSymbolKeysEqual(assembly2, compilation2, assembly1, compilation1, SymbolKeyComparison.IgnoreAssemblyIds, expectEqual: true);
+            AssertSymbolKeysEqual(assembly2, assembly1, SymbolKeyComparison.IgnoreAssemblyIds, expectEqual: true);
 
             // But can NOT be resolved
-            Assert.Null(ResolveSymbol(assembly2, compilation2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
+            Assert.Null(ResolveSymbol(assembly2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
 
             // Module
             var module1 = compilation1.Assembly.Modules[0];
             var module2 = compilation2.Assembly.Modules[0];
 
             // different
-            AssertSymbolKeysEqual(module1, compilation1, module2, compilation2, SymbolKeyComparison.CaseSensitive, expectEqual: false);
-            Assert.Null(ResolveSymbol(module1, compilation1, compilation2, SymbolKeyComparison.CaseSensitive));
+            AssertSymbolKeysEqual(module1, module2, SymbolKeyComparison.None, expectEqual: false);
+            Assert.Null(ResolveSymbol(module1, compilation2, SymbolKeyComparison.None));
 
-            AssertSymbolKeysEqual(module2, compilation2, module1, compilation1, SymbolKeyComparison.IgnoreAssemblyIds);
-            Assert.Null(ResolveSymbol(module2, compilation2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(module2, module1, SymbolKeyComparison.IgnoreAssemblyIds);
+            Assert.Null(ResolveSymbol(module2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
         [Fact, WorkItem(546254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546254")]
@@ -464,19 +497,19 @@ public class C {}
 ";
 
             // different versions
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Assembly");
+            var comp1 = CreateCompilation(src, assemblyName: "Assembly");
+            var comp2 = CreateCompilation(src2, assemblyName: "Assembly");
 
             Symbol sym1 = comp1.Assembly;
             Symbol sym2 = comp2.Assembly;
 
             // comment is changed to compare Name ONLY
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.CaseSensitive, expectEqual: true);
-            var resolved = ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.CaseSensitive);
+            AssertSymbolKeysEqual(sym1, sym2, SymbolKeyComparison.None, expectEqual: true);
+            var resolved = ResolveSymbol(sym2, comp1, SymbolKeyComparison.None);
             Assert.Equal(sym1, resolved);
 
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.IgnoreAssemblyIds);
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
+            AssertSymbolKeysEqual(sym1, sym2, SymbolKeyComparison.IgnoreAssemblyIds);
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
         #endregion

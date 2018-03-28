@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 operand = underlyingCall.Arguments(0)
             End If
 
-            Debug.Assert(operand.Type.IsSameTypeIgnoringCustomModifiers(Type))
+            Debug.Assert(operand.Type.IsSameTypeIgnoringAll(Type))
         End Sub
 #End If
 

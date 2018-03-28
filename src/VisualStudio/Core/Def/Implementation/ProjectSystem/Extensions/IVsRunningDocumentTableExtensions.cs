@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             docCookie = VSConstants.VSCOOKIE_NIL;
 
-            if (runningDocTable.IsMonikerValid(moniker))
+            if (runningDocTable != null && runningDocTable.IsMonikerValid(moniker))
             {
                 var foundDocCookie = runningDocTable.GetDocumentCookie(moniker);
 

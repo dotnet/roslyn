@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor<SemanticModel>
+    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
     {
         private readonly bool _escapeKeywordIdentifiers;
         private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> _lazyAliasMap;
@@ -30,14 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             int positionOpt,
             bool escapeKeywordIdentifiers,
             IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> aliasMap,
-            bool isFirstSymbolVisited)
-            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            bool isFirstSymbolVisited,
+            bool inNamespaceOrType = false)
+            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
         {
             _escapeKeywordIdentifiers = escapeKeywordIdentifiers;
             _lazyAliasMap = aliasMap;
         }
 
-        protected override AbstractSymbolDisplayVisitor<SemanticModel> MakeNotFirstVisitor()
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
         {
             return new SymbolDisplayVisitor(
                 this.builder,
@@ -46,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.positionOpt,
                 _escapeKeywordIdentifiers,
                 _lazyAliasMap,
-                isFirstSymbolVisited: false);
+                isFirstSymbolVisited: false,
+                inNamespaceOrType: inNamespaceOrType);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
@@ -178,6 +181,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocal(ILocalSymbol symbol)
         {
+            if (symbol.IsRef && 
+                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
+            {
+                AddKeyword(SyntaxKind.RefKeyword);
+                AddSpace();
+
+                if (symbol.RefKind == RefKind.RefReadOnly)
+                {
+                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                    AddSpace();
+                }
+            }
+
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
                 symbol.Type.Accept(this);
@@ -186,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
 
-            if (symbol.IsConst &&
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
+                symbol.IsConst &&
                 symbol.HasConstantValue &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();
@@ -197,6 +213,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddConstantValue(symbol.Type, symbol.ConstantValue);
             }
+        }
+
+        public override void VisitDiscard(IDiscardSymbol symbol)
+        {
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
+            {
+                symbol.Type.Accept(this);
+                AddSpace();
+            }
+
+            builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "_"));
         }
 
         public override void VisitRangeVariable(IRangeVariableSymbol symbol)
@@ -261,34 +288,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
+                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) & !IsLocalFunction(symbol))))
             {
-                switch (symbol.DeclaredAccessibility)
-                {
-                    case Accessibility.Private:
-                        AddKeyword(SyntaxKind.PrivateKeyword);
-                        break;
-                    case Accessibility.Internal:
-                        AddKeyword(SyntaxKind.InternalKeyword);
-                        break;
-                    case Accessibility.ProtectedAndInternal:
-                    case Accessibility.Protected:
-                        AddKeyword(SyntaxKind.ProtectedKeyword);
-                        break;
-                    case Accessibility.ProtectedOrInternal:
-                        AddKeyword(SyntaxKind.ProtectedKeyword);
-                        AddSpace();
-                        AddKeyword(SyntaxKind.InternalKeyword);
-                        break;
-                    case Accessibility.Public:
-                        AddKeyword(SyntaxKind.PublicKeyword);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
-                }
-
-                AddSpace();
+                AddAccessibility(symbol);
             }
+        }
+
+        private static bool IsLocalFunction(ISymbol symbol)
+        {
+            if (symbol.Kind != SymbolKind.Method)
+            {
+                return false;
+            }
+
+            return ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
+        }
+
+        private void AddAccessibility(ISymbol symbol)
+        {
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Private:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    break;
+                case Accessibility.Internal:
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.ProtectedAndInternal:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
+                case Accessibility.Protected:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
+                case Accessibility.ProtectedOrInternal:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.Public:
+                    AddKeyword(SyntaxKind.PublicKeyword);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+            }
+
+            AddSpace();
         }
 
         private bool ShouldVisitNamespace(ISymbol containingSymbol)

@@ -192,10 +192,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                     if (removed &&
                         Path.GetExtension(fileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
                     {
-                        EnvDTE.Project project;
-                        IVsHierarchy hierarchy = rgpProjects[i] as IVsHierarchy;
-                        if (hierarchy != null &&
-                            hierarchy.TryGetProject(out project))
+                        if (rgpProjects[i] is IVsHierarchy hierarchy &&
+                            hierarchy.TryGetProject(out var project))
                         {
                             UpdateCodeAnalysisRuleSetPropertiesInProject(project, fileFullPath, string.Empty);
                         }
@@ -272,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
 
                         if (codeAnalysisRuleSetFullPath.Equals(oldRuleSetFilePath, StringComparison.OrdinalIgnoreCase))
                         {
-                            string newRuleSetRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, newRuleSetFilePath);
+                            string newRuleSetRelativePath = PathUtilities.GetRelativePath(projectDirectoryFullPath, newRuleSetFilePath);
                             codeAnalysisRuleSetFileProperty.Value = newRuleSetRelativePath;
                         }
                     }

@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
 {
@@ -11,11 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
         {
             internal static new readonly SimplifyTypeNamesFixAllProvider Instance = new SimplifyTypeNamesFixAllProvider();
 
-            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionId, CancellationToken cancellationToken)
+            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, DocumentOptionSet options, out string codeActionId, CancellationToken cancellationToken)
             {
                 codeActionId = null;
-                string diagnosticId;
-                var node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, workspace.Options, out diagnosticId, cancellationToken);
+                var node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, options, out var diagnosticId, cancellationToken);
                 if (node != null)
                 {
                     codeActionId = GetCodeActionId(diagnosticId, node.ToString());

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Diagnostics;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
+        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user wants us to figure out encoding from the given stream.
             // if defaultEncoding is given, we will use it if we couldn't figure out encoding used in the stream ourselves.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             }
         }
 
-        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
+        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user just wants to create a source text with explicit encoding.
             var buffer = CreateTextBuffer(reader, cancellationToken);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             return buffer.CurrentSnapshot.AsRoslynText(encoding);
         }
 
-        private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default(CancellationToken))
+        private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default)
         {
             return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
         }

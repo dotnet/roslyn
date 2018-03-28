@@ -179,8 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
 
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
+            if (node is MemberDeclarationSyntax memberDeclNode)
             {
                 var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 firstTokenOfNode = firstAndLastTokens.Item1;
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool SomeParentHasMissingCloseBrace(SyntaxNode node)
         {
-            while (node.Kind() != SyntaxKind.CompilationUnit)
+            while (node != null && node.Kind() != SyntaxKind.CompilationUnit)
             {
                 var bracePair = node.GetBracePair();
                 if (bracePair.Item2.IsMissing)

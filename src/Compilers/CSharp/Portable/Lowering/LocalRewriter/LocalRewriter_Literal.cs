@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeLiteral(node.Syntax, node.ConstantValue, node.Type, oldNodeOpt: node);
         }
 
-        private BoundExpression MakeLiteral(CSharpSyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, BoundLiteral oldNodeOpt = null)
+        private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, BoundLiteral oldNodeOpt = null)
         {
             Debug.Assert(constantValue != null);
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeDecimalLiteral(CSharpSyntaxNode syntax, ConstantValue constantValue)
+        private BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue)
         {
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDecimal);
@@ -135,10 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
                 default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>),
-                constantValue, null, ctor.ContainingType);
+                constantValue, null, null, ctor.ContainingType);
         }
 
-        private BoundExpression MakeDateTimeLiteral(CSharpSyntaxNode syntax, ConstantValue constantValue)
+        private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
         {
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDateTime);
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
                 default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>),
-                ConstantValue.NotAvailable, null, ctor.ContainingType);
+                ConstantValue.NotAvailable, null, null, ctor.ContainingType);
         }
     }
 }

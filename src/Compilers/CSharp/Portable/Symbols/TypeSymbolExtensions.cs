@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -25,6 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
             return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
+        }
+
+        public static bool CanContainNull(this TypeSymbol type)
+        {
+            // unbound type parameters might contain null, even though they cannot be *assigned* null.
+            return !type.IsValueType || type.IsNullableType();
         }
 
         public static bool CanBeConst(this TypeSymbol typeSymbol)
@@ -80,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeSymbol StrippedType(this TypeSymbol type)
         {
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
+        }
+
+        public static TypeSymbol TupleUnderlyingTypeOrSelf(this TypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
         }
 
         public static TypeSymbol EnumUnderlyingType(this TypeSymbol type)
@@ -329,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
+        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool CheckFullName(Symbol symbol, string[] names)
         {
@@ -350,9 +362,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
-            Debug.Assert((object)type.DelegateInvokeMethod() != null && !type.DelegateInvokeMethod().HasUseSiteError,
-                         "This method should only be called on valid delegate types.");
-            return type.DelegateInvokeMethod().Parameters;
+            var invokeMethod = type.DelegateInvokeMethod();
+            if ((object)invokeMethod == null)
+            {
+                return default(ImmutableArray<ParameterSymbol>);
+            }
+            return invokeMethod.Parameters;
+        }
+
+        public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbol> elementTypes)
+        {
+            if (type.IsTupleType)
+            {
+                elementTypes = ((TupleTypeSymbol)type).TupleElementTypes;
+                return true;
+            }
+
+            // The following codepath should be very uncommon since it would be rare
+            // to see a tuple underlying type not represented as a tuple.
+            // It still might happen since tuple underlying types are creatable via public APIs 
+            // and it is also possible that they would be passed in.
+
+            // PERF: if allocations here become nuisance, consider caching the results
+            //       in the type symbols that can actually be tuple compatible
+            int cardinality;
+            if (!type.IsTupleCompatible(out cardinality))
+            {
+                // source not a tuple or compatible
+                elementTypes = default(ImmutableArray<TypeSymbol>);
+                return false;
+            }
+
+            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(cardinality);
+            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
+
+            Debug.Assert(elementTypesBuilder.Count == cardinality);
+
+            elementTypes = elementTypesBuilder.ToImmutableAndFree();
+            return true;
+        }
+
+       public static ImmutableArray<TypeSymbol> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
+        {
+            if (type.IsTupleType)
+            {
+                return ((TupleTypeSymbol)type).TupleElementTypes;
+            }
+
+            // The following codepath should be very uncommon since it would be rare
+            // to see a tuple underlying type not represented as a tuple.
+            // It still might happen since tuple underlying types are creatable via public APIs 
+            // and it is also possible that they would be passed in.
+
+            Debug.Assert(type.IsTupleCompatible());
+
+            // PERF: if allocations here become nuisance, consider caching the results
+            //       in the type symbols that can actually be tuple compatible
+            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
+
+            return elementTypesBuilder.ToImmutableAndFree();
         }
 
         public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
@@ -502,16 +571,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Dynamic:
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
+                    case TypeKind.Enum:
                         return null;
 
                     case TypeKind.Class:
                     case TypeKind.Struct:
                     case TypeKind.Interface:
-                    case TypeKind.Enum:
                     case TypeKind.Delegate:
-                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        if (current.IsTupleType)
                         {
-                            var result = typeArg.VisitType(predicate, arg);
+                            // turn tuple type elements into parameters
+                            current = current.TupleUnderlyingType;
+                        }
+
+                        foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        {
+                            var result = nestedType.VisitType(predicate, arg);
                             if ((object)result != null)
                             {
                                 return result;
@@ -552,13 +627,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // If s2 is private or internal, and within the same assembly as s1,
                             // then this is at least as restrictive as s1's internal.
-                            if ((acc2 == Accessibility.Private || acc2 == Accessibility.Internal) && s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
+                            if ((acc2 == Accessibility.Private || acc2 == Accessibility.Internal || acc2 == Accessibility.ProtectedAndInternal) && s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
                             {
                                 return true;
                             }
 
                             break;
                         }
+
+                    case Accessibility.ProtectedAndInternal:
+                        // Since s1 is private protected, s2 must pass the test for being both more restrictive than internal and more restrictive than protected.
+                        // We first do the "internal" test (copied from above), then if it passes we continue with the "protected" test.
+
+                        if ((acc2 == Accessibility.Private || acc2 == Accessibility.Internal || acc2 == Accessibility.ProtectedAndInternal) && s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
+                        {
+                            // passed the internal test; now do the test for the protected case
+                            goto case Accessibility.Protected;
+                        }
+
+                        break;
 
                     case Accessibility.Protected:
                         {
@@ -580,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
                             }
-                            else if (acc2 == Accessibility.Protected)
+                            else if (acc2 == Accessibility.Protected || acc2 == Accessibility.ProtectedAndInternal)
                             {
                                 // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                 // then this is at least as restrictive as s1's protected
@@ -644,6 +731,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                     break;
 
+                                case Accessibility.ProtectedAndInternal:
+                                    // if s2 is private protected, and it's parent is a subclass (or the same as) s1's parent
+                                    // or its in the same assembly as s1, then this is at least as restrictive as s1's protected
+                                    if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) ||
+                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
+                                    {
+                                        return true;
+                                    }
+
+                                    break;
+
                                 case Accessibility.ProtectedOrInternal:
                                     // if s2 is internal protected, and it's parent is a subclass (or the same as) s1's parent
                                     // and its in the same assembly as s1, then this is at least as restrictive as s1's protected
@@ -662,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (acc2 == Accessibility.Private)
                         {
                             // if s2 is private, and it is within s1's parent, then this is at
-                            // least as restrictive as s1's private.                           
+                            // least as restrictive as s1's private.
                             NamedTypeSymbol parent1 = s1.ContainingType;
 
                             if ((object)parent1 == null)
@@ -686,6 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(acc1);
                 }
             }
+
             return false;
         }
 
@@ -726,6 +825,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
+        public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
+        {
+            var result = type.VisitType(s_containsTypeParametersPredicate, parameters);
+            return (object)result != null;
+        }
+
+        private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
+            (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
+
         /// <summary>
         /// Return true if the type contains any dynamic type reference.
         /// </summary>
@@ -736,6 +844,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static readonly Func<TypeSymbol, object, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
+
+        /// <summary>
+        /// Return true if the type contains any tuples.
+        /// </summary>
+        internal static bool ContainsTuple(this TypeSymbol type) =>
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType, null) != null;
+
+        /// <summary>
+        /// Return true if the type contains any tuples with element names.
+        /// </summary>
+        internal static bool ContainsTupleNames(this TypeSymbol type) =>
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -769,9 +889,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the type is a valid switch expression type.
+        /// Returns true if the type was a valid switch expression type in C# 6. We use this test to determine
+        /// whether or not we should attempt a user-defined conversion from the type to a C# 6 switch governing
+        /// type, which we support for compatibility with C# 6 and earlier.
         /// </summary>
-        internal static bool IsValidSwitchGoverningType(this TypeSymbol type, bool isTargetTypeOfUserDefinedOp = false)
+        internal static bool IsValidV6SwitchGoverningType(this TypeSymbol type, bool isTargetTypeOfUserDefinedOp = false)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
@@ -820,9 +942,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
+        /// or a ref-like type.
         /// </summary>
 #pragma warning restore RS0010
-        internal static bool IsRestrictedType(this TypeSymbol type)
+        internal static bool IsRestrictedType(this TypeSymbol type,
+                                                bool ignoreSpanLikeTypes = false)
         {
             // See Dev10 C# compiler, "type.cpp", bool Type::isSpecialByRefType() const
             Debug.Assert((object)type != null);
@@ -833,7 +957,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_RuntimeArgumentHandle:
                     return true;
             }
-            return false;
+
+            return ignoreSpanLikeTypes? 
+                        false:
+                        type.IsByRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
@@ -1174,6 +1301,265 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
+        }
+
+        internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+            if (namedType.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+            object builderArgument;
+            return namedType.IsCustomTaskType(out builderArgument);
+        }
+
+        internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                return true;
+            }
+            object builderArgument;
+            return namedType.IsCustomTaskType(out builderArgument);
+        }
+
+        /// <summary>
+        /// Returns true if the type is generic or non-generic custom task-like type due to the
+        /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
+        /// </summary>
+        /// <remarks>
+        /// For the Task types themselves, this method might return true or false depending on mscorlib.
+        /// The definition of "custom task-like type" is one that has an [AsyncMethodBuilder(typeof(B))] attribute,
+        /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
+        /// without validation of any kind.
+        /// </remarks>
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out object builderArgument)
+        {
+            Debug.Assert((object)type != null);
+
+            var arity = type.Arity;
+            if (arity < 2)
+            {
+                // Find the AsyncBuilder attribute.
+                foreach (var attr in type.GetAttributes())
+                {
+                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
+                        && attr.CommonConstructorArguments.Length == 1
+                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                    {
+                        builderArgument = attr.CommonConstructorArguments[0].Value;
+                        return true;
+                    }
+                }
+            }
+
+            builderArgument = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types.
+        /// </summary>
+        internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            NormalizeTaskTypesInType(compilation, ref type);
+            return type;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types. Returns true if there were changes.
+        /// </summary>
+        private static bool NormalizeTaskTypesInType(CSharpCompilation compilation, ref TypeSymbol type)
+        {
+            switch (type.Kind)
+            {
+                case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
+                    {
+                        var namedType = (NamedTypeSymbol)type;
+                        var changed = type.IsTupleType ?
+                            NormalizeTaskTypesInTuple(compilation, ref namedType) :
+                            NormalizeTaskTypesInNamedType(compilation, ref namedType);
+                        type = namedType;
+                        return changed;
+                    }
+                case SymbolKind.ArrayType:
+                    {
+                        var arrayType = (ArrayTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInArray(compilation, ref arrayType);
+                        type = arrayType;
+                        return changed;
+                    }
+                case SymbolKind.PointerType:
+                    {
+                        var pointerType = (PointerTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInPointer(compilation, ref pointerType);
+                        type = pointerType;
+                        return changed;
+                    }
+            }
+            return false;
+        }
+
+        private static bool NormalizeTaskTypesInNamedType(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            bool hasChanged = false;
+
+            if (!type.IsDefinition)
+            {
+                Debug.Assert(type.IsGenericType);
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance();
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
+                for (int i = 0; i < typeArgumentsBuilder.Count; i++)
+                {
+                    var typeWithModifier = typeArgumentsBuilder[i];
+                    var typeArgNormalized = typeWithModifier.Type;
+                    if (NormalizeTaskTypesInType(compilation, ref typeArgNormalized))
+                    {
+                        hasChanged = true;
+                        // Preserve custom modifiers but without normalizing those types.
+                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized, typeWithModifier.CustomModifiers);
+                    }
+                }
+                if (hasChanged)
+                {
+                    var originalDefinition = type.OriginalDefinition;
+                    var typeParameters = originalDefinition.GetAllTypeParameters();
+                    var typeMap = new TypeMap(typeParameters, typeArgumentsBuilder.ToImmutable(), allowAlpha: true);
+                    type = typeMap.SubstituteNamedType(originalDefinition);
+                }
+                typeArgumentsBuilder.Free();
+            }
+
+            object builderArgument;
+            if (type.OriginalDefinition.IsCustomTaskType(out builderArgument))
+            {
+                int arity = type.Arity;
+                Debug.Assert(arity < 2);
+                var taskType = compilation.GetWellKnownType(
+                    arity == 0 ?
+                    WellKnownType.System_Threading_Tasks_Task :
+                    WellKnownType.System_Threading_Tasks_Task_T);
+                if (taskType.TypeKind == TypeKind.Error)
+                {
+                    // Skip if Task types are not available.
+                    return false;
+                }
+                type = arity == 0 ?
+                    taskType :
+                    taskType.Construct(
+                        ImmutableArray.Create(
+                            new TypeWithModifiers(
+                                type.TypeArgumentsNoUseSiteDiagnostics[0],
+                                type.HasTypeArgumentsCustomModifiers ? type.GetTypeArgumentCustomModifiers(0) : default(ImmutableArray<CustomModifier>))),
+                        unbound: false);
+                hasChanged = true;
+            }
+
+            return hasChanged;
+        }
+
+        private static bool NormalizeTaskTypesInTuple(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            Debug.Assert(type.IsTupleType);
+            var underlyingType = type.TupleUnderlyingType;
+            if (!NormalizeTaskTypesInNamedType(compilation, ref underlyingType))
+            {
+                return false;
+            }
+            type = TupleTypeSymbol.Create(underlyingType, type.TupleElementNames);
+            return true;
+        }
+
+        private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
+        {
+            var elementType = arrayType.ElementType;
+            if (!NormalizeTaskTypesInType(compilation, ref elementType))
+            {
+                return false;
+            }
+            arrayType = arrayType.WithElementType(elementType);
+            return true;
+        }
+
+        private static bool NormalizeTaskTypesInPointer(CSharpCompilation compilation, ref PointerTypeSymbol pointerType)
+        {
+            var pointedAtType = pointerType.PointedAtType;
+            if (!NormalizeTaskTypesInType(compilation, ref pointedAtType))
+            {
+                return false;
+            }
+            // Preserve custom modifiers but without normalizing those types.
+            pointerType = new PointerTypeSymbol(pointedAtType, pointerType.CustomModifiers);
+            return true;
+        }
+
+        internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
+            this TypeSymbol type,
+            CSharpCompilation declaringCompilation,
+            Cci.ITypeReference typeRef)
+        {
+            if (type.ContainsTupleNames())
+            {
+                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
+                if (attr != null)
+                {
+                    return new Cci.TypeReferenceWithAttributes(
+                        typeRef,
+                        ImmutableArray.Create<Cci.ICustomAttribute>(attr));
+                }
+            }
+
+            return new Cci.TypeReferenceWithAttributes(typeRef);
+        }
+
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeUnmanagedType(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+
+        private static bool IsWellKnownInteropServicesTopLevelType(this ITypeSymbol typeSymbol, string name)
+        {
+            if (typeSymbol.Name != name || typeSymbol.ContainingType != null)
+            {
+                return false;
+            }
+
+            var interopServicesNamespace = typeSymbol.ContainingNamespace;
+            if (interopServicesNamespace?.Name != "InteropServices")
+            {
+                return false;
+            }
+
+            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
+            if (runtimeNamespace?.Name != "Runtime")
+            {
+                return false;
+            }
+
+            var systemNamespace = runtimeNamespace.ContainingNamespace;
+            if (systemNamespace?.Name != "System")
+            {
+                return false;
+            }
+
+            var globalNamespace = systemNamespace.ContainingNamespace;
+
+            return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
     }
 }

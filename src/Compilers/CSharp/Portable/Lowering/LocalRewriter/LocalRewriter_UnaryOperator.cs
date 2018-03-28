@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeUnaryOperator(
             UnaryOperatorKind kind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
@@ -68,27 +69,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeUnaryOperator(
             BoundUnaryOperator oldNode,
             UnaryOperatorKind kind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
         {
             if (kind.IsDynamic())
             {
-                Debug.Assert(kind == UnaryOperatorKind.DynamicTrue && type.SpecialType == SpecialType.System_Boolean || type.IsDynamic());
+                Debug.Assert((kind == UnaryOperatorKind.DynamicTrue || kind == UnaryOperatorKind.DynamicFalse) && type.SpecialType == SpecialType.System_Boolean
+                    || type.IsDynamic());
                 Debug.Assert((object)method == null);
 
                 // Logical operators on boxed Boolean constants:
                 var constant = UnboxConstant(loweredOperand);
                 if (constant == ConstantValue.True || constant == ConstantValue.False)
                 {
-                    if (kind == UnaryOperatorKind.DynamicTrue)
+                    switch (kind)
                     {
-                        return _factory.Literal(constant.BooleanValue);
-                    }
-                    else if (kind == UnaryOperatorKind.DynamicLogicalNegation)
-                    {
-                        return MakeConversion(_factory.Literal(!constant.BooleanValue), type, @checked: false);
+                        case UnaryOperatorKind.DynamicTrue:
+                            return _factory.Literal(constant.BooleanValue);
+                        case UnaryOperatorKind.DynamicLogicalNegation:
+                            return MakeConversionNode(_factory.Literal(!constant.BooleanValue), type, @checked: false);
                     }
                 }
 
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.GetSpecialType(upconvertSpecialType);
 
 
-                var newOperand = MakeConversion(loweredOperand, upconvertType, false);
+                var newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
                 UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 
                 var newNode = (oldNode != null) ?
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LookupResultKind.Viable,
                         upconvertType);
 
-                return MakeConversion(newNode.Syntax, newNode, ConversionKind.ExplicitEnumeration, type, @checked: false);
+                return MakeConversionNode(newNode.Syntax, newNode, Conversion.ExplicitEnumeration, type, @checked: false);
             }
 
             if (kind == UnaryOperatorKind.DecimalUnaryMinus)
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerLiftedUnaryOperator(
             UnaryOperatorKind kind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(loweredOperand, out tempAssignment);
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -210,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             // temp = operand; 
             // temp.HasValue ? 
@@ -226,14 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression OptimizeLiftedUnaryOperator(
             UnaryOperatorKind operatorKind,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression loweredOperand,
             TypeSymbol type)
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultOperator(syntax, null, type);
+                return new BoundDefaultExpression(syntax, null, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
@@ -322,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeUnaryOperator(operatorKind, syntax, method, conditional.Consequence, type),
                                 MakeUnaryOperator(operatorKind, syntax, method, conditional.Alternative, type),
                                 ConstantValue.NotAvailable,
-                                type),
+                                type,
+                                isRef: false),
                             type);
                     }
                 }
@@ -331,9 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, CSharpSyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
+        private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, SyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
         {
-            MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // OP(temp.GetValueOrDefault())
             BoundExpression unliftedOp = MakeUnaryOperator(
@@ -348,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(
                     syntax,
                     ctor,
+                    null,
                     unliftedOp);
             return consequence;
         }
@@ -411,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> tempSymbols = ArrayBuilder<LocalSymbol>.GetInstance();
             ArrayBuilder<BoundExpression> tempInitializers = ArrayBuilder<BoundExpression>.GetInstance();
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
@@ -483,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isChecked,
             ArrayBuilder<LocalSymbol> tempSymbols,
             ArrayBuilder<BoundExpression> tempInitializers,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression transformedLHS,
             TypeSymbol operandType,
             BoundExpression boundTemp,
@@ -510,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isChecked,
             ArrayBuilder<LocalSymbol> tempSymbols,
             ArrayBuilder<BoundExpression> tempInitializers,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression operand,
             TypeSymbol operandType,
             BoundExpression boundTemp,
@@ -564,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (X)(short)((int)(short)x + 1)
             if (!node.ResultConversion.IsIdentity)
             {
-                result = MakeConversion(
+                result = MakeConversionNode(
                     syntax: node.Syntax,
                     rewrittenOperand: result,
                     conversion: node.ResultConversion,
@@ -584,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool @checked = node.OperatorKind.IsChecked();
 
             BoundExpression rewrittenArgument = rewrittenValueToIncrement;
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             TypeSymbol type = node.MethodOpt.ParameterTypes[0];
             if (isLifted)
@@ -595,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.OperandConversion.IsIdentity)
             {
-                rewrittenArgument = MakeConversion(
+                rewrittenArgument = MakeConversionNode(
                     syntax: syntax,
                     rewrittenOperand: rewrittenValueToIncrement,
                     conversion: node.OperandConversion,
@@ -620,8 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(rewrittenArgument, out tempAssignment);
 
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // temp.HasValue
             BoundExpression condition = MakeNullableHasValue(node.Syntax, boundTemp);
@@ -633,10 +637,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, null, node.MethodOpt, call_GetValueOrDefault);
 
             // new S?(op_Increment(temp.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, userDefinedCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -647,7 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             // temp = operand; 
             // temp.HasValue ? 
@@ -699,8 +704,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binaryOperatorKind.IsLifted())
             {
                 binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
-                MethodSymbol ctor = GetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
-                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
+                MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
+                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, null, boundOne);
             }
 
             // Now we construct the other operand to the binary addition. We start with just plain "x".
@@ -713,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.OperandConversion.IsIdentity)
             {
                 // (short)x
-                binaryOperand = MakeConversion(
+                binaryOperand = MakeConversionNode(
                     syntax: node.Syntax,
                     rewrittenOperand: binaryOperand,
                     conversion: node.OperandConversion,
@@ -734,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do it now.
 
             // (int)(short)x
-            binaryOperand = MakeConversion(binaryOperand, binaryOperandType, @checked);
+            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked);
 
             // Perform the addition.
 
@@ -756,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the conversion back to the type of the unary operator.
 
             // (short)((int)(short)x + 1)
-            result = MakeConversion(binOp, unaryOperandType, @checked);
+            result = MakeConversionNode(binOp, unaryOperandType, @checked);
             return result;
         }
 
@@ -777,21 +782,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Build Decimal.op_Increment((Decimal)operand) or Decimal.op_Decrement((Decimal)operand)
-        private BoundExpression MakeDecimalIncDecOperator(CSharpSyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
+        private BoundExpression MakeDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
         {
             Debug.Assert(operand.Type.SpecialType == SpecialType.System_Decimal);
             MethodSymbol method = GetDecimalIncDecOperator(oper);
             return BoundCall.Synthesized(syntax, null, method, operand);
         }
 
-        private BoundExpression MakeLiftedDecimalIncDecOperator(CSharpSyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
+        private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
         {
             Debug.Assert(operand.Type.IsNullableType() && operand.Type.GetNullableUnderlyingType().SpecialType == SpecialType.System_Decimal);
 
             // This method assumes that operand is already a temporary and so there is no need to copy it again.
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol ctor = GetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
 
             // x.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, operand);
@@ -800,12 +805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // op_Inc(x.GetValueOrDefault())
             BoundExpression methodCall = BoundCall.Synthesized(syntax, null, method, getValueCall);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, methodCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, operand.Type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
-            return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type);
+            return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);
         }
 
         /// <summary>

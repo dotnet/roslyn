@@ -1,22 +1,11 @@
 #!/usr/bin/env bash
 
-ROSLYN_TOOLSET_PATH=$1
-DOTNET_PATH=$ROSLYN_TOOLSET_PATH/dotnet-cli/dotnet
-
-# Workaround, see https://github.com/dotnet/roslyn/issues/10210
-export HOME=$(cd ~ && pwd)
-
-# NuGet often exceeds the limit of open files on Mac
-# https://github.com/NuGet/Home/issues/2163
-if [ "$(uname -s)" == "Darwin" ]
-then
-    ulimit -n 6500
-fi
+THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 echo "Restoring toolset packages"
 
-$DOTNET_PATH restore -v Minimal --disable-parallel $(pwd)/build/ToolsetPackages/project.json
-
-echo "Restore CrossPlatform.sln"
-
-$ROSLYN_TOOLSET_PATH/RoslynRestore $(pwd)/CrossPlatform.sln $(pwd)/nuget.exe $DOTNET_PATH
+RESTORE_ARGS="-v Minimal --disable-parallel"
+echo "Restoring RoslynToolset.csproj"
+dotnet restore ${RESTORE_ARGS} "${THIS_DIR}/../ToolsetPackages/RoslynToolset.csproj"
+echo "Restoring Compilers.sln"
+dotnet restore ${RESTORE_ARGS} "${THIS_DIR}/../../Compilers.sln"

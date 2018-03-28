@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.XMLEndTagCompletion,
-                message: EditorFeaturesResources.CompletingTag,
+                title: EditorFeaturesResources.XML_End_Tag_Completion,
+                message: EditorFeaturesResources.Completing_Tag,
                 allowCancel: true,
                 action: w =>
                     {

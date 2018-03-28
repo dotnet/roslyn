@@ -1,13 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -16,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
         ) As BoundExpression
+
+            DisallowNewOnTupleType(node.Type, diagnostics)
             Dim type As TypeSymbol = Me.BindTypeSyntax(node.Type, diagnostics)
 
             ' When the type is an error still try to bind the arguments for better data flow analysis and 
@@ -39,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' We also want to put into the bound bad expression node all bound arguments as 
                     ' r-values AND bound type which will be used for semantic info
-                    Dim boundNodes = ArrayBuilder(Of BoundNode).GetInstance()
+                    Dim boundNodes = ArrayBuilder(Of BoundExpression).GetInstance()
 
                     ' Add all bound arguments as r-values
                     For Each arg In boundArguments
@@ -60,6 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return BindObjectCreationExpression(node.Type, node.ArgumentList, type, node, diagnostics, Nothing)
         End Function
+
+        Private Shared Sub DisallowNewOnTupleType(type As TypeSyntax, diagnostics As DiagnosticBag)
+            If type.Kind = SyntaxKind.TupleType Then
+                diagnostics.Add(ERRID.ERR_NewWithTupleTypeSyntax, type.Location)
+            End If
+        End Sub
 
         Friend Function BindObjectCreationExpression(
             typeNode As TypeSyntax,
@@ -148,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindObjectCreationExpression(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             type As TypeSymbol,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag) As BoundExpression
@@ -164,11 +168,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 callerInfoOpt:=Nothing)
         End Function
 
-        Private Function MergeBoundChildNodesWithObjectInitializerForBadNode(
+        Private Shared Function MergeBoundChildNodesWithObjectInitializerForBadNode(
             boundArguments As ImmutableArray(Of BoundExpression),
             objectInitializerExpression As BoundObjectInitializerExpressionBase
-        ) As ImmutableArray(Of BoundNode)
-            Dim boundChildNodesForError = StaticCast(Of BoundNode).From(boundArguments)
+        ) As ImmutableArray(Of BoundExpression)
+            Dim boundChildNodesForError = boundArguments
 
             If objectInitializerExpression IsNot Nothing Then
                 boundChildNodesForError = boundChildNodesForError.Add(objectInitializerExpression)
@@ -178,10 +182,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindObjectCreationExpression(
-            typeNode As VisualBasicSyntaxNode,
+            typeNode As SyntaxNode,
             argumentListOpt As ArgumentListSyntax,
             type0 As TypeSymbol,
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             objectInitializerExpressionOpt As BoundObjectInitializerExpressionBase,
@@ -420,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' 3) LookupResultKind from constructorsGroup
 
                     ' Let's preserve two worst since we only have two locations to store them.
-                    Dim children = ArrayBuilder(Of BoundNode).GetInstance()
+                    Dim children = ArrayBuilder(Of BoundExpression).GetInstance()
 
 #If DEBUG Then
                     Dim foundGroup As Boolean = False
@@ -469,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' If the type was not creatable, create a bad expression so that semantic model results can reflect that.
                     If resultKind <> LookupResultKind.Good Then
-                        Dim children = ArrayBuilder(Of BoundNode).GetInstance()
+                        Dim children = ArrayBuilder(Of BoundExpression).GetInstance()
 
                         children.Add(constructorsGroup)
                         children.AddRange(boundArguments)
@@ -493,14 +497,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Debug.Assert(resultExpression.Type.IsSameTypeIgnoringCustomModifiers(type0))
+            Debug.Assert(resultExpression.Type.IsSameTypeIgnoringAll(type0))
             Debug.Assert(LookupResult.WorseResultKind(resultKind, resultExpression.ResultKind) = resultExpression.ResultKind)
 
             Return resultExpression
         End Function
 
         Private Function BindNoPiaObjectCreationExpression(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             [interface] As TypeSymbol,
             coClass As NamedTypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),
@@ -523,10 +527,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Note: Dev11 silently drops any arguments and does not report an error.
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_NoArgumentCountOverloadCandidates1, "New")
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance()
-                children.AddRange(boundArguments)
-                children.Add(expr)
-                Return BadExpression(node, children.ToImmutableAndFree(), expr.Type)
+                Dim children = boundArguments.Add(expr)
+                Return BadExpression(node, children, expr.Type)
             End If
 
             Return expr
@@ -698,11 +700,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         target = BadExpression(namedFieldInitializer,
                                                target,
-                                               LookupResultKind.Empty,
-                                               ErrorTypeSymbol.UnknownResultType)
+                                               ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                     End If
                 Else
-                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType)
+                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 End If
 
                 ' in contrast to Dev10 Roslyn continues to bind the initialization value even if the receiver had errors.
@@ -890,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              LookupOptions.AllMethodsOfAnyArity,
                                                                              placeholder,
                                                                              Nothing,
-                                                                             QualificationKind.QualifiedViaValue)
+                                                                             QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
                 Dim invocation = BindInvocationExpression(topLevelInitializer, topLevelInitializer,
                                                           TypeCharacter.None,
@@ -906,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundBadExpression(topLevelInitializer,
                                               LookupResultKind.Empty,
                                               ImmutableArray(Of Symbol).Empty,
-                                              StaticCast(Of BoundNode).From(arguments.ToImmutableAndFree),
+                                              arguments.ToImmutableAndFree,
                                               ErrorTypeSymbol.UnknownResultType,
                                               hasErrors:=True).MakeCompilerGenerated()
             End If

@@ -37,12 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(TypeWithModifiers other)
         {
-            return Equals(other, ignoreDynamic: false);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        public bool Equals(TypeWithModifiers other, bool ignoreDynamic)
+        public bool Equals(TypeWithModifiers other, TypeCompareKind comparison)
         {
-            return ((object)this.Type == null ? (object)other.Type == null : this.Type.Equals(other.Type, ignoreDynamic: ignoreDynamic)) &&
+            Debug.Assert((comparison & ~TypeCompareKind.IgnoreDynamic & ~TypeCompareKind.IgnoreTupleNames) == 0);
+
+            return ((object)this.Type == null ? (object)other.Type == null : this.Type.Equals(other.Type, comparison)) &&
                    (this.CustomModifiers.IsDefault ?
                       other.CustomModifiers.IsDefault :
                       (!other.CustomModifiers.IsDefault && this.CustomModifiers.SequenceEqual(other.CustomModifiers)));
@@ -88,6 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             var newTypeWithModifiers = typeMap.SubstituteType(this.Type);
+            if (!newTypeWithModifiers.Is(this.Type) || newCustomModifiers != this.CustomModifiers)
+            {
+                return new TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+            }
+            else
+            {
+                return this; // substitution had no effect on the type or modifiers
+            }
+        }
+
+        public TypeWithModifiers SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+        {
+            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
+            var newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.Type);
             if (!newTypeWithModifiers.Is(this.Type) || newCustomModifiers != this.CustomModifiers)
             {
                 return new TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));

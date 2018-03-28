@@ -1,16 +1,20 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-
-#pragma warning disable RS0003 // Do not directly await a Task
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -30,11 +34,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
+        public void TestCreateScript_CodeIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((string)null));
+        }
+
+        [Fact]
+        public void TestCreateFromStreamScript()
+        {
+            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
+            Assert.Equal("1 + 2", script.Code);
+        }
+
+        [Fact]
+        public void TestCreateFromStreamScript_StreamIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((Stream)null));
+        }
+
+        [Fact]
         public async Task TestGetCompilation()
         {
             var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
             Assert.Equal(state.Script.Code, compilation.SyntaxTrees.First().GetText().ToString());
+        }
+
+        [Fact]
+        public async Task TestGetCompilationSourceText()
+        {
+            var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
+            var compilation = state.Script.GetCompilation();
+            Assert.Equal(state.Script.SourceText, compilation.SyntaxTrees.First().GetText());
+        }
+
+        [Fact]
+        public void TestEmit_PortablePdb() => TestEmit(DebugInformationFormat.PortablePdb);
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestEmit_WindowsPdb() => TestEmit(DebugInformationFormat.Pdb);
+
+        private void TestEmit(DebugInformationFormat format)
+        {
+            var script = CSharpScript.Create("1 + 2", options: ScriptOptions.Default.WithEmitDebugInformation(true));
+            var compilation = script.GetCompilation();
+            var emitOptions = ScriptBuilder.GetEmitOptions(emitDebugInformation: true).WithDebugInformationFormat(format);
+
+            var peStream = new MemoryStream();
+            var pdbStream = new MemoryStream();
+            var emitResult = ScriptBuilder.Emit(peStream, pdbStream, compilation, emitOptions, cancellationToken: default);
+
+            peStream.Position = 0;
+            pdbStream.Position = 0;
+
+            PdbValidation.ValidateDebugDirectory(
+                peStream, 
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
+                pdbPath: compilation.AssemblyName + ".pdb", 
+                hashAlgorithm: default, 
+                hasEmbeddedPdb: false, 
+                isDeterministic: false);
         }
 
         [Fact]
@@ -77,6 +136,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
+        public async Task TestCreateFromStreamAndRunScript()
+        {
+            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
+            var state = await script.RunAsync();
+            Assert.Same(script, state.Script);
+            Assert.Equal(3, state.ReturnValue);
+        }
+
+        [Fact]
         public async Task TestEvalScript()
         {
             var value = await CSharpScript.EvaluateAsync("1 + 2");
@@ -91,9 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public async Task TestRunVoidScript()
+        public void TestRunVoidScript()
         {
-            var state = await CSharpScript.RunAsync("System.Console.WriteLine(0);");
+            var state = ScriptingTestHelpers.RunScriptWithOutput(
+                CSharpScript.Create("System.Console.WriteLine(0);"),
+                "0");
             Assert.Null(state.ReturnValue);
         }
 
@@ -135,6 +205,82 @@ class SomeClass
 dynamic d = new SomeClass();
 d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunEmbeddedStatementNotFollowedBySemicolon()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                var state = CSharpScript.RunAsync(@"if (true)
+ System.Console.WriteLine(true)", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                ex.Diagnostics.Verify(
+                // (2,32): error CS1002: ; expected
+                //  System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
+            }
+
+             Assert.True(exceptionThrown);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunEmbeddedStatementFollowedBySemicolon()
+        {
+            var state = CSharpScript.RunAsync(@"if (true)
+System.Console.WriteLine(true);", globals: new ScriptTests());
+            Assert.Null(state.Exception);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunStatementFollowedBySpace()
+        {
+            var state = CSharpScript.RunAsync(@"System.Console.WriteLine(true) ", globals: new ScriptTests());
+            Assert.Null(state.Exception);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunStatementFollowedByNewLineNoSemicolon()
+        {
+            var state = CSharpScript.RunAsync(@"
+System.Console.WriteLine(true)
+
+", globals: new ScriptTests());
+            Assert.Null(state.Exception);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void TestRunEmbeddedNoSemicolonFollowedByAnotherStatement()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                var state = CSharpScript.RunAsync(@"if (e) a = b 
+throw e;", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single ExpectedSemicolon error. 
+                // No duplicates for the same error.
+                ex.Diagnostics.Verify(
+                // (1,13): error CS1002: ; expected
+                // if (e) a = b 
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 13));
+            }
+
+            Assert.True(exceptionThrown);
         }
 
         [Fact]
@@ -331,11 +477,10 @@ const int z = 3;
         }
 
         [Fact]
-        public async Task NoReturn()
+        public void NoReturn()
         {
-            var script = CSharpScript.Create<object>("System.Console.WriteLine();");
-            var result = await script.EvaluateAsync();
-            Assert.Null(result);
+            Assert.Null(ScriptingTestHelpers.EvaluateScriptWithOutput(
+                CSharpScript.Create("System.Console.WriteLine();"), ""));
         }
 
         [Fact]
@@ -379,8 +524,8 @@ if (condition)
     return 1;
 }
 System.Console.WriteLine();");
-            result = await script.EvaluateAsync();
-            Assert.Equal(1, result);
+
+            Assert.Equal(1, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
 
         [Fact]
@@ -403,8 +548,8 @@ if (condition)
     return 1;
 }
 System.Console.WriteLine()");
-            result = await script.EvaluateAsync();
-            Assert.Equal(0, result);
+
+            Assert.Equal(0, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
 
         [Fact]
@@ -513,7 +658,7 @@ if (false)
         }
 
         [Fact]
-        public async Task ReturnInLoadedFileTrailingVoidExpression()
+        public void ReturnInLoadedFileTrailingVoidExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
                 KeyValuePair.Create("a.csx", @"
@@ -525,13 +670,13 @@ System.Console.WriteLine(42)"));
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
-            var result = await script.EvaluateAsync();
+            var result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
             Assert.Null(result);
 
             script = CSharpScript.Create(@"
 #load ""a.csx""
 2", options);
-            result = await script.EvaluateAsync();
+            result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
             Assert.Equal(2, result);
         }
 
@@ -668,6 +813,173 @@ i = -1;"));
 i", options);
             var result = await script.EvaluateAsync();
             Assert.Equal(0, result);
+        }
+
+        [Fact]
+        public async Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithoutFileEncoding_CompilationErrorException()
+        {
+            var code = "throw new System.Exception();";
+            try
+            {
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(null);
+                var script = await CSharpScript.RunAsync(code, opts);
+            }
+            catch (CompilationErrorException ex)
+            {
+                //  CS8055: Cannot emit debug information for a source text without encoding.
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
+            }
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "debug.csx");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), line: 1, column: 1, filename: "debug.csx");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromStream_CodeFromFile_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(null);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), line: 1, column: 1, filename: "");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromStream_InlineCode_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false);
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
+        }
+
+        [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
+        [Fact]
+        public void StreamWithOffset()
+        {
+            var resolver = new StreamOffsetResolver();
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var script = CSharpScript.Create(@"#load ""a.csx""", options);
+            ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
+        }
+
+        private class StreamOffsetResolver : SourceReferenceResolver
+        {
+            public override bool Equals(object other) => ReferenceEquals(this, other);
+            public override int GetHashCode() => 42;
+            public override string ResolveReference(string path, string baseFilePath) => path;
+            public override string NormalizePath(string path, string baseFilePath) => path;
+
+            public override Stream OpenRead(string resolvedPath)
+            {
+                // Make an ASCII text buffer with Hello World script preceded by padding Qs
+                const int padding = 42;
+                string text = @"System.Console.WriteLine(""Hello World!"");";
+                byte[] bytes = Enumerable.Repeat((byte)'Q', text.Length + padding).ToArray();
+                System.Text.Encoding.ASCII.GetBytes(text, 0, text.Length, bytes, padding);
+
+                // Make a stream over the program portion, skipping the Qs.
+                var stream = new MemoryStream(
+                    bytes,
+                    padding,
+                    text.Length,
+                    writable: false,
+                    publiclyVisible: true);
+
+                // sanity check that reading entire stream gives us back our text.
+                using (var streamReader = new StreamReader(
+                    stream,
+                    System.Text.Encoding.ASCII,
+                    detectEncodingFromByteOrderMarks: false,
+                    bufferSize: bytes.Length,
+                    leaveOpen: true))
+                {
+                    var textFromStream = streamReader.ReadToEnd();
+                    Assert.Equal(textFromStream, text);
+                }
+
+                stream.Position = 0;
+                return stream;
+            }
+        }
+
+        private async Task VerifyStackTraceAsync(Func<Script<object>> scriptProvider, int line = 0, int column = 0, string filename = null)
+        {
+            try
+            {
+                var script = scriptProvider();
+                await script.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                var needFileInfo = true;
+                var stackTrace = new StackTrace(ex, needFileInfo);
+                var firstFrame = stackTrace.GetFrames()[0];
+                Assert.Equal(filename, firstFrame.GetFileName());
+                Assert.Equal(line, firstFrame.GetFileLineNumber());
+                Assert.Equal(column, firstFrame.GetFileColumnNumber());
+            }
         }
     }
 }

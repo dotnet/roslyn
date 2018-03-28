@@ -16,6 +16,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal interface IReferenceFinder
     {
         /// <summary>
+        /// Called by the find references search engine when a new symbol definition is found.
+        /// Implementations can then choose to request more symbols be searched for.  For example, an
+        /// implementation could choose for the find references search engine to cascade to
+        /// constructors when searching for standard types.
+        /// 
+        /// Implementations of this method must be thread-safe.
+        /// </summary>
+        Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Called by the find references search engine to determine which projects should be
         /// searched for a given symbol.  The returned projects will then be searched in parallel. If
         /// the implementation does not care about the provided symbol then null can be returned
@@ -28,7 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine which documents in the supplied
@@ -42,7 +54,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+            ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine the set of reference locations
@@ -51,16 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(ISymbol symbol, Document document, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Called by the find references search engine when a new symbol definition is found.
-        /// Implementations can then choose to request more symbols be searched for.  For example, an
-        /// implementation could choose for the find references search engine to cascade to
-        /// constructors when searching for standard types.
-        /// 
-        /// Implementations of this method must be thread-safe.
-        /// </summary>
-        Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken);
     }
 }

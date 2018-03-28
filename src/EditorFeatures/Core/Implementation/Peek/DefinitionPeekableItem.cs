@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 var symbol = _peekableItem._symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
                 if (symbol == null)
                 {
-                    callback.ReportFailure(new Exception(EditorFeaturesResources.NoInformationFound));
+                    callback.ReportFailure(new Exception(EditorFeaturesResources.No_information_found));
                     return;
                 }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 if (!sourceLocations.Any())
                 {
                     // It's a symbol from metadata, so we want to go produce it from metadata
-                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).WaitAndGetResult(cancellationToken);
                     var peekDisplayInfo = new PeekResultDisplayInfo(declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declarationFile.IdentifierLocation, cancellationToken);

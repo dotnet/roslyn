@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) == (kind == EditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default(TNode))) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(default)) == (kind == EditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(default)) == (kind == EditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) ||
-                         (newNode == null || newNode.Equals(default(TNode))) ||
+            Debug.Assert((oldNode == null || oldNode.Equals(default)) ||
+                         (newNode == null || newNode.Equals(default)) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             _newNode = newNode;
         }
 
-        public EditKind Kind { get { return _kind; } }
+        public EditKind Kind => _kind;
 
         /// <summary>
         /// Insert: 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update: 
         /// Node in the old tree/sequence.
         /// </summary>
-        public TNode OldNode { get { return _oldNode; } }
+        public TNode OldNode => _oldNode;
 
         /// <summary>
         /// Insert: 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update:
         /// Node in the new tree/sequence.
         /// </summary>
-        public TNode NewNode { get { return _newNode; } }
+        public TNode NewNode => _newNode;
 
         public override bool Equals(object obj)
         {

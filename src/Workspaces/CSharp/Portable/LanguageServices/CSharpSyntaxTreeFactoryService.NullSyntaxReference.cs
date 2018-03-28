@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        throw new NotSupportedException(CSharpWorkspaceResources.CannotRetrieveTheSpanOfA);
+                        throw new NotSupportedException(CSharpWorkspaceResources.Cannot_retrieve_the_Span_of_a_null_syntax_reference);
                     }
                 }
             }

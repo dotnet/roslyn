@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -63,6 +62,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundThrowExpression
+    {
+        public override object Display
+        {
+            get { return MessageID.IDS_ThrowExpression.Localize(); }
+        }
+    }
+
+    internal partial class BoundTupleExpression
+    {
+        public override object Display
+        {
+            get
+            {
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                var arguments = this.Arguments;
+                var argumentDisplays = new object[arguments.Length];
+
+                builder.Append('(');
+                builder.Append("{0}");
+                argumentDisplays[0] = arguments[0].Display;
+
+                for (int i = 1; i < arguments.Length; i++)
+                {
+                    builder.Append(", {" + i + "}");
+                    argumentDisplays[i] = arguments[i].Display;
+                }
+
+                builder.Append(')');
+
+                var format = pooledBuilder.ToStringAndFree();
+                return FormattableStringFactory.Create(format, argumentDisplays);
+            }
+        }
+    }
+
     internal sealed partial class BoundPropertyGroup
     {
         public override object Display
@@ -71,11 +107,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundThrowExpression
+    internal partial class OutVariablePendingInference
     {
         public override object Display
         {
-            get { return MessageID.IDS_ThrowExpression.Localize(); }
+            get { return string.Empty; }
         }
+    }
+
+    internal partial class OutDeconstructVarPendingInference
+    {
+        public override object Display
+        {
+            get { return string.Empty; }
+        }
+    }
+
+    internal partial class BoundDiscardExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "_"; }
+        }
+    }
+
+    internal partial class DeconstructionVariablePendingInference
+    {
+        public override object Display
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    internal partial class BoundDefaultExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "default"; }
+        }
+    }
+
+    internal partial class BoundStackAllocArrayCreation
+    {
+        public override object Display
+            => FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString());
+    }
+
+    internal partial class BoundPassByCopy
+    {
+        public override object Display => Expression.Display;
     }
 }

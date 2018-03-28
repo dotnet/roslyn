@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly DocumentProvider _documentProvider;
             private readonly string _itemMoniker;
-            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
             private readonly FileChangeTracker _fileChangeTracker;
             private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
             private readonly TextLoader _doNotAccessDirectlyLoader;
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentId Id { get; }
             public IReadOnlyList<string> Folders { get; }
-            public IVisualStudioHostProject Project { get; }
+            public AbstractProject Project { get; }
             public SourceCodeKind SourceCodeKind { get; }
             public DocumentKey Key { get; }
 
@@ -45,29 +45,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
 
+            /// <summary>
+            /// Creates a <see cref="StandardTextDocument"/>.
+            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
+            /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
-                IVisualStudioHostProject project,
+                AbstractProject project,
                 DocumentKey documentKey,
-                uint itemId,
+                Func<uint, IReadOnlyList<string>> getFolderNames,
                 SourceCodeKind sourceCodeKind,
-                ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
-                DocumentId id)
+                DocumentId id,
+                EventHandler updatedOnDiskHandler,
+                EventHandler<bool> openedHandler,
+                EventHandler<bool> closingHandler)
             {
                 Contract.ThrowIfNull(documentProvider);
 
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
-                this.Folders = project.GetFolderNames(itemId);
+                _itemMoniker = documentKey.Moniker;
+
+                var itemid = this.GetItemId();
+                this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
+                    ? SpecializedCollections.EmptyReadOnlyList<string>()
+                    : getFolderNames(itemid);
 
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
-                _itemMoniker = documentKey.Moniker;
-                _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
 
@@ -82,6 +91,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (openTextBuffer == null)
                 {
                     _fileChangeTracker.StartFileChangeListeningAsync();
+                }
+
+                if (updatedOnDiskHandler != null)
+                {
+                    UpdatedOnDisk += updatedOnDiskHandler;
+                }
+
+                if (openedHandler != null)
+                {
+                    Opened += openedHandler;
+                }
+
+                if (closingHandler != null)
+                {
+                    Closing += closingHandler;
                 }
             }
 
@@ -184,44 +208,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // expensive source control check if the file is already checked out.
                 if (_openTextBuffer != null)
                 {
-                    UpdateText(newText, _openTextBuffer, EditOptions.DefaultMinimalChange);
+                    TextEditApplication.UpdateText(newText, _openTextBuffer, EditOptions.DefaultMinimalChange);
                 }
                 else
                 {
                     using (var invisibleEditor = ((VisualStudioWorkspaceImpl)this.Project.Workspace).OpenInvisibleEditor(this))
                     {
-                        UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+                        TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
                     }
                 }
             }
 
-            private static void UpdateText(SourceText newText, ITextBuffer buffer, EditOptions options)
+            public ITextBuffer GetTextUndoHistoryBuffer()
             {
-                using (var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null))
-                {
-                    var oldSnapshot = buffer.CurrentSnapshot;
-                    var oldText = oldSnapshot.AsText();
-                    var changes = newText.GetTextChanges(oldText);
-
-                    Workspace workspace = null;
-                    if (Workspace.TryGetWorkspace(oldText.Container, out workspace))
-                    {
-                        var undoService = workspace.Services.GetService<ISourceTextUndoService>();
-                        undoService.BeginUndoTransaction(oldSnapshot);
-                    }
-
-                    foreach (var change in changes)
-                    {
-                        edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                    }
-
-                    edit.Apply();
-                }
-            }
-
-            public ITextUndoHistory GetTextUndoHistory()
-            {
-                return _textUndoHistoryRegistry.GetHistory(GetOpenTextBuffer());
+                return GetOpenTextBuffer();
             }
 
             private string GetDebuggerDisplay()
@@ -233,13 +233,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AssertIsForeground();
 
-                if (_itemMoniker == null)
+                if (_itemMoniker == null || Project.Hierarchy == null)
                 {
                     return (uint)VSConstants.VSITEMID.Nil;
                 }
 
-                uint itemId;
-                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out var itemId) == VSConstants.S_OK
                     ? itemId
                     : (uint)VSConstants.VSITEMID.Nil;
             }

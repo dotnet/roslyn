@@ -24,23 +24,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
-            Dim moduleVersionId As Guid
-            Try
-                moduleVersionId = baseline.OriginalMetadata.GetModuleVersionId()
-            Catch ex As BadImageFormatException
-                ' Return MakeEmitResult(success:=False, diagnostics:= ..., baseline:=Nothing)
-                Throw
-            End Try
-
             Dim pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
             Dim diagnostics = DiagnosticBag.GetInstance()
 
-            Dim emitOpts = EmitOptions.Default
+            Dim emitOpts = EmitOptions.Default.WithDebugInformationFormat(If(baseline.HasPortablePdb, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb))
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
-            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, moduleVersionId)
+            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, baseline.ModuleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
-            Dim moduleBeingBuilt = New PEDeltaAssemblyBuilder(
+            Dim moduleBeingBuilt As PEDeltaAssemblyBuilder
+            Try
+                moduleBeingBuilt = New PEDeltaAssemblyBuilder(
                     compilation.SourceAssembly,
                     emitOptions:=emitOpts,
                     outputKind:=compilation.Options.OutputKind,
@@ -49,6 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     previousGeneration:=baseline,
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
+            Catch e As NotSupportedException
+                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
+                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+            End Try
 
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
@@ -61,8 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim newBaseline As EmitBaseline = Nothing
 
             If compilation.Compile(moduleBeingBuilt,
-                                   win32Resources:=Nothing,
-                                   xmlDocStream:=Nothing,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
                                    filterOpt:=AddressOf changes.RequiresCompilation,
@@ -84,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     updatedMethods,
                     diagnostics,
                     testData?.SymWriterFactory,
+                    emitOpts.PdbFilePath,
                     cancellationToken)
             End If
 
@@ -112,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
-            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag())
+            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
+            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim matcher = New VisualBasicSymbolMatcher(
                 anonymousTypeMap,

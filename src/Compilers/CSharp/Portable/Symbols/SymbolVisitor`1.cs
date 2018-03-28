@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return DefaultVisit(symbol);
         }
 
+        public virtual TResult VisitDiscard(DiscardSymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
+
         public virtual TResult VisitEvent(EventSymbol symbol)
         {
             return DefaultVisit(symbol);

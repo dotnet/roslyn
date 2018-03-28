@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -59,7 +59,7 @@ $$");
         public async Task TestInPreprocessorFollowedBySkippedTokens()
         {
             await VerifyKeywordAsync(
-@"#if FOO
+@"#if GOO
 #$$
 dasd
 ");

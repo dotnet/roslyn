@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../VBScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual Basic Interactive Compiler version {0}</source>
+        <target state="translated">Интерактивный компилятор Microsoft (R) Visual Basic версии {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">© Корпорация Майкрософт (Microsoft Corporation). Все права защищены.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: vbi [options] [script-file.vbx] [-- script-arguments]
+
+If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (Short form: /?)
+  /version                       Display the version and exit
+  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
+  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
+  /referencePath:&lt;path list&gt;     List of paths where to look for metadata references specified as unrooted paths. (Short form: /rp)
+  /using:&lt;namespace&gt;             Define global namespace using (Short form: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...     Declare global conditional compilation symbol(s) (Short form: /d)
+  @&lt;file&gt;                        Read response file for more options
+</source>
+        <target state="translated">Использование: vbi [параметры] [script-file.vbx] [-- аргументы сценария]
+
+Если указан файл сценария, выполняет файл сценария. В противном случае запускает интерактивный цикл REPL (Read Eval Print Loop).
+
+Параметры:
+  /help                          Отображение этого сообщения об использовании (краткая форма: /?)
+  /version                       Отображение версии и выход
+  /reference:&lt;псевдоним&gt;=&lt;файл&gt;  Ссылка на метаданные из указанного файла сборки с использованием указанного псевдонима (краткая форма: /r)
+  /reference:&lt;список файлов&gt;     Ссылка на метаданные из указанных файлов сборки (краткая форма: /r)
+  /referencePath:&lt;список путей&gt;  Список путей для поиска ссылок на метаданные. (краткая форма: /rp)
+  /using:&lt;пространство имен&gt;     Определение глобальных пространств имен (краткая форма: /u)
+  /define:&lt;имя&gt;=&lt;значение&gt;,...   Определение глобальных символов условной компиляции (краткая форма: /d)
+  @&lt;файл&gt;                        Дополнительные параметры см. в файле ответа
+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEscapeWithoutQuote">
+        <source>Cannot escape non-printable characters in Visual Basic notation unless quotes are used.</source>
+        <target state="translated">Невозможно экранировать непечатные символы в нотации Visual Basic, если не указаны кавычки.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

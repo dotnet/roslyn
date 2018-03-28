@@ -1,6 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -19,7 +18,7 @@ Sub M()
 {|Cursor:[|Try|]|}
     Throw New AppDomainUnloadedException
     [|Exit Try|]
-[|Catch|] e As Exception [|When|] Foo()
+[|Catch|] e As Exception [|When|] Goo()
     Console.WriteLine("Caught exception!")
 [|Finally|]
     Console.WriteLine("Exiting try.")
@@ -36,7 +35,7 @@ Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
     {|Cursor:[|Exit Try|]|}
-[|Catch|] e As Exception [|When|] Foo()
+[|Catch|] e As Exception [|When|] Goo()
     Console.WriteLine("Caught exception!")
 [|Finally|]
     Console.WriteLine("Exiting try.")
@@ -53,7 +52,7 @@ Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
     [|Exit Try|]
-{|Cursor:[|Catch|]|} e As Exception [|When|] Foo()
+{|Cursor:[|Catch|]|} e As Exception [|When|] Goo()
     Console.WriteLine("Caught exception!")
 [|Finally|]
     Console.WriteLine("Exiting try.")
@@ -70,7 +69,7 @@ Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
     [|Exit Try|]
-[|Catch|] e As Exception {|Cursor:[|When|]|} Foo()
+[|Catch|] e As Exception {|Cursor:[|When|]|} Goo()
     Console.WriteLine("Caught exception!")
 [|Finally|]
     Console.WriteLine("Exiting try.")
@@ -87,7 +86,7 @@ Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
     [|Exit Try|]
-[|Catch|] e As Exception [|When|] Foo()
+[|Catch|] e As Exception [|When|] Goo()
     Console.WriteLine("Caught exception!")
 {|Cursor:[|Finally|]|}
     Console.WriteLine("Exiting try.")
@@ -104,7 +103,7 @@ Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
     [|Exit Try|]
-[|Catch|] e As Exception [|When|] Foo()
+[|Catch|] e As Exception [|When|] Goo()
     Console.WriteLine("Caught exception!")
 [|Finally|]
     Console.WriteLine("Exiting try.")
@@ -120,7 +119,7 @@ Class C
 Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
-[|Catch|] e As Exception [|When|] Foo()
+[|Catch|] e As Exception [|When|] Goo()
     [|Exit Try|]
     Console.WriteLine("Caught exception!")
 [|Finally|]
@@ -137,7 +136,7 @@ Class C
 Sub M()
 [|Try|]
     Throw New AppDomainUnloadedException
-[|Catch|] e As Exception [|When|] Foo()
+[|Catch|] e As Exception [|When|] Goo()
     {|Cursor:[|Exit Try|]|}
     Console.WriteLine("Caught exception!")
 [|Finally|]

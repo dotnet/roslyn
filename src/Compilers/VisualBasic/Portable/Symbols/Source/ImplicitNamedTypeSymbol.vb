@@ -8,6 +8,7 @@ Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -91,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsSerializable As Boolean
+        Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return False
             End Get
@@ -135,7 +136,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
             Get
                 Return False
             End Get
@@ -190,6 +197,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 AddInitializers(membersBuilder.InstanceInitializers, instanceInitializers)
             Next
         End Sub
+
+        Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            ' All infrastructure for proper WithEvents handling is in SourceNamedTypeSymbol, 
+            ' but this type derives directly from SourceMemberContainerTypeSymbol, which is a base class of 
+            ' SourceNamedTypeSymbol.
+            ' Tracked by https://github.com/dotnet/roslyn/issues/14073.
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
 
     End Class
 End Namespace

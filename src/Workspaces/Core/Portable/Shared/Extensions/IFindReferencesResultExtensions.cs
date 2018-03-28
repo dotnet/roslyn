@@ -5,37 +5,70 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class IFindReferencesResultExtensions
     {
-        public static IEnumerable<ReferencedSymbol> FilterUnreferencedSyntheticDefinitions(
-            this IEnumerable<ReferencedSymbol> result)
+        public static IEnumerable<Location> GetDefinitionLocationsToShow(
+            this ISymbol definition)
         {
-            return result.Where(ShouldKeep);
+            return definition.IsKind(SymbolKind.Namespace)
+                ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
+                : definition.Locations;
         }
 
-        private static bool ShouldKeep(ReferencedSymbol r)
+        public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
+            this IEnumerable<ReferencedSymbol> result)
         {
-            if (r.Locations.Any())
+            return result.Where(ShouldShow);
+        }
+
+        public static bool ShouldShow(this ReferencedSymbol referencedSymbol)
+        {
+            // If the reference has any locations then we will present it.
+            if (referencedSymbol.Locations.Any())
             {
                 return true;
             }
 
-            if (r.Definition.IsImplicitlyDeclared)
+            return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations(
+                showMetadataSymbolsWithoutReferences: true);
+        }
+
+        public static bool ShouldShowWithNoReferenceLocations(
+            this ISymbol definition, bool showMetadataSymbolsWithoutReferences)
+        {
+            // If the definition is implicit and we have no references, then we don't want to
+            // clutter the UI with it.
+            if (definition.IsImplicitlyDeclared)
             {
                 return false;
             }
 
-            if (r.Definition.IsPropertyAccessor())
+            // We don't want to clutter the UI with property accessors if there are no direct
+            // references to them.
+            if (definition.IsPropertyAccessor())
             {
                 return false;
             }
 
-            return true;
+            // Otherwise we still show the item even if there are no references to it.
+            // And it's at least a source definition.
+            if (definition.Locations.Any(loc => loc.IsInSource))
+            {
+                return true;
+            }
+
+            if (showMetadataSymbolsWithoutReferences &&
+                definition.Locations.Any(loc => loc.IsInMetadata))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static IEnumerable<ReferencedSymbol> FilterToAliasMatches(
@@ -50,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return from r in result
                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbolOpt))
                    where aliasLocations.Any()
-                   select new ReferencedSymbol(r.Definition, aliasLocations);
+                   select new ReferencedSymbol(r.DefinitionAndProjectId, aliasLocations);
         }
 
         public static IEnumerable<ReferencedSymbol> FilterNonMatchingMethodNames(

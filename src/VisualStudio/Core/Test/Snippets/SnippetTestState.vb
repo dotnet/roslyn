@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -10,8 +10,6 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
@@ -32,8 +30,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
 
-            Dim optionService = Workspace.Services.GetService(Of IOptionService)()
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.Snippets, True))
+            Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
+
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
@@ -41,15 +39,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 New VisualBasic.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
 
             If languageName = LanguageNames.VisualBasic Then
-                Dim snippetProvider As CompletionListProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+                Dim snippetProvider As CompletionProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+
+                Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
+                completionService.SetTestProviders({snippetProvider})
 
                 Dim asyncCompletionService = New AsyncCompletionService(
                     GetService(Of IEditorOperationsFactoryService)(),
                     UndoHistoryRegistry,
                     GetService(Of IInlineRenameService)(),
+                    GetExportedValue(Of IAsynchronousOperationListenerProvider)(),
                     New TestCompletionPresenter(Me),
-                    GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                    CreateLazyProviders({snippetProvider}, languageName, roles:=Nothing),
                     GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
@@ -67,8 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Dim extraParts = types.Concat({GetType(SignatureHelpWaiter), GetType(CompletionWaiter)})
-            Return MinimalTestExportProvider.CreateTypeCatalog(extraParts)
+            Return MinimalTestExportProvider.CreateTypeCatalog(types)
         End Function
 
         Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
@@ -133,6 +132,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         Friend Overloads Sub SendEscape()
             SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+        End Sub
+
+        Public Overloads Sub SendTypeChars(typeChars As String)
+            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
         End Sub
 
         Private Class MockOrderableContentTypeMetadata
@@ -211,7 +215,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Throw New NotImplementedException()
             End Function
 
-            Friend Overrides Function AddImports(document As Document, snippetNode As XElement, placeSystemNamespaceFirst As Boolean, cancellationToken As CancellationToken) As Document
+            Friend Overrides Function AddImports(document As Document, position As Integer, snippetNode As XElement, placeSystemNamespaceFirst As Boolean, cancellationToken As CancellationToken) As Document
                 Return document
             End Function
         End Class

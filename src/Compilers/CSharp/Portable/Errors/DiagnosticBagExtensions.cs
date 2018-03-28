@@ -57,10 +57,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool Add(
             this DiagnosticBag diagnostics,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return !useSiteDiagnostics.IsNullOrEmpty() && diagnostics.Add(node.Location, useSiteDiagnostics);
+        }
+
+        /// <summary>
+        /// Adds diagnostics from useSiteDiagnostics into diagnostics and returns True if there were any errors.
+        /// </summary>
+        internal static bool Add(
+            this DiagnosticBag diagnostics,
+            SyntaxToken token,
+            HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return !useSiteDiagnostics.IsNullOrEmpty() && diagnostics.Add(token.GetLocation(), useSiteDiagnostics);
         }
 
         internal static bool Add(

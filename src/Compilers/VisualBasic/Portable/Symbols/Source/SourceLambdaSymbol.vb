@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyAnonymousDelegateSymbol As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
 
         Public Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             unboundLambda As UnboundLambda,
             parameters As ImmutableArray(Of BoundLambdaParameterSymbol),
             returnType As TypeSymbol,

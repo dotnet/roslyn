@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -119,56 +120,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return root;
             }
 
-            var comparer = placeSystemNamespaceFirst
-                ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance
-                : UsingsAndExternAliasesDirectiveComparer.NormalInstance;
-
             var usings = AddUsingDirectives(root, usingDirectives);
 
-            // If the user likes to have their Usings statements unsorted, allow them to
-            if (root.Usings.IsSorted(comparer))
+            // Keep usings sorted if they were originally sorted.
+            usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
+
+            if (root.Externs.Count == 0)
             {
-                usings.Sort(comparer);
+                root = AddImportHelpers.MoveTrivia(
+                    CSharpSyntaxFactsService.Instance, root, root.Usings, usings);
             }
 
-            // If any using we added was moved to the first location, then take the trivia from
-            // the start of the first token and add it to the using we added.  This way things
-            // like #define's and #r's will stay above the using.
-            var firstUsingChanged = root.Usings.Count == 0 || usings[0] != root.Usings[0];
-            if (firstUsingChanged && root.Externs.Count == 0)
-            {
-                var firstToken = root.GetFirstToken();
-
-                // Move the leading directives from the first directive to the new using.
-                var firstUsing = usings[0].WithLeadingTrivia(firstToken.LeadingTrivia.Where(t => !t.IsDocComment() && !t.IsElastic()));
-
-                // Remove the leading directives from the first token.
-                var newFirstToken = firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Where(t => t.IsDocComment() || t.IsElastic()));
-
-                // Remove the leading trivia from the first token from the tree.
-                root = root.ReplaceToken(firstToken, newFirstToken);
-
-                // Create the new list of usings.  
-                var finalUsings = new List<UsingDirectiveSyntax>();
-                finalUsings.Add(firstUsing);
-                finalUsings.AddRange(root.Usings);
-                finalUsings.AddRange(usingDirectives.Except(new[] { usings[0] }));
-                finalUsings.Sort(comparer);
-                usings = finalUsings;
-            }
-
-            usings = usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
-            return root.WithUsings(usings.ToSyntaxList());
+            return root.WithUsings(
+                usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToSyntaxList());
         }
 
-        private static List<UsingDirectiveSyntax> AddUsingDirectives(CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)
+        private static bool IsDocCommentOrElastic(SyntaxTrivia t)
+        {
+            return t.IsDocComment() || t.IsElastic();
+        }
+
+        private static List<UsingDirectiveSyntax> AddUsingDirectives(
+            CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)
         {
             // We need to try and not place the using inside of a directive if possible.
             var usings = new List<UsingDirectiveSyntax>();
             var endOfList = root.Usings.Count - 1;
-            int startOfLastDirective = -1;
-            int endOfLastDirective = -1;
-            for (int i = 0; i < root.Usings.Count; i++)
+            var startOfLastDirective = -1;
+            var endOfLastDirective = -1;
+            for (var i = 0; i < root.Usings.Count; i++)
             {
                 if (root.Usings[i].GetLeadingTrivia().Any(trivia => trivia.IsKind(SyntaxKind.IfDirectiveTrivia)))
                 {
@@ -194,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 usings.InsertRange(startOfLastDirective, usingDirectives);
             }
+
             return usings;
         }
     }

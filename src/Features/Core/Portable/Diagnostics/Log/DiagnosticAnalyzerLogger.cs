@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
@@ -21,17 +22,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
         private const string AnalyzerException = "Analyzer.Exception";
         private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
 
-        private static readonly SHA256CryptoServiceProvider s_sha256CryptoServiceProvider = GetSha256CryptoServiceProvider();
+        private static readonly SHA256 s_sha256 = GetSha256();
         private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
 
         private static string ComputeSha256Hash(string name)
         {
-            if (s_sha256CryptoServiceProvider == null)
+            if (s_sha256 == null)
             {
                 return "Hash Provider Not Available";
             }
 
-            byte[] hash = s_sha256CryptoServiceProvider.ComputeHash(Encoding.UTF8.GetBytes(name));
+            byte[] hash = s_sha256.ComputeHash(Encoding.UTF8.GetBytes(name));
             return Convert.ToBase64String(hash);
         }
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
 
             // TODO: once we create description manager, pass that into here.
-            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(null, analyzer, projectId);
+            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, null);
             var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
             logAggregator.IncreaseCount(tuple);
         }
@@ -136,21 +137,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
         }
 
-        public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt)
+        public static bool AllowsTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService serviceOpt = null)
         {
-            StrongBox<bool> value;
-            if (s_telemetryCache.TryGetValue(analyzer, out value))
+            if (s_telemetryCache.TryGetValue(analyzer, out var value))
             {
                 return value.Value;
             }
 
-            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(service, a))).Value;
+            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(a, serviceOpt))).Value;
         }
 
-        private static bool CheckTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
+        private static bool CheckTelemetry(DiagnosticAnalyzer analyzer, IDiagnosticAnalyzerService serviceOpt)
         {
             if (analyzer.IsCompilerAnalyzer())
             {
+                return true;
+            }
+
+            if (analyzer is IBuiltInAnalyzer)
+            {
+                // if it is builtin analyzer, telemetry is always allowed
                 return true;
             }
 
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             try
             {
                 // SupportedDiagnostics is potentially user code and can throw an exception.
-                diagDescriptors = service != null ? service.GetDiagnosticDescriptors(analyzer) : analyzer.SupportedDiagnostics;
+                diagDescriptors = serviceOpt != null ? serviceOpt.GetDiagnosticDescriptors(analyzer) : analyzer.SupportedDiagnostics;
             }
             catch (Exception)
             {
@@ -175,12 +181,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             return diagnostic == null ? false : diagnostic.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
         }
 
-        private static SHA256CryptoServiceProvider GetSha256CryptoServiceProvider()
+        private static SHA256 GetSha256()
         {
             try
             {
                 // not all environment allows SHA256 encryption
-                return new SHA256CryptoServiceProvider();
+                return SHA256.Create();
             }
             catch
             {

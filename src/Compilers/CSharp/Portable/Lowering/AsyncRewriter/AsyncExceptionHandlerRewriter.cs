@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        private readonly bool _generateDebugInfo;
-        private readonly CSharpCompilation _compilation;
         private readonly SyntheticBoundNodeFactory _F;
         private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
@@ -29,12 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
-            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
-            _generateDebugInfo = containingMethod.GenerateDebugInfo;
-            _compilation = compilation;
             _F = factory;
             _F.CurrentMethod = containingMethod;
             Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
@@ -126,9 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            var compilation = containingType.DeclaringCompilation;
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, compilation, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, diagnostics, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;
@@ -142,7 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(
                 tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement));
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -290,11 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // handle proxy labels if have any
             var proxiedLabels = frame.proxiedLabels;
-            var proxyLabels = frame.proxyLabels;
 
             // skip 0 - it means we took no explicit branches
             int i = 1;
-            var cases = ArrayBuilder<BoundSwitchSection>.GetInstance();
+            var cases = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance();
 
             if (proxiedLabels != null)
             {
@@ -469,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var handledLabel = _F.GenerateLabel("handled");
                 var handlersList = currentAwaitCatchFrame.handlers;
-                var handlers = ArrayBuilder<BoundSwitchSection>.GetInstance(handlersList.Count);
+                var handlers = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance(handlersList.Count);
                 for (int i = 0, l = handlersList.Count; i < l; i++)
                 {
                     handlers.Add(_F.SwitchSection(
@@ -578,10 +573,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sourceOpt = node.ExceptionSourceOpt;
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
                 var newFilter = sourceOpt == null ?
-                                _F.Sequence(
+                                _F.MakeSequence(
                                     storePending,
                                     rewrittenFilter) :
-                                _F.Sequence(
+                                _F.MakeSequence(
                                     storePending,
                                     AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame),
                                     rewrittenFilter);

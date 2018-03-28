@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -13,22 +13,17 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 
-    <ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.VisualBasic)>
+    <ExportCompletionProviderMef1("ReplCommandCompletionProvider", LanguageNames.VisualBasic)>
     <TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)>
     <Order(Before:=PredefinedCompletionProviderNames.Keyword)>
     Friend Class VisualBasicReplCommandCompletionProvider
         Inherits ReplCompletionProvider
 
-        Protected Overrides Async Function GetTextChangeSpanAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of TextSpan)
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
-        End Function
-
         Protected Overrides Function GetCompletionString(commandName As String) As String
             Return "#" & commandName
         End Function
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 

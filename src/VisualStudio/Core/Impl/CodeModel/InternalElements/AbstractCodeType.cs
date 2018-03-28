@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -170,8 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             if (abstractCodeElement == null)
             {
-                var codeElement = element as EnvDTE.CodeElement;
-                if (codeElement != null)
+                if (element is EnvDTE.CodeElement codeElement)
                 {
                     // Is at least an EnvDTE.CodeElement? If so, try to retrieve it from the Members collection by name.
                     // Note: This might throw an ArgumentException if the name isn't found in the collection.
@@ -189,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             if (abstractCodeElement == null)
             {
-                throw new ArgumentException(ServicesVSResources.ElementIsNotValid, nameof(element));
+                throw new ArgumentException(ServicesVSResources.Element_is_not_valid, nameof(element));
             }
 
             abstractCodeElement.Delete();
@@ -202,8 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 FileCodeModel.AddBase(LookupNode(), @base, position);
 
                 var codeElements = this.Bases as ICodeElements;
-                EnvDTE.CodeElement element;
-                var hr = codeElements.Item(1, out element);
+                var hr = codeElements.Item(1, out var element);
 
                 if (ErrorHandler.Succeeded(hr))
                 {
@@ -221,8 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 var name = FileCodeModel.AddImplementedInterface(LookupNode(), @base, position);
 
                 var codeElements = this.ImplementedInterfaces as ICodeElements;
-                EnvDTE.CodeElement element;
-                var hr = codeElements.Item(name, out element);
+                var hr = codeElements.Item(name, out var element);
 
                 if (ErrorHandler.Succeeded(hr))
                 {

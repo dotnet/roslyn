@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Roslyn.Test.Utilities
@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Visu
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicSpecialReferencesTests
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectIncludesReferencesToMscorlibSystemAndMicrosoftVisualBasic()
             Using environment = New TestEnvironment()
@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectWithoutStandardLibsDoesNotReferenceSystem()
             Using environment = New TestEnvironment()
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectWithoutVisualBasicRuntimeDoesNotReferenceMicrosoftVisualBasic()
             Using environment = New TestEnvironment()
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(860964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860964")>
         Public Sub AddingReferenceToMicrosoftVisualBasicBeforeSettingOptionsShouldNotCrash()
@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(3477, "https://github.com/dotnet/roslyn/issues/3477")>
         Public Sub ProjectWithEmptySdkPathHasNoReferences()
@@ -113,7 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(860964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860964")>
         Public Sub AddingReferenceToMicrosoftVisualBasicAfterSettingOptionsShouldNotCrash()
@@ -142,16 +142,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingReferenceToProjectMetadataPromotesToProjectReference()
             Using environment = New TestEnvironment()
 
                 Dim project1 = CreateVisualBasicProject(environment, "project1")
-                environment.ProjectTracker.UpdateProjectBinPath(project1, Nothing, "C:\project1.dll")
+                project1.SetBinOutputPathAndRelatedData("C:\project1.dll")
 
                 Dim project2 = CreateVisualBasicProject(environment, "project2")
-                environment.ProjectTracker.UpdateProjectBinPath(project2, Nothing, "C:\project2.dll")
+                project2.SetBinOutputPathAndRelatedData("C:\project2.dll")
 
                 ' since this is known to be the output path of project1, the metadata reference is converted to a project reference
                 project2.AddMetaDataReference("c:\project1.dll", True)
@@ -163,16 +163,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddCyclicProjectMetadataReferences()
             Using environment = New TestEnvironment()
 
                 Dim project1 = CreateVisualBasicProject(environment, "project1")
-                environment.ProjectTracker.UpdateProjectBinPath(project1, Nothing, "C:\project1.dll")
+                project1.SetBinOutputPathAndRelatedData("C:\project1.dll")
 
                 Dim project2 = CreateVisualBasicProject(environment, "project2")
-                environment.ProjectTracker.UpdateProjectBinPath(project2, Nothing, "C:\project2.dll")
+                project2.SetBinOutputPathAndRelatedData("C:\project2.dll")
 
                 project1.AddProjectReference(project2)
 
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddCyclicProjectReferences()
             Using environment = New TestEnvironment()
@@ -206,7 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddCyclicProjectReferencesDeep()
             Using environment = New TestEnvironment()

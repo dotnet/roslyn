@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -33,22 +33,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence,
                 rewrittenAlternative,
                 node.ConstantValueOpt,
-                node.Type);
+                node.Type,
+                node.IsRef);
         }
 
         private static BoundExpression RewriteConditionalOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenCondition,
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
             ConstantValue constantValueOpt,
-            TypeSymbol rewrittenType)
+            TypeSymbol rewrittenType,
+            bool isRef)
         {
-            // NOTE: This optimization assumes that a constant has no side effects. In the future we 
-            // might wish to represent nodes that are known to the optimizer as having constant
-            // values as a sequence of side effects and a constant value; in that case the result
-            // of this should be a sequence containing the side effect and the consequence or alternative.
-
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
@@ -62,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundConditionalOperator(
                     syntax,
+                    isRef,
                     rewrittenCondition,
                     rewrittenConsequence,
                     rewrittenAlternative,

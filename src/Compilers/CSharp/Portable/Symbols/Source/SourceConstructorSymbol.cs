@@ -8,11 +8,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceConstructorSymbol : SourceMethodSymbol
+    internal sealed class SourceConstructorSymbol : SourceMemberMethodSymbol
     {
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbol _lazyReturnType;
         private bool _lazyIsVararg;
+        private readonly bool _isExpressionBodied;
 
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -29,11 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstructorDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), ImmutableArray.Create(location))
+            base(containingType, syntax.GetReference(), ImmutableArray.Create(location))
         {
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
+
+            if (syntax.Identifier.ValueText != containingType.Name)
+            {
+                // This is probably a method declaration with the type missing.
+                diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+            }
+
+            bool hasBlockBody = syntax.Body != null;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
             if (IsExtern)
             {
@@ -42,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
                 }
 
-                if (syntax.Body != null)
+                if (hasBlockBody || _isExpressionBodied)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }
@@ -56,8 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(methodKind, location, diagnostics);
+                this.CheckModifiers(methodKind, hasBlockBody || _isExpressionBodied, location, diagnostics);
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -69,10 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
             // we might still be constructing the member list of the containing type.  However, getting the binder
             // for the parameters should be safe.
-            var bodyBinder = binderFactory.GetBinder(parameterList).WithContainingMemberOrLambda(this);
+            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
-            _lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics, false);
+            _lazyParameters = ParameterHelpers.MakeParameters(
+                bodyBinder, this, parameterList, out arglistToken,
+                allowRefOrOut: true,
+                allowThis: false,
+                addRefReadOnlyModifier: false,
+                diagnostics: diagnostics);
+
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
@@ -88,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()
@@ -140,7 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal override RefKind RefKind
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }
@@ -184,9 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private void CheckModifiers(MethodKind methodKind, Location location, DiagnosticBag diagnostics)
+        private void CheckModifiers(MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
-            if (bodySyntaxReferenceOpt == null && !IsExtern)
+            if (!hasBody && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -226,7 +255,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied
         {
-            get { return false; }
+            get
+            {
+                return _isExpressionBodied;
+            }
         }
 
         internal override bool GenerateDebugInfo
@@ -241,16 +273,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TextSpan span;
 
             // local/lambda/closure defined within the body of the constructor:
-            if (tree == bodySyntaxReferenceOpt?.SyntaxTree)
+            ConstructorDeclarationSyntax ctorSyntax = GetSyntax();
+            if (tree == ctorSyntax.SyntaxTree)
             {
-                span = bodySyntaxReferenceOpt.Span;
-                if (span.Contains(position))
+                if (ctorSyntax.Body?.Span.Contains(position) == true)
                 {
-                    return position - span.Start;
+                    return position - ctorSyntax.Body.Span.Start;
+                }
+                else if (ctorSyntax.ExpressionBody?.Span.Contains(position) == true)
+                {
+                    return position - ctorSyntax.ExpressionBody.Span.Start;
                 }
             }
-
-            var ctorSyntax = GetSyntax();
 
             // closure in ctor initializer lifting its parameter(s) spans the constructor declaration:
             if (position == ctorSyntax.SpanStart)

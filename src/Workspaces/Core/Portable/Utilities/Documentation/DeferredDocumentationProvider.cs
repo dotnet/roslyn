@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Globalization;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis
             _compilation = compilation;
         }
 
-        protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+        protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
         {
             var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(documentationMemberID, _compilation);
 

@@ -7,6 +7,7 @@ Imports System.Globalization
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -174,10 +175,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
             End If
 
-            If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
-                retVal._lazyUseSiteErrorInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
-            End If
-
+            '
+            ' Do not set _lazyUseSiteErrorInfo !!!!
+            '
+            ' "null" Indicates "no errors" or "unknown state",
+            ' and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+            '
+            ' Setting _lazyUseSiteErrorInfo to a sentinel value here would introduce
+            ' a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            ' Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            '
             If _packedFlags.IsCustomAttributesPopulated Then
                 retVal._lazyCustomAttributes = ImmutableArray(Of VisualBasicAttributeData).Empty
             End If
@@ -502,13 +509,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         End Select
                     End If
 
-                    If potentialMethodKind = MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringCustomModifiers(contender.ReturnType) Then
+                    If potentialMethodKind = MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringAll(contender.ReturnType) Then
                         Continue For
                     End If
 
                     Dim j As Integer
                     For j = 0 To inputParams.Length - 1
-                        If Not inputParams(j).Type.IsSameTypeIgnoringCustomModifiers(contender.Parameters(j).Type) Then
+                        If Not inputParams(j).Type.IsSameTypeIgnoringAll(contender.Parameters(j).Type) Then
                             Exit For
                         End If
                     Next
@@ -561,7 +568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         access = Accessibility.Protected
 
                     Case Else
-                        Debug.Assert(False, "Unexpected!!!")
+                        access = Accessibility.Private
                 End Select
 
                 Return access
@@ -871,6 +878,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return Signature.ReturnParam.RefCustomModifiers
+            End Get
+        End Property
+
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return Signature.ReturnParam.GetAttributes()
         End Function
@@ -917,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim signatureHeader As SignatureHeader
                 Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
-                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx, allowByRefReturn:=True)
+                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 
             ' If method is not generic, let's assign empty list for type parameters
             If Not signatureHeader.IsGeneric() AndAlso
@@ -1070,7 +1083,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, AccessUncommonFields()._lazyDocComment)
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get
@@ -1083,21 +1096,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
-            Dim uncommonFields = _uncommonFields
-            If uncommonFields Is Nothing Then
-                Return Nothing
-            Else
-                Dim result = uncommonFields._lazyUseSiteErrorInfo
-                Return If(result Is ErrorFactory.EmptyErrorInfo,
-                    InterlockedOperations.Initialize(uncommonFields._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
-                    result)
-            End If
+            Return _uncommonFields?._lazyUseSiteErrorInfo
         End Function
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
-            Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            If _packedFlags.IsUseSiteDiagnosticPopulated Then
+                Return _uncommonFields?._lazyUseSiteErrorInfo
+            End If
+
             If errorInfo IsNot Nothing Then
-                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()

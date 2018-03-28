@@ -17,13 +17,7 @@ namespace Roslyn.Utilities
                 {
                 }
 
-                public object Current
-                {
-                    get
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
+                public object Current => throw new InvalidOperationException();
 
                 public bool MoveNext()
                 {

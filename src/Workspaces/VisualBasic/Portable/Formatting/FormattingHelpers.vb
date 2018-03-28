@@ -328,6 +328,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return False
         End Function
 
+        Public Function IsDictionaryAccessExclamationWithoutExpression(token As SyntaxToken) As Boolean
+            If token.Kind <> SyntaxKind.ExclamationToken Then
+                Return False
+            End If
+
+            Dim memberAccess = TryCast(token.Parent, MemberAccessExpressionSyntax)
+            If memberAccess?.Kind = SyntaxKind.DictionaryAccessExpression Then
+                Return memberAccess.Expression Is Nothing AndAlso memberAccess.OperatorToken = token
+            End If
+
+            Return False
+        End Function
+
         Public Function IsNamedFieldInitializerDot(token As SyntaxToken) As Boolean
             Dim namedFieldInitializer = TryCast(token.Parent, NamedFieldInitializerSyntax)
             If namedFieldInitializer Is Nothing Then

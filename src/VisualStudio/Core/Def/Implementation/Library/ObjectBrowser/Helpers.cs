@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return 0;
         }
 
-        public static readonly _LIB_LISTFLAGS ClassView = _LIB_LISTFLAGS.LLF_TRUENESTING;
+        public const _LIB_LISTFLAGS ClassView = _LIB_LISTFLAGS.LLF_TRUENESTING;
 
         public static bool IsClassView(uint flags)
         {

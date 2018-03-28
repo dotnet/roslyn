@@ -48,9 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             _componentModel = componentModel;
             var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
-            var bufferText = left != null ?
-                left.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None) :
-                right.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var bufferText = left != null
+                ? left.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                : right.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             _buffer = bufferFactory.CreateTextBuffer(bufferText.ToString(), bufferFactory.InertContentType);
             _encoding = bufferText.Encoding;
 
@@ -142,11 +142,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (_left == null)
             {
-                pbstrText = ServicesVSResources.PreviewChangesAddedPrefix + _right.Name;
+                pbstrText = ServicesVSResources.bracket_plus_bracket + _right.Name;
             }
             else if (_right == null)
             {
-                pbstrText = ServicesVSResources.PreviewChangesDeletedPrefix + _left.Name;
+                pbstrText = ServicesVSResources.bracket_bracket + _left.Name;
             }
             else
             {
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 using (var edit = _buffer.CreateEdit())
                 {
                     edit.Replace(child.GetSpan(), child.GetApplicableText());
-                    edit.Apply();
+                    edit.ApplyAndLogExceptions();
                 }
             }
 
@@ -219,9 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             // If these are documents from a VS workspace, then attempt to get the right display
             // data from the underlying VSHierarchy and itemids for the document.
             var workspace = document.Project.Solution.Workspace;
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                if (((VisualStudioWorkspaceImpl)workspace).TryGetImageListAndIndex(_imageService, document.Id, out pData[0].hImageList, out pData[0].Image))
+                if (vsWorkspace.TryGetImageListAndIndex(_imageService, document.Id, out pData[0].hImageList, out pData[0].Image))
                 {
                     pData[0].SelectedImage = pData[0].Image;
                     return;

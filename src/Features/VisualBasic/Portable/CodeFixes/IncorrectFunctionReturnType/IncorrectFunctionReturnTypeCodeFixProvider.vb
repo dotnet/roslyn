@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -10,10 +10,11 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnType
-
+#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FixIncorrectFunctionReturnType), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementInterface)>
     Friend Class IncorrectFunctionReturnTypeCodeFixProvider
+#Enable Warning RS1016
         Inherits CodeFixProvider
 
         Friend Const BC36938 As String = "BC36938" ' Iterator functions must return either IEnumerable(Of T), or IEnumerator(Of T), or the non-generic forms IEnumerable or IEnumerator.
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(node, rewrittenNode)
                 Dim newDocument = document.WithSyntaxRoot(newRoot)
-                Return {New MyCodeAction(VBFeaturesResources.FixIncorrectFunctionReturnType, newDocument)}
+                Return {New MyCodeAction(VBFeaturesResources.Fix_Incorrect_Function_Return_Type, newDocument)}
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of CodeAction)()

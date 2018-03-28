@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A structure for enumerating a <see cref="SyntaxTokenList"/>
         /// </summary>
-        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         [StructLayout(LayoutKind.Auto)]
         public struct Enumerator
         {

@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -819,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     IL_0006:  ret
   } // end of method C1::.ctor
 
-  .method public instance void  Foo([opt] valuetype [mscorlib]System.DateTime pDateTime,
+  .method public instance void  Goo([opt] valuetype [mscorlib]System.DateTime pDateTime,
                                     [opt] valuetype [mscorlib]System.Decimal pDecimal1,
                                     [opt] valuetype [mscorlib]System.Decimal pDecimal2) cil managed
   {
@@ -843,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
-  } // end of method C1::Foo
+  } // end of method C1::Goo
 
 } // end of class C1
 
@@ -856,11 +856,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
-            Dim fooMethod = compilation.GetTypeByMetadataName("C1").GetMember("Foo")
+            Dim gooMethod = compilation.GetTypeByMetadataName("C1").GetMember("Goo")
 
-            Assert.Equal(#11/4/2008#, CType(fooMethod, PEMethodSymbol).Parameters(0).ExplicitDefaultValue)
-            Assert.Equal(1.234D, CType(fooMethod, PEMethodSymbol).Parameters(1).ExplicitDefaultValue)
-            Assert.Equal(23.42D, CType(fooMethod, PEMethodSymbol).Parameters(2).ExplicitDefaultValue)
+            Assert.Equal(#11/4/2008#, CType(gooMethod, PEMethodSymbol).Parameters(0).ExplicitDefaultValue)
+            Assert.Equal(1.234D, CType(gooMethod, PEMethodSymbol).Parameters(1).ExplicitDefaultValue)
+            Assert.Equal(23.42D, CType(gooMethod, PEMethodSymbol).Parameters(2).ExplicitDefaultValue)
         End Sub
 
         <Fact()>
@@ -914,7 +914,7 @@ End Class
 </compilation>
 
             Dim longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull())
-            Dim c = CreateCompilationWithMscorlibAndReferences(source, {longFormRef})
+            Dim c = CreateCompilationWithMscorlib40AndReferences(source, {longFormRef})
             c.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'RT' has a return type that is not supported or parameter types that are not supported.
         Dim s As String = C.RT()
@@ -924,5 +924,44 @@ BC30657: 'VT' has a return type that is not supported or parameter types that ar
                             ~~
 ]]>)
         End Sub
+
+        <Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")>
+        Public Sub LoadingMethodWithPublicAndPrivateAccessibility()
+            Dim source =
+         <compilation>
+             <file>
+Class D
+   Shared Sub Main()
+      Dim test = new C()
+      test.M()
+      System.Console.WriteLine(test.F)
+
+      Dim test2 = new C.C2()
+      test2.M2()
+   End Sub
+End Class
+    </file>
+         </compilation>
+
+            Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
+
+            Dim comp = CreateCompilationWithMscorlib40(source, references:=references)
+            comp.AssertTheseDiagnostics(
+                <expected><![CDATA[
+BC30390: 'C.Private Overloads Sub M()' is not accessible in this context because it is 'Private'.
+      test.M()
+      ~~~~~~
+BC30389: 'C.F' is not accessible in this context because it is 'Private'.
+      System.Console.WriteLine(test.F)
+                               ~~~~~~
+BC30389: 'C.C2' is not accessible in this context because it is 'Protected Friend'.
+      Dim test2 = new C.C2()
+                      ~~~~
+BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context because it is 'Private'.
+      test2.M2()
+      ~~~~~~~~
+]]></expected>)
+        End Sub
+
     End Class
 End Namespace

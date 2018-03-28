@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReorderParameters
 using System;
 class MyClass
 {
-    public void $$Foo(int x, string y)
+    public void $$Goo(int x, string y)
     {
     }
 }";
@@ -25,7 +25,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -40,7 +40,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, $$string y)
+    public void Goo(int x, $$string y)
     {
     }
 }";
@@ -49,7 +49,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -64,7 +64,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)$$
+    public void Goo(int x, string y)$$
     {
     }
 }";
@@ -73,7 +73,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -88,7 +88,7 @@ class MyClass
 using System;
 class MyClass
 {
-    $$public void Foo(int x, string y)
+    $$public void Goo(int x, string y)
     {
     }
 }";
@@ -97,7 +97,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
     }
 }";
@@ -117,7 +117,7 @@ class C
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -132,7 +132,7 @@ class C
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -147,7 +147,7 @@ class C
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -159,7 +159,7 @@ class C
     string s = ((System.IFormattable)null).ToString(""test"", null)$$;
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -169,7 +169,7 @@ class C
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         $$
     }
@@ -179,7 +179,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Goo(string y, int x)
     {
         
     }
@@ -195,7 +195,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         $$Bar(x, y);
     }
@@ -209,7 +209,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, x);
     }
@@ -229,7 +229,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         $$Bar(x, y);
     }
@@ -243,7 +243,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, x);
     }
@@ -263,7 +263,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar($$Baz(x, y), y);
     }
@@ -282,7 +282,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(Baz(y, x), y);
     }
@@ -307,7 +307,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar$$(Baz(x, y), y);
     }
@@ -326,7 +326,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, Baz(x, y));
     }
@@ -351,7 +351,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(Baz(x, y), $$y);
     }
@@ -370,7 +370,7 @@ class MyClass
 using System;
 class MyClass
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
         Bar(y, Baz(x, y));
     }

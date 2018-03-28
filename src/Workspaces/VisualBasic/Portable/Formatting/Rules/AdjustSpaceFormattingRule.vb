@@ -193,7 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' ? . [conditional access operator]
-            If previousToken.Kind = SyntaxKind.QuestionToken AndAlso currentToken.Kind = SyntaxKind.DotToken AndAlso
+            ' ? ! [conditional access operator]
+            If previousToken.Kind = SyntaxKind.QuestionToken AndAlso currentToken.IsKind(SyntaxKind.DotToken, SyntaxKind.ExclamationToken) AndAlso
                previousToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
@@ -212,6 +213,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return FormattingOperations.CreateAdjustSpacesOperation(1, AdjustSpacesOption.DynamicSpaceToIndentationIfOnSingleLine)
                 End If
 
+                Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            End If
+
+            ' * [dictionary access exclamation without expression]
+            If previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsDictionaryAccessExclamationWithoutExpression(currentToken) Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
@@ -254,6 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' * ,
             ' * .
             ' * :=
+            ' * !
             Select Case currentToken.Kind
                 Case SyntaxKind.CloseParenToken, SyntaxKind.CommaToken
                     Return If(previousToken.Kind = SyntaxKind.EmptyToken AndAlso PrecedingTriviaContainsLineBreak(previousToken),
@@ -265,15 +272,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Case SyntaxKind.DotToken
                     Dim space = If(previousToken.Kind = SyntaxKind.CallKeyword OrElse
-                               previousToken.Kind = SyntaxKind.KeyKeyword, 1, 0)
+                                   previousToken.Kind = SyntaxKind.KeyKeyword,
+                                   1, 0)
+
                     Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+
+                Case SyntaxKind.ExclamationToken
+                    If IsExclamationInDictionaryAccess(currentToken) Then
+                        Dim space = If(currentToken.TrailingTrivia.Any(SyntaxKind.LineContinuationTrivia), 1, 0)
+
+                        Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+                    End If
             End Select
+
+            ' nullable ? case
+            If FormattingHelpers.IsQuestionInNullableType(currentToken) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            End If
 
             ' { *
             ' ( *
             ' ) *
             ' . *
             ' := *
+            ' ! *
             Select Case previousToken.Kind
                 Case SyntaxKind.OpenBraceToken, SyntaxKind.OpenParenToken, SyntaxKind.DotToken, SyntaxKind.ColonEqualsToken
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
@@ -281,20 +303,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Case SyntaxKind.CloseParenToken
                     Dim space = If(previousToken.Kind = currentToken.Kind, 0, 1)
                     Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+
+                Case SyntaxKind.ExclamationToken
+                    If IsExclamationInDictionaryAccess(previousToken) Then
+                        Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+                    End If
             End Select
-
-            ' dictionary member access ! case
-            If IsExclamationInDictionaryAccess(previousToken) Then
-                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-            End If
-
-            If IsExclamationInDictionaryAccess(currentToken) Then
-                If Not currentToken.TrailingTrivia.Any(SyntaxKind.LineContinuationTrivia) AndAlso
-                   previousToken.Kind <> SyntaxKind.WithKeyword AndAlso
-                   previousToken.Kind <> SyntaxKind.EqualsToken Then
-                    Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-                End If
-            End If
 
             ' * </
             If currentToken.Kind = SyntaxKind.LessThanSlashToken AndAlso
@@ -317,11 +331,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If (previousToken.Kind = SyntaxKind.PlusToken OrElse
                 previousToken.Kind = SyntaxKind.MinusToken) AndAlso
                 TypeOf previousToken.Parent Is UnaryExpressionSyntax Then
-                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-            End If
-
-            ' nullable ? case
-            If FormattingHelpers.IsQuestionInNullableType(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 

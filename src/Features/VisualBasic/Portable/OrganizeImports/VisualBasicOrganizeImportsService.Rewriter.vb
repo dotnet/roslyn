@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -10,15 +10,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _placeSystemNamespaceFirst As Boolean
+            Private ReadOnly _separateGroups As Boolean
+
             Public ReadOnly TextChanges As IList(Of TextChange) = New List(Of TextChange)()
 
-            Public Sub New(placeSystemNamespaceFirst As Boolean)
-                Me._placeSystemNamespaceFirst = placeSystemNamespaceFirst
+            Public Sub New(placeSystemNamespaceFirst As Boolean, separateGroups As Boolean)
+                _placeSystemNamespaceFirst = placeSystemNamespaceFirst
+                _separateGroups = separateGroups
             End Sub
 
             Public Overrides Function VisitCompilationUnit(node As CompilationUnitSyntax) As SyntaxNode
                 node = DirectCast(MyBase.VisitCompilationUnit(node), CompilationUnitSyntax)
-                Dim organizedImports = ImportsOrganizer.Organize(node.Imports, _placeSystemNamespaceFirst)
+                Dim organizedImports = ImportsOrganizer.Organize(
+                    node.Imports, _placeSystemNamespaceFirst, _separateGroups)
 
                 Dim result = node.WithImports(organizedImports)
                 If result IsNot node Then

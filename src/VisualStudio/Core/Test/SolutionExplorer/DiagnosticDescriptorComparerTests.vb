@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 DiagnosticSeverity.Warning,
                 True)
 
-            Dim comparer = New DiagnosticItemSource.DiagnosticDescriptorComparer()
+            Dim comparer = New LegacyDiagnosticItemSource.DiagnosticDescriptorComparer()
 
             Dim result = comparer.Compare(x, y)
 
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 DiagnosticSeverity.Warning,
                 True)
 
-            Dim comparer = New DiagnosticItemSource.DiagnosticDescriptorComparer()
+            Dim comparer = New LegacyDiagnosticItemSource.DiagnosticDescriptorComparer()
 
             Dim result = comparer.Compare(x, y)
 
@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 DiagnosticSeverity.Warning,
                 True)
 
-            Dim comparer = New DiagnosticItemSource.DiagnosticDescriptorComparer()
+            Dim comparer = New LegacyDiagnosticItemSource.DiagnosticDescriptorComparer()
 
             Dim result = comparer.Compare(x, y)
 

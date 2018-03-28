@@ -44,8 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim expression = node.Expression
 
             ' Cases:
-            '   ((Foo))
+            '   ((Goo))
             If expression.IsKind(SyntaxKind.ParenthesizedExpression) Then
+                Return True
+            End If
+
+            '   ((Goo, Bar))
+            If expression.IsKind(SyntaxKind.TupleExpression) Then
                 Return True
             End If
 
@@ -86,10 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
-            '   (DirectCast(Foo))
-            '   (TryCast(Foo))
-            '   (CType(Foo, Bar))
-            '   (CInt(Foo))
+            '   (DirectCast(Goo))
+            '   (TryCast(Goo))
+            '   (CType(Goo, Bar))
+            '   (CInt(Goo))
             If expression.IsKind(SyntaxKind.DirectCastExpression) OrElse
                expression.IsKind(SyntaxKind.TryCastExpression) OrElse
                expression.IsKind(SyntaxKind.CTypeExpression) OrElse
@@ -99,11 +104,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
-            '   (AddressOf Foo)
-            '   (New With {.Foo = ""})
+            '   (AddressOf Goo)
+            '   (New With {.Goo = ""})
             '   (If(True, 1, 2))
             '   (If(Nothing, 1))
-            '   (NameOf(Foo))
+            '   (NameOf(Goo))
             If expression.IsKind(SyntaxKind.AddressOfExpression) OrElse
                expression.IsKind(SyntaxKind.AnonymousObjectCreationExpression) OrElse
                expression.IsKind(SyntaxKind.TernaryConditionalExpression) OrElse
@@ -193,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim nextToken = node.CloseParenToken.GetNextToken()
 
             ' Cases:
-            '   Dim x = (Foo)
+            '   Dim x = (Goo)
             If node.IsParentKind(SyntaxKind.EqualsValue) AndAlso
                Not EndsQuery(lastToken, semanticModel, cancellationToken) AndAlso
                Not EndsLambda(lastToken) AndAlso
@@ -202,8 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
-            '   (New Foo)
-            '   (New Foo())
+            '   (New Goo)
+            '   (New Goo())
             If expression.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(expression, ObjectCreationExpressionSyntax)
 
@@ -231,8 +236,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
-            ' 1.   (Foo)
-            ' 2.   (Foo())
+            ' 1.   (Goo)
+            ' 2.   (Goo())
             ' 3.   <x/>.GetHashCode()
             ' 4.   1 < (<x/>.GetHashCode()) Or 1 > (<x/>.GetHashCode())
             If expression.IsKind(SyntaxKind.InvocationExpression) Then
@@ -256,8 +261,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
-            '   (Foo.Bar)
-            '   (Foo)
+            '   (Goo.Bar)
+            '   (Goo)
             If expression.IsKind(SyntaxKind.IdentifierName) OrElse
                expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
 
@@ -300,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Case:
-            '   (Foo(Of Bar))
+            '   (Goo(Of Bar))
             If expression.IsKind(SyntaxKind.GenericName) Then
                 If Not nextToken.IsKindOrHasMatchingText(SyntaxKind.OpenParenToken) Then
                     Return True
@@ -381,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
-            '   (Sub() From x in y), Foo
+            '   (Sub() From x in y), Goo
             '   Dim a = (Sub() If True Then Dim x), b = a
             '   Dim y = (Function() Console.ReadLine)()
             '   Call (Sub() Exit Sub)

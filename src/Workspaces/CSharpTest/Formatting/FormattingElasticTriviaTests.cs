@@ -150,7 +150,6 @@ public class SomeAttribute : System.Attribute { }
             var property = SyntaxFactory.PropertyDeclaration(
                 attributeLists: default(SyntaxList<AttributeListSyntax>),
                 modifiers: SyntaxFactory.TokenList(),
-                refKeyword: default(SyntaxToken),
                 type: SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
                         SyntaxKind.StringKeyword)),

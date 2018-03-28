@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
@@ -22,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingField.GetCustomAttributesToEmit(compilationState);
+            return UnderlyingField.GetCustomAttributesToEmit(moduleBuilder);
         }
 
-        protected override Cci.IMetadataConstant GetCompileTimeValue(EmitContext context)
+        protected override MetadataConstant GetCompileTimeValue(EmitContext context)
         {
             return UnderlyingField.GetMetadataConstantValue(context);
         }

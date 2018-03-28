@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class NullableConversionTests : CompilingTestBase
     {
         [Fact, WorkItem(544450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544450")]
         public void TestBug12780()
@@ -646,7 +646,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
 
             // Roslyn and native compiler both produce ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD 
             // for straight conversions. 
@@ -712,7 +712,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (15,13): error CS0030: Cannot convert type 'double' to 'int?'
                 //         i = (int?)double.MaxValue;

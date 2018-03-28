@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingMethod.GetCustomAttributesToEmit(compilationState)
+        Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+            Return UnderlyingMethod.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides Function GetParameters() As ImmutableArray(Of EmbeddedParameter)
@@ -141,12 +141,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Protected Overrides ReadOnly Property AcceptsExtraArguments As Boolean
             Get
                 Return UnderlyingMethod.IsVararg
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
-            Get
-                Return UnderlyingMethod.CallingConvention
             End Get
         End Property
 

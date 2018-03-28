@@ -1,7 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -24,13 +23,12 @@ namespace Microsoft.CodeAnalysis.Text
             private event EventHandler<TextChangeEventArgs> EtextChanged;
             private SourceText _currentText;
 
-            private TextBufferContainer(ITextBuffer editorBuffer, Encoding encoding)
+            private TextBufferContainer(ITextBuffer editorBuffer)
             {
                 Contract.ThrowIfNull(editorBuffer);
-                Contract.ThrowIfNull(encoding);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                _currentText = new SnapshotSourceText(TextBufferMapper.ToRoslyn(editorBuffer.CurrentSnapshot), encoding, this);
+                _currentText = SnapshotSourceText.From(editorBuffer.CurrentSnapshot, this);
             }
 
             /// <summary>
@@ -51,16 +49,17 @@ namespace Microsoft.CodeAnalysis.Text
 
             private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
             {
-                return new TextBufferContainer(editorBuffer, editorBuffer.GetEncodingOrUTF8());
+                return new TextBufferContainer(editorBuffer);
             }
 
-            public ITextBuffer EditorTextBuffer { get { return _weakEditorBuffer.GetTarget(); } }
+            public ITextBuffer TryFindEditorTextBuffer()
+                => _weakEditorBuffer.GetTarget();
 
             public override SourceText CurrentText
             {
                 get
                 {
-                    var editorBuffer = this.EditorTextBuffer;
+                    var editorBuffer = this.TryFindEditorTextBuffer();
                     return editorBuffer != null
                         ? editorBuffer.CurrentSnapshot.AsText()
                         : _currentText;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     lock (_gate)
                     {
-                        var textBuffer = this.EditorTextBuffer;
+                        var textBuffer = this.TryFindEditorTextBuffer();
                         if (this.EtextChanged == null && textBuffer != null)
                         {
                             textBuffer.ChangedHighPriority += this.OnTextContentChanged;
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         this.EtextChanged -= value;
 
-                        var textBuffer = this.EditorTextBuffer;
+                        var textBuffer = this.TryFindEditorTextBuffer();
                         if (this.EtextChanged == null && textBuffer != null)
                         {
                             textBuffer.ChangedHighPriority -= this.OnTextContentChanged;

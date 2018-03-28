@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -887,6 +888,36 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        public void TestReportingDiagnosticWithCSharpCompilerId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithCSharpCompilerDiagnosticId() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, AnalyzerWithCSharpCompilerDiagnosticId.Descriptor.Id), "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithCSharpCompilerDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        public void TestReportingDiagnosticWithBasicCompilerId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithBasicCompilerDiagnosticId() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.CompilerDiagnosticIdReported, AnalyzerWithBasicCompilerDiagnosticId.Descriptor.Id), "diagnostic").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithBasicCompilerDiagnosticId", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         public void TestReportingDiagnosticWithInvalidLocation()
         {
@@ -913,6 +944,61 @@ public class B
                             .WithLocation(1, 1)
                     );
             }
+        }
+
+        [Fact]
+        public void TestReportingDiagnosticWithInvalidSpan()
+        {
+            var source1 = @"class C1 { void M() { int i = 0; i++; } }";
+            var compilation = CreateCompilationWithMscorlib45(source1);
+            var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
+
+            var badSpan = new Text.TextSpan(100000, 10000);
+
+            string message = new ArgumentException(
+                string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticSpan.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+            compilation
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                    expected:
+                    Diagnostic("AD0001")
+                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message)
+                        .WithLocation(1, 1)
+                );
+        }
+
+        [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
+        public void TestRegisteringAsyncAnalyzerMethod()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithAsyncMethodRegistration() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered), "action").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncMethodRegistration", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
+        public void TestRegisteringAsyncAnalyzerLambda()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithAsyncLambdaRegistration() };
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered), "action").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncLambdaRegistration", "System.ArgumentException", message)
+                     .WithLocation(1, 1));
         }
 
         [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
@@ -1016,14 +1102,14 @@ namespace ConsoleApplication1
         public void TestNamespaceDeclarationAnalyzer()
         {
             var source = @"
-namespace Foo.Bar.FooBar { }
+namespace Goo.Bar.GooBar { }
 ";
             var analyzers = new DiagnosticAnalyzer[] { new CSharpNamespaceDeclarationAnalyzer() };
 
             // Verify, no duplicate diagnostics on qualified name.
             CreateCompilationWithMscorlib45(source)
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Foo.Bar.FooBar { }").WithLocation(2, 1));
+                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
         }
 
         [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]
@@ -1356,6 +1442,25 @@ partial class PartialType
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         }
 
+        [Fact, WorkItem(11217, "https://github.com/dotnet/roslyn/issues/11217")]
+        public void TestGeneratedCodeAnalyzerNoReportDiagnostics()
+        {
+            string source1 = @"
+class TypeInUserFile { }
+";
+            string source2 = @"
+class TypeInGeneratedFile { }
+";
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "SourceFileRegular.cs");
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "SourceFileRegular.Designer.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }, new MetadataReference[] { SystemRef });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer2() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("GeneratedCodeAnalyzer2Warning", "TypeInUserFile").WithArguments("TypeInUserFile", "2").WithLocation(2, 7));
+        }
+
         internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor ExpressionDescriptor = new DiagnosticDescriptor(
@@ -1559,8 +1664,8 @@ class C
         {
             var source = @"namespace N1.N2 { }";
 
-            var metadataReference = CreateCompilationWithMscorlib(source).ToMetadataReference();
-            var compilation = CreateCompilationWithMscorlib(source, new[] { metadataReference });
+            var metadataReference = CreateCompilation(source).ToMetadataReference();
+            var compilation = CreateCompilation(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
 
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
@@ -1605,6 +1710,703 @@ public partial class C33 { }
                 Diagnostic("GeneratedCodeDiagnostic").WithArguments("Source3_File5.designer.cs").WithLocation(1, 1),
                 Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source3_File5.designer.cs").WithLocation(1, 1),
                 Diagnostic("NumberOfUniqueTextFileDescriptor").WithArguments("3").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InConstructor()
+        {
+            string source = @"
+public class C
+{
+    public C(int a, int b)
+    {
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 18),
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 25));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InRegularMethod()
+        {
+            string source = @"
+public class C
+{
+    void M1(string a, string b)
+    {
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 20),
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 30));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InIndexers()
+        {
+            string source = @"
+public class C
+{
+    public int this[int index]
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_Lambdas()
+        {
+            string source = @"
+public class C
+{
+    void M2()
+    {
+        System.Func<int, int, int> x = (int a, int b) => b;
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Local_ID", "x").WithLocation(6, 36),
+                    Diagnostic("Parameter_ID", "a").WithLocation(6, 45),
+                    Diagnostic("Parameter_ID", "b").WithLocation(6, 52));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InAnonymousMethods()
+        {
+            string source = @"
+public class C
+{
+    void M3()
+    {
+        M4(delegate (int x, int y) { });
+    }
+
+    void M4(System.Action<int, int> a) { }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                        Diagnostic("Parameter_ID", "a").WithLocation(9, 37),
+                        Diagnostic("Parameter_ID", "x").WithLocation(6, 26),
+                        Diagnostic("Parameter_ID", "y").WithLocation(6, 33));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InDelegateTypes()
+        {
+            string source = @"
+public class C
+{
+    delegate void D(int x, string y);
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "x").WithLocation(4, 25),
+                    Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InOperators()
+        {
+            string source = @"
+public class C
+{
+    public static implicit operator int (C c) { return 0; }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "c").WithLocation(4, 44));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InExplicitInterfaceImplementations()
+        {
+            string source = @"
+interface I
+{
+    void M(int a, int b);
+}
+
+public class C : I
+{
+    void I.M(int c, int d) { }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "c").WithLocation(9, 18),
+                    Diagnostic("Parameter_ID", "d").WithLocation(9, 25),
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 16),
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 23));
+        }
+
+        [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InExtensionMethods()
+        {
+            string source = @"
+public static class C
+{
+    static void M(this int x, int y) { }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "x").WithLocation(4, 28),
+                    Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
+        public void TestParametersAnalyzer_InLocalFunctions()
+        {
+            string source = @"
+public class C
+{
+    void M1() 
+    { 
+        M2(1, 2);
+
+        void M2(int a, int b)
+        {
+        }
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 18), // ctor
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 25),
+                    Diagnostic("Local_ID", "c").WithLocation(6, 13),
+                    Diagnostic("Local_ID", "d").WithLocation(6, 20),
+                    Diagnostic("Parameter_ID", "a").WithLocation(10, 20), // M1
+                    Diagnostic("Parameter_ID", "b").WithLocation(10, 30),
+                    Diagnostic("Local_ID", "c").WithLocation(12, 11),
+                    Diagnostic("Local_ID", "x").WithLocation(18, 36), // M2
+                    Diagnostic("Parameter_ID", "a").WithLocation(26, 37), // M4
+                    Diagnostic("Parameter_ID", "index").WithLocation(28, 25)); // indexer
+        }
+
+        [Fact, WorkItem(15903, "https://github.com/dotnet/roslyn/issues/15903")]
+        public void TestSymbolAnalyzer_HiddenRegions()
+        {
+            string source = @"
+
+#line hidden
+public class HiddenClass
+{
+}
+
+#line default
+public class RegularClass
+{
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.None) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
+                Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
+                Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("RegularClass", "Source.cs").WithLocation(1, 1));
+
+            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
+                Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
+                Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass,RegularClass", "Source.cs").WithLocation(1, 1));
+
+            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
+                Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "HiddenClass").WithArguments("HiddenClass").WithLocation(4, 14),
+                Diagnostic("GeneratedCodeAnalyzerError", "HiddenClass").WithArguments("HiddenClass").WithLocation(4, 14),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
+                Diagnostic("GeneratedCodeAnalyzerError", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass,RegularClass", "Source.cs").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(15903, "https://github.com/dotnet/roslyn/issues/15903")]
+        public void TestSyntaxAndOperationAnalyzer_HiddenRegions()
+        {
+            string source = @"
+
+public class Class
+{
+    void DummyMethod(int i) { }
+
+#line hidden
+    void HiddenMethod()
+    {
+        var hiddenVar = 0;
+        DummyMethod(hiddenVar);
+    }
+#line default
+
+    void NonHiddenMethod()
+    {
+        var userVar = 0;
+        DummyMethod(userVar);
+    }
+
+    void MixMethod()
+    {
+#line hidden
+        var mixMethodHiddenVar = 0;
+#line default
+        var mixMethodUserVar = 0;
+
+        DummyMethod(mixMethodHiddenVar + mixMethodUserVar);
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var syntaxKinds = ImmutableArray.Create(SyntaxKind.VariableDeclaration);
+            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclarator);
+
+            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.None, syntaxKinds, operationKinds) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
+
+            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze, syntaxKinds, operationKinds) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
+
+            analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics, syntaxKinds, operationKinds) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0").WithArguments("Node: var hiddenVar = 0").WithLocation(10, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "hiddenVar = 0").WithArguments("Operation: HiddenMethod").WithLocation(10, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodHiddenVar = 0").WithArguments("Node: var mixMethodHiddenVar = 0").WithLocation(24, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodHiddenVar = 0").WithArguments("Operation: MixMethod").WithLocation(24, 13),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "mixMethodUserVar = 0").WithArguments("Operation: MixMethod").WithLocation(26, 13),
+                Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class GeneratedCodeSyntaxAndOperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlagsOpt;
+            private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
+            private readonly ImmutableArray<OperationKind> _operationKinds;
+
+            public static readonly DiagnosticDescriptor Warning = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerWarning",
+                "Title",
+                "GeneratedCodeAnalyzerMessage for '{0}'",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public static readonly DiagnosticDescriptor Summary = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerSummary",
+                "Title2",
+                "GeneratedCodeAnalyzer received callbacks for: '{0}' entities",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, ImmutableArray<SyntaxKind> syntaxKinds, ImmutableArray<OperationKind> operationKinds)
+            {
+                _generatedCodeAnalysisFlagsOpt = generatedCodeAnalysisFlagsOpt;
+                _syntaxKinds = syntaxKinds;
+                _operationKinds = operationKinds;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning, Summary);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(this.OnCompilationStart);
+
+                if (_generatedCodeAnalysisFlagsOpt.HasValue)
+                {
+                    // Configure analysis on generated code.
+                    context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlagsOpt.Value);
+                }
+            }
+
+            private void OnCompilationStart(CompilationStartAnalysisContext context)
+            {
+                var sortedCallbackEntityNames = new SortedSet<string>();
+                context.RegisterSyntaxNodeAction(syntaxContext =>
+                {
+                    sortedCallbackEntityNames.Add($"Node: {syntaxContext.Node.ToString()}");
+                    ReportNodeDiagnostics(syntaxContext.Node, syntaxContext.ReportDiagnostic);
+                }, _syntaxKinds);
+
+                context.RegisterOperationAction(operationContext =>
+                {
+                    sortedCallbackEntityNames.Add($"Operation: {operationContext.ContainingSymbol.Name}");
+                    ReportOperationDiagnostics(operationContext.Operation, operationContext.ContainingSymbol.Name, operationContext.ReportDiagnostic);
+                }, _operationKinds);
+
+                context.RegisterCompilationEndAction(endContext =>
+                {
+                    // Summary diagnostic about received callbacks.
+                    var diagnostic = CodeAnalysis.Diagnostic.Create(Summary, Location.None, sortedCallbackEntityNames.Join(","));
+                    endContext.ReportDiagnostic(diagnostic);
+                });
+            }
+
+            private void ReportNodeDiagnostics(SyntaxNode node, Action<Diagnostic> addDiagnostic)
+            {
+                ReportDiagnosticsCore(addDiagnostic, node.Location, $"Node: {node.ToString()}");
+            }
+
+            private void ReportOperationDiagnostics(IOperation operation, string name, Action<Diagnostic> addDiagnostic)
+            {
+                ReportDiagnosticsCore(addDiagnostic, operation.Syntax.Location, $"Operation: {name}");
+            }
+
+            private void ReportDiagnosticsCore(Action<Diagnostic> addDiagnostic, Location location, params object[] messageArguments)
+            {
+                // warning diagnostic
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Warning, location, messageArguments);
+                addDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        public void TestFieldReferenceAnalyzer_InAttributes()
+        {
+            string source = @"
+using System;
+
+[assembly: MyAttribute(C.FieldForAssembly)]
+[module: MyAttribute(C.FieldForModule)]
+
+internal class MyAttribute : Attribute
+{
+    public MyAttribute(int f) { }
+}
+
+internal interface MyInterface
+{
+    event EventHandler MyEvent;
+}
+
+[MyAttribute(FieldForClass)]
+internal class C : MyInterface
+{
+    internal const int FieldForClass = 1, FieldForStruct = 2, FieldForInterface = 3, FieldForField = 4, FieldForMethod = 5,
+        FieldForEnum = 6, FieldForEnumMember = 7, FieldForDelegate = 8, FieldForEventField = 9, FieldForEvent = 10,
+        FieldForAddHandler = 11, FieldForRemoveHandler = 12, FieldForProperty = 13, FieldForPropertyGetter = 14, FieldForPropertySetter = 15,
+        FieldForIndexer = 16, FieldForIndexerGetter = 17, FieldForIndexerSetter = 18, FieldForExpressionBodiedMethod = 19, FieldForExpressionBodiedProperty = 20,
+        FieldForMethodParameter = 21, FieldForDelegateParameter = 22, FieldForIndexerParameter = 23, FieldForMethodTypeParameter = 24, FieldForTypeTypeParameter = 25,
+        FieldForDelegateTypeParameter = 26, FieldForMethodReturnType = 27, FieldForAssembly = 28, FieldForModule = 29;
+
+    [MyAttribute(FieldForStruct)]
+    private struct S<[MyAttribute(FieldForTypeTypeParameter)] T> { }
+
+    [MyAttribute(FieldForInterface)]
+    private interface I { }
+
+    [MyAttribute(FieldForField)]
+    private int field2 = 0, field3 = 0;
+
+    [return: MyAttribute(FieldForMethodReturnType)]
+    [MyAttribute(FieldForMethod)]
+    private void M1<[MyAttribute(FieldForMethodTypeParameter)]T>([MyAttribute(FieldForMethodParameter)]int p1) { }
+
+    [MyAttribute(FieldForEnum)]
+    private enum E
+    {
+        [MyAttribute(FieldForEnumMember)]
+        F = 0
+    }
+
+    [MyAttribute(FieldForDelegate)]
+    public delegate void Delegate<[MyAttribute(FieldForDelegateTypeParameter)]T>([MyAttribute(FieldForDelegateParameter)]int p1);
+
+    [MyAttribute(FieldForEventField)]
+    public event Delegate<int> MyEvent;
+
+    [MyAttribute(FieldForEvent)]
+    event EventHandler MyInterface.MyEvent
+    {
+        [MyAttribute(FieldForAddHandler)]
+        add
+        {
+        }
+        [MyAttribute(FieldForRemoveHandler)]
+        remove
+        {
+        }
+    }
+
+    [MyAttribute(FieldForProperty)]
+    private int P1
+    {
+        [MyAttribute(FieldForPropertyGetter)]
+        get;
+        [MyAttribute(FieldForPropertySetter)]
+        set;
+    }
+
+    [MyAttribute(FieldForIndexer)]
+    private int this[[MyAttribute(FieldForIndexerParameter)]int index]
+    {
+        [MyAttribute(FieldForIndexerGetter)]
+        get { return 0; }
+        [MyAttribute(FieldForIndexerSetter)]
+        set { }
+    }
+
+    [MyAttribute(FieldForExpressionBodiedMethod)]
+    private int M2 => 0;
+
+    [MyAttribute(FieldForExpressionBodiedProperty)]
+    private int P2 => 0;
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics(
+                // (51,32): warning CS0067: The event 'C.MyEvent' is never used
+                //     public event Delegate<int> MyEvent;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("C.MyEvent").WithLocation(51, 32),
+                // (34,17): warning CS0414: The field 'C.field2' is assigned but its value is never used
+                //     private int field2 = 0, field3 = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field2").WithArguments("C.field2").WithLocation(34, 17),
+                // (34,29): warning CS0414: The field 'C.field3' is assigned but its value is never used
+                //     private int field2 = 0, field3 = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field3").WithArguments("C.field3").WithLocation(34, 29));
+
+            // Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: true);
+
+            // Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: false);
+        }
+
+        private static void TestFieldReferenceAnalyzer_InAttributes_Core(Compilation compilation, bool doOperationBlockAnalysis)
+        {
+            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("ID", "FieldForClass").WithArguments("FieldForClass", "1").WithLocation(17, 14),
+                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
+                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(30, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
+                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(37, 18),
+                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(40, 18),
+                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(43, 22),
+                Diagnostic("ID", "FieldForDelegate").WithArguments("FieldForDelegate", "8").WithLocation(47, 18),
+                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "9").WithLocation(50, 18),
+                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "10").WithLocation(53, 18),
+                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "11").WithLocation(56, 22),
+                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "12").WithLocation(60, 22),
+                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "13").WithLocation(66, 18),
+                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "14").WithLocation(69, 22),
+                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "15").WithLocation(71, 22),
+                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "16").WithLocation(75, 18),
+                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "17").WithLocation(78, 22),
+                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "18").WithLocation(80, 22),
+                Diagnostic("ID", "FieldForExpressionBodiedMethod").WithArguments("FieldForExpressionBodiedMethod", "19").WithLocation(84, 18),
+                Diagnostic("ID", "FieldForExpressionBodiedProperty").WithArguments("FieldForExpressionBodiedProperty", "20").WithLocation(87, 18),
+                Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(38, 79),
+                Diagnostic("ID", "FieldForDelegateParameter").WithArguments("FieldForDelegateParameter", "22").WithLocation(48, 95),
+                Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "23").WithLocation(76, 35),
+                Diagnostic("ID", "FieldForMethodTypeParameter").WithArguments("FieldForMethodTypeParameter", "24").WithLocation(38, 34),
+                Diagnostic("ID", "FieldForTypeTypeParameter").WithArguments("FieldForTypeTypeParameter", "25").WithLocation(28, 35),
+                Diagnostic("ID", "FieldForDelegateTypeParameter").WithArguments("FieldForDelegateTypeParameter", "26").WithLocation(48, 48),
+                Diagnostic("ID", "FieldForMethodReturnType").WithArguments("FieldForMethodReturnType", "27").WithLocation(36, 26),
+                Diagnostic("ID", "C.FieldForAssembly").WithArguments("FieldForAssembly", "28").WithLocation(4, 24),
+                Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "29").WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        public void TestFieldReferenceAnalyzer_InConstructorInitializer()
+        {
+            string source = @"
+internal class Base
+{
+    protected Base(int i) { }
+}
+
+internal class Derived : Base
+{
+    private const int Field = 0;
+
+    public Derived() : base(Field)
+    {
+    }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InConstructorInitializer_Core(compilation, doOperationBlockAnalysis: true);
+
+            // Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InConstructorInitializer_Core(compilation, doOperationBlockAnalysis: false);
+        }
+
+        private static void TestFieldReferenceAnalyzer_InConstructorInitializer_Core(Compilation compilation, bool doOperationBlockAnalysis)
+        {
+            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("ID", "Field").WithArguments("Field", "0").WithLocation(11, 29));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer()
+        {
+            string source = @"
+internal class A
+{
+    public void M() { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public void M() { }").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer_WithParameterInitializers()
+        {
+            string source = @"
+internal class A
+{
+    public void M(int p = 0) { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public void M(int p = 0) { }").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer_WithExpressionAndMethodBody()
+        {
+            string source = @"
+internal class A
+{
+    public int M() { return 0; } => 0;
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public int M() { return 0; } => 0;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int M() { return 0; } => 0;").WithLocation(4, 5));
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public int M() { return 0; } => 0;").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestConstructorBodyOperationAnalyzer()
+        {
+            string source = @"
+internal class Base
+{
+    protected Base(int i) { }
+}
+
+internal class Derived : Base
+{
+    private const int Field = 0;
+
+    public Derived() : base(Field) { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: new[] {
+                    Diagnostic("ID", squiggledText: "protected Base(int i) { }").WithArguments(".ctor").WithLocation(4, 5),
+                    Diagnostic("ID", squiggledText: "public Derived() : base(Field) { }").WithArguments(".ctor").WithLocation(11, 5)
+                });
         }
     }
 }

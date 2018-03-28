@@ -1,19 +1,19 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal partial class AbstractImplementAbstractClassService
+    internal partial class AbstractImplementAbstractClassService<TClassSyntax>
     {
         private partial class Editor
         {
@@ -35,34 +35,40 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             {
                 var unimplementedMembers = _state.UnimplementedMembers;
 
-                var memberDefinitions = GenerateMembers(
-                    unimplementedMembers,
-                    cancellationToken);
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
-                var result = await CodeGenerator.AddMemberDeclarationsAsync(
+                var memberDefinitions = GenerateMembers(
+                    unimplementedMembers, propertyGenerationBehavior, cancellationToken);
+
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
+                var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+
+                return await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ClassType,
                     memberDefinitions,
-                    new CodeGenerationOptions(_state.Location.GetLocation()),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                return result;
+                    new CodeGenerationOptions(
+                        _state.Location.GetLocation(),
+                        autoInsertionLocation: groupMembers,
+                        sortMembers: groupMembers),
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            private IList<ISymbol> GenerateMembers(
-                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+            private ImmutableArray<ISymbol> GenerateMembers(
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
-                return
-                    unimplementedMembers.SelectMany(t => t.Item2)
-                                        .Select(m => GenerateMember(m, cancellationToken))
-                                        .WhereNotNull()
-                                        .ToList();
+                return unimplementedMembers.SelectMany(t => t.members)
+                                           .Select(m => GenerateMember(m, propertyGenerationBehavior, cancellationToken))
+                                           .WhereNotNull()
+                                           .ToImmutableArray();
             }
 
             private ISymbol GenerateMember(
                 ISymbol member,
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -71,32 +77,29 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_state.Location);
 
-                return GenerateMember(member, addUnsafe, cancellationToken);
+                return GenerateMember(member, addUnsafe, propertyGenerationBehavior, cancellationToken);
             }
 
             private ISymbol GenerateMember(
                 ISymbol member,
                 bool addUnsafe,
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
                 var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
                 var accessibility = member.ComputeResultantAccessibility(_state.ClassType);
 
-                if (member.Kind == SymbolKind.Method)
+                switch (member)
                 {
-                    return GenerateMethod((IMethodSymbol)member, modifiers, accessibility, cancellationToken);
-                }
-                else if (member.Kind == SymbolKind.Property)
-                {
-                    return GenerateProperty((IPropertySymbol)member, modifiers, accessibility, cancellationToken);
-                }
-                else if (member.Kind == SymbolKind.Event)
-                {
-                    var @event = (IEventSymbol)member;
-                    return CodeGenerationSymbolFactory.CreateEventSymbol(
-                        @event,
-                        accessibility: accessibility,
-                        modifiers: modifiers);
+                    case IMethodSymbol method:
+                        return GenerateMethod(method, modifiers, accessibility, cancellationToken);
+
+                    case IPropertySymbol property:
+                        return GenerateProperty(property, modifiers, accessibility, propertyGenerationBehavior, cancellationToken);
+
+                    case IEventSymbol @event:
+                        return CodeGenerationSymbolFactory.CreateEventSymbol(
+                            @event, accessibility: accessibility, modifiers: modifiers);
                 }
 
                 return null;
@@ -123,26 +126,35 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 IPropertySymbol property,
                 DeclarationModifiers modifiers,
                 Accessibility accessibility,
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
                 CancellationToken cancellationToken)
             {
+                if (property.GetMethod == null)
+                {
+                    // Can't generate an auto-prop for a setter-only property.
+                    propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
+                }
+
                 var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
-                var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
-                    _model.Compilation);
+
+                var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
+                    ? default
+                    : syntaxFactory.CreateThrowNotImplementedStatementBlock(_model.Compilation);
 
                 var getMethod = ShouldGenerateAccessor(property.GetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.GetMethod,
-                        attributes: null,
+                        attributes: default,
                         accessibility: property.GetMethod.ComputeResultantAccessibility(_state.ClassType),
-                        statements: throwingBody)
+                        statements: accessorBody)
                     : null;
 
                 var setMethod = ShouldGenerateAccessor(property.SetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.SetMethod,
-                        attributes: null,
+                        attributes: default,
                         accessibility: property.SetMethod.ComputeResultantAccessibility(_state.ClassType),
-                        statements: throwingBody)
+                        statements: accessorBody)
                     : null;
 
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -153,7 +165,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     setMethod: setMethod);
             }
 
-            private bool ShouldGenerateAccessor(IMethodSymbol method) => method != null && _state.ClassType.FindImplementationForAbstractMember(method) == null;
+            private bool ShouldGenerateAccessor(IMethodSymbol method)
+                => method != null && _state.ClassType.FindImplementationForAbstractMember(method) == null;
         }
     }
 }

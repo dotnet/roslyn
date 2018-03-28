@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -43,10 +44,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
+            if (encodeAsRawToken)
+            {
+                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+            }
             this.GetCurrentWriter().WriteUInt32(token);
+        }
+
+        internal void EmitGreatestMethodToken()
+        {
+            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
+        }
+
+        internal void EmitModuleVersionIdStringToken()
+        {
+            // A magic value indicates that the token value is to refer to a string constant for the spelling of the current module's MVID.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.ModuleVersionIdStringToken);
+        }
+
+        internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
+        {
+            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -63,6 +86,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(field, syntaxNode, diagnostics);      //block
             EmitOpCode(ILOpCode.Call, -2);
             EmitToken(initializeArray, syntaxNode, diagnostics);
+        }
+
+        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
+        {
+            if (emitInitBlock)
+            {
+                // All bytes are the same, no need for metadata blob
+
+                EmitOpCode(ILOpCode.Dup);
+                EmitIntConstant(data[0]);
+                EmitIntConstant(data.Length);
+                EmitOpCode(ILOpCode.Initblk, -3);
+            }
+            else
+            {
+                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+                EmitOpCode(ILOpCode.Dup);
+                EmitOpCode(ILOpCode.Ldsflda);
+                EmitToken(field, syntaxNode, diagnostics);
+                EmitIntConstant(data.Length);
+                EmitOpCode(ILOpCode.Cpblk, -3);
+            }
+        }
+
+        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // map a field to the block (that makes it addressable)
+            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+            EmitOpCode(ILOpCode.Ldsflda);       
+            EmitToken(field, syntaxNode, diagnostics);
         }
 
         /// <summary>
@@ -127,10 +182,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitBranch(ILOpCode code, object label, ILOpCode revOpCode = ILOpCode.Nop)
         {
-            bool validOpCode = (code == ILOpCode.Nop) || code.IsBranchToLabel();
+            bool validOpCode = (code == ILOpCode.Nop) || code.IsBranch();
 
             Debug.Assert(validOpCode);
-            Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranchToLabel());
+            Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranch());
             Debug.Assert(!code.HasVariableStackBehavior());
 
             _emitState.AdjustStack(code.NetStackBehavior());
@@ -402,18 +457,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         EmitInt32(slot);
                     }
                     break;
-            }
-
-            // As in ILGENREC::dumpLocal
-            // CONSIDER: this is somewhat C# specific - it might be better to incorporate this
-            // into the bound tree as a conversion to int.
-            // VSADOV: pinned locals are used in C# to represent pointers in "fixed" statements.
-            // in the user's code they are used as pointers (*), however in their implementation
-            // they hold pinned references (O or &) to the fixed data so they need to be converted 
-            // them to unmanaged pointer type when loaded.
-            if (local.IsPinned)
-            {
-                EmitOpCode(ILOpCode.Conv_i);
             }
         }
 
@@ -705,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Cci.BlobBuilder writer, ILOpCode code)
+        private static void WriteOpCode(BlobBuilder writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -725,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Cci.BlobBuilder GetCurrentWriter()
+        private BlobBuilder GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

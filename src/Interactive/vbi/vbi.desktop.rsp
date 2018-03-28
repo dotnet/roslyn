@@ -1,0 +1,13 @@
+/r:System
+/r:System.Core
+/r:System.ValueTuple.dll
+/Imports:System
+/Imports:System.IO
+/Imports:System.Collections.Generic
+/Imports:System.Console
+/Imports:System.Diagnostics
+/Imports:System.Dynamic
+/Imports:System.Linq
+/Imports:System.Linq.Expressions
+/Imports:System.Text
+/Imports:System.Threading.Tasks

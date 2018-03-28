@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeNullCoalescingOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
             Conversion leftConversion,
@@ -30,12 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenRight != null);
             Debug.Assert(leftConversion.IsValid);
             Debug.Assert((object)rewrittenResultType != null);
-            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, ignoreDynamic: true));
+            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             if (_inExpressionLambda)
             {
                 TypeSymbol strippedLeftType = rewrittenLeft.Type.StrippedType();
-                Conversion rewrittenConversion = MakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
+                Conversion rewrittenConversion = TryMakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
+                if (!rewrittenConversion.Exists)
+                {
+                    return BadExpression(syntax, rewrittenResultType, rewrittenLeft, rewrittenRight);
+                }
+
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, rewrittenResultType);
             }
 
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!leftConversion.IsIdentity)
                 {
-                    rewrittenLeft = MakeConversion(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
+                    rewrittenLeft = MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
                 }
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, rewrittenResultType);
             }
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, ignoreDynamic: true));
+            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -125,10 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: convertedLeft,
                 rewrittenAlternative: rewrittenRight,
                 constantValueOpt: null,
-                rewrittenType: rewrittenResultType);
+                rewrittenType: rewrittenResultType,
+                isRef: false);
 
             Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
-            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, ignoreDynamic: true));
+            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             return new BoundSequence(
                 syntax: syntax,
@@ -156,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenLeftType != rewrittenResultType && rewrittenLeftType.IsNullableType())
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
-                MethodSymbol getValueOrDefault = GetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
                 if (strippedLeftType == rewrittenResultType)
                 {
@@ -164,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return MakeConversion(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
+            return MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
         }
     }
 }

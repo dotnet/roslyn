@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -600,12 +600,12 @@ class B
 }
 ";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "Q") ? CreateErrorValue(runtime.GetType("A"), "Function evaluation timed out") : null;
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m) => (m == "Q") ? CreateErrorValue(runtime.GetType("A"), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,

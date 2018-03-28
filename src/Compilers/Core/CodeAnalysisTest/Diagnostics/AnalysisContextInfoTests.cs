@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +18,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void InitializeTest()
         {
             var code = @"class C { void M() { return; } }";
-            var compilation = CreateCompilation(code);
+            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
+                .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
+            var compilation = CreateCompilation(code, parseOptions: parseOptions);
 
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockAction));
             Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockStartAction));
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 c.RegisterCodeBlockStartAction<SyntaxKind>(b => ThrowIfMatch(nameof(c.RegisterCodeBlockStartAction), new AnalysisContextInfo(b.SemanticModel.Compilation, b.OwningSymbol, b.CodeBlock)));
                 c.RegisterCompilationAction(b => ThrowIfMatch(nameof(c.RegisterCompilationAction), new AnalysisContextInfo(b.Compilation)));
                 c.RegisterCompilationStartAction(b => ThrowIfMatch(nameof(c.RegisterCompilationStartAction), new AnalysisContextInfo(b.Compilation)));
-                c.RegisterOperationAction(b => ThrowIfMatch(nameof(c.RegisterOperationAction), new AnalysisContextInfo(b.Compilation, b.Operation)), OperationKind.ReturnStatement);
+                c.RegisterOperationAction(b => ThrowIfMatch(nameof(c.RegisterOperationAction), new AnalysisContextInfo(b.Compilation, b.Operation)), OperationKind.Return);
                 c.RegisterOperationBlockAction(b => ThrowIfMatch(nameof(c.RegisterOperationBlockAction), new AnalysisContextInfo(b.Compilation, b.OwningSymbol)));
                 c.RegisterSemanticModelAction(b => ThrowIfMatch(nameof(c.RegisterSemanticModelAction), new AnalysisContextInfo(b.SemanticModel)));
                 c.RegisterSymbolAction(b => ThrowIfMatch(nameof(c.RegisterSymbolAction), new AnalysisContextInfo(b.Compilation, b.Symbol)), SymbolKind.NamedType);
@@ -93,12 +97,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isEnabledByDefault: true);
         }
 
-        private static Compilation CreateCompilation(string source)
+        private static Compilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
         {
             string fileName = "Test.cs";
             string projectName = "TestProject";
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName);
+            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName, options: parseOptions);
 
             return CSharpCompilation.Create(
                 projectName,

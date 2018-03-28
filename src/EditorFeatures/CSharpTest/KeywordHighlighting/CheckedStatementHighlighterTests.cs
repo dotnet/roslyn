@@ -18,42 +18,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-        @"class C {
-    void M() {
+@"class C
+{
+    void M()
+    {
         short x = 0;
-short y = 100;
-while (true) {
-    {|Cursor:[|checked|]|} {
-        x++;
+        short y = 100;
+        while (true)
+        {
+            {|Cursor:[|checked|]|}
+            {
+                x++;
+            }
+
+            unchecked
+            {
+                y++;
+            }
+        }
     }
-    unchecked {
-        y++;
-    }
-}
-    }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_2()
         {
             await TestAsync(
-        @"class C {
-    void M() {
+@"class C
+{
+    void M()
+    {
         short x = 0;
-short y = 100;
-while (true) {
-    checked {
-        x++;
+        short y = 100;
+        while (true)
+        {
+            checked
+            {
+                x++;
+            }
+
+            {|Cursor:[|unchecked|]|}
+            {
+                y++;
+            }
+        }
     }
-    {|Cursor:[|unchecked|]|} {
-        y++;
-    }
-}
-    }
-}
-");
+}");
         }
     }
 }

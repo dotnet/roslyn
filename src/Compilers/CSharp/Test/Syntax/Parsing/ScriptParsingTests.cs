@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ScriptParsingTests : ParsingTests
     {
+        public ScriptParsingTests(ITestOutputHelper output) : base(output) { }
+
         #region Helpers
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
@@ -18,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Script);
         }
 
-        public void ParseAndValidate(string text, params ErrorDescription[] errors)
+        private void ParseAndValidate(string text, params ErrorDescription[] errors)
         {
             ParseAndValidate(text, null, errors);
         }
 
-        public SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params ErrorDescription[] errors)
+        private SyntaxTree ParseAndValidate(string text, CSharpParseOptions options, params ErrorDescription[] errors)
         {
             var parsedTree = ParseTree(text, options);
             var parsedText = parsedTree.GetCompilationUnitRoot();
@@ -65,7 +68,7 @@ static partial class C { }
         {
             var test = @"
 int a  
-Console.Foo
+Console.Goo
 ";
             ParseAndValidate(test, TestOptions.Script,
                 new ErrorDescription[] {
@@ -436,7 +439,7 @@ static Script() { }
         [Fact]
         public void NewModifier_Method_WithBody()
         {
-            UsingTree("new void Foo() { }");
+            UsingTree("new void Goo() { }");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -467,7 +470,7 @@ static Script() { }
         public void NewModifier_Method_ReturnsIdentifier()
         {
             var tree = UsingTree(@"
-new T Foo();
+new T Goo();
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -494,7 +497,7 @@ new T Foo();
         [Fact]
         public void NewModifier_Method_ReturnsArray()
         {
-            UsingTree("new int[] Foo();");
+            UsingTree("new int[] Goo();");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -533,7 +536,7 @@ new T Foo();
         public void NewModifier_Method_ReturnsPartial()
         {
             var tree = UsingTree(@"
-new partial Foo();
+new partial Goo();
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -560,7 +563,7 @@ new partial Foo();
         public void NewModifier_Method_ReturnsPartialArray()
         {
             var tree = UsingTree(@"
-new partial[] Foo();
+new partial[] Goo();
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -600,7 +603,7 @@ new partial[] Foo();
         public void NewModifier_Method_ReturnsPartialQualified()
         {
             var tree = UsingTree(@"
-new partial.partial Foo();
+new partial.partial Goo();
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -642,7 +645,7 @@ new partial.partial Foo();
 
         private void NewModifier_PartialMethod_ReturnsPredefined(string typeName, SyntaxKind keyword)
         {
-            var tree = UsingTree("new partial " + typeName + " Foo();");
+            var tree = UsingTree("new partial " + typeName + " Goo();");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -670,7 +673,7 @@ new partial.partial Foo();
         public void NewModifier_PartialMethod_ReturnsPartial()
         {
             var tree = UsingTree(@"
-new partial partial Foo();
+new partial partial Goo();
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -735,7 +738,7 @@ new partial partial.partial partial();
         [Fact]
         public void NewModifier_Method_ReturnsPrimitive()
         {
-            UsingTree("new int Foo();");
+            UsingTree("new int Goo();");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -929,7 +932,7 @@ new partial partial this[int i] { get; }
 
         private void NewModifier_WithOtherModifier(string modifier, SyntaxKind keyword)
         {
-            var tree = UsingTree("new " + modifier + @" T Foo;");
+            var tree = UsingTree("new " + modifier + @" T Goo;");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1050,9 +1053,9 @@ new static partial public class C { }
         public void Using()
         {
             var tree = UsingTree(@"
-using Foo;
-using Foo.Bar;
-using Foo = Bar;
+using Goo;
+using Goo.Bar;
+using Goo = Bar;
 using (var x = bar) { }
 ");
 
@@ -1171,7 +1174,7 @@ unsafe { }
         public void Unsafe_Field()
         {
             var tree = UsingTree(@"
-unsafe int Foo;
+unsafe int Goo;
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -1199,7 +1202,7 @@ unsafe int Foo;
         public void Unsafe_Method()
         {
             var tree = UsingTree(@"
-unsafe void Foo() { }
+unsafe void Goo() { }
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -1230,7 +1233,7 @@ unsafe void Foo() { }
         public void Unsafe_Property()
         {
             var tree = UsingTree(@"
-unsafe int Foo { get; }
+unsafe int Goo { get; }
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -1436,7 +1439,7 @@ delegate(){ }();
         public void Delegate3()
         {
             var tree = UsingTree(@"
-delegate void Foo();
+delegate void Goo();
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -1568,9 +1571,30 @@ new public bool this[int index] { get; }
                 new ErrorDescription { Code = 1001, Line = 1, Column = 13 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 13 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 17 },
-                new ErrorDescription { Code = 1551, Line = 1, Column = 17 },
                 new ErrorDescription { Code = 1514, Line = 1, Column = 17 },
                 new ErrorDescription { Code = 1513, Line = 1, Column = 17 });
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (1,13): error CS1003: Syntax error, '[' expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[", "=").WithLocation(1, 13),
+                // (1,13): error CS1001: Identifier expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 13),
+                // (1,17): error CS1003: Syntax error, ']' expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 17),
+                // (1,17): error CS1514: { expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1513: } expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17),
+                // (1,8): error CS0548: '<invalid-global-code>.this': property or indexer must have at least one accessor
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("<invalid-global-code>.this").WithLocation(1, 8),
+                // error CS1551: Indexers must have at least one parameter
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam).WithLocation(1, 1));
         }
 
         #endregion
@@ -1581,10 +1605,10 @@ new public bool this[int index] { get; }
         public void ExternAlias()
         {
             var tree = UsingTree(@"
-extern alias Foo;
-extern alias Foo();
-extern alias Foo { get; }
-extern alias Foo<T> { get; }
+extern alias Goo;
+extern alias Goo();
+extern alias Goo { get; }
+extern alias Goo<T> { get; }
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -1663,7 +1687,7 @@ extern alias Foo<T> { get; }
             var test = @"
 delegate { }
 delegate() { }
-delegate void Foo();
+delegate void Goo();
 delegate void MyDel(int i);
 ";
             ParseAndValidate(test,
@@ -1675,10 +1699,10 @@ delegate void MyDel(int i);
         public void ExternAliasAmbiguity()
         {
             var test = @"
-extern alias Foo;
-extern alias Foo();
-extern alias Foo { get; }
-extern alias Foo<T> { get; }
+extern alias Goo;
+extern alias Goo();
+extern alias Goo { get; }
+extern alias Goo<T> { get; }
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 7002, Line = 5, Column = 14 });
         }
@@ -1688,7 +1712,7 @@ extern alias Foo<T> { get; }
         {
             var test = @"
 using(var x = 1) { }
-extern alias Foo;
+extern alias Goo;
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 439, Line = 3, Column = 1 });
         }
@@ -1697,8 +1721,8 @@ extern alias Foo;
         public void ExternOrdering_Method()
         {
             var test = @"
-extern void foo();
-extern alias Foo;
+extern void goo();
+extern alias Goo;
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 439, Line = 3, Column = 1 });
         }
@@ -1708,7 +1732,7 @@ extern alias Foo;
         {
             var test = @"
 int a = 1;
-extern alias Foo;
+extern alias Goo;
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 439, Line = 3, Column = 1 });
         }
@@ -1717,8 +1741,8 @@ extern alias Foo;
         public void ExternOrdering_Property()
         {
             var test = @"
-extern alias Foo { get; }
-extern alias Foo;
+extern alias Goo { get; }
+extern alias Goo;
 ";
 
             ParseAndValidate(test, new ErrorDescription { Code = 439, Line = 3, Column = 1 });
@@ -1729,7 +1753,7 @@ extern alias Foo;
         {
             var test = @"
 using(var x = 1) { }
-using Foo;
+using Goo;
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 1529, Line = 3, Column = 1 });
         }
@@ -1738,8 +1762,8 @@ using Foo;
         public void UsingOrdering_Member()
         {
             var test = @"
-void foo() { }
-using Foo;
+void goo() { }
+using Goo;
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 1529, Line = 3, Column = 1 });
         }
@@ -1752,7 +1776,7 @@ using Foo;
         public void PartialMethod()
         {
             var tree = UsingTree(@"
-partial void Foo();
+partial void Goo();
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -1787,7 +1811,7 @@ new public bool this[int index]
         public void PartialMethodDefinition()
         {
             var test = @"
- partial void Foo();
+ partial void Goo();
 ";
             ParseAndValidate(test);
         }
@@ -1797,7 +1821,7 @@ new public bool this[int index]
         public void UsingNewModifierWithPartialMethodDefinition()
         {
             var test = @"
-new partial void Foo();
+new partial void Goo();
 ";
             ParseAndValidate(test);
         }
@@ -1806,7 +1830,7 @@ new partial void Foo();
         public void ImplementingDeclarationOfPartialMethod()
         {
             var test = @"
-partial void Foo(){};
+partial void Goo(){};
 ";
             ParseAndValidate(test, new ErrorDescription { Code = 1597, Line = 2, Column = 21 });
         }
@@ -1817,7 +1841,13 @@ partial void Foo(){};
             var test = @"
 partial enum en {};
 ";
-            ParseAndValidate(test, new ErrorDescription { Code = 267, Line = 2, Column = 1 });
+            CreateCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum en {};
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum en {};
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
         }
 
         [Fact]
@@ -1829,15 +1859,15 @@ partial = partial;
 partial partial;
 partial partial = partial;
 
-partial Foo { get; }
-partial partial Foo { get; } 
-partial partial[] Foo { get; } 
-partial partial<int> Foo { get; } 
+partial Goo { get; }
+partial partial Goo { get; } 
+partial partial[] Goo { get; } 
+partial partial<int> Goo { get; } 
 
-partial Foo() { } 
-partial partial Foo() { } 
-partial partial[] Foo() { } 
-partial partial<int> Foo() { } 
+partial Goo() { } 
+partial partial Goo() { } 
+partial partial[] Goo() { } 
+partial partial<int> Goo() { } 
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -2103,10 +2133,10 @@ partial partial<int> Foo() { }
         public void Attributes()
         {
             var tree = UsingTree(@"
-[assembly: Foo]
+[assembly: Goo]
 [module: Bar]
-[Foo]
-void foo() { }
+[Goo]
+void goo() { }
 [Bar]
 int x;
 [Baz]
@@ -7907,7 +7937,7 @@ T ? f(from x
         [Fact]
         public void From_Query5()
         {
-            var tree = UsingTree(@"from foo in");
+            var tree = UsingTree(@"from goo in");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -7948,7 +7978,7 @@ T ? f(from x
         [Fact]
         public void From_Query6()
         {
-            var tree = UsingTree(@"from foo.bar in");
+            var tree = UsingTree(@"from goo.bar in");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -8058,7 +8088,7 @@ T ? f(from x
         {
             var tree = UsingTree(@"
 a < b,
-void foo() { }
+void goo() { }
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -8108,7 +8138,7 @@ void foo() { }
         {
             var tree = UsingTree(@"
 a < b)
-void foo() { }
+void goo() { }
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -8158,7 +8188,7 @@ void foo() { }
         {
             var tree = UsingTree(@"
 a < b]
-void foo() { }
+void goo() { }
 ");
             N(SyntaxKind.CompilationUnit);
             {
@@ -8208,7 +8238,7 @@ void foo() { }
         {
             var tree = UsingTree(@"
 a < b}
-void foo() { }
+void goo() { }
 ");
 
             N(SyntaxKind.CompilationUnit);
@@ -8281,7 +8311,7 @@ int नुसौप्रख्यातनिदेशकपुरानी
             var test = @"
 using System;
 int a
-Console.Foo()
+Console.Goo()
 ";
             ParseAndValidate(test,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 6 });
@@ -8299,7 +8329,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 1 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
@@ -8312,7 +8341,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
@@ -8325,7 +8353,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }

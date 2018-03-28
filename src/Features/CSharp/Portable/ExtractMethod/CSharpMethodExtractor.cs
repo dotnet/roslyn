@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
-            var globalStatement = memberNode as GlobalStatementSyntax;
-            if (globalStatement != null)
+            if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
                 if (this.OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (currentType == null || !currentType.Equals(typeParameter))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
-                        string.Format(FeaturesResources.TypeParameterIsHiddenByAnother,
+                        string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
                 }

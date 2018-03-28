@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -455,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overridable Sub NoteBranch(pending As PendingBranch, stmt As BoundStatement, labelStmt As BoundLabelStatement)
         End Sub
 
-        Private Function GetBranchTargetLabel(branch As BoundStatement, gotoOnly As Boolean) As LabelSymbol
+        Private Shared Function GetBranchTargetLabel(branch As BoundStatement, gotoOnly As Boolean) As LabelSymbol
             Select Case branch.Kind
                 Case BoundKind.GotoStatement
                     Return DirectCast(branch, BoundGotoStatement).Label
@@ -1375,6 +1376,14 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitRelaxationLambda(node As BoundRelaxationLambda) As BoundNode
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function VisitConvertedTupleElements(node As BoundConvertedTupleElements) As BoundNode
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Public Overrides Function VisitUserDefinedConversion(node As BoundUserDefinedConversion) As BoundNode
             VisitRvalue(node.UnderlyingExpression)
             Return Nothing
@@ -1667,7 +1676,7 @@ lUnsplitAndFinish:
         End Function
 
         ''' <summary> Bound field access passed may require tracking if it is an access to a non-shared structure field </summary>
-        Protected Function FieldAccessMayRequireTracking(fieldAccess As BoundFieldAccess) As Boolean
+        Protected Shared Function FieldAccessMayRequireTracking(fieldAccess As BoundFieldAccess) As Boolean
             If fieldAccess.FieldSymbol.IsShared Then
                 Return False
             End If
@@ -2240,7 +2249,7 @@ EnteredRegion:
         End Function
 
         Private Function VisitAddRemoveHandlerStatement(node As BoundAddRemoveHandlerStatement) As BoundNode
-            ' from the data/control flow prospective AddRemoveHandler
+            ' from the data/control flow perspective AddRemoveHandler
             ' statement is just a trivial binary operator.
             VisitRvalue(node.EventAccess)
             VisitRvalue(node.Handler)
@@ -2310,6 +2319,21 @@ EnteredRegion:
                 VisitRvalue(arrayBound)
             Next
             VisitRvalue(node.Initializer)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitTupleLiteral(node As BoundTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Public Overrides Function VisitConvertedTupleLiteral(node As BoundConvertedTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Private Function VisitTupleExpression(node As BoundTupleExpression) As BoundNode
+            For Each argument In node.Arguments
+                VisitRvalue(argument)
+            Next
             Return Nothing
         End Function
 
@@ -2522,8 +2546,16 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
-            VisitRvalue(node.Condition)
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
+            VisitCondition(node.Condition)
+            Debug.Assert(Me.IsConditionalState)
+            If node.JumpIfTrue Then
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
+                Me.SetState(Me.StateWhenFalse)
+            Else
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
+                Me.SetState(Me.StateWhenTrue)
+            End If
+
             Return Nothing
         End Function
 
@@ -2613,6 +2645,29 @@ EnteredRegion:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitMethodDefIndex(node As BoundMethodDefIndex) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitMaximumMethodDefIndex(node As BoundMaximumMethodDefIndex) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitModuleVersionId(node As BoundModuleVersionId) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitModuleVersionIdString(node As BoundModuleVersionIdString) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInstrumentationPayloadRoot(node As BoundInstrumentationPayloadRoot) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitSourceDocumentIndex(node As BoundSourceDocumentIndex) As BoundNode
+            Return Nothing
+        End Function
 #End Region
 
     End Class

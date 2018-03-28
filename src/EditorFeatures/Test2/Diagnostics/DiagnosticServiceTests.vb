@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -9,7 +9,8 @@ Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.Options
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -139,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -210,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -336,7 +337,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -357,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -391,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -412,9 +413,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <WpfFact, WorkItem(937956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937956"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully()
             Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
+                           <Project Language="C#" CommonReferences="true" Features="IOperation">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -448,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -497,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
 
                 ' check reporting diagnostic to a project that doesn't exist
-                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, New ProjectId(Guid.NewGuid(), "dummy"))
+                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, ProjectId.CreateFromSerialized(Guid.NewGuid(), "dummy"))
                 Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())
 
@@ -513,9 +514,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <WpfFact, WorkItem(937939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestOperationAnalyzers()
             Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
+                           <Project Language="C#" CommonReferences="true" Features="IOperation">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() { int x = 0; } }
+                                   class Goo { void M() { int x = 0; } }
                                </Document>
                            </Project>
                        </Workspace>
@@ -549,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -582,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -692,7 +693,7 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -701,8 +702,7 @@ class AnonymousFunctions
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' turn off heuristic
-                Dim options = workspace.Services.GetService(Of IOptionService)()
-                options.SetOptions(options.GetOptions.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False))
+                workspace.Options = workspace.Options.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False)
 
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -730,9 +730,6 @@ class AnonymousFunctions
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
-                ' REVIEW: GetProjectDiagnosticsForIdsAsync is for project diagnostics with no location. not sure why in v1, this API returns
-                '         diagnostic with location?
-
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(2, projectDiagnostics.Count())
@@ -759,7 +756,7 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -784,7 +781,7 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -816,8 +813,8 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   partial class Foo { }
-                                   partial class Foo { }
+                                   partial class Goo { }
+                                   partial class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -847,11 +844,11 @@ class AnonymousFunctions
         Public Sub TestPartialTypeInGeneratedCode()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document FilePath="Foo.generated.cs">
-                                   public partial class Foo { }
+                               <Document FilePath="Goo.generated.cs">
+                                   public partial class Goo { }
                                </Document>
                                <Document FilePath="Test1.cs">
-                                   public partial class Foo { }
+                                   public partial class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -903,10 +900,10 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test1.cs">
-                                   public partial class Foo { }
+                                   public partial class Goo { }
                                </Document>
                                <Document FilePath="Test2.cs">
-                                   public partial class Foo { }
+                                   public partial class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -1077,13 +1074,13 @@ public class B
                                <Document>
 Public MustInherit Class Class1
 
-    Public MustOverride Function Foo(x As Integer, y As Integer) As Integer
+    Public MustOverride Function Goo(x As Integer, y As Integer) As Integer
 
 End Class
 
 Public Class Class2
 
-    Public Function Foo(x As Integer, y As Integer) As Integer
+    Public Function Goo(x As Integer, y As Integer) As Integer
         Return x + y
     End Function
 
@@ -1917,6 +1914,8 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
+                workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, True)
+
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1935,13 +1934,20 @@ class MyClass
                 Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Force project analysis
-                incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, cancellationToken:=CancellationToken.None).Wait()
+                incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, reasons:=InvocationReasons.Empty, cancellationToken:=CancellationToken.None).Wait()
 
                 ' Get cached project diagnostics.
                 Dim diagnostics = diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id).WaitAndGetResult(CancellationToken.None)
 
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, diagnostics.Single().Id)
+                ' in v2, solution crawler never creates non-local hidden diagnostics.
+                ' v2 still creates those for LB and explicit queries such as FixAll.
+                Dim expectedCount = 0
+                Assert.Equal(expectedCount, diagnostics.Count())
+
+                ' Get diagnostics explicitly
+                Dim hiddenDiagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(1, hiddenDiagnostics.Count())
+                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
             End Using
         End Sub
 

@@ -140,14 +140,14 @@ Option Strict On
 Imports System
 
 Module Module1
-    Function Foo(q As Integer) As Integer
-        Foo = 10
-        bar = Foo + q
-        Foo = CInt(bar) + 7
+    Function Goo(q As Integer) As Integer
+        Goo = 10
+        bar = Goo + q
+        Goo = CInt(bar) + 7
     End Function
 
     Sub Main()
-        i% = Foo(3)
+        i% = Goo(3)
         While i &gt; 0
             Console.Write("{0} ", i)
             i = i% - 1
@@ -183,7 +183,7 @@ Module Module1
         Return CInt(lam(7) + lam(11))
     End Function
 
-    Function Foo(p As Integer) As Integer
+    Function Goo(p As Integer) As Integer
         Return Z(Function(z)
                      q% = q% + 1
                      Return z + q%
@@ -191,7 +191,7 @@ Module Module1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(4))
+        Console.WriteLine(Goo(4))
     End Sub
 End Module
     </file>
@@ -214,7 +214,7 @@ Imports System
 
 Module Module1
     Sub Main()
-        Console.WriteLine(New C2().foo("hello"))
+        Console.WriteLine(New C2().goo("hello"))
     End Sub
 End Module
 
@@ -224,7 +224,7 @@ End Class
 
 Class C2
     Inherits C1
-    Public Function foo(x As String) As Object
+    Public Function goo(x As String) As Object
         var = x
         Return var
     End Function
@@ -239,7 +239,7 @@ hello
 
         <Fact>
         Public Sub NoImplicitDeclInInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclInInitializer">
     <file name="a.vb">
 Option Explicit Off
@@ -247,15 +247,15 @@ Option Strict On
 Imports System
 
 Class C1
-    Private var As Integer = foo
+    Private var As Integer = goo
 End Class
 </file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
-    Private var As Integer = foo
+BC30451: 'goo' is not declared. It may be inaccessible due to its protection level.
+    Private var As Integer = goo
                              ~~~                                                   
 </expected>)
 
@@ -425,7 +425,7 @@ End Module
 
         <Fact>
         Public Sub NoImplicitDeclInAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclInInitializer">
     <file name="a.vb">
         <![CDATA[
@@ -453,7 +453,7 @@ BC30451: 'zack' is not declared. It may be inaccessible due to its protection le
 
         <Fact>
         Public Sub NoImplicitDeclLeftOfDot()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclLeftOfDot">
     <file name="a.vb">
         <![CDATA[
@@ -462,7 +462,7 @@ Option Strict On
 Imports System
 
 Class C1
-    Sub Foo()
+    Sub Goo()
         Dim x As String = y.ToString()
     End Sub
 End Class
@@ -482,7 +482,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
 
         <Fact>
         Public Sub NoImplicitDeclInvocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclInvocation">
     <file name="a.vb">
         <![CDATA[
@@ -491,7 +491,7 @@ Option Strict On
 Imports System
 
 Class C1
-    Sub Foo()
+    Sub Goo()
         Dim x As String = y()
     End Sub
 End Class
@@ -511,7 +511,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
 
         <Fact()>
         Public Sub ImplicitInFor()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ImplicitInFor">
     <file name="a.vb">
         <![CDATA[
@@ -521,7 +521,7 @@ Option Infer On
 Imports System
 
 Class C1
-            Sub Foo()
+            Sub Goo()
                 For x = 1 To 10
                     x.GetTypeCode()
                 Next
@@ -537,7 +537,7 @@ Class C1
 
         <Fact>
         Public Sub HidingEnclosingBlock1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock1">
     <file name="a.vb">
         <![CDATA[
@@ -572,7 +572,7 @@ BC30616: Variable 'x' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub HidingEnclosingBlock2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock2">
     <file name="a.vb">
         <![CDATA[
@@ -608,7 +608,7 @@ BC30616: Variable 'X' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub HidingEnclosingBlock3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock3">
     <file name="a.vb">
         <![CDATA[
@@ -647,7 +647,7 @@ BC30616: Variable 'y' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub HidingEnclosingBlock4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock4">
     <file name="a.vb">
         <![CDATA[
@@ -686,7 +686,7 @@ BC30616: Variable 'y' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub ReservedNames()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock4">
     <file name="a.vb">
         <![CDATA[
@@ -727,7 +727,7 @@ BC42104: Variable 'r' is used before it has been assigned a value. A null refere
         <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -754,7 +754,7 @@ End Module]]>
         <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts2()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -1008,14 +1008,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation1.SyntaxTrees.Single()
             Dim model = compilation1.GetSemanticModel(tree)
             Dim main1 = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
             Dim position = main1.Statements.First.SpanStart
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim main2 = compilation2.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
 
             Dim speculative As SemanticModel = Nothing
@@ -1050,14 +1050,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation1.SyntaxTrees.Single()
             Dim model = compilation1.GetSemanticModel(tree)
             Dim main1 = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
             Dim position = main1.Statements.First.SpanStart
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim main2 = compilation2.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
 
             Dim speculative As SemanticModel = Nothing
@@ -1074,6 +1074,144 @@ End Module
             Assert.Equal(SymbolKind.Local, l1.Kind)
 
             Assert.NotEqual(l1, l2)
+        End Sub
+
+#End Region
+
+#Region "Tuples"
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub NotDeclaredTupleDeconstructionsAreConsideredObjects_ExplicitOff()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit Off
+Module TestModule
+    Sub Main()
+        Dim tuple = (member1, member2)
+        System.Console.WriteLine(tuple) 'BIND1:"tuple"
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC42104: Variable 'member1' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim tuple = (member1, member2)
+                     ~~~~~~~
+BC42104: Variable 'member2' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim tuple = (member1, member2)
+                              ~~~~~~~
+]]></expected>)
+
+            Dim model = GetSemanticModel(compilation, "a.vb")
+
+            Dim tupleSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
+            Dim tupleSymbolInfo = model.GetSymbolInfo(tupleSyntax)
+            Assert.NotNull(tupleSymbolInfo.Symbol)
+
+            Dim tupleSymbol = TryCast(tupleSymbolInfo.Symbol, LocalSymbol)
+            Assert.NotNull(tupleSymbol)
+            Assert.Equal("tuple", tupleSymbol.Name)
+            Assert.Equal(2, tupleSymbol.Type.TupleElementTypes.Length)
+            Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(0).Name)
+            Assert.Equal("Object", tupleSymbol.Type.TupleElementTypes(1).Name)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub NotDeclaredTupleDeconstructionsProduceErrors_ExplicitOn()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit On
+Module TestModule
+    Sub Main()
+        Dim tuple = (member1, member2)
+        System.Console.WriteLine(tuple)
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC30451: 'member1' is not declared. It may be inaccessible due to its protection level.
+        Dim tuple = (member1, member2)
+                     ~~~~~~~
+BC30451: 'member2' is not declared. It may be inaccessible due to its protection level.
+        Dim tuple = (member1, member2)
+                              ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInSameScopeErrorsOut()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit Off
+Module TestModule
+    Sub Main()
+        Dim tuple = (notDeclaredYet, 0)
+        Dim notDeclaredYet = 0
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC32000: Local variable 'notDeclaredYet' cannot be referred to before it is declared.
+        Dim tuple = (notDeclaredYet, 0)
+                     ~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInAnotherScopeErrorsOut()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+            <compilation><file name="a.vb">
+Option Explicit Off
+Module TestModule
+    Sub Main()
+        Dim tuple As (Integer, Integer)
+        If False Then
+            tuple = (notDefinedYet1, notDefinedYet2)
+        End If
+        Dim notDefinedYet2 = 0
+    End Sub
+End Module
+            </file></compilation>,
+            additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+            options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+    <![CDATA[
+BC42104: Variable 'notDefinedYet1' is used before it has been assigned a value. A null reference exception could result at runtime.
+            tuple = (notDefinedYet1, notDefinedYet2)
+                     ~~~~~~~~~~~~~~
+BC32000: Local variable 'notDefinedYet2' cannot be referred to before it is declared.
+            tuple = (notDefinedYet1, notDefinedYet2)
+                                     ~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
+        <Fact>
+        Public Sub TupleArgumentsAreNotConsideredAsImplicitVariables()
+            VerifyImplicitDeclarationLookupSymbols(<![CDATA[
+                Dim tuple = (a: a, b: 0) 'BIND:"a"
+            ]]>,
+            expected:={"a"}) ' No "b" there
         End Sub
 
 #End Region
@@ -1137,7 +1275,7 @@ End Module
         End Sub
 
         Private Sub VerifyImplicitDeclarationSemanticInfo(code As XCData)
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(GetSourceXElementFromTemplate(code))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(GetSourceXElementFromTemplate(code))
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
             Dim objectSymbol = compilation.GetTypeByMetadataName("System.Object")
 
@@ -1145,7 +1283,7 @@ End Module
         End Sub
 
         Private Sub VerifyImplicitDeclarationBindExpression(code As XCData, expression As String, expectedTypeName As String, Optional symbolKind? As SymbolKind = Nothing, Optional expectedSymbol As String = Nothing)
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(GetSourceXElementFromTemplate(code))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(GetSourceXElementFromTemplate(code))
             Dim tree = compilation.SyntaxTrees.Where(Function(t) t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim position = CompilationUtils.FindPositionFromText(tree, "'BIND")
@@ -1159,7 +1297,7 @@ End Module
                 Throw New ArgumentException("Must specify a value for either 'expected' or 'notExpected'")
             End If
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(GetSourceXElementFromTemplate(code))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(GetSourceXElementFromTemplate(code))
             Dim actual = GetLookupSymbols(compilation, "a.vb").Select(Function(s) s.Name)
 
             For Each s In If(expected, {})

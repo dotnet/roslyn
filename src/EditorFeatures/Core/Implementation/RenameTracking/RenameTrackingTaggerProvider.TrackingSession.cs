@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
             private readonly string _originalName;
-            public string OriginalName { get { return _originalName; } }
+            public string OriginalName => _originalName;
 
             private readonly ITrackingSpan _trackingSpan;
-            public ITrackingSpan TrackingSpan { get { return _trackingSpan; } }
+            public ITrackingSpan TrackingSpan => _trackingSpan;
 
             private bool _forceRenameOverloads;
-            public bool ForceRenameOverloads { get { return _forceRenameOverloads; } }
+            public bool ForceRenameOverloads => _forceRenameOverloads;
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
             {
@@ -179,6 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         }
                         else
                         {
+                            // We do not yet support renaming (inline rename or rename tracking) on
+                            // named tuple elements.
+                            if (renameSymbolInfo.Symbols.Single().ContainingType?.IsTupleType() == true)
+                            {
+                                return TriggerIdentifierKind.NotRenamable;
+                            }
+
                             return await DetermineIfRenamableSymbolAsync(renameSymbolInfo.Symbols.Single(), document, token).ConfigureAwait(false);
                         }
                     }
@@ -194,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // Get the source symbol if possible
                     var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
-                    if (!sourceSymbol.Locations.All(loc => loc.IsInSource))
+                    if (!sourceSymbol.IsFromSource())
                     {
                         return TriggerIdentifierKind.NotRenamable;
                     }
@@ -208,7 +215,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Get the source symbol if possible
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
-                if (!sourceSymbol.Locations.All(loc => loc.IsInSource))
+                if (sourceSymbol.Kind == SymbolKind.Field && 
+                    ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
+                    sourceSymbol.IsImplicitlyDeclared)
+                {
+                    // should not rename Item1, Item2...
+                    // when user did not declare them in source.
+                    return TriggerIdentifierKind.NotRenamable;
+                }
+
+                if (!sourceSymbol.IsFromSource())
                 {
                     return TriggerIdentifierKind.NotRenamable;
                 }

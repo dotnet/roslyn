@@ -3,9 +3,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -242,6 +244,19 @@ namespace Roslyn.Utilities
             return source.Where((Func<T, bool>)s_notNullTest);
         }
 
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        {
+            if (source == null)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            builder.AddRange(source.Select(selector));
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static bool All(this IEnumerable<bool> source)
         {
             if (source == null)
@@ -277,7 +292,7 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
         {
-            return source.OrderBy(new ComparisonComparer<T>(compare));
+            return source.OrderBy(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
@@ -292,7 +307,7 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, Comparison<T> compare)
         {
-            return source.ThenBy(new ComparisonComparer<T>(compare));
+            return source.ThenBy(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
@@ -304,12 +319,7 @@ namespace Roslyn.Utilities
         {
             public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
 
-            public static readonly IComparer<T> Comparer = new ComparisonComparer<T>(CompareTo);
-        }
-
-        private static class Functions<T>
-        {
-            public static readonly Func<T, T> Identity = t => t;
+            public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
         }
 
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
@@ -336,6 +346,50 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
+        {
+            return sequence.Any(predicate);
+        }
+
+        public static bool Contains(this IEnumerable<string> sequence, string s)
+        {
+            foreach (var item in sequence)
+            {
+                if (item == s)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
+        {
+            return Comparer<T>.Create(comparison);
+        }
+    }
+
+    /// <summary>
+    /// Cached versions of commonly used delegates.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal static class Functions<T>
+    {
+        public static readonly Func<T, T> Identity = t => t;
+        public static readonly Func<T, bool> True = t => true;
+    }
+}
+
+namespace System.Linq
+{
+    /// <summary>
+    /// Declare the following extension methods in System.Linq namespace to avoid accidental boxing of ImmutableArray{T} that implements IEnumerable{T}.
+    /// The boxing would occur if the methods were defined in Roslyn.Utilities and the file calling these methods has <code>using Roslyn.Utilities</code>
+    /// but not <code>using System.Linq"</code>.
+    /// </summary>
+    internal static class EnumerableExtensions
+    {
         public static bool SequenceEqual<T>(this IEnumerable<T> first, IEnumerable<T> second, Func<T, T, bool> comparer)
         {
             Debug.Assert(comparer != null);
@@ -368,24 +422,6 @@ namespace Roslyn.Utilities
             }
 
             return true;
-        }
-
-        public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
-        {
-            return sequence.Any(predicate);
-        }
-
-        public static bool Contains(this IEnumerable<string> sequence, string s)
-        {
-            foreach (var item in sequence)
-            {
-                if (item == s)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

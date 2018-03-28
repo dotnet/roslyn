@@ -9,44 +9,44 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     {
         public static bool TryGetAttributeLists(this SyntaxNode node, out SyntaxList<AttributeListSyntax> attributeLists)
         {
-            if (node is CompilationUnitSyntax)
+            if (node is CompilationUnitSyntax compilationUnit)
             {
-                attributeLists = ((CompilationUnitSyntax)node).AttributeLists;
+                attributeLists = compilationUnit.AttributeLists;
                 return true;
             }
-            else if (node is BaseTypeDeclarationSyntax)
+            else if (node is BaseTypeDeclarationSyntax baseType)
             {
-                attributeLists = ((BaseTypeDeclarationSyntax)node).AttributeLists;
+                attributeLists = baseType.AttributeLists;
                 return true;
             }
-            else if (node is BaseMethodDeclarationSyntax)
+            else if (node is BaseMethodDeclarationSyntax baseMethod)
             {
-                attributeLists = ((BaseMethodDeclarationSyntax)node).AttributeLists;
+                attributeLists = baseMethod.AttributeLists;
                 return true;
             }
-            else if (node is BasePropertyDeclarationSyntax)
+            else if (node is BasePropertyDeclarationSyntax baseProperty)
             {
-                attributeLists = ((BasePropertyDeclarationSyntax)node).AttributeLists;
+                attributeLists = baseProperty.AttributeLists;
                 return true;
             }
-            else if (node is BaseFieldDeclarationSyntax)
+            else if (node is BaseFieldDeclarationSyntax baseField)
             {
-                attributeLists = ((BaseFieldDeclarationSyntax)node).AttributeLists;
+                attributeLists = baseField.AttributeLists;
                 return true;
             }
-            else if (node is DelegateDeclarationSyntax)
+            else if (node is DelegateDeclarationSyntax delegateDeclaration)
             {
-                attributeLists = ((DelegateDeclarationSyntax)node).AttributeLists;
+                attributeLists = delegateDeclaration.AttributeLists;
                 return true;
             }
-            else if (node is EnumMemberDeclarationSyntax)
+            else if (node is EnumMemberDeclarationSyntax enumMember)
             {
-                attributeLists = ((EnumMemberDeclarationSyntax)node).AttributeLists;
+                attributeLists = enumMember.AttributeLists;
                 return true;
             }
-            else if (node is ParameterSyntax)
+            else if (node is ParameterSyntax parameter)
             {
-                attributeLists = ((ParameterSyntax)node).AttributeLists;
+                attributeLists = parameter.AttributeLists;
                 return true;
             }
 
@@ -56,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public static SyntaxToken GetFirstTokenAfterAttributes(this SyntaxNode node)
         {
-            SyntaxList<AttributeListSyntax> attributeLists;
-            if (node.TryGetAttributeLists(out attributeLists) && attributeLists.Count > 0)
+            if (node.TryGetAttributeLists(out var attributeLists) && attributeLists.Count > 0)
             {
                 return attributeLists.Last().GetLastToken().GetNextToken();
             }

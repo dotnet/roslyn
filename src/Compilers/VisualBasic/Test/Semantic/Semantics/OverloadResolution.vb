@@ -675,7 +675,6 @@ End Class
             Assert.Same(TestClass1_M5, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.False(result.BestResult.HasValue)
 
-            'error BC30241: Named argument expected.
             'TestClass1.M4(x:=intVal, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
@@ -688,9 +687,9 @@ End Class
 
             Assert.False(result.ResolutionIsLateBound)
             Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(TestClass1_M4, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.False(result.BestResult.HasValue)
+            Assert.True(result.BestResult.HasValue)
 
             'error BC30057: Too many arguments to 'Public Shared Sub M2(Of T)()'.
             'TestClass1.M2(Of TestClass1)(intVal)
@@ -3157,30 +3156,30 @@ Option Strict On
 Module Program
     Sub Main()
         Dim a As A(Of Long, Integer)
-        a.Foo(y:=1, x:=1)
+        a.Goo(y:=1, x:=1)
     End Sub
 End Module
  
 Class A(Of T, S)
-    Sub Foo(x As Integer, y As T)
+    Sub Goo(x As Integer, y As T)
     End Sub
-    Sub Foo(y As Long, x As S)
+    Sub Goo(y As Long, x As S)
     End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC42104: Variable 'a' is used before it has been assigned a value. A null reference exception could result at runtime.
-        a.Foo(y:=1, x:=1)
+        a.Goo(y:=1, x:=1)
         ~
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    'Public Sub Foo(x As Integer, y As Long)': Not most specific.
-    'Public Sub Foo(y As Long, x As Integer)': Not most specific.
-        a.Foo(y:=1, x:=1)
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    'Public Sub Goo(x As Integer, y As Long)': Not most specific.
+    'Public Sub Goo(y As Long, x As Integer)': Not most specific.
+        a.Goo(y:=1, x:=1)
           ~~~
 </expected>)
         End Sub
@@ -3202,10 +3201,10 @@ Public Class Bar
         Console.Write("B;")
     End Sub
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As IEnumerable(Of Integer) = Nothing
-        Bar.Equal(foo, foo)
+        Dim goo As IEnumerable(Of Integer) = Nothing
+        Bar.Equal(goo, goo)
     End Sub
 End Module
     </file>
@@ -3228,23 +3227,23 @@ Public Class Bar
     Shared Sub Equal(Of T)(exp As T, act As IEnumerable(Of T))
     End Sub
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As IEnumerable(Of Integer) = Nothing
-        Bar.Equal(foo, foo)
+        Dim goo As IEnumerable(Of Integer) = Nothing
+        Bar.Equal(goo, goo)
     End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'Equal' can be called with these arguments:
     'Public Shared Sub Equal(Of T)(exp As IEnumerable(Of T), act As T)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
     'Public Shared Sub Equal(Of T)(exp As T, act As IEnumerable(Of T))': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-        Bar.Equal(foo, foo)
+        Bar.Equal(goo, goo)
             ~~~~~
 </expected>)
         End Sub
@@ -3269,23 +3268,23 @@ End Interface
 Class P(Of T)
     Implements I1(Of T), I2(Of T)
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As New P(Of Integer)
-        Bar.Equal(foo)
+        Dim goo As New P(Of Integer)
+        Bar.Equal(goo)
     End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Equal' is most specific for these arguments:
     'Public Shared Sub Equal(Of Integer)(exp As I1(Of Integer))': Not most specific.
     'Public Shared Sub Equal(Of Integer)(exp As I2(Of Integer))': Not most specific.
-        Bar.Equal(foo)
+        Bar.Equal(goo)
             ~~~~~
 </expected>)
         End Sub
@@ -3311,13 +3310,13 @@ End Interface
 Class P(Of T)
     Implements I2(Of I2(Of T)), I2(Of T)
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As New P(Of Integer)
-        Dim foo2 As I2(Of Integer) = foo
-        Bar.Equal(foo2)
-        Dim foo3 As I2(Of I2(Of Integer)) = foo
-        Bar.Equal(foo3)
+        Dim goo As New P(Of Integer)
+        Dim goo2 As I2(Of Integer) = goo
+        Bar.Equal(goo2)
+        Dim goo3 As I2(Of I2(Of Integer)) = goo
+        Bar.Equal(goo3)
     End Sub
 End Module
     </file>
@@ -3344,10 +3343,10 @@ Public Class Bar
 End Class
 Public Interface I2(Of T)
 End Interface
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo() As I2(Of Integer) = Nothing
-        Bar.Equal(foo)
+        Dim goo() As I2(Of Integer) = Nothing
+        Bar.Equal(goo)
     End Sub
 End Module
     </file>
@@ -3447,7 +3446,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3599,10 +3598,10 @@ Imports System.Console
 Module Module1
 
     Sub Main()
-        Foo(Of Integer, Integer)()
-        Foo(Of Integer, Integer)(1, 2)
-        Foo(Of Integer)()
-        Foo(Of Integer)(1, 2)
+        Goo(Of Integer, Integer)()
+        Goo(Of Integer, Integer)(1, 2)
+        Goo(Of Integer)()
+        Goo(Of Integer)(1, 2)
 
         Dim g As System.Guid = Nothing
 
@@ -3615,13 +3614,13 @@ Module Module1
         F3(1, , z:=1)
         F3(1, 1, x:=1)
 
-        Foo(1)
+        Goo(1)
     End Sub
 
-    Sub Foo(Of T)(x As Integer)
+    Sub Goo(Of T)(x As Integer)
     End Sub
 
-    Sub Foo(Of S)(x As Long)
+    Sub Goo(Of S)(x As Long)
     End Sub
 
     Sub F1(x As Integer)
@@ -3645,21 +3644,21 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32087: Overload resolution failed because no accessible 'Foo' accepts this number of type arguments.
-        Foo(Of Integer, Integer)()
+BC32087: Overload resolution failed because no accessible 'Goo' accepts this number of type arguments.
+        Goo(Of Integer, Integer)()
         ~~~~~~~~~~~~~~~~~~~~~~~~
-BC32087: Overload resolution failed because no accessible 'Foo' accepts this number of type arguments.
-        Foo(Of Integer, Integer)(1, 2)
+BC32087: Overload resolution failed because no accessible 'Goo' accepts this number of type arguments.
+        Goo(Of Integer, Integer)(1, 2)
         ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Foo(Of Integer)()
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Goo(Of Integer)()
         ~~~~~~~~~~~~~~~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Foo(Of Integer)(1, 2)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Goo(Of Integer)(1, 2)
         ~~~~~~~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'F1' can be called with these arguments:
     'Public Sub F1(x As Integer)': Value of type 'Guid' cannot be converted to 'Integer'.
@@ -3697,10 +3696,10 @@ BC30518: Overload resolution failed because no accessible 'F3' can be called wit
     'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
         F3(1, 1, x:=1)
         ~~
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(Of T)(x As Integer)': Type parameter 'T' cannot be inferred.
-    'Public Sub Foo(Of S)(x As Long)': Type parameter 'S' cannot be inferred.
-        Foo(1)
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(Of T)(x As Integer)': Type parameter 'T' cannot be inferred.
+    'Public Sub Goo(Of S)(x As Long)': Type parameter 'S' cannot be inferred.
+        Goo(1)
         ~~~
 </expected>)
         End Sub
@@ -3743,7 +3742,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3805,7 +3804,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3865,7 +3864,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
@@ -3889,9 +3888,6 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
         ~~
 </expected>)
         End Sub
-
-
-
 
         <Fact(), WorkItem(527622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527622")>
         Public Sub NoisyDiagnostics()
@@ -3930,14 +3926,14 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30201: Expression expected.
+BC37302: Named argument 'y' is used out-of-position but is followed by an unnamed argument
         F4(y:=Nothing,)
-                      ~
-BC30241: Named argument expected.
+           ~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         F4(y:=Nothing,)
                       ~
 BC30198: ')' expected.
@@ -3961,14 +3957,14 @@ Module M
   Sub Main()
     Dim x As String 
     Dim y As Object = Nothing
-    x = Foo(y).ToLower()
-    x = Foo((y)).ToLower()
+    x = Goo(y).ToLower()
+    x = Goo((y)).ToLower()
   End Sub
 
-  Sub Foo(ByVal x As String)
+  Sub Goo(ByVal x As String)
   End Sub
 
-  Function Foo(ByVal ParamArray x As String()) As String
+  Function Goo(ByVal ParamArray x As String()) As String
     return Nothing
   End Function
 End Module
@@ -3976,15 +3972,15 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30491: Expression does not produce a value.
-    x = Foo(y).ToLower()
+    x = Goo(y).ToLower()
         ~~~~~~
 BC30491: Expression does not produce a value.
-    x = Foo((y)).ToLower()
+    x = Goo((y)).ToLower()
         ~~~~~~~~
 </expected>)
 
@@ -3998,22 +3994,22 @@ Imports System
 Module M
   Sub Main()
     Dim x As String 
-    x = Foo(CObj(Nothing)).ToLower()
-    x = Foo(CObj((Nothing))).ToLower()
-    x = Foo(CType(Nothing, Object)).ToLower()
-    x = Foo(DirectCast(Nothing, Object)).ToLower()
-    x = Foo(TryCast(Nothing, Object)).ToLower()
-    x = Foo(CType(CStr(Nothing), Object)).ToLower()
-    x = Foo(CType(CType(Nothing, ValueType), Object)).ToLower()
-    x = Foo(CType(CType(CType(Nothing, Derived()), Base()), Object)).ToLower()
-    x = Foo(CType(CType(CType(Nothing, Derived), Derived), Object)).ToLower()
-    x = Foo(CType(Nothing, String())).ToLower()
+    x = Goo(CObj(Nothing)).ToLower()
+    x = Goo(CObj((Nothing))).ToLower()
+    x = Goo(CType(Nothing, Object)).ToLower()
+    x = Goo(DirectCast(Nothing, Object)).ToLower()
+    x = Goo(TryCast(Nothing, Object)).ToLower()
+    x = Goo(CType(CStr(Nothing), Object)).ToLower()
+    x = Goo(CType(CType(Nothing, ValueType), Object)).ToLower()
+    x = Goo(CType(CType(CType(Nothing, Derived()), Base()), Object)).ToLower()
+    x = Goo(CType(CType(CType(Nothing, Derived), Derived), Object)).ToLower()
+    x = Goo(CType(Nothing, String())).ToLower()
   End Sub
 
-  Sub Foo(ByVal x As String)
+  Sub Goo(ByVal x As String)
   End Sub
 
-  Function Foo(ByVal ParamArray x As String()) As String
+  Function Goo(ByVal ParamArray x As String()) As String
         System.Console.WriteLine("Function")
         Return ""
   End Function
@@ -4028,7 +4024,7 @@ End Class
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Function
@@ -4051,13 +4047,13 @@ Imports System
 
 Module M
   Sub Main()
-    Foo(CObj(Nothing))
+    Goo(CObj(Nothing))
   End Sub
 
-  Sub Foo(ByVal x As String)
+  Sub Goo(ByVal x As String)
   End Sub
 
-  Function Foo(ByVal ParamArray x As String()) As String
+  Function Goo(ByVal ParamArray x As String()) As String
         System.Console.WriteLine("Function")
         Return ""
   End Function
@@ -4065,27 +4061,27 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(x As String)': Option Strict On disallows implicit conversions from 'Object' to 'String'.
-    'Public Function Foo(ParamArray x As String()) As String': Option Strict On disallows implicit conversions from 'Object' to 'String()'.
-    Foo(CObj(Nothing))
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(x As String)': Option Strict On disallows implicit conversions from 'Object' to 'String'.
+    'Public Function Goo(ParamArray x As String()) As String': Option Strict On disallows implicit conversions from 'Object' to 'String()'.
+    Goo(CObj(Nothing))
     ~~~
 </expected>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC42016: Implicit conversion from 'Object' to 'String()'.
-    Foo(CObj(Nothing))
+    Goo(CObj(Nothing))
         ~~~~~~~~~~~~~
 </expected>)
 
@@ -4103,7 +4099,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
 
             Assert.Equal(OptionStrict.On, compilation.Options.OptionStrict)
 
@@ -4126,23 +4122,23 @@ Imports System
 
 Module Program
   Sub Main()
-    Console.WriteLine(Foo(0).ToLower())
+    Console.WriteLine(Goo(0).ToLower())
   End Sub
 
-  Sub Foo(x As DayOfWeek)
+  Sub Goo(x As DayOfWeek)
   End Sub
 
-  Function Foo(x As Object) As String
+  Function Goo(x As Object) As String
     Return "ABC"
   End Function
 End Module
     </file>
       </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="abc")
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
@@ -4160,17 +4156,17 @@ Imports System
 
 Module Program
     Sub Main()
-        Console.WriteLine(Foo(0).ToLower())
+        Console.WriteLine(Goo(0).ToLower())
     End Sub
 
-    Function Foo(x As DayOfWeek?) As String
+    Function Goo(x As DayOfWeek?) As String
         Return "ABC"
     End Function
 End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
@@ -4184,29 +4180,29 @@ End Module
 Imports System
 
 Class B
-  Sub Foo(x As Integer, ParamArray z As Integer())
-     System.Console.WriteLine("B.Foo")
+  Sub Goo(x As Integer, ParamArray z As Integer())
+     System.Console.WriteLine("B.Goo")
   End Sub
 End Class
 
 Class C
   Inherits B
-  Overloads Sub Foo(y As Integer)
-     System.Console.WriteLine("C.Foo")
+  Overloads Sub Goo(y As Integer)
+     System.Console.WriteLine("C.Goo")
   End Sub
 End Class
 
 Module M
   Sub Main()
     Dim p as New C()
-    p.Foo(x:=1) ' This fails to compile in Dev10, but works in Roslyn
+    p.Goo(x:=1) ' This fails to compile in Dev10, but works in Roslyn
   End Sub
 End Module
     </file>
       </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
-            CompileAndVerify(compilation, expectedOutput:="B.Foo")
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            CompileAndVerify(compilation, expectedOutput:="B.Goo")
 
             compilationDef =
       <compilation name="TestInvocationWithNamedArgumentInLambda">
@@ -4214,24 +4210,24 @@ End Module
 Imports System
 
 Class B
-  Sub Foo(x As Integer, ParamArray z As Integer())
+  Sub Goo(x As Integer, ParamArray z As Integer())
   End Sub
 End Class
 
 Class C
   Inherits B
-  Overloads Sub Foo(y As Integer)
+  Overloads Sub Goo(y As Integer)
   End Sub
 End Class
 
 Class D
-  Overloads Sub Foo(x As Integer)
+  Overloads Sub Goo(x As Integer)
   End Sub
 End Class
 
 Module M
   Sub Main()
-    Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
+    Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
   End Sub
 
   Sub Bar(a As Action(Of C))
@@ -4243,20 +4239,20 @@ End Module
     </file>
       </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
     'Public Function Bar(a As Action(Of D)) As String': Not most specific.
-    Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
+    Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
                       ~~~]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.AssertTheseDiagnostics(<![CDATA[
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
     'Public Function Bar(a As Action(Of D)) As String': Not most specific.
-    Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
+    Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
                       ~~~]]>)
         End Sub
 
@@ -4265,7 +4261,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
         Public Sub MethodTypeParameterInferenceBadArg()
             ' Method type parameter inference should complete in the case where
             ' the type of a method argument is ErrorType but HasErrors=False.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
     Class C
@@ -4287,7 +4283,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
 
         <Fact()>
         Public Sub InaccessibleMethods()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4367,7 +4363,7 @@ BC30390: 'Module2.Private Sub M2(x As Long, y As Integer)' is not accessible in 
 
         <Fact()>
         Public Sub InaccessibleProperties()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4477,27 +4473,27 @@ BC30389: 'Module2.P2(x As Integer)' is not accessible in this context because it
 
         <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
-    Shared Sub Foo(x As Integer)
+    Shared Sub Goo(x As Integer)
     End Sub
 End Class
  
 Class B
     Inherits A
-    Shadows Property Foo As Integer
+    Shadows Property Goo As Integer
 End Class
  
 Class C
     Inherits B
-    Overloads Shared Function Foo(x As Object) As Object
+    Overloads Shared Function Goo(x As Object) As Object
         Return Nothing
     End Function
 
     Shared Sub Bar()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class
 
@@ -4505,35 +4501,35 @@ End Class
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and should be declared 'Shadows'.
-    Overloads Shared Function Foo(x As Object) As Object
+BC40004: function 'Goo' conflicts with property 'Goo' in the base class 'B' and should be declared 'Shadows'.
+    Overloads Shared Function Goo(x As Object) As Object
                               ~~~
                                                             </expected>)
         End Sub
 
         <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
-    Shared Sub Foo(x As Integer)
+    Shared Sub Goo(x As Integer)
     End Sub
 End Class
  
 Class B
     Inherits A
-    Overloads Property Foo As Integer
+    Overloads Property Goo As Integer
 End Class
  
 Class C
     Inherits B
-    Overloads Shared Function Foo(x As Object) As Object
+    Overloads Shared Function Goo(x As Object) As Object
         Return Nothing
     End Function
 
     Shared Sub Bar()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class
 
@@ -4541,39 +4537,39 @@ End Class
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC40004: property 'Foo' conflicts with sub 'Foo' in the base class 'A' and should be declared 'Shadows'.
-    Overloads Property Foo As Integer
+BC40004: property 'Goo' conflicts with sub 'Goo' in the base class 'A' and should be declared 'Shadows'.
+    Overloads Property Goo As Integer
                        ~~~
-BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and should be declared 'Shadows'.
-    Overloads Shared Function Foo(x As Object) As Object
+BC40004: function 'Goo' conflicts with property 'Goo' in the base class 'B' and should be declared 'Shadows'.
+    Overloads Shared Function Goo(x As Object) As Object
                               ~~~
                                                             </expected>)
         End Sub
 
         <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
         Public Sub OverloadWithIntermediateDifferentMember3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface A
-    Sub Foo(x As Integer)
+    Sub Goo(x As Integer)
 End Interface
 
 Interface B
     Inherits A
-    Shadows Property Foo As Integer
+    Shadows Property Goo As Integer
 End Interface
 
 Interface C
     Inherits B
-    Overloads Function Foo(x As Object) As Object
+    Overloads Function Goo(x As Object) As Object
 
 End Interface
 
 Class D
     Shared Sub Bar()
         Dim q As C = Nothing
-        q.Foo(1).ToString()
+        q.Goo(1).ToString()
     End Sub
 
 End Class
@@ -4581,94 +4577,94 @@ End Class
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC40004: function 'Foo' conflicts with property 'Foo' in the base interface 'B' and should be declared 'Shadows'.
-    Overloads Function Foo(x As Object) As Object
+BC40004: function 'Goo' conflicts with property 'Goo' in the base interface 'B' and should be declared 'Shadows'.
+    Overloads Function Goo(x As Object) As Object
                        ~~~
                                                             </expected>)
         End Sub
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
  
 Class A
-    Shared Function Foo() As Integer()
+    Shared Function Goo() As Integer()
         Return Nothing
     End Function
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo() 
+    Overloads Shared Sub Goo() 
     End Sub
     Sub Main()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class    ]]></file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC32016: 'Public Shared Overloads Sub Foo()' has no parameters and its return type cannot be indexed.
-        Foo(1).ToString()
+BC32016: 'Public Shared Overloads Sub Goo()' has no parameters and its return type cannot be indexed.
+        Goo(1).ToString()
         ~~~
                                                             </expected>)
         End Sub
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
  
 Class A
-    Shared Function Foo() As Integer()
+    Shared Function Goo() As Integer()
         Return Nothing
     End Function
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo(optional a as integer = 3) 
+    Overloads Shared Sub Goo(optional a as integer = 3) 
     End Sub
     Sub Main()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class    ]]></file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC32016: 'Public Shared Overloads Sub Foo([a As Integer = 3])' has no parameters and its return type cannot be indexed.
-        Foo(1).ToString()
+BC32016: 'Public Shared Overloads Sub Goo([a As Integer = 3])' has no parameters and its return type cannot be indexed.
+        Goo(1).ToString()
         ~~~
 BC30491: Expression does not produce a value.
-        Foo(1).ToString()
+        Goo(1).ToString()
         ~~~~~~
                                                             </expected>)
         End Sub
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
  
 Class A
-    Shared Function Foo() As Integer()
+    Shared Function Goo() As Integer()
         Return Nothing
     End Function
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo(ParamArray a as Integer()) 
+    Overloads Shared Sub Goo(ParamArray a as Integer()) 
     End Sub
     Sub Main()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class    ]]></file>
 </compilation>)
@@ -4679,17 +4675,17 @@ End Class    ]]></file>
 
         <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
         Public Sub OverloadSameSigBetweenFunctionAndSub4()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 
 Interface A
-    Function Foo() As Integer()
+    Function Goo() As Integer()
 End Interface
 
 Interface B
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Interface C
@@ -4699,15 +4695,15 @@ End Interface
 Module M1
     Sub Main()
         Dim c As C = Nothing
-        c.Foo(1).ToString()
+        c.Goo(1).ToString()
     End Sub
 End Module
 ]]></file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        c.Foo(1).ToString()
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        c.Goo(1).ToString()
           ~~~
                                                                  </expected>)
         End Sub
@@ -4715,7 +4711,7 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
 
         <Fact, WorkItem(546129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546129")>
         Public Sub SameMethodNameDifferentCase()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -4768,7 +4764,7 @@ End Module
     </file>
       </compilation>
 
-            Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(Compilation, expectedOutput:="1qq")
         End Sub
@@ -4804,14 +4800,14 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="1qq")
         End Sub
 
         <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <ProvideMenuResource(1000, 1)>
@@ -4851,7 +4847,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
 
         <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <ProvideMenuResource(1000, 1)>
@@ -4884,7 +4880,7 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
 
         <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
         Public Sub Bug16716_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <ProvideMenuResource(1000, 1)>
@@ -4925,7 +4921,7 @@ End Module
             Dim libRef = TestReferences.SymbolsTests.BigVisitor
 
             Dim start = DateTime.UtcNow
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {libRef}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {libRef}).VerifyDiagnostics()
             Dim elapsed = DateTime.UtcNow - start
             Assert.InRange(elapsed.TotalSeconds, 0, 5) ' The key is seconds - not minutes - so feel free to loosen.
         End Sub
@@ -4937,7 +4933,7 @@ End Module
                     <file name="a.vb">
                         <![CDATA[
 Imports System.Runtime.CompilerServices
-<Assembly: InternalsVisibleTo("Foo")>
+<Assembly: InternalsVisibleTo("Goo")>
 
 Public Class Test(Of t1, t2)
     Public Sub Add(x As t1)
@@ -4951,7 +4947,7 @@ End Class
                 </compilation>
 
             Dim source2 =
-                <compilation name="Foo">
+                <compilation name="Goo">
                     <file name="b.vb">
 Public Class Test2
     Public Sub Main()
@@ -4962,9 +4958,9 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
 
-            Dim comp2 = CreateCompilationWithMscorlib(source2, references:={comp.EmitToImageReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp.EmitToImageReference()})
             CompilationUtils.AssertTheseDiagnostics(comp2,
                                                <expected>
 BC30521: Overload resolution failed because no accessible 'Add' is most specific for these arguments:
@@ -5022,7 +5018,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="CType2CType4")
         End Sub
@@ -5037,7 +5033,7 @@ Imports System
 
 Module Module1
     Sub Main()
-        C2.foo(New C2)
+        C2.goo(New C2)
     End Sub
 
     Class C2
@@ -5045,9 +5041,9 @@ Module Module1
             Return New C2() {}
         End Operator
 
-        Public Shared Sub foo(x As String)
+        Public Shared Sub goo(x As String)
         End Sub
-        Public Shared Sub foo(ParamArray y As C2())
+        Public Shared Sub goo(ParamArray y As C2())
             Console.WriteLine(y.Length)
         End Sub
     End Class
@@ -5057,14 +5053,14 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
 
         <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688Err()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5074,7 +5070,7 @@ Imports System.Collections
 Module Module1
 
     Sub Main()
-        cls2.Foo("qq", New cls2)
+        cls2.Goo("qq", New cls2)
     End Sub
 End Module
 
@@ -5103,12 +5099,12 @@ End Class
 Class cls2
     Inherits cls1
 
-    Public Shared Function Foo(x As String) As String
+    Public Shared Function Goo(x As String) As String
         Return x
     End Function
 
-    Public Shared Function Foo(x As String, ByVal ParamArray params() As IGetExpression) As String
-        System.Console.WriteLine("Foo")
+    Public Shared Function Goo(x As String, ByVal ParamArray params() As IGetExpression) As String
+        System.Console.WriteLine("Goo")
         Return Nothing
     End Function
 End Class
@@ -5118,16 +5114,16 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    'Public Shared Function Foo(x As String, ParamArray params As IGetExpression()) As String': Not most specific.
-        cls2.Foo("qq", New cls2)
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    'Public Shared Function Goo(x As String, ParamArray params As IGetExpression()) As String': Not most specific.
+        cls2.Goo("qq", New cls2)
              ~~~
 ]]></expected>)
         End Sub
 
         <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
         Public Sub Regress738688Err01()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -5135,7 +5131,7 @@ Imports System
 
 Module Module1
     Sub Main()
-        C2.foo(New C2)
+        C2.goo(New C2)
     End Sub
 
     Interface i1
@@ -5149,10 +5145,10 @@ Module Module1
         End Operator
 
         ' uncommenting this will change results in VBC
-        ' Public Shared Sub foo(x as string)
+        ' Public Shared Sub goo(x as string)
         ' End Sub
 
-        Public Shared Sub foo(ParamArray y As i1())
+        Public Shared Sub goo(ParamArray y As i1())
             Console.WriteLine(y.Length)
         End Sub
     End Class
@@ -5164,9 +5160,9 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30521: Overload resolution failed because no accessible 'foo' is most specific for these arguments:
-    'Public Shared Sub foo(ParamArray y As Module1.i1())': Not most specific.
-        C2.foo(New C2)
+BC30521: Overload resolution failed because no accessible 'goo' is most specific for these arguments:
+    'Public Shared Sub goo(ParamArray y As Module1.i1())': Not most specific.
+        C2.goo(New C2)
            ~~~
 ]]></expected>)
         End Sub
@@ -5201,7 +5197,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="A.Test")
         End Sub
@@ -5262,7 +5258,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="IDerived_X")
         End Sub
@@ -5324,7 +5320,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
 "IBase1_X
@@ -5370,7 +5366,7 @@ End Interface
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation)
         End Sub
@@ -5423,7 +5419,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5512,7 +5508,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5606,7 +5602,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5619,16 +5615,6 @@ BC30456: 'GetWordsAsync' is not a member of 'Line'.
 BC30451: 'WordsKey' is not declared. It may be inaccessible due to its protection level.
                         If imax <= WordsKey Then Return
                                    ~~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                        Await Task.WhenAll(WordTasks.ToArray())
-                                   ~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                Await Task.WhenAll(SentenceTasks.ToArray())
-                           ~~~~~~~
 ]]></expected>)
         End Sub
 
@@ -5729,7 +5715,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5742,22 +5728,145 @@ BC30456: 'GetDeliveryWindowVendor9Async' is not a member of 'DeliveryWindowDepar
 BC30451: 'Vendor9Key' is not declared. It may be inaccessible due to its protection level.
                                                                                           If MaxDepth <= Vendor9Key Then
                                                                                                          ~~~~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
-                                                                                                     ~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                                             Await Task.WhenAll(DepartmentTasks.ToArray())
-                                                        ~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-        Await Task.WhenAll(VendorTasks.ToArray())
-                   ~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <WorkItem(9341, "https://github.com/dotnet/roslyn/issues/9341")>
+        <Fact()>
+        Public Sub FailureDueToAnErrorInALambda_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Test
+    Sub Main()
+        Invoke(
+            Sub()
+                M1("error here")
+            End Sub)
+    End Sub
+
+    Sub M1()
+    End Sub
+
+    Public Sub Invoke(callback As Action)
+    End Sub
+
+    Function Invoke(Of TResult)(callback As Func(Of TResult)) As TResult
+        Return Nothing
+    End Function
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30057: Too many arguments to 'Public Sub M1()'.
+                M1("error here")
+                   ~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")>
+        Public Sub AmbiguousInference_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class Test
+    Public Shared Sub Assert(Of T)(a As T, b As T)
+        Console.WriteLine("Non collection")
+    End Sub
+
+    Public Shared Sub Assert(Of T)(a As IEnumerable(Of T), b As IEnumerable(Of T))
+        Console.WriteLine("Collection")
+    End Sub
+
+    Public Shared Sub Main()
+        Dim a = {"A"}
+        Dim b = New StringValues()
+
+        Assert(a, b)
+        Assert(b, a)
+    End Sub
+
+    Private Class StringValues
+        Inherits List(Of String)
+        Public Shared Widening Operator CType(values As String()) As StringValues
+            Return New StringValues()
+        End Operator
+
+        Public Shared Widening Operator CType(value As StringValues) As String()
+            Return {}
+        End Operator
+    End Class
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
+
+            CompileAndVerify(compilationDef, expectedOutput:=
+"Collection
+Collection")
+        End Sub
+
+        <Fact>
+        <WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")>
+        Public Sub AmbiguousInference_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class Test
+    Public Shared Sub Assert(Of T)(a As T, b As T)
+        Console.WriteLine("Non collection")
+    End Sub
+
+    Public Shared Sub Main()
+        Dim a = {"A"}
+        Dim b = New StringValues()
+
+        Assert(a, b)
+        Assert(b, a)
+    End Sub
+
+    Private Class StringValues
+        Inherits List(Of String)
+        Public Shared Widening Operator CType(values As String()) As StringValues
+            Return New StringValues()
+        End Operator
+
+        Public Shared Widening Operator CType(value As StringValues) As String()
+            Return {}
+        End Operator
+    End Class
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Assert(Of T)(a As T, b As T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        Assert(a, b)
+        ~~~~~~
+BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Assert(Of T)(a As T, b As T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        Assert(b, a)
+        ~~~~~~
+</expected>)
         End Sub
 
     End Class

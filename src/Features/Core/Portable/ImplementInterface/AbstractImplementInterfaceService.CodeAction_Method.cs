@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -28,17 +29,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var updatedMethod = method.EnsureNonConflictingNames(
                     this.State.ClassOrStructType, syntaxFacts, cancellationToken);
 
-                updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                    accessibleWithin: this.State.ClassOrStructType,
-                    removeAttributeType: compilation.ComAliasNameAttributeType());
+                updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                    this.State.ClassOrStructType,
+                    AttributesToRemove(compilation));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     updatedMethod,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? updatedMethod : null,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(updatedMethod) : default,
                     name: memberName,
-                    statements: generateAbstractly ? null : new[] { CreateStatement(compilation, updatedMethod, cancellationToken) });
+                    statements: generateAbstractly
+                        ? default
+                        : ImmutableArray.Create(CreateStatement(compilation, updatedMethod, cancellationToken)));
             }
 
             private SyntaxNode CreateStatement(
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 if (ThroughMember == null)
                 {
                     var factory = this.Document.GetLanguageService<SyntaxGenerator>();
-                    return factory.CreateThrowNotImplementStatement(compilation);
+                    return factory.CreateThrowNotImplementedStatement(compilation);
                 }
                 else
                 {

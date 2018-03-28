@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -18,39 +19,25 @@ namespace Microsoft.Cci
             this.metadataWriter = metadataWriter;
         }
 
-        public override void Visit(IAssembly assembly)
+        public override void Visit(CommonPEModuleBuilder module)
         {
-            this.module = assembly;
-            this.Visit((IModule)assembly);
-            this.Visit(assembly.GetFiles(Context));
-            this.Visit(assembly.GetResources(Context));
-        }
-
-        public override void Visit(IModule module)
-        {
-            this.module = module;
-
             // Visit these assembly-level attributes even when producing a module.
             // They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
-            Visit(module.AssemblyAttributes);
-            Visit(module.AssemblySecurityAttributes);
+            Visit(module.GetSourceAssemblyAttributes(Context.IsRefAssembly));
+            Visit(module.GetSourceAssemblySecurityAttributes());
 
             Visit(module.GetAssemblyReferences(Context));
-            Visit(module.ModuleReferences);
-            Visit(module.ModuleAttributes);
+            Visit(module.GetSourceModuleAttributes());
             Visit(module.GetTopLevelTypes(Context));
 
-            foreach (ITypeReference exportedType in module.GetExportedTypes(Context))
+            foreach (var exportedType in module.GetExportedTypes(Context.Diagnostics))
             {
-                VisitExportedType(exportedType);
+                VisitExportedType(exportedType.Type);
             }
 
-            if (module.AsAssembly == null)
-            {
-                Visit(module.GetResources(Context));
-            }
-
+            Visit(module.GetResources(Context));
             VisitImports(module.GetImports());
+            Visit(module.GetFiles(Context));
         }
 
         private void VisitExportedType(ITypeReference exportedType)
@@ -66,7 +53,7 @@ namespace Microsoft.Cci
             else
             {
                 definingAssembly = ((IModuleReference)definingUnit).GetContainingAssembly(Context);
-                if (definingAssembly != null && !ReferenceEquals(definingAssembly, this.module.GetContainingAssembly(Context)))
+                if (definingAssembly != null && !ReferenceEquals(definingAssembly, Context.Module.GetContainingAssembly(Context)))
                 {
                     Visit(definingAssembly);
                 }
@@ -107,12 +94,12 @@ namespace Microsoft.Cci
 
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)
         {
-            this.metadataWriter.GetAssemblyRefIndex(assemblyReference);
+            this.metadataWriter.GetAssemblyReferenceHandle(assemblyReference);
         }
 
         protected override void ProcessMethodBody(IMethodDefinition method)
         {
-            if (method.HasBody())
+            if (method.HasBody() && !metadataWriter.MetadataOnly)
             {
                 var body = method.GetBody(Context);
 
@@ -132,7 +119,7 @@ namespace Microsoft.Cci
                         }
                     }
                 }
-                else if (!metadataWriter.allowMissingMethodBodies)
+                else if (!metadataWriter.MetadataOnly)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -167,37 +154,37 @@ namespace Microsoft.Cci
 
         protected override void RecordTypeReference(ITypeReference typeReference)
         {
-            this.metadataWriter.RecordTypeReference(typeReference);
+            this.metadataWriter.GetTypeHandle(typeReference);
         }
 
         protected override void RecordTypeMemberReference(ITypeMemberReference typeMemberReference)
         {
-            this.metadataWriter.GetMemberRefIndex(typeMemberReference);
+            this.metadataWriter.GetMemberReferenceHandle(typeMemberReference);
         }
 
         protected override void RecordFileReference(IFileReference fileReference)
         {
-            this.metadataWriter.GetFileRefIndex(fileReference);
+            this.metadataWriter.GetAssemblyFileHandle(fileReference);
         }
 
         protected override void ReserveMethodToken(IMethodReference methodReference)
         {
-            this.metadataWriter.GetMethodToken(methodReference);
+            this.metadataWriter.GetMethodHandle(methodReference);
         }
 
         protected override void ReserveFieldToken(IFieldReference fieldReference)
         {
-            this.metadataWriter.GetFieldToken(fieldReference);
+            this.metadataWriter.GetFieldHandle(fieldReference);
         }
 
         protected override void RecordModuleReference(IModuleReference moduleReference)
         {
-            this.metadataWriter.GetModuleRefIndex(moduleReference.Name);
+            this.metadataWriter.GetModuleReferenceHandle(moduleReference.Name);
         }
 
         public override void Visit(IPlatformInvokeInformation platformInvokeInformation)
         {
-            this.metadataWriter.GetModuleRefIndex(platformInvokeInformation.ModuleName);
+            this.metadataWriter.GetModuleReferenceHandle(platformInvokeInformation.ModuleName);
         }
     }
 }

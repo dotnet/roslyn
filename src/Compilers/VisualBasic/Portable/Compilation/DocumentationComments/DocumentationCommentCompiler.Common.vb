@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Xml
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -668,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Private Function TryGetDocCommentTriviaAndGenerateDiagnostics(syntaxNode As VisualBasicSyntaxNode) As DocumentationCommentTriviaSyntax
+            Private Function TryGetDocCommentTriviaAndGenerateDiagnostics(syntaxNode As SyntaxNode) As DocumentationCommentTriviaSyntax
                 Dim theOnlyDocCommentTrivia As DocumentationCommentTriviaSyntax = Nothing
                 Dim lastCommentTrivia As Boolean = False
 

@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
         System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine,
 
+        System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetException,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetResult,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__AwaitOnCompleted,
@@ -316,6 +317,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Start_T,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetStateMachine,
 
+        System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted,
@@ -324,6 +326,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task,
 
+        System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted,
@@ -354,7 +357,82 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
+        System_ValueTuple_T1__Item1,
+
+        System_ValueTuple_T2__Item1,
+        System_ValueTuple_T2__Item2,
+
+        System_ValueTuple_T3__Item1,
+        System_ValueTuple_T3__Item2,
+        System_ValueTuple_T3__Item3,
+
+        System_ValueTuple_T4__Item1,
+        System_ValueTuple_T4__Item2,
+        System_ValueTuple_T4__Item3,
+        System_ValueTuple_T4__Item4,
+
+        System_ValueTuple_T5__Item1,
+        System_ValueTuple_T5__Item2,
+        System_ValueTuple_T5__Item3,
+        System_ValueTuple_T5__Item4,
+        System_ValueTuple_T5__Item5,
+
+        System_ValueTuple_T6__Item1,
+        System_ValueTuple_T6__Item2,
+        System_ValueTuple_T6__Item3,
+        System_ValueTuple_T6__Item4,
+        System_ValueTuple_T6__Item5,
+        System_ValueTuple_T6__Item6,
+
+        System_ValueTuple_T7__Item1,
+        System_ValueTuple_T7__Item2,
+        System_ValueTuple_T7__Item3,
+        System_ValueTuple_T7__Item4,
+        System_ValueTuple_T7__Item5,
+        System_ValueTuple_T7__Item6,
+        System_ValueTuple_T7__Item7,
+
+        System_ValueTuple_TRest__Item1,
+        System_ValueTuple_TRest__Item2,
+        System_ValueTuple_TRest__Item3,
+        System_ValueTuple_TRest__Item4,
+        System_ValueTuple_TRest__Item5,
+        System_ValueTuple_TRest__Item6,
+        System_ValueTuple_TRest__Item7,
+        System_ValueTuple_TRest__Rest,
+
+        System_ValueTuple_T1__ctor,
+        System_ValueTuple_T2__ctor,
+        System_ValueTuple_T3__ctor,
+        System_ValueTuple_T4__ctor,
+        System_ValueTuple_T5__ctor,
+        System_ValueTuple_T6__ctor,
+        System_ValueTuple_T7__ctor,
+        System_ValueTuple_TRest__ctor,
+
+        System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
+
         System_String__Format_IFormatProvider,
+
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+
+        System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
+        System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+        System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+
+        System_ObsoleteAttribute__ctor,
+
+        System_Span_T__ctor,
+        System_Span_T__get_Item,
+        System_Span_T__get_Length,
+
+        System_ReadOnlySpan_T__ctor,
+        System_ReadOnlySpan_T__get_Item,
+        System_ReadOnlySpan_T__get_Length,
+
+        System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+
         Count
     }
 }

@@ -45,8 +45,24 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public ITypeSymbol OriginalType { get; }
 
-            public static int Compare(VariableSymbol left, VariableSymbol right)
+            public static int Compare(
+                VariableSymbol left,
+                VariableSymbol right,
+                INamedTypeSymbol cancellationTokenType)
             {
+                // CancellationTokens always go at the end of method signature.
+                var leftIsCancellationToken = left.OriginalType.Equals(cancellationTokenType);
+                var rightIsCancellationToken = right.OriginalType.Equals(cancellationTokenType);
+
+                if (leftIsCancellationToken && !rightIsCancellationToken)
+                {
+                    return 1;
+                }
+                else if (!leftIsCancellationToken && rightIsCancellationToken)
+                {
+                    return -1;
+                }
+
                 if (left.DisplayOrder == right.DisplayOrder)
                 {
                     return left.CompareTo(right);
@@ -74,10 +90,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation
-            {
-                get { throw ExceptionUtilities.Unreachable; }
-            }
+            public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable;
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
@@ -97,10 +110,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _parameterSymbol = parameterSymbol;
             }
 
-            public override int DisplayOrder
-            {
-                get { return 0; }
-            }
+            public override int DisplayOrder => 0;
 
             protected override int CompareTo(VariableSymbol right)
             {
@@ -116,7 +126,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return 0;
                 }
 
-                var compare = CompareTo((IMethodSymbol)_parameterSymbol.ContainingSymbol, (IMethodSymbol)other._parameterSymbol.ContainingSymbol);
+                var compare = CompareMethodParameters((IMethodSymbol)_parameterSymbol.ContainingSymbol, (IMethodSymbol)other._parameterSymbol.ContainingSymbol);
                 if (compare != 0)
                 {
                     return compare;
@@ -126,40 +136,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return (_parameterSymbol.Ordinal > other._parameterSymbol.Ordinal) ? 1 : -1;
             }
 
-            private int CompareTo(IMethodSymbol left, IMethodSymbol right)
+            private int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
             {
                 if (left == null && right == null)
                 {
+                    // not method parameters
                     return 0;
                 }
 
                 if (left.Equals(right))
                 {
+                    // parameter of same method
                     return 0;
                 }
 
-                if (left.MethodKind == MethodKind.AnonymousFunction &&
-                    right.MethodKind != MethodKind.AnonymousFunction)
-                {
-                    return 1;
-                }
+                // these methods can be either regular one, anonymous function, local function and etc
+                // but all must belong to same outer regular method.
+                // so, it should have location pointing to same tree
+                var leftLocations = left.Locations;
+                var rightLocations = right.Locations;
 
-                if (left.MethodKind != MethodKind.AnonymousFunction &&
-                    right.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    return -1;
-                }
+                var commonTree = leftLocations.Select(l => l.SourceTree).Intersect(rightLocations.Select(l => l.SourceTree)).WhereNotNull().First();
 
-                if (left.MethodKind == MethodKind.AnonymousFunction &&
-                    right.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    Contract.ThrowIfFalse(left.Locations.Length == 1);
-                    Contract.ThrowIfFalse(right.Locations.Length == 1);
+                var leftLocation = leftLocations.First(l => l.SourceTree == commonTree);
+                var rightLocation = rightLocations.First(l => l.SourceTree == commonTree);
 
-                    return left.Locations[0].SourceSpan.Start - right.Locations[0].SourceSpan.Start;
-                }
-
-                return Contract.FailWithReturn<int>("Shouldn't reach here");
+                return leftLocation.SourceSpan.Start - rightLocation.SourceSpan.Start;
             }
 
             public override string Name
@@ -191,10 +193,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _nonNoisySet = nonNoisySet;
             }
 
-            public override int DisplayOrder
-            {
-                get { return 1; }
-            }
+            public override int DisplayOrder => 1;
 
             protected override int CompareTo(VariableSymbol right)
             {
@@ -245,10 +244,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return token;
             }
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation
-            {
-                get { return _annotation; }
-            }
+            public override SyntaxAnnotation IdentifierTokenAnnotation => _annotation;
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
@@ -271,7 +267,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>((n) => true);
+                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>(n => true);
                 if (declStatement == null)
                 {
                     return true;
@@ -310,10 +306,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _symbol = symbol;
             }
 
-            public override int DisplayOrder
-            {
-                get { return 2; }
-            }
+            public override int DisplayOrder => 2;
 
             protected override int CompareTo(VariableSymbol right)
             {

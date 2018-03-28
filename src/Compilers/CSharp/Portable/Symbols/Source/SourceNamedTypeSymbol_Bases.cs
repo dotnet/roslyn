@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -135,6 +136,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var @interface in interfaces)
                 {
                     @interface.CheckAllConstraints(conversions, location, diagnostics);
+                }
+
+                if (interfaces.Count > 1)
+                {
+                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+                    foreach (var @interface in interfaces)
+                    {
+                        NamedTypeSymbol other;
+                        if (seenInterfaces.TryGetValue(@interface, out other))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                        }
+                        else
+                        {
+                            seenInterfaces.Add(@interface, @interface);
+                        }
+                    }
                 }
             }
         }
@@ -342,6 +360,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 i++;
                 var typeSyntax = baseTypeSyntax.Type;
+                if (typeSyntax.Kind() != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(typeSyntax.Kind()))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadBaseType, typeSyntax.GetLocation());
+                }
+
                 var location = new SourceLocation(typeSyntax);
 
                 TypeSymbol baseType;
@@ -435,6 +458,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // '{0}': static classes cannot implement interfaces
                             diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this, baseType);
+                        }
+
+                        if (this.IsByRefLikeType)
+                        {
+                            // '{0}': ref structs cannot implement interfaces
+                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
                         }
 
                         if (baseType.ContainsDynamic())

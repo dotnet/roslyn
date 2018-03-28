@@ -10,16 +10,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>;
+
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly IFindReferencesProgress _progress;
+        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
@@ -31,17 +35,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
         private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
 
-        /// <summary>
-        /// The resultant collection of all references found per symbol.
-        /// </summary>
-        private readonly ConcurrentDictionary<ISymbol, ConcurrentSet<ReferenceLocation>> _foundReferences = new ConcurrentDictionary<ISymbol, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<ISymbol, ConcurrentSet<ReferenceLocation>> s_createSymbolLocations = _ => new ConcurrentSet<ReferenceLocation>();
-
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
-            IFindReferencesProgress progress,
+            IStreamingFindReferencesProgress progress,
             CancellationToken cancellationToken)
         {
             _documents = documents;
@@ -50,93 +48,84 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
+
+            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }
 
-        public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol)
+        public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
         {
-            _progress.OnStarted();
-            _progress.ReportProgress(0, 1);
+            await _progress.OnStartedAsync().ConfigureAwait(false);
+            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
             try
             {
-                var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
+                var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
-                var documentMap = await CreateDocumentMapAsync(projectMap).ConfigureAwait(false);
-                await ProcessAsync(documentMap).ConfigureAwait(false);
+                var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
+                ValidateProjectToDocumentMap(projectToDocumentMap);
+
+                await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
             }
             finally
             {
-                _progress.ReportProgress(1, 1);
-                _progress.OnCompleted();
+                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
+                await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
-
-            return _foundReferences.Select(kvp => new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray())).ToImmutableArray();
         }
 
-        private async Task ProcessAsync(
-            ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> documentMap)
+        private async Task ProcessAsync(ProjectToDocumentMap projectToDocumentMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, _cancellationToken))
             {
                 // quick exit
-                if (documentMap.Count == 0)
+                if (projectToDocumentMap.Count == 0)
                 {
                     return;
                 }
 
-                var wrapper = new ProgressWrapper(_progress, documentMap.Count);
-
                 // Get the connected components of the dependency graph and process each individually.
                 // That way once a component is done we can throw away all the memory associated with
                 // it.
+                // For each connected component, we'll process the individual projects from bottom to
+                // top.  i.e. we'll first process the projects with no dependencies.  Then the projects
+                // that depend on those projects, and so and.  This way we always have creates the 
+                // dependent compilations when they're needed by later projects.  If we went the other
+                // way (i.e. processed the projects with lots of project dependencies first), then we'd
+                // have to create all their depedent compilations in order to get their compilation.
+                // This would be very expensive and would take a lot of time before we got our first
+                // result.
                 var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
-                var projectMap = CreateProjectMap(documentMap);
 
-                foreach (var projectSet in connectedProjects)
+                // Add a progress item for each (document, symbol, finder) set that we will execute.
+                // We'll mark the item as completed in "ProcessDocumentAsync".
+                var totalFindCount = projectToDocumentMap.Sum(
+                    kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
+                await _progressTracker.AddItemsAsync(totalFindCount).ConfigureAwait(false);
+
+                // Now, go through each connected project set and process it independently.
+                foreach (var connectedProjectSet in connectedProjects)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    await ProcessProjectsAsync(projectSet, projectMap, wrapper).ConfigureAwait(false);
+                    await ProcessProjectsAsync(
+                        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
                 }
             }
         }
 
-        private static readonly Func<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> s_documentMapGetter =
-            _ => new Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>();
-
-        private static readonly Func<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> s_queueGetter =
-            _ => new List<ValueTuple<ISymbol, IReferenceFinder>>();
-
-        private static Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> CreateProjectMap(
-            ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> map)
-        {
-            Contract.Requires(map.Count > 0);
-
-            var projectMap = new Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>>();
-            foreach (var kv in map)
-            {
-                var documentMap = projectMap.GetOrAdd(kv.Key.Project, s_documentMapGetter);
-                var queue = documentMap.GetOrAdd(kv.Key, s_queueGetter);
-
-                queue.AddRange(kv.Value);
-            }
-
-            ValidateProjectMap(projectMap);
-            return projectMap;
-        }
-
         [Conditional("DEBUG")]
-        private static void ValidateProjectMap(Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> projectMap)
+        private static void ValidateProjectToDocumentMap(
+            ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<ValueTuple<ISymbol, IReferenceFinder>>();
+            var set = new HashSet<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
-            foreach (var map in projectMap.Values)
+            foreach (var documentMap in projectToDocumentMap.Values)
             {
-                foreach (var finderList in map.Values)
+                foreach (var documentToFinderList in documentMap)
                 {
                     set.Clear();
 
-                    foreach (var finder in finderList)
+                    foreach (var finder in documentToFinderList.Value)
                     {
                         Contract.Requires(set.Add(finder));
                     }
@@ -144,10 +133,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private void HandleLocation(ISymbol symbol, ReferenceLocation location)
+        private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
         {
-            _foundReferences.GetOrAdd(symbol, s_createSymbolLocations).Add(location);
-            _progress.OnReferenceFound(symbol, location);
+            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
         }
     }
 }

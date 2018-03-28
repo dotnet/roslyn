@@ -6,10 +6,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class RecommendationOptions
     {
-        internal const string RecommendationsFeatureName = "Recommendations";
+        public static PerLanguageOption<bool> HideAdvancedMembers { get; } = new PerLanguageOption<bool>(nameof(RecommendationOptions), nameof(HideAdvancedMembers), defaultValue: false);
 
-        public static PerLanguageOption<bool> HideAdvancedMembers { get; } = new PerLanguageOption<bool>(RecommendationsFeatureName, "HideAdvancedMembers", defaultValue: false);
-
-        public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = new PerLanguageOption<bool>(RecommendationsFeatureName, "FilterOutOfScopeLocals", defaultValue: true);
+        public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = new PerLanguageOption<bool>(nameof(RecommendationOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
     }
 }

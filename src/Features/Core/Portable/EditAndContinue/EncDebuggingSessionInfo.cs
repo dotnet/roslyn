@@ -4,10 +4,11 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal class EncDebuggingSessionInfo
+    internal sealed class EncDebuggingSessionInfo
     {
         public readonly List<EncEditSessionInfo> EditSessions = new List<EncEditSessionInfo>();
-        public int EmptyEditSessions;
+        public int EmptyEditSessions { get; private set; }
+        public bool ReadOnlyEditAttemptedProjectNotBuiltOrLoaded { get; private set; }
 
         internal void EndEditSession(EncEditSessionInfo encEditSessionInfo)
         {
@@ -19,6 +20,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 EditSessions.Add(encEditSessionInfo);
             }
+        }
+
+        internal void LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded()
+        {
+            ReadOnlyEditAttemptedProjectNotBuiltOrLoaded = true;
         }
     }
 }

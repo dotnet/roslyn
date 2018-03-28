@@ -184,6 +184,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsDirective => UnderlyingNode?.IsDirective ?? false;
 
+        internal bool IsSkippedTokensTrivia => UnderlyingNode?.IsSkippedTokensTrivia ?? false;
+        internal bool IsDocumentationCommentTrivia => UnderlyingNode?.IsDocumentationCommentTrivia ?? false;
+
         /// <summary>
         /// Returns the child non-terminal node representing the syntax tree structure under this structured trivia.
         /// </summary>

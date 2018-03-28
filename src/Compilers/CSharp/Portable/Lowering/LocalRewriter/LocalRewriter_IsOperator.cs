@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeIsOperator(
             BoundIsOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
             Conversion conversion,
@@ -62,20 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // operand is a reference type with bound identity or implicit conversion
                     // We can replace the "is" instruction with a null check
-
-                    Debug.Assert((object)operandType != null);
-                    if (operandType.TypeKind == TypeKind.TypeParameter)
-                    {
-                        // We need to box the type parameter even if it is a known
-                        // reference type to ensure there are no verifier errors
-                        rewrittenOperand = MakeConversion(
-                            syntax: rewrittenOperand.Syntax,
-                            rewrittenOperand: rewrittenOperand,
-                            conversionKind: ConversionKind.Boxing,
-                            rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
-                            @checked: false);
-                    }
-
                     return MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
                 }
             }
@@ -84,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteConstantIsOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression loweredOperand,
             ConstantValue constantValue,
             TypeSymbol type)

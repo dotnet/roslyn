@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             If context.IsInStatementBlockOfKind(SyntaxKind.TryBlock, SyntaxKind.CatchBlock) AndAlso
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Catch", VBFeaturesResources.CatchKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Catch", VBFeaturesResources.Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a_Try_block))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

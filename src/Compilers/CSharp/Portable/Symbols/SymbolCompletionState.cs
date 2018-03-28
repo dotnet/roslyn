@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #pragma warning restore 0420
         }
 
+        /// <summary>
+        /// Produce the next (i.e. lowest) CompletionPart (bit) that is not set.
+        /// </summary>
         internal CompletionPart NextIncompletePart
         {
             get

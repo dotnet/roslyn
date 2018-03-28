@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.BaseExpression:
                     // an op term is ok if it's a "this" or "base" op it allows us to see
-                    // "this.foo" in the autos window note: it's not a VALIDTERM since we don't
+                    // "this.goo" in the autos window note: it's not a VALIDTERM since we don't
                     // want "this" showing up in the auto's window twice.
                     expressionType = ExpressionType.ValidExpression;
                     return;
@@ -112,46 +112,43 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             // +, -, ++, --, !, etc.
             //
             // This is a valid expression if it doesn't have obvious side effects (i.e. ++, --)
-            if (expression is PrefixUnaryExpressionSyntax)
+            if (expression is PrefixUnaryExpressionSyntax prefixUnary)
             {
-                AddPrefixUnaryExpressionTerms((PrefixUnaryExpressionSyntax)expression, terms, ref expressionType);
+                AddPrefixUnaryExpressionTerms(prefixUnary, terms, ref expressionType);
                 return;
             }
 
-            if (expression is AwaitExpressionSyntax)
+            if (expression is AwaitExpressionSyntax awaitExpression)
             {
-                AddAwaitExpressionTerms((AwaitExpressionSyntax)expression, terms, ref expressionType);
+                AddAwaitExpressionTerms(awaitExpression, terms, ref expressionType);
                 return;
             }
 
-            if (expression is PostfixUnaryExpressionSyntax)
+            if (expression is PostfixUnaryExpressionSyntax postfixExpression)
             {
-                AddPostfixUnaryExpressionTerms((PostfixUnaryExpressionSyntax)expression, terms, ref expressionType);
+                AddPostfixUnaryExpressionTerms(postfixExpression, terms, ref expressionType);
                 return;
             }
 
-            if (expression is BinaryExpressionSyntax)
+            if (expression is BinaryExpressionSyntax binaryExpression)
             {
-                var binaryExpression = (BinaryExpressionSyntax)expression;
                 AddBinaryExpressionTerms(expression, binaryExpression.Left, binaryExpression.Right, terms, ref expressionType);
                 return;
             }
 
-            if (expression is AssignmentExpressionSyntax)
+            if (expression is AssignmentExpressionSyntax assignmentExpression)
             {
-                var assignmentExpression = (AssignmentExpressionSyntax)expression;
                 AddBinaryExpressionTerms(expression, assignmentExpression.Left, assignmentExpression.Right, terms, ref expressionType);
                 return;
             }
 
-            if (expression is ConditionalExpressionSyntax)
+            if (expression is ConditionalExpressionSyntax conditional)
             {
-                AddConditionalExpressionTerms((ConditionalExpressionSyntax)expression, terms, ref expressionType);
+                AddConditionalExpressionTerms(conditional, terms, ref expressionType);
                 return;
             }
 
-            var parenthesizedExpression = expression as ParenthesizedExpressionSyntax;
-            if (parenthesizedExpression != null)
+            if (expression is ParenthesizedExpressionSyntax parenthesizedExpression)
             {
                 AddSubExpressionTerms(parenthesizedExpression.Expression, terms, ref expressionType);
             }

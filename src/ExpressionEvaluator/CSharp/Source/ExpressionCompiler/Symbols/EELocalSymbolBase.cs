@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return SynthesizedLocalKind.UserDefined; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
+        }
+
         internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             throw ExceptionUtilities.Unreachable;
@@ -71,5 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             return result;
         }
+
+        /// <summary>
+        /// EE Symbols have no source symbols associated with them.
+        /// They should be safe to escape for evaluation purposes.
+        /// </summary>
+        internal override uint ValEscapeScope => Binder.TopLevelScope;
+
+        /// <summary>
+        /// EE Symbols have no source symbols associated with them.
+        /// They should be safe to escape for evaluation purposes.
+        /// </summary>
+        internal override uint RefEscapeScope => Binder.TopLevelScope;
     }
 }

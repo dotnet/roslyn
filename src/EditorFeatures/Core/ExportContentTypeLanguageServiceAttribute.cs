@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public ExportContentTypeLanguageServiceAttribute(string defaultContentType, string language, string layer = ServiceLayer.Default)
             : base(typeof(IContentTypeLanguageService), language, layer)
         {
-            if (defaultContentType == null)
-            {
-                throw new ArgumentNullException(nameof(defaultContentType));
-            }
-
-            this.DefaultContentType = defaultContentType;
+            this.DefaultContentType = defaultContentType ?? throw new ArgumentNullException(nameof(defaultContentType));
         }
     }
 }

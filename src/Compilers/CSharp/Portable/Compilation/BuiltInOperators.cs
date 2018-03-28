@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 
@@ -714,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, TypeSymbol rightType, bool rightIsNull, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNullOrDefault, TypeSymbol rightType, bool rightIsNullOrDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
@@ -738,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((object)leftType != null) && leftType.IsTypeParameter())
             {
-                if (leftType.IsValueType || (!leftType.IsReferenceType && !rightIsNull))
+                if (leftType.IsValueType || (!leftType.IsReferenceType && !rightIsNullOrDefault))
                 {
                     return false;
                 }
@@ -749,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((object)rightType != null) && rightType.IsTypeParameter())
             {
-                if (rightType.IsValueType || (!rightType.IsReferenceType && !leftIsNull))
+                if (rightType.IsValueType || (!rightType.IsReferenceType && !leftIsNullOrDefault))
                 {
                     return false;
                 }
@@ -759,30 +760,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var leftIsReferenceType = ((object)leftType != null) && leftType.IsReferenceType;
-            if (!leftIsReferenceType && !leftIsNull)
+            if (!leftIsReferenceType && !leftIsNullOrDefault)
             {
                 return false;
             }
 
             var rightIsReferenceType = ((object)rightType != null) && rightType.IsReferenceType;
-            if (!rightIsReferenceType && !rightIsNull)
+            if (!rightIsReferenceType && !rightIsNullOrDefault)
             {
                 return false;
             }
 
             // If at least one side is null then clearly a conversion exists.
-            if (leftIsNull || rightIsNull)
+            if (leftIsNullOrDefault || rightIsNullOrDefault)
             {
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics);
+            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversion(rightType, leftType, ref useSiteDiagnostics);
+            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

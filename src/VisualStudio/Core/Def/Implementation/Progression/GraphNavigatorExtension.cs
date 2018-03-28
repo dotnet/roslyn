@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObject, IGraphNavigateToItem
     {
         private readonly Workspace _workspace;
@@ -26,9 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public void NavigateTo(GraphObject graphObject)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
                 if (sourceLocation.FileName == null)
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
 
                 var projectId = graphNode.GetValue<ProjectId>(RoslynGraphProperties.ContextProjectId);
-                var symbolId = graphNode.GetValue<SymbolKey>(RoslynGraphProperties.SymbolId);
+                var symbolId = graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId);
 
                 if (projectId != null)
                 {
@@ -81,7 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private void NavigateOnForegroundThread(SourceLocation sourceLocation, SymbolKey symbolId, Project project, Document document)
+        private void NavigateOnForegroundThread(
+            SourceLocation sourceLocation, SymbolKey? symbolId, Project project, Document document)
         {
             AssertIsForeground();
 
@@ -89,13 +91,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (symbolId != null)
             {
                 var symbolNavigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                var symbol = symbolId.Resolve(project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)).Symbol;
+                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)).Symbol;
 
                 // Do not allow third party navigation to types or constructors
                 if (symbol != null &&
                     !(symbol is ITypeSymbol) &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project.Solution))
+                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project, CancellationToken.None))
                 {
                     return;
                 }
@@ -122,9 +124,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public int GetRank(GraphObject graphObject)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
                 var projectId = graphNode.GetValue<ProjectId>(RoslynGraphProperties.ContextProjectId);

@@ -133,18 +133,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Class TargetSignature
             Public ReadOnly ParameterTypes As ImmutableArray(Of TypeSymbol)
             Public ReadOnly ReturnType As TypeSymbol
-            Private ReadOnly _isByRef As BitVector
+            Public ReadOnly ReturnsByRef As Boolean
+            Public ReadOnly ParameterIsByRef As BitVector
 
-            Public Sub New(parameterTypes As ImmutableArray(Of TypeSymbol), isByRef As BitVector, returnType As TypeSymbol)
+            Public Sub New(parameterTypes As ImmutableArray(Of TypeSymbol), parameterIsByRef As BitVector, returnType As TypeSymbol, returnsByRef As Boolean)
                 Debug.Assert(Not parameterTypes.IsDefault)
-                Debug.Assert(Not isByRef.IsNull)
+                Debug.Assert(Not parameterIsByRef.IsNull)
                 Debug.Assert(returnType IsNot Nothing)
                 Me.ParameterTypes = parameterTypes
-                Me._isByRef = isByRef
+                Me.ParameterIsByRef = parameterIsByRef
                 Me.ReturnType = returnType
+                Me.ReturnsByRef = returnsByRef
             End Sub
 
-            Public Sub New(params As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol)
+            Public Sub New(params As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, returnsByRef As Boolean)
                 Debug.Assert(Not params.IsDefault)
                 Debug.Assert(returnType IsNot Nothing)
 
@@ -166,19 +168,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.ParameterTypes = types.AsImmutableOrNull
                 End If
 
-                Me._isByRef = isByRef
+                Me.ParameterIsByRef = isByRef
                 Me.ReturnType = returnType
+                Me.ReturnsByRef = returnsByRef
             End Sub
 
             Public Sub New(method As MethodSymbol)
-                Me.New(method.Parameters, method.ReturnType)
+                Me.New(method.Parameters, method.ReturnType, method.ReturnsByRef)
             End Sub
-
-            Public ReadOnly Property IsByRef As BitVector
-                Get
-                    Return _isByRef
-                End Get
-            End Property
 
             Public Overrides Function GetHashCode() As Integer
                 Dim hashVal As Integer = 0
@@ -205,12 +202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For i As Integer = 0 To ParameterTypes.Length - 1
                     If Me.ParameterTypes(i) <> other.ParameterTypes(i) OrElse
-                       Me._isByRef(i) <> other._isByRef(i) Then
+                       Me.ParameterIsByRef(i) <> other.ParameterIsByRef(i) Then
                         Return False
                     End If
                 Next
 
-                Return Me.ReturnType = other.ReturnType
+                Return Me.ReturnsByRef = other.ReturnsByRef AndAlso Me.ReturnType = other.ReturnType
             End Function
         End Class
 

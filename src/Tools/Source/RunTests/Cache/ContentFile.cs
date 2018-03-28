@@ -13,11 +13,8 @@ namespace RunTests.Cache
     /// </summary>
     internal sealed class ContentFile
     {
-        internal static readonly ContentFile Empty = new ContentFile(string.Empty, string.Empty);
-
         internal string Checksum { get; }
         internal string Content { get; }
-        internal bool IsEmpty => this == Empty;
 
         internal ContentFile(string checksum, string content)
         {

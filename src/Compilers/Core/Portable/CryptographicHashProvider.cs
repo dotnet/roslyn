@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -74,13 +77,28 @@ namespace Microsoft.CodeAnalysis
             switch (algorithmId)
             {
                 case SourceHashAlgorithm.Sha1:
-                    return new SHA1CryptoServiceProvider();
+                    return SHA1.Create();
 
                 case SourceHashAlgorithm.Sha256:
-                    return new SHA256CryptoServiceProvider();
+                    return SHA256.Create();
 
                 default:
                     return null;
+            }
+        }
+
+        internal static HashAlgorithmName GetAlgorithmName(SourceHashAlgorithm algorithmId)
+        {
+            switch (algorithmId)
+            {
+                case SourceHashAlgorithm.Sha1:
+                    return HashAlgorithmName.SHA1;
+
+                case SourceHashAlgorithm.Sha256:
+                    return HashAlgorithmName.SHA256;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(algorithmId);
             }
         }
 
@@ -90,19 +108,19 @@ namespace Microsoft.CodeAnalysis
             {
                 case AssemblyHashAlgorithm.None:
                 case AssemblyHashAlgorithm.Sha1:
-                    return new SHA1CryptoServiceProvider();
+                    return SHA1.Create();
 
                 case AssemblyHashAlgorithm.Sha256:
-                    return new SHA256CryptoServiceProvider();
+                    return SHA256.Create();
 
                 case AssemblyHashAlgorithm.Sha384:
-                    return new SHA384CryptoServiceProvider();
+                    return SHA384.Create();
 
                 case AssemblyHashAlgorithm.Sha512:
-                    return new SHA512CryptoServiceProvider();
+                    return SHA512.Create();
 
                 case AssemblyHashAlgorithm.MD5:
-                    return new MD5CryptoServiceProvider();
+                    return MD5.Create();
 
                 default:
                     return null;
@@ -143,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             if (stream != null)
             {
                 stream.Seek(0, SeekOrigin.Begin);
-                using (var hashProvider = new SHA1CryptoServiceProvider())
+                using (var hashProvider = SHA1.Create())
                 {
                     return ImmutableArray.Create(hashProvider.ComputeHash(stream));
                 }
@@ -159,9 +177,27 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
         {
-            using (var hashProvider = new SHA1CryptoServiceProvider())
+            using (var hashProvider = SHA1.Create())
             {
                 return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<Blob> bytes)
+        {
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            {
+                incrementalHash.AppendData(bytes);
+                return ImmutableArray.Create(incrementalHash.GetHashAndReset());
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<ArraySegment<byte>> bytes)
+        {
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            {
+                incrementalHash.AppendData(bytes);
+                return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
         }
     }

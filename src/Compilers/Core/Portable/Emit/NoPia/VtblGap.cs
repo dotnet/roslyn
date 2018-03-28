@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>(); }
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
         bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
@@ -237,6 +237,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         }
 
         ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        {
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
         {
             get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }

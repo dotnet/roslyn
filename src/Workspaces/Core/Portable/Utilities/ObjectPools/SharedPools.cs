@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Shared object pool for roslyn
@@ -57,10 +58,14 @@ namespace Roslyn.Utilities
         /// other I/O requests
         /// </summary>
         public static readonly ObjectPool<byte[]> ByteArray = new ObjectPool<byte[]>(() => new byte[ByteBufferSize], ByteBufferCount);
+        public static readonly ObjectPool<char[]> CharArray = new ObjectPool<char[]>(() => new char[ByteBufferSize], CharBufferCount);
 
-        /// pooled memory : 4K * 512 = 4MB
+        // byte pooled memory : 4K * 512 = 4MB
         public const int ByteBufferSize = 4 * 1024;
         private const int ByteBufferCount = 512;
+
+        // char pooled memory : 8K * 5 = 40K
+        private const int CharBufferCount = 5;
 
         private static class DefaultBigPool<T> where T : class, new()
         {

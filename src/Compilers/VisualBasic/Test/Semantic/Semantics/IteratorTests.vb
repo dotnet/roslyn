@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact()>
         Public Sub IteratorNoYields()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -23,16 +23,16 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
         'valid
     End Function
 
-    Public Iterator Function foo1 As IEnumerable
+    Public Iterator Function goo1 As IEnumerable
         'valid
         Return
     End Function
 
-    Public Iterator Function foo2 As IEnumerable
+    Public Iterator Function goo2 As IEnumerable
         'valid
         Exit Function
     End Function
@@ -47,7 +47,7 @@ End Module
 
         <Fact()>
         Public Sub BadReturnValueInIterator()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -58,7 +58,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
 
         'valid
         Return
@@ -84,7 +84,7 @@ BC36942: To return a value from an Iterator function, use 'Yield' rather than 'R
         Public Sub BadYieldInNonIteratorMethod()
 
             ' Cannot get the actual BadYieldInNonIteratorMethod error since Yield keyword is conditional.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -95,12 +95,12 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
         'valid
         Yield 123
     End Function
 
-    Public Function foo1 As IEnumerable
+    Public Function goo1 As IEnumerable
         'error
         Yield 123
     End Function
@@ -117,7 +117,7 @@ BC30451: 'Yield' is not declared. It may be inaccessible due to its protection l
 BC30800: Method arguments must be enclosed in parentheses.
         Yield 123
               ~~~
-BC42105: Function 'foo1' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+BC42105: Function 'goo1' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
     End Function
     ~~~~~~~~~~~~
 </errors>)
@@ -127,7 +127,7 @@ BC42105: Function 'foo1' doesn't return a value on all code paths. A null refere
         Public Sub YieldingUnassigned()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -138,7 +138,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
         Dim o as object
         Yield o
         
@@ -164,7 +164,7 @@ BC42104: Variable 'o' is used before it has been assigned a value. A null refere
             <file name="a.b"><![CDATA[
 Class C
 
-    Public Iterator Function foo() As IEnumerable
+    Public Iterator Function goo() As IEnumerable
 
         Dim o As Object = 1
 
@@ -202,7 +202,7 @@ End Class
         <Fact()>
         Public Sub YieldingFromTryCatchFinally()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -213,7 +213,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
 
         Try
             'valid
@@ -236,7 +236,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
-    Public Iterator Function foo As IEnumerable
+    Public Iterator Function goo As IEnumerable
                                     ~~~~~~~~~~~
 BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statement.
             Yield 1
@@ -251,7 +251,7 @@ BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statem
         Public Sub NoConversion()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -262,7 +262,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable(of Exception)
+    Public Iterator Function goo As IEnumerable(of Exception)
         Yield 1       
     End Function
 
@@ -283,7 +283,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Exception'.
         Public Sub NotReadable()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -294,7 +294,7 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable(of Exception)
+    Public Iterator Function goo As IEnumerable(of Exception)
         Yield P1
     End Function
 
@@ -321,7 +321,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
         Public Sub LambdaConversions()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -332,11 +332,11 @@ Module Module1
     Sub Main()
     End Sub
 
-    Public Iterator Function foo As IEnumerable(of Func(of Integer, Integer))
+    Public Iterator Function goo As IEnumerable(of Func(of Integer, Integer))
         Yield Function() New Long
     End Function
 
-    Public Iterator Function foo1 As IEnumerable(of Func(of String, Short, Integer))
+    Public Iterator Function goo1 As IEnumerable(of Func(of String, Short, Integer))
         Yield Function(x, y) x.length + y
     End Function
 
@@ -352,7 +352,7 @@ End Module
         Public Sub InvalidParamType()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -382,7 +382,7 @@ BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Asy
         Public Sub EnumeratorNotImported()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -412,7 +412,7 @@ BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
         Public Sub ByRefParams()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -442,7 +442,7 @@ BC36927: Iterator methods cannot have ByRef parameters.
         Public Sub IteratorTypeWrong()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -479,7 +479,7 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
         Public Sub SubIterator()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -522,7 +522,7 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
         Public Sub StaticInIterator()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -553,7 +553,7 @@ BC36955: Static variables cannot appear inside Async or Iterator methods.
         Public Sub MiscInvalid()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -598,7 +598,7 @@ BC30218: 'Lib' expected.
         Public Sub IteratorInWrongPlaces()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -680,7 +680,7 @@ BC30201: Expression expected.
         Public Sub InferenceByrefLike()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -712,7 +712,7 @@ End Module
         Public Sub InferenceByref()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -744,7 +744,7 @@ BC36639: 'ByRef' parameter 'x' cannot be used in a lambda expression.
 
         <Fact()>
         Public Sub InferenceErrors_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -764,14 +764,14 @@ Module Program
                                        Yield 1
                                    End Function
 
-        foo(i)
+        goo(i)
 
         bar(Iterator Function()
                 Yield 1
             End Function)
     End Sub
 
-    Public Sub foo(Of T)(x As Func(Of T))
+    Public Sub goo(Of T)(x As Func(Of T))
         Console.WriteLine(GetType(T))
         Console.WriteLine(x.GetType())
     End Sub
@@ -798,7 +798,7 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
 
         <Fact()>
         Public Sub InferenceErrors_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -833,7 +833,7 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Sub baz(Of T)(x
 
         <Fact()>
         Public Sub InferenceErrors_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -863,7 +863,7 @@ End Module
 
         <Fact(), WorkItem(629565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629565")>
         Public Sub Bug629565()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -874,10 +874,10 @@ Imports System.Collections
 Imports System.Collections.Generic
 
 Module ModuleChanges2
-    Sub Foo(x1 As Func(Of IEnumerable(Of Object)))
+    Sub Goo(x1 As Func(Of IEnumerable(Of Object)))
         System.Console.WriteLine("Object")
     End Sub
-    Sub Foo(x2 As Func(Of IEnumerable(Of Integer)))
+    Sub Goo(x2 As Func(Of IEnumerable(Of Integer)))
         System.Console.WriteLine("Integer")
     End Sub
     Sub Bar(x1 As Func(Of IEnumerable(Of Object)))
@@ -888,7 +888,7 @@ End Module
 Module Program
 
     Sub Main()
-        Foo(Iterator Function()
+        Goo(Iterator Function()
                 Yield 2.0
             End Function)
         Bar(Iterator Function()
@@ -909,7 +909,7 @@ Object
 
         <Fact(), WorkItem(1006315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006315")>
         Public Sub BadAsyncSingleLineLambda()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -938,7 +938,7 @@ BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multilin
 
         <Fact(), WorkItem(1173145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173145"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
         Public Sub CompoundAssignmentToAField()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -989,6 +989,51 @@ End Class
             CompileAndVerify(compilation, expected)
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expected)
+        End Sub
+
+        <Fact>
+        <WorkItem(11531, "https://github.com/dotnet/roslyn/issues/11531")>
+        <WorkItem(220696, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=220696")>
+        Public Sub WritableIteratorProperty()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+MustInherit Class A
+    MustOverride Iterator Property P As IEnumerable(Of Object)
+End Class
+Class B
+    Private _p As IEnumerable(Of Object)
+    Iterator Property P As IEnumerable(Of Object)
+        Get
+            For Each o in _p
+                Yield o
+            Next
+        End Get
+        Set
+            _p = value
+        End Set
+    End Property
+    Shared Sub Main()
+        Dim b As New B()
+        b.P = {1, 2, 3}
+        For Each o in b.P
+            Console.Write(o)
+        Next
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugExe) ' generate debug info
+            compilation.AssertTheseEmitDiagnostics(<expected/>)
+            Dim [property] = compilation.GetMember(Of PropertySymbol)("A.P")
+            Assert.True([property].GetMethod.IsIterator)
+            Assert.False([property].SetMethod.IsIterator)
+            [property] = compilation.GetMember(Of PropertySymbol)("B.P")
+            Assert.True([property].GetMethod.IsIterator)
+            Assert.False([property].SetMethod.IsIterator)
+            CompileAndVerify(compilation, expectedOutput:="123")
         End Sub
 
     End Class

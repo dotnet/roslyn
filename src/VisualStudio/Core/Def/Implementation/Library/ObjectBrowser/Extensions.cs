@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -49,22 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static string GetProjectDisplayName(this Project project)
         {
-            var workspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace != null)
+            if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace)
             {
-                var hierarchy = workspace.GetHierarchy(project.Id);
-                if (hierarchy != null)
-                {
-                    var solution = workspace.GetVsService<SVsSolution, IVsSolution3>();
-                    if (solution != null)
-                    {
-                        string name;
-                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out name)) && name != null)
-                        {
-                            return name;
-                        }
-                    }
-                }
+                return workspace.GetProjectDisplayName(project);
             }
 
             return project.Name;
@@ -114,15 +102,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return result;
             }
 
-            IVsHierarchy parentHierarchy;
-            if (hierarchy.TryGetParentHierarchy(out parentHierarchy) && !(parentHierarchy is IVsSolution))
+            if (hierarchy.TryGetParentHierarchy(out var parentHierarchy) && !(parentHierarchy is IVsSolution))
             {
                 var builder = new StringBuilder(result);
 
                 while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
                 {
-                    string parentName;
-                    if (parentHierarchy.TryGetName(out parentName))
+                    if (parentHierarchy.TryGetName(out var parentName))
                     {
                         builder.Insert(0, parentName + "\\");
                     }

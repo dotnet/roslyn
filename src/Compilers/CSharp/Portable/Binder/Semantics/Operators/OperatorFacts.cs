@@ -118,11 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var opTokenKind = declaration.OperatorToken.Kind;
 
-            if (opTokenKind == SyntaxKind.IsKeyword)
-            {
-                return WellKnownMemberNames.IsOperatorName;
-            }
-            else if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
+            if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
             {
                 // Some tokens may be either unary or binary operators (e.g. +, -).
                 if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&

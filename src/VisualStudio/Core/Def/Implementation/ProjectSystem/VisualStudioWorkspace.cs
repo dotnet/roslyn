@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// A Workspace specific to Visual Studio.
     /// </summary>
@@ -78,6 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
+        /// <summary>
+        /// Returns the hierarchy for a given project. 
+        /// </summary>
+        /// <param name="projectId">The <see cref="ProjectId"/> for the project.</param>
+        /// <returns>The <see cref="IVsHierarchy"/>, or null if the project doesn't have one.</returns>
         public abstract IVsHierarchy GetHierarchy(ProjectId projectId);
         public abstract string GetFilePath(DocumentId documentId);
 
@@ -92,8 +99,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// Returns the <see cref="EnvDTE.FileCodeModel"/> for a given document.
         /// </summary>
         public abstract EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId);
-
-        internal abstract bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath);
 
         internal abstract object GetBrowseObject(SymbolListItem symbolListItem);
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             : base(@"using System;
 
 
-public abstract class Foo : IDisposable, ICloneable
+public abstract class Goo : IDisposable, ICloneable
 {
 
 
@@ -44,16 +44,16 @@ class Baz
         {
         }
 
-        private async Task<CodeClass> GetCodeClassAsync(params object[] path)
+        private CodeClass GetCodeClass(params object[] path)
         {
-            return (CodeClass)await GetCodeElementAsync(path);
+            return (CodeClass)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeNamespace()
+        public void GetEndPoint_Body_BeforeNamespace()
         {
-            CodeClass testObject = await GetCodeClassAsync("Foo");
+            CodeClass testObject = GetCodeClass("Goo");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -63,9 +63,9 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeOtherClass()
+        public void GetEndPoint_Body_BeforeOtherClass()
         {
-            CodeClass testObject = await GetCodeClassAsync("Foo", "Bar");
+            CodeClass testObject = GetCodeClass("Goo", "Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -75,9 +75,9 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_Eof()
+        public void GetEndPoint_Body_Eof()
         {
-            CodeClass testObject = await GetCodeClassAsync("Baz");
+            CodeClass testObject = GetCodeClass("Baz");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 

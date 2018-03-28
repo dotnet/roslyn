@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class CallsGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function CallsSimpleTests() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function CallsLambdaTests() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -59,7 +59,7 @@ using System.Threading.Tasks;
     
 class A
     {
-        static void $$Foo(String[] args)
+        static void $$Goo(String[] args)
         {
             int[] numbers = { 5, 4, 1, 3, 9, 8, 6, 7, 2, 0 };
             int oddNumbers = numbers.Count(n => n % 2 == 1);
@@ -76,11 +76,11 @@ class A
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
-                            <Node Id="(@1 Type=A Member=(Name=Foo OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CodeSchemaProperty_IsStatic="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Method.Private" Label="Foo"/>
+                            <Node Id="(@1 Type=A Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CodeSchemaProperty_IsStatic="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Private" Label="Goo"/>
                             <Node Id="(Namespace=System.Linq Type=Enumerable Member=(Name=Count GenericParameterCount=1 OverloadingParameters=[(@2 Namespace=System Type=(Name=Func GenericParameterCount=2 GenericArguments=[(@2 Namespace=System Type=Int32),(@2 Namespace=System Type=Boolean)]))]))" Category="CodeSchema_Method" CodeSchemaProperty_IsExtension="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Count" Icon="Microsoft.VisualStudio.Method.Public" Label="Count"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 Type=A Member=(Name=Foo OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Target="(Namespace=System.Linq Type=Enumerable Member=(Name=Count GenericParameterCount=1 OverloadingParameters=[(@2 Namespace=System Type=(Name=Func GenericParameterCount=2 GenericArguments=[(@2 Namespace=System Type=Int32),(@2 Namespace=System Type=Boolean)]))]))" Category="CodeSchema_Calls"/>
+                            <Link Source="(@1 Type=A Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Target="(Namespace=System.Linq Type=Enumerable Member=(Name=Count GenericParameterCount=1 OverloadingParameters=[(@2 Namespace=System Type=(Name=Func GenericParameterCount=2 GenericArguments=[(@2 Namespace=System Type=Int32),(@2 Namespace=System Type=Boolean)]))]))" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
@@ -92,7 +92,7 @@ class A
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function CallsPropertiesTests() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -127,7 +127,7 @@ class A
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function CallsDelegatesTests() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -181,7 +181,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function CallsDelegateCreationExpressionTests() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">

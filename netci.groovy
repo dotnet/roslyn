@@ -1,137 +1,243 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
-import jobs.generation.Utilities;
+import jobs.generation.*;
 
-def project = GithubProject
+// The input project name (e.g. dotnet/corefx)
+def projectName = GithubProject
+// The input branch name (e.g. master)
+def branchName = GithubBranchName
+// Folder that the project jobs reside in (project/branch)
+def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-// Email the results of aborted / failed jobs to our infrastructure alias
-static void addEmailPublisher(def myJob) {
-  myJob.with {
-    publishers {
-      extendedEmail('$DEFAULT_RECIPIENTS, cc:mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
-        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
-      }
-    }
-  }
-}
+def windowsUnitTestMachine = 'win2016-base'
 
-// Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
-//  test win32 please
-static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
-    return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
-}
-
-static void addRoslynJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
-  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
-  Utilities.addArchival(myJob, includePattern, excludePattern)
+static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
+  def archiveSettings = new ArchivalSettings()
+  archiveSettings.addFiles('Binaries/**/*.pdb')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.addFiles('Binaries/**/*.log')
+  archiveSettings.addFiles('Binaries/**/*.dmp')
+  archiveSettings.addFiles('Binaries/**/*.zip')
+  archiveSettings.addFiles('Binaries/**/*.png')
+  archiveSettings.addFiles('Binaries/**/*.buildlog')
+  archiveSettings.addFiles('Binaries/**/*.binlog')
+  archiveSettings.excludeFiles('Binaries/Obj/**')
+  archiveSettings.excludeFiles('Binaries/Bootstrap/**')
+  archiveSettings.excludeFiles('Binaries/**/nuget*.zip')
+  // Only archive if failed/aborted
+  archiveSettings.setArchiveOnFailure()
+  archiveSettings.setFailIfNothingArchived()
+  Utilities.addArchival(myJob, archiveSettings)
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
   def projectName = 'dotnet/roslyn'
-  def isPr = branchName == 'prtest'
-  def defaultBranch = "*/${branchName}"
-  Utilities.standardJobSetup(myJob, projectName, isPr, defaultBranch)
 
   // Need to setup the triggers for the job
   if (isPr) {
-    def contextName = jobName.replace('_', '/').substring(7)
-    Utilities.addGithubPRTrigger(myJob, contextName, triggerPhrase, triggerPhraseOnly)
+    // Note the use of ' vs " for the 4th argument. We don't want groovy to interpolate this string (the ${ghprbPullId}
+    // is resolved when the job is run based on an environment variable set by the Jenkins Pull Request Builder plugin.
+    Utilities.standardJobSetupPR(myJob, projectName, null, '+refs/pull/${ghprbPullId}/*:refs/remotes/origin/pr/${ghprbPullId}/*');
+    def triggerCore = "open|all|${jobName}"
+    if (triggerPhraseExtra) {
+      triggerCore = "${triggerCore}|${triggerPhraseExtra}"
+    }
+    def triggerPhrase = "(?im)^\\s*(@?dotnet-bot\\,?\\s+)?(re)?test\\s+(${triggerCore})(\\s+please\\.?)?\\s*\$";
+    def contextName = jobName
+    Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
+    Utilities.standardJobSetupPush(myJob, projectName, "*/${branchName}");
     Utilities.addGithubPushTrigger(myJob)
-    addEmailPublisher(myJob)
+    // TODO: Add once external email sending is available again
+    // addEmailPublisher(myJob)
   }
 }
 
-def branchNames = []
-['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
-  def shortBranchName = branchName.substring(0, 6)
-  def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
-  branchNames << jobBranchName
+// True when this is a PR job, false for commit.  On feature branches we do PR jobs only.
+def commitPullList = [false, true]
+if (branchName.startsWith("features/")) {
+  commitPullList = [true]
+}
 
-  // folder("${jobBranchName}")
-  ['win', 'linux', 'mac'].each { opsys ->
-    // folder("${jobBranchName}/${opsys.substring(0, 3)}")
-    ['dbg', 'rel'].each { configuration ->
-      if ((configuration == 'dbg') || ((branchName != 'prtest') && (opsys == 'win'))) {
-        // folder("${jobBranchName}/${opsys.substring(0, 3)}/${configuration}")
+// Windows Desktop CLR
+commitPullList.each { isPr ->
+  ['debug', 'release'].each { configuration ->
         ['unit32', 'unit64'].each { buildTarget ->
-          if ((opsys == 'win') || (buildTarget == 'unit32')) {
-            def jobName = "roslyn_${jobBranchName}_${opsys.substring(0, 3)}_${configuration}_${buildTarget}"
+      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
             def myJob = job(jobName) {
-              description('')
-            }
-
-            // Generate the PR trigger phrase for this job.
-            String triggerKeyword = '';
-            switch (buildTarget) {
-              case 'unit32':
-                triggerKeyword =  '(unit|unit32|unit\\W+32)';
-                break;
-              case 'unit64':
-                triggerKeyword = '(unit|unit64|unit\\W+64)';
-                break;
-            }
-            String triggerPhrase = generateTriggerPhrase(jobName, opsys, triggerKeyword);
-            Boolean triggerPhraseOnly = false;
-
-            switch (opsys) {
-              case 'win':
-                myJob.with {
+        description("Windows ${configuration} tests on ${buildTarget}")
                   steps {
-                    batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
-mkdir %TEMP%
-set TMP=%TEMP%
-.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
+                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -testDesktop""")
                   }
                 }
-                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
-                // Generic throttling for Windows, no category
-                break;
-              case 'linux':
-                myJob.with {
-                  label('ubuntu-fast')
-                  steps {
-                    shell("./cibuild.sh --nocache --debug")
-                  }
-                }
-                break;
-              case 'mac':
-                myJob.with {
-                  label('mac-roslyn')
-                  steps {
-                    shell("./cibuild.sh --nocache --debug")
-                  }
-                }
-                triggerPhraseOnly = true;
-                break;
-            }
 
-            Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-            addRoslynJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly)
-          }
+      def triggerPhraseOnly = false
+      def triggerPhraseExtra = ""
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+    }
+  }
+}
+
+// Windows CoreCLR
+commitPullList.each { isPr ->
+  ['debug', 'release'].each { configuration ->
+    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_${configuration}", isPr)
+    def myJob = job(jobName) {
+      description("Windows CoreCLR unit tests")
+            steps {
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
+            }
+    }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = ""
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+}
+
+// Ubuntu 16.04
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
+  def myJob = job(jobName) {
+    description("Ubuntu 16.04 tests")
+                  steps {
+                    shell("./build/scripts/cibuild.sh --debug")
+                  }
+                }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Ubuntu 16.04 mono
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_mono_debug", isPr)
+  def myJob = job(jobName) {
+    description("Ubuntu 16.04 mono tests")
+                  steps {
+                    shell("./build/scripts/cibuild.sh --debug --docker --mono")
+                  }
+                }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "linux"
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Mac
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
+  def myJob = job(jobName) {
+    description("Mac tests")
+    steps {
+      shell("./build/scripts/cibuild.sh --debug")
+    }
+  }
+
+  def triggerPhraseOnly = true
+  def triggerPhraseExtra = "mac"
+  Utilities.setMachineAffinity(myJob, 'OSX10.12', 'latest-or-auto')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+  }
+
+// Determinism
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "windows_determinism", isPr)
+  def myJob = job(jobName) {
+    description('Determinism tests')
+    steps {
+      batchFile(""".\\build\\scripts\\cibuild.cmd -testDeterminism""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "determinism"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Build correctness tests
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
+  def myJob = job(jobName) {
+    description('Build correctness tests')
+    steps {
+      batchFile(""".\\build\\scripts\\cibuild.cmd -testBuildCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = ""
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Perf Correctness
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
+  def myJob = job(jobName) {
+    description('perf test correctness')
+    steps {
+      batchFile(""".\\build\\scripts\\cibuild.cmd -testPerfCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "perf-correctness"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Microbuild
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
+  def myJob = job(jobName) {
+    description('MicroBuild test')
+    steps {
+      batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "microbuild"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// VS Integration Tests
+commitPullList.each { isPr ->
+  ['debug', 'release'].each { configuration ->
+    ['vs-integration'].each { buildTarget ->
+      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+      def myJob = job(jobName) {
+        description("Windows ${configuration} tests on ${buildTarget}")
+        steps {
+          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
         }
       }
+
+      def triggerPhraseOnly = false
+      def triggerPhraseExtra = ""
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3')
+      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
   }
-
-  def determinismJobName = "roslyn_${jobBranchName}_determinism"
-  def determinismJob = job(determinismJobName) {
-    description('')
-  }
-
-  determinismJob.with {
-    label('windows-roslyn')
-    steps {
-      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
-mkdir %TEMP%
-set TMP=%TEMP%
-.\\cibuild.cmd /testDeterminism""")
-    }
-  }
-
-  Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
-  addRoslynJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 
+JobReport.Report.generateJobReport(out)
+
+// Make the call to generate the help job
+Utilities.createHelperJob(this, projectName, branchName,
+    "Welcome to the ${projectName} Repository",  // This is prepended to the help message
+    "Have a nice day!")  // This is appended to the help message.  You might put known issues here.

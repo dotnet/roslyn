@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
-using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -28,34 +26,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
-            Guid moduleVersionId;
-            try
-            {
-                moduleVersionId = baseline.OriginalMetadata.GetModuleVersionId();
-            }
-            catch (BadImageFormatException)
-            {
-                // TODO:
-                // return MakeEmitResult(success: false, diagnostics: ..., baseline: null);
-                throw;
-            }
-
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var emitOptions = EmitOptions.Default;
+            var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
             string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
-            var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, moduleVersionId);
+            var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
-            var moduleBeingBuilt = new PEDeltaAssemblyBuilder(
-                compilation.SourceAssembly,
-                emitOptions: emitOptions,
-                outputKind: compilation.Options.OutputKind,
-                serializationProperties: serializationProperties,
-                manifestResources: manifestResources,
-                previousGeneration: baseline,
-                edits: edits,
-                isAddedSymbol: isAddedSymbol);
+            PEDeltaAssemblyBuilder moduleBeingBuilt;
+            try
+            {
+                moduleBeingBuilt = new PEDeltaAssemblyBuilder(
+                    compilation.SourceAssembly,
+                    emitOptions: emitOptions,
+                    outputKind: compilation.Options.OutputKind,
+                    serializationProperties: serializationProperties,
+                    manifestResources: manifestResources,
+                    previousGeneration: baseline,
+                    edits: edits,
+                    isAddedSymbol: isAddedSymbol);
+            }
+            catch (NotSupportedException)
+            {
+                // TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName);
+                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+            }
 
             if (testData != null)
             {
@@ -70,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (compilation.Compile(
                 moduleBeingBuilt,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: true,
                 diagnostics: diagnostics,
                 filterOpt: changes.RequiresCompilation,
@@ -93,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     updatedMethods,
                     diagnostics,
                     testData?.SymWriterFactory,
+                    emitOptions.PdbFilePath,
                     cancellationToken);
             }
 
@@ -129,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
-            var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag());
+            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,

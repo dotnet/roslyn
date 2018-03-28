@@ -1,11 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -23,8 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function GetSourceMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodToken As Integer) As PEMethodSymbol
-            Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)
+        Friend Function GetSourceMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
             Dim method = GetMethod(compilation, moduleVersionId, methodHandle)
             Dim metadataDecoder = New MetadataDecoder(DirectCast(method.ContainingModule, PEModuleSymbol))
             Dim containingType = method.ContainingType
@@ -95,6 +95,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 options:=s_compilationOptions)
         End Function
 
+        <Extension>
+        Friend Function GetCustomTypeInfoPayload(compilation As VisualBasicCompilation, type As TypeSymbol) As ReadOnlyCollection(Of Byte)
+            Dim builder = ArrayBuilder(Of String).GetInstance()
+            Dim names = If(VisualBasicCompilation.TupleNamesEncoder.TryGetNames(type, builder) AndAlso compilation.HasTupleNamesAttributes,
+                New ReadOnlyCollection(Of String)(builder.ToArray()),
+                Nothing)
+            builder.Free()
+            Return CustomTypeInfo.Encode(Nothing, names)
+        End Function
+
         Friend ReadOnly IdentityComparer As AssemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
 
         ' XML file references, #r directives not supported:
@@ -105,7 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             assemblyIdentityComparer:=IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
             WithReferencesSupersedeLowerVersions(True).
-            WithSuppressEmbeddedDeclarations(True)
+            WithSuppressEmbeddedDeclarations(True).
+            WithIgnoreCorLibraryDuplicatedTypes(True)
 
     End Module
 

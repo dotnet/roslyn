@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt)
             Dim startNode = token.Parent
 
-            Return SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(startNode, ExpressionSyntax))
+            Return SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(startNode, ExpressionSyntax)) OrElse Me.inNamespaceOrType
         End Function
 
         Private Sub MinimallyQualify(symbol As INamespaceSymbol, emittedName As String, parentsEmittedName As String)
@@ -92,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim visitedParents As Boolean = False
 
-            If Not symbol.IsAnonymousType Then
+            If Not (symbol.IsAnonymousType OrElse symbol.IsTupleType) Then
                 If Not NameBoundSuccessfullyToSameSymbol(symbol) Then
                     If IncludeNamedType(symbol.ContainingType) Then
                         symbol.ContainingType.Accept(NotFirstVisitor)
@@ -159,7 +160,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilation = semanticModelOpt.Compilation
 
             Dim sourceModule = DirectCast(compilation.SourceModule, SourceModuleSymbol)
-            Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
+            Dim sourceFile = sourceModule.TryGetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
+            Debug.Assert(sourceFile IsNot Nothing)
 
             If Not sourceFile.AliasImportsOpt Is Nothing Then
                 For Each [alias] In sourceFile.AliasImportsOpt.Values

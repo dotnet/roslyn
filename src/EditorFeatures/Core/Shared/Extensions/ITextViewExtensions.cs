@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             return mappedPoint.HasValue
                 ? new VirtualSnapshotPoint(mappedPoint.Value)
-                : default(VirtualSnapshotPoint);
+                : default;
         }
 
         public static ITextBuffer GetBufferContainingCaret(this ITextView textView, string contentType = ContentTypeNames.RoslynContentType)
@@ -159,9 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             object key,
             Func<TTextView, TProperty> valueCreator) where TTextView : ITextView
         {
-            TProperty value;
-
-            GetOrCreateAutoClosingProperty(textView, key, valueCreator, out value);
+            GetOrCreateAutoClosingProperty(textView, key, valueCreator, out var value);
             return value;
         }
 
@@ -186,8 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             object key,
             Func<TTextView, ITextBuffer, TProperty> valueCreator) where TTextView : class, ITextView
         {
-            TProperty value;
-            GetOrCreatePerSubjectBufferProperty(textView, subjectBuffer, key, valueCreator, out value);
+            GetOrCreatePerSubjectBufferProperty(textView, subjectBuffer, key, valueCreator, out var value);
 
             return value;
         }
@@ -315,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return true;
             }
 
-            surfaceBufferSpan = default(VirtualSnapshotSpan);
+            surfaceBufferSpan = default;
             return false;
         }
 
@@ -326,9 +323,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
         {
+            // No point in continuing if the text view has been closed.
+            if (textView.IsClosed)
+            {
+                return null;
+            }
+
             // If we're being called while the textview is actually in the middle of a layout, then 
             // we can't proceed.  Much of the text view state is unsafe to access (and will throw).
             if (textView.InLayout)
+            {
+                return null;
+            }
+
+            // During text view initialization the TextViewLines may be null.  In that case we can't
+            // get an appropriate visisble span.
+            if (textView.TextViewLines == null)
             {
                 return null;
             }

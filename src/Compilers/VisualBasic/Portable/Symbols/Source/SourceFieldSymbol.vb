@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -280,6 +281,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
             End If
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
         End Sub
 
         Friend NotOverridable Overrides Function EarlyDecodeWellKnownAttribute(ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData
@@ -289,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim BoundAttribute As VisualBasicAttributeData = Nothing
             Dim obsoleteData As ObsoleteAttributeData = Nothing
 
-            If EarlyDecodeDeprecatedOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
+            If EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
                 If obsoleteData IsNot Nothing Then
                     arguments.GetOrCreateData(Of CommonFieldEarlyWellKnownAttributeData)().ObsoleteAttributeData = obsoleteData
                 End If
@@ -305,6 +310,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim attrData = arguments.Attribute
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasSpecialNameAttribute = True
@@ -342,34 +351,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If not, report ERR_FieldHasMultipleDistinctConstantValues.
         ''' </summary>
         Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
-            If Not attrValue.IsBad Then
-                Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
-                Dim constValue As ConstantValue
+            Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
+            Dim constValue As ConstantValue
 
-                If Me.IsConst Then
-                    If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
-                        constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+            If Me.IsConst Then
+                If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
+                    constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
 
-                        If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
-                            arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
-                        End If
-                    Else
+                    If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
                         arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
+                Else
+                    arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                End If
 
-                    If data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
-                        data.ConstValue = attrValue
+                If data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
+                    data.ConstValue = attrValue
+                End If
+            Else
+                constValue = data.ConstValue
+
+                If constValue <> CodeAnalysis.ConstantValue.Unset Then
+                    If constValue <> attrValue Then
+                        arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                 Else
-                    constValue = data.ConstValue
-
-                    If constValue <> CodeAnalysis.ConstantValue.Unset Then
-                        If constValue <> attrValue Then
-                            arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
-                        End If
-                    Else
-                        data.ConstValue = attrValue
-                    End If
+                    data.ConstValue = attrValue
                 End If
             End If
         End Sub

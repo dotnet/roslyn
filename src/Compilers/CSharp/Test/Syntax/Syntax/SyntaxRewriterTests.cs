@@ -2,13 +2,11 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -351,6 +349,185 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(newRoot.SyntaxTree);
             Assert.True(newRoot.SyntaxTree.HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(newRoot, newRoot.SyntaxTree.GetRoot());
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestReplaceNodeShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("System.Console.Write(\"Before\")", TestOptions.Script);
+            var root = tree.GetRoot();
+            var before = root.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var after = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("After"));
+
+            var newRoot = root.ReplaceNode(before, after);
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestReplaceNodeInListShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind);
+
+            var argC = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c"));
+            var argD = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("d"));
+            var root = tree.GetRoot();
+            var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var newRoot = root.ReplaceNode(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
+            Assert.Equal("m(c,d, b)", newRoot.ToFullString());
+
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestInsertNodeShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind);
+
+            var argC = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c"));
+            var argD = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("d"));
+            var root = tree.GetRoot();
+            var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            // insert before first
+            var newNode = invocation.InsertNodesBefore(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
+            Assert.Equal("m(c,d,a, b)", newNode.ToFullString());
+            var newTree = newNode.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+
+            // insert after first
+            var newNode2 = invocation.InsertNodesAfter(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
+            Assert.Equal("m(a,c,d, b)", newNode2.ToFullString());
+            var newTree2 = newNode2.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind);
+            Assert.Equal(tree.Options, newTree2.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestReplaceTokenShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind);
+
+            var root = tree.GetRoot();
+            var privateToken = root.DescendantTokens().First();
+            var publicToken = SyntaxFactory.ParseToken("public ");
+            var partialToken = SyntaxFactory.ParseToken("partial ");
+
+            var newRoot = root.ReplaceToken(privateToken, new[] { publicToken, partialToken });
+            Assert.Equal("public partial class C { }", newRoot.ToFullString());
+
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestInsertTokenShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("public class C { }", options: TestOptions.Script);
+            var root = tree.GetRoot();
+            var publicToken = root.DescendantTokens().First();
+            var partialToken = SyntaxFactory.ParseToken("partial ");
+            var staticToken = SyntaxFactory.ParseToken("static ");
+
+            var newRoot = root.InsertTokensBefore(publicToken, new[] { staticToken });
+            Assert.Equal("static public class C { }", newRoot.ToFullString());
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+
+            var newRoot2 = root.InsertTokensAfter(publicToken, new[] { staticToken });
+            Assert.Equal("public static class C { }", newRoot2.ToFullString());
+            var newTree2 = newRoot2.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind);
+            Assert.Equal(tree.Options, newTree2.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestReplaceTriviaShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
+            var root = tree.GetRoot();
+            var leadingTrivia = root.GetLeadingTrivia();
+            Assert.Equal(2, leadingTrivia.Count);
+            var comment1 = leadingTrivia[0];
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.Kind());
+
+            var newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
+            var newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
+
+            var newRoot = root.ReplaceTrivia(comment1, new[] { newComment1, newComment2 });
+            Assert.Equal("/* a *//* b */ identifier", newRoot.ToFullString());
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+
+            var newRoot2 = root.ReplaceTrivia(comment1, new SyntaxTrivia[] { });
+            Assert.Equal(" identifier", newRoot2.ToFullString());
+            var newTree2 = newRoot2.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind);
+            Assert.Equal(tree.Options, newTree2.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestInsertTriviaShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
+            var root = tree.GetRoot();
+            var leadingTrivia = root.GetLeadingTrivia();
+            Assert.Equal(2, leadingTrivia.Count);
+            var comment1 = leadingTrivia[0];
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.Kind());
+
+            var newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
+            var newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
+
+            var newRoot = root.InsertTriviaAfter(comment1, new[] { newComment1, newComment2 });
+            Assert.Equal("/* c *//* a *//* b */ identifier", newRoot.ToFullString());
+
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestRemoveNodeShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
+            var root = tree.GetRoot();
+            var newRoot = root.RemoveNode(root.DescendantNodes().First(), SyntaxRemoveOptions.KeepDirectives);
+
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
+        }
+
+        [Fact]
+        [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
+        public void TestNormalizeWhitespaceShouldNotLoseParseOptions()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
+            var root = tree.GetRoot();
+            var newRoot = root.NormalizeWhitespace("  ");
+
+            var newTree = newRoot.SyntaxTree;
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
+            Assert.Equal(tree.Options, newTree.Options);
         }
 
         [Fact]

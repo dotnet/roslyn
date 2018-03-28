@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 CheckEqualEnumerable(look1[k], look2[k]);
             }
 
-            foreach (string k in new string[] { "foo", "bar", "banana", "flibber" })
+            foreach (string k in new string[] { "goo", "bar", "banana", "flibber" })
             {
                 Assert.False(look1.Contains(k));
                 Assert.False(look2.Contains(k));

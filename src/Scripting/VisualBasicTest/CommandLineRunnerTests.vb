@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
+Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
@@ -7,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
@@ -17,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
         Private Shared ReadOnly s_compilerVersion As String =
             GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
+        Private Shared ReadOnly s_logoAndHelpPrompt As String =
+            String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine + VBScriptingResources.LogoLine2 + "
+
+" + ScriptingResources.HelpPrompt
 
         Private Shared ReadOnly s_defaultArgs As String() = {"/R:System"}
 
@@ -28,11 +33,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
         ) As CommandLineRunner
             Dim io = New TestConsoleIO(input)
 
+            Dim buildPaths = New BuildPaths(
+                clientDir:=AppContext.BaseDirectory,
+                workingDir:=If(workingDirectory, AppContext.BaseDirectory),
+                sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
+                tempDir:=Path.GetTempPath())
+
             Dim compiler = New VisualBasicInteractiveCompiler(
                 responseFile,
-                If(workingDirectory, AppContext.BaseDirectory),
-                CorLightup.Desktop.TryGetRuntimeDirectory(),
-                AppContext.BaseDirectory,
+                buildPaths,
                 If(args, s_defaultArgs),
                 New NotImplementedAnalyzerLoader())
 
@@ -49,11 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > ? 10
 10
 >", runner.Console.Out.ToString())
@@ -65,49 +70,37 @@ Type ""#help"" for more information.
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 >", runner.Console.Out.ToString())
         End Sub
 
         <Fact()>
         Public Sub TestReferenceDirective()
-            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithMscorlib("
+            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1
-Public Function Foo() As String
+Public Function Goo() As String
     Return ""Bar""
 End Function
 End Class", "1").EmitToArray())
 
-            Dim runner = CreateRunner(args:={}, input:="#r """ & file1.Path & """" & vbCrLf & "? New C1().Foo()")
+            Dim runner = CreateRunner(args:={}, input:="#r """ & file1.Path & """" & vbCrLf & "? New C1().Goo()")
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > #r """ & file1.Path & """
-> ? New C1().Foo()
+> ? New C1().Goo()
 ""Bar""
 >", runner.Console.Out.ToString())
 
-            runner = CreateRunner(args:={}, input:="? New C1().Foo()")
+            runner = CreateRunner(args:={}, input:="? New C1().Goo()")
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
-> ? New C1().Foo()
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
+> ? New C1().Goo()
 «Red»
-(1) : error BC30002: Type 'C1' is not defined.
+(1) : error BC30002: " + String.Format(VBResources.ERR_UndefinedType1, "C1") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub
@@ -118,34 +111,33 @@ Type ""#help"" for more information.
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > #r ""://invalidfilepath""
 «Red»
-(1) : error BC2017: could not find library '://invalidfilepath'
+(1) : error BC2017: " + String.Format(ERR_LibNotFound, "://invalidfilepath") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub
 
         <Fact()>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
-        Public Sub TestDisplayResultsWithCurrentUICulture()
-            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
+        Public Sub TestDisplayResultsWithCurrentUICulture1()
+            ' Save the current thread culture as it is changed in the test.
+            ' If the culture is not restored after the test all following tests
+            ' would run in the en-GB culture.
+            Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
+            Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
+            Try
+                Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 ? System.Math.PI")
 
-            runner.RunInteractive()
+                runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+    s_logoAndHelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > ? System.Math.PI
@@ -154,22 +146,33 @@ Type ""#help"" for more information.
 > ? System.Math.PI
 3,1415926535897931
 >", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
+        End Sub
 
-            ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
-            runner = CreateRunner(args:={}, input:="Imports System.Globalization
+        <Fact()>
+        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        Public Sub TestDisplayResultsWithCurrentUICulture2()
+            ' Save the current thread culture as it is changed in the test.
+            ' If the culture is not restored after the test all following tests
+            ' would run in the en-GB culture.
+            Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
+            Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
+            Try
+                ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
+                Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 ? System.Math.PI")
 
-            runner.RunInteractive()
+                runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+s_logoAndHelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
@@ -179,6 +182,29 @@ Type ""#help"" for more information.
 > ? System.Math.PI
 3.1415926535897931
 >", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
+        End Sub
+
+        <Fact>
+        Public Sub Version()
+            Dim runner = CreateRunner({"/version"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/help"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/r:somefile"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/nologo"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
         End Sub
 
     End Class

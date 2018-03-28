@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub LambdaInInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
             Class C
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub BindLambdasInArgsOfBadParent()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 'note that T is not defined which causes the object creation expression
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub RunningAfoulOfExtensions()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
         Imports System.Runtime.CompilerServices 
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub BindPredefinedTypeOutsideMethodBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -126,7 +126,7 @@ End Module
 
         <Fact>
         Public Sub BindPredefinedTypeInsideMethodBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -161,7 +161,7 @@ End Module
 
         <Fact>
         Public Sub ConvertedLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -198,7 +198,7 @@ End Module
 
         <Fact>
         Public Sub InaccessibleType1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -241,7 +241,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleType2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -284,7 +284,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleType3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -327,7 +327,7 @@ End Class
 
         <Fact>
         Public Sub AmbiguousType1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -377,7 +377,7 @@ End Namespace
 
         <Fact>
         Public Sub AmbiguousType2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -426,7 +426,7 @@ End Namespace
 
         <Fact>
         Public Sub AmbiguousType3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -434,7 +434,7 @@ Imports N1, N2
 
 Module Program
     Sub Main(args As String())
-        A.foo()'BIND:"A"
+        A.goo()'BIND:"A"
     End Sub
 End Module
 
@@ -475,7 +475,7 @@ End Namespace
 
         <Fact>
         Public Sub InaccessibleSharedField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -515,7 +515,7 @@ End Class
 
         <Fact>
         Public Sub MethodGroup1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -559,7 +559,7 @@ End Module
 
         <Fact>
         Public Sub MethodGroup2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -607,7 +607,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleMethodGroup()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -662,7 +662,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleMethodGroup_Constructors_ObjectCreationExpressionSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -714,7 +714,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleMethodGroup_Constructors_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -758,7 +758,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleMethodGroup_AttributeSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -816,7 +816,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleMethodGroup_Attribute_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -875,7 +875,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleConstructorsFiltered_ObjectCreationExpressionSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -926,7 +926,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleConstructorsFiltered_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -970,7 +970,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleConstructorsFiltered_IdentifierNameSyntax2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -1019,7 +1019,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleConstructorsFiltered_AttributeSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -1070,7 +1070,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleConstructorsFiltered_Attribute_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -1121,7 +1121,7 @@ End Class
 
         <Fact>
         Public Sub Invocation1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1163,7 +1163,7 @@ End Module
 
         <Fact>
         Public Sub Invocation2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1209,7 +1209,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleInvocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1258,7 +1258,7 @@ End Class
 
         <Fact>
         Public Sub Property1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1303,7 +1303,7 @@ End Class
 
         <Fact>
         Public Sub Property2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1348,7 +1348,7 @@ End Class
 
         <Fact>
         Public Sub SimpleConstantExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1387,7 +1387,7 @@ End Class
 
         <Fact>
         Public Sub InaccessibleParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1395,7 +1395,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub foo(a As Outer.Inner)
+    Sub goo(a As Outer.Inner)
         Dim q As Integer
         q = a.x'BIND:"a"
     End Sub
@@ -1432,7 +1432,7 @@ End Class
         <WorkItem(538447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538447")>
         <Fact>
         Public Sub CastInterfaceToArray()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -1466,12 +1466,12 @@ End Module
 
         <Fact>
         Public Sub ImplementsClause1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IA(Of T)
-    Overloads Sub Foo(ByVal x As T)
-    Overloads Sub Foo(ByVal x As String)
+    Overloads Sub Goo(ByVal x As T)
+    Overloads Sub Goo(ByVal x As String)
 End Interface
 
 Interface IC(Of T)
@@ -1488,10 +1488,10 @@ Class K
     Implements IC(Of Integer)
     Implements IB
 
-    Public Overloads Sub F(x As String) Implements IB.Bar, IC(Of Integer).Foo 'BIND1:"IB.Bar" 'BIND2:"Foo"
+    Public Overloads Sub F(x As String) Implements IB.Bar, IC(Of Integer).Goo 'BIND1:"IB.Bar" 'BIND2:"Goo"
     End Sub
 
-    Public Overloads Sub F(x As Integer) Implements IA(Of Integer).Foo  'BIND3:"IA(Of Integer).Foo" 
+    Public Overloads Sub F(x As Integer) Implements IA(Of Integer).Goo  'BIND3:"IA(Of Integer).Goo" 
     End Sub
 
     Public Property Q(x As String) As Long Implements IB.R 'BIND4:"IB.R"
@@ -1528,14 +1528,14 @@ End Class
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
 
-            'Foo
+            'Goo
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
 
             Assert.Null(semanticInfo.Type)
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub IA(Of System.Int32).Foo(x As System.String)", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub IA(Of System.Int32).Goo(x As System.String)", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -1543,14 +1543,14 @@ End Class
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
 
-            ' IA(Of Integer).Foo
+            ' IA(Of Integer).Goo
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of QualifiedNameSyntax)(compilation, "a.vb", 3)
 
             Assert.Null(semanticInfo.Type)
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub IA(Of System.Int32).Foo(x As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub IA(Of System.Int32).Goo(x As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -1593,20 +1593,20 @@ End Class
 
         <Fact>
         Public Sub ImplementsClause2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System
 
 Interface I1
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 End Interface
 
 Class C1
     Implements I1
 
-    Public Function foo(x As Integer) As String Implements I1.foo'BIND:"I1.foo"
+    Public Function goo(x As Integer) As String Implements I1.goo'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Function
 End Class
@@ -1624,7 +1624,7 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1636,21 +1636,21 @@ End Class
 
         <Fact>
         Public Sub ImplementsClause3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System
 
 Interface I1
-    Sub foo(x As Integer)
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer)
+    Sub goo(x As Integer, y As Integer)
 End Interface
 
 Class C1
     Implements I1
 
-    Public Sub foo(x As Long) Implements I1.foo'BIND:"I1.foo"
+    Public Sub goo(x As Long) Implements I1.goo'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1668,9 +1668,9 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
-            Assert.Equal("Sub I1.foo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(1).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1682,19 +1682,19 @@ End Class
 
         <Fact>
         Public Sub ImplementsClause4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System
 
 Interface I1
-    Sub foo(x As Integer)
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer)
+    Sub goo(x As Integer, y As Integer)
 End Interface
 
 Class C1
-    Public Sub foo(x As Integer) Implements I1.foo 'BIND:"I1.foo"'BIND:"I1.foo"
+    Public Sub goo(x As Integer) Implements I1.goo 'BIND:"I1.goo"'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1711,7 +1711,7 @@ End Class
             Assert.Equal(CandidateReason.NotReferencable, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1724,19 +1724,19 @@ End Class
 
         <Fact>
         Public Sub ImplementsClause5()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System
 
 Interface I1
-    Private Sub foo(x As Integer)
+    Private Sub goo(x As Integer)
 End Interface
 
 Class C1
     Implements I1
-    Public Sub foo(x As Integer) Implements I1.foo 'BIND:"I1.foo"'BIND:"I1.foo"
+    Public Sub goo(x As Integer) Implements I1.goo 'BIND:"I1.goo"'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1753,7 +1753,7 @@ End Class
             Assert.Equal(CandidateReason.Inaccessible, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I1.foo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -1766,7 +1766,7 @@ End Class
 
         <Fact>
         Public Sub ImplementsClause6()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1777,15 +1777,15 @@ Interface I1
 End Interface
 
 Interface I2
-    Sub foo(x As Integer, z As String)
+    Sub goo(x As Integer, z As String)
 End Interface
 
 Interface I3
-    Sub foo(x As Integer, y As Integer)
+    Sub goo(x As Integer, y As Integer)
 End Interface
 
 Class C1
-    Public Sub foo(x As Integer) Implements I1.foo 'BIND:"I1.foo"'BIND:"I1.foo"
+    Public Sub goo(x As Integer) Implements I1.goo 'BIND:"I1.goo"'BIND:"I1.goo"
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -1802,8 +1802,8 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub I2.foo(x As System.Int32, z As System.String)", sortedCandidates(0).ToTestDisplayString())
-            Assert.Equal("Sub I3.foo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
+            Assert.Equal("Sub I2.goo(x As System.Int32, z As System.String)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub I3.goo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
@@ -1814,7 +1814,7 @@ End Class
 
         <Fact>
         Public Sub ImplementsClause7()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
             <compilation>
                 <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1865,18 +1865,18 @@ End Class
 
         <Fact()>
         Public Sub InterfaceImplementationCantFindMatching()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Interface IA
-    Overloads Sub Foo(ByVal x As Long)
-    Overloads Sub Foo(ByVal x As String)
+    Overloads Sub Goo(ByVal x As Long)
+    Overloads Sub Goo(ByVal x As String)
 End Interface
 
 Class K
     Implements IA
 
-    Public Overloads Sub F(x As Integer) Implements IA.Foo'BIND:"IA.Foo"
+    Public Overloads Sub F(x As Integer) Implements IA.Goo'BIND:"IA.Goo"
     End Sub
 End Class
 
@@ -1900,22 +1900,22 @@ End Class
         <WorkItem(539111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539111")>
         <Fact>
         Public Sub MethodReferenceWithImplicitTypeArguments()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
 Module Module1
     Sub Main()
-        Foo(Of Integer)'BIND:"Foo(Of Integer)"
+        Goo(Of Integer)'BIND:"Goo(Of Integer)"
     End Sub
 
-    Sub Foo(a As String)
+    Sub Goo(a As String)
     End Sub
 
-    Sub Foo(ByRef a As String, b As String)
+    Sub Goo(ByRef a As String, b As String)
     End Sub
 
-    Sub Foo(Of T)(a As String, b As String)
+    Sub Goo(Of T)(a As String, b As String)
     End Sub
 End Module
     </file>
@@ -1931,12 +1931,12 @@ End Module
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length)
             Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Module1.Foo(Of System.Int32)(a As System.String, b As System.String)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub Module1.Goo(Of System.Int32)(a As System.String, b As System.String)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Module1.Foo(Of System.Int32)(a As System.String, b As System.String)", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Module1.Goo(Of System.Int32)(a As System.String, b As System.String)", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
@@ -1944,7 +1944,7 @@ End Module
         <WorkItem(538452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538452")>
         <Fact>
         Public Sub InvalidMethodInvocationExpr()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Sub Main()
@@ -1973,7 +1973,7 @@ End Sub
 
         <Fact>
         Public Sub UnaryPlusExprWithoutMsCorlibRef()
-            Dim compilation = CreateCompilationWithReferences(
+            Dim compilation = CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -2006,7 +2006,7 @@ End Module
         <WorkItem(4280, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub BindingIsNothingFunc()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports Microsoft.VisualBasic
@@ -2028,7 +2028,7 @@ End Module
 
         <Fact>
         Public Sub MaxIntPlusOneHexLiteralConst()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -2061,22 +2061,22 @@ End Module
         <WorkItem(539017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539017")>
         <Fact>
         Public Sub ParenExprInMultiDimArrayDeclWithError()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Mod1
     Sub Main()
         Dim scen3(, 5,6,) As Integer
-        Dim x((,)) As Integer 'BIND:"("'BIND:"("
+        Dim x((,)) As Integer 'BIND:"(,)"
     End Sub
 End Module
     ]]></file>
 </compilation>)
 
-            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ParenthesizedExpressionSyntax)(compilation, "a.vb")
+            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of TupleExpressionSyntax)(compilation, "a.vb")
 
-            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind)
+            Assert.Equal("(?, ?)", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Int32", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(Nothing, semanticInfo.ImplicitConversion.Kind)
@@ -2093,7 +2093,7 @@ End Module
 
         <Fact>
         Public Sub InvocExprWithImplicitlyTypedArgument()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -2129,7 +2129,7 @@ End Module
         <WorkItem(4512, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub MultiDimArrayCreationExpr()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -2161,7 +2161,7 @@ End Module
         <WorkItem(527716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527716")>
         <Fact>
         Public Sub EmptyParenExprInArrayDeclWithError()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module Mod1
@@ -2192,7 +2192,7 @@ End Module
         <WorkItem(538918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538918")>
         <Fact>
         Public Sub MeSymbol()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2211,7 +2211,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As C", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As C", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.True(DirectCast(semanticInfo.Symbol, ParameterSymbol).IsMe, "should be Me symbol")
@@ -2224,7 +2224,7 @@ End Class
         <WorkItem(527818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527818")>
         <Fact>
         Public Sub BindingFuncNoBracket()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2264,7 +2264,7 @@ End Namespace
 
         <Fact>
         Public Sub NamespaceAlias()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports S = System
@@ -2302,7 +2302,7 @@ End Namespace
 
         <Fact>
         Public Sub NamespaceAlias2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2343,14 +2343,14 @@ End Namespace
 
         <Fact>
         Public Sub TypeAlias()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports S = System.String
 
 Namespace NS
     Class Test
-        Sub Foo
+        Sub Goo
             Dim x As String
             x = S.Empty'BIND:"S"
         End Sub
@@ -2381,7 +2381,7 @@ End Namespace
 
         <Fact>
         Public Sub TypeAlias2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2419,7 +2419,7 @@ End Module
 
         <Fact>
         Public Sub TypeAlias3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2458,7 +2458,7 @@ End Module
         <WorkItem(540279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540279")>
         <Fact>
         Public Sub NoMembersForVoidReturnType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2494,7 +2494,7 @@ End Class
 
         <Fact>
         Public Sub EnumMember1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Enum filePermissions
@@ -2533,7 +2533,7 @@ End Class
 
         <Fact>
         Public Sub CatchVariable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class c1
@@ -2553,7 +2553,7 @@ End Class
 
         <Fact>
         Public Sub CatchVariable1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class c1
@@ -2577,11 +2577,11 @@ End Class
         <WorkItem(540050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540050")>
         <Fact>
         Public Sub StaticLocalSymbol()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
-    Public Function foo() As Integer
+    Public Function goo() As Integer
         Static i As Integer = 23
         i = i + 1'BIND:"i"
         Return i
@@ -2616,7 +2616,7 @@ End Class
 
         <Fact>
         Public Sub IncompleteWriteLine()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2640,7 +2640,7 @@ End Module
             Assert.Null(semanticInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(12, semanticInfo.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.Console.WriteLine(value As System.Boolean)", sortedCandidates(1).ToTestDisplayString())
@@ -2667,7 +2667,7 @@ End Module
             Assert.Equal(SymbolKind.Method, sortedCandidates(11).Kind)
 
             Assert.Equal(19, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
             Assert.Equal("Sub System.Console.WriteLine()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char(), index As System.Int32, count As System.Int32)", sortedMethodGroup(2).ToTestDisplayString())
@@ -2693,7 +2693,7 @@ End Module
 
         <Fact>
         Public Sub ReturnedNothingLiteral()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2725,7 +2725,7 @@ End Module
 
         <Fact>
         Public Sub FailedConstructorCall()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2734,7 +2734,7 @@ Class C
 End Class
 
 Class V
-    Sub foo
+    Sub goo
         Dim c As C
         c = New C(13)'BIND:"C"
     End Sub
@@ -2759,7 +2759,7 @@ End Class
 
         <Fact>
         Public Sub FailedConstructorCall2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2768,7 +2768,7 @@ Class C
 End Class
 
 Class V
-    Sub foo
+    Sub goo
         Dim c As C
         c = New C(13)'BIND:"New C(13)"
     End Sub
@@ -2800,11 +2800,11 @@ End Class
 
         <Fact>
         Public Sub ExplicitCallToDefaultProperty1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -2824,7 +2824,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.Item(4)'BIND:"Item"
+        a = b.Goo.Item(4)'BIND:"Item"
     End Sub
 End Module
     </file>
@@ -2849,11 +2849,11 @@ End Module
 
         <Fact()>
         Public Sub ExplicitCallToDefaultProperty2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -2873,7 +2873,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.Item(4)'BIND:"b.Foo.Item(4)"
+        a = b.Goo.Item(4)'BIND:"b.Goo.Item(4)"
     End Sub
 End Module
     </file>
@@ -2900,7 +2900,7 @@ End Module
         <WorkItem(541240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541240")>
         <Fact()>
         Public Sub ConstFieldInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2918,7 +2918,7 @@ End Class
 
         <Fact()>
         Public Sub ConstFieldInitializer2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2937,7 +2937,7 @@ End Class
 
         <Fact()>
         Public Sub ConstFieldInitializer3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2956,7 +2956,7 @@ End Class
 
         <Fact()>
         Public Sub ConstFieldInitializer4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2975,7 +2975,7 @@ End Class
 
         <Fact()>
         Public Sub ConstFieldInitializer5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2995,7 +2995,7 @@ End Class
 
         <Fact()>
         Public Sub ConstFieldInitializersMultipleSymbols()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -3017,7 +3017,7 @@ End Class
 
         <Fact()>
         Public Sub FieldInitializer1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -3036,13 +3036,13 @@ End Class
 
         <Fact()>
         Public Sub FieldInitializer2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
-    Public ClassId As Integer = C.foo() 'BIND:"foo"
+    Public ClassId As Integer = C.goo() 'BIND:"goo"
 
-    shared Function foo() as Integer
+    shared Function goo() as Integer
         return 23    
     End Function
 End Class
@@ -3053,13 +3053,13 @@ End Class
 
             Assert.Null(semanticInfo.Type)
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
-            Assert.Equal("Function C.foo() As System.Int32", semanticInfo.MemberGroup(0).ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Function C.goo() As System.Int32", semanticInfo.MemberGroup(0).ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Sub
 
         <WorkItem(541243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541243")>
         <Fact()>
         Public Sub CollectionInitializerNoMscorlibRef()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -3080,7 +3080,7 @@ End Module
 
         <Fact()>
         Public Sub CollectionInitializerWithoutConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3103,7 +3103,7 @@ End Class
         <WorkItem(541422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541422")>
         <Fact()>
         Public Sub CollectionInitializerWithConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -3125,7 +3125,7 @@ End Class
 
         <Fact()>
         Public Sub ArrayInitializerMemberWithConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3160,7 +3160,7 @@ End Module
 
         <Fact()>
         Public Sub TwoDArrayInitializerMember()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3196,7 +3196,7 @@ End Module
 
         <Fact()>
         Public Sub PartialArrayInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3233,7 +3233,7 @@ End Module
         <WorkItem(541270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541270")>
         <Fact()>
         Public Sub GetSemanticInfoOfNothing()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -3305,7 +3305,7 @@ End Module
         <WorkItem(541390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541390")>
         <Fact()>
         Public Sub ErrorLambdaParamInsideFieldInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -3325,7 +3325,7 @@ End Module
 
         <Fact()>
         Public Sub ErrorLambdaParamInsideLocalInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Module1
@@ -3348,7 +3348,7 @@ End Module
         <WorkItem(541390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541390")>
         <Fact()>
         Public Sub LambdaParamInsideFieldInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System        
@@ -3369,7 +3369,7 @@ End Module
 
         <Fact()>
         Public Sub LambdaParamInsideLocalInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3393,7 +3393,7 @@ End Module
         <WorkItem(541418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541418")>
         <Fact()>
         Public Sub BindAttributeInstanceWithoutAttributeSuffix()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: My> 'BIND:"My"
@@ -3413,7 +3413,7 @@ End Class]]>
         <WorkItem(541401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541401")>
         <Fact()>
         Public Sub BindingAttributeParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class MineAttribute
@@ -3443,7 +3443,7 @@ End Class
 
         <Fact()>
         Public Sub BindAttributeNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -3492,7 +3492,7 @@ End Namespace
         <WorkItem(541418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541418")>
         <Fact()>
         Public Sub BindingAttributeClassName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3521,7 +3521,7 @@ End Class
 
         <Fact()>
         Public Sub TestAttributeFieldName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3572,7 +3572,7 @@ End Namespace]]>
 
         <Fact()>
         Public Sub TestAttributePropertyName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3631,7 +3631,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestAttributePositionalArgOnParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3684,7 +3684,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestAttributeClassNameOnReturnValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3736,7 +3736,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestAttributeCannotBindToUnqualifiedClassMember()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3786,7 +3786,7 @@ End Namespace
 
         <Fact()>
         Public Sub AttributeSemanticInfo_OverloadResolutionFailure_01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3826,7 +3826,7 @@ Imports System
 
         <Fact()>
         Public Sub AttributeSemanticInfo_OverloadResolutionFailure_02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3865,7 +3865,7 @@ Imports System
         <WorkItem(541481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541481")>
         <Fact()>
         Public Sub BindingPredefinedCastExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports Microsoft.VisualBasic
@@ -3890,7 +3890,7 @@ End Module
         <WorkItem(541498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541498")>
         <Fact()>
         Public Sub DictionaryAccessExpressionErrorType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -3910,7 +3910,7 @@ End Module
 
         <Fact()>
         Public Sub DictionaryAccessExpressionErrorExpr()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -3932,7 +3932,7 @@ End Class
 
         <Fact()>
         Public Sub DictionaryAccessExpressionNoType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -3951,7 +3951,7 @@ End Class
 
         <Fact()>
         Public Sub DictionaryAccessExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -3974,7 +3974,7 @@ End Class
         <WorkItem(541384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541384")>
         <Fact()>
         Public Sub DictionaryAccessKey()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -3996,7 +3996,7 @@ End Class
         <WorkItem(541518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541518")>
         <Fact()>
         Public Sub AssignAddressOfPropertyToDelegate()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -4039,7 +4039,7 @@ End Module
 
         <Fact()>
         Public Sub FieldAccess()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4077,7 +4077,7 @@ End Class
 
         <Fact()>
         Public Sub LocalVariable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4115,14 +4115,14 @@ End Class
 
         <Fact()>
         Public Sub NotFunctionReturnLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
 Class M
-    Public Function Foo() As Integer
-        Foo()'BIND:"Foo"
+    Public Function Goo() As Integer
+        Goo()'BIND:"Goo"
     End Function
 End Class
     ]]></file>
@@ -4134,27 +4134,27 @@ End Class
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function M.Foo() As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Function M.Goo() As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function M.Foo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Function M.Goo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
         <Fact()>
         Public Sub FunctionReturnLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
 Class M
-    Public Function Foo() As Integer
-        Foo = 4'BIND:"Foo"
+    Public Function Goo() As Integer
+        Goo = 4'BIND:"Goo"
     End Function
 End Class
 
@@ -4169,7 +4169,7 @@ End Class
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Foo As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Goo As System.Int32", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Local, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -4180,14 +4180,14 @@ End Class
 
         <Fact()>
         Public Sub MeSemanticInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
 Class M
     Public x As Integer
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Me.x = 5'BIND:"Me"
     End Function
 End Class
@@ -4202,7 +4202,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As M", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As M", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -4215,7 +4215,7 @@ End Class
 
         <Fact()>
         Public Sub LocalVariableInConstructor()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4254,7 +4254,7 @@ End Class
 
         <Fact()>
         Public Sub LocalVariableInSharedConstructor()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4292,7 +4292,7 @@ End Class
 
         <Fact()>
         Public Sub LocalVariableInModuleConstructor()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4331,7 +4331,7 @@ End Module
 
         <Fact()>
         Public Sub ConstructorConstructorCall_Structure_Me_New_WithParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4370,7 +4370,7 @@ End Structure
 
         <Fact()>
         Public Sub ConstructorConstructorCall_Class_Me_New_WithParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4409,7 +4409,7 @@ End Class
 
         <Fact()>
         Public Sub ConstructorConstructorCall_Structure_Me_New_NoParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4445,7 +4445,7 @@ End Structure
 
         <Fact()>
         Public Sub ConstructorConstructorCall_Class_Me_New_NoParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4484,7 +4484,7 @@ End Class
 
         <Fact()>
         Public Sub Invocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4518,7 +4518,7 @@ End Class
 
         <Fact()>
         Public Sub MethodGroup()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4557,7 +4557,7 @@ End Class
 
         <Fact()>
         Public Sub InvocationNoMatchingOverloads()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4602,7 +4602,7 @@ End Class
         <WorkItem(541567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541567")>
         <Fact()>
         Public Sub NoMatchingOverloads2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4637,7 +4637,7 @@ End Class
 
         <Fact()>
         Public Sub NoMatchingOverloads3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4673,7 +4673,7 @@ End Class
         <WorkItem(541567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541567")>
         <Fact()>
         Public Sub NoMatchingOverloads4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4736,7 +4736,7 @@ End Class
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <Fact()>
         Public Sub PropertyPassedByRef()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -4773,7 +4773,7 @@ End Class
 
         <Fact()>
         Public Sub InvocationWithNoMatchingOverloadsAndNonMatchingReturnTypes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4816,7 +4816,7 @@ End Class
 
         <Fact()>
         Public Sub IncompleteInvocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4859,7 +4859,7 @@ End Class
 
         <Fact()>
         Public Sub TypeNameInsideMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4889,7 +4889,7 @@ End Class
 
         <Fact()>
         Public Sub TypeNameInsideMethodWithConflictingLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4920,7 +4920,7 @@ End Class
 
         <Fact()>
         Public Sub TypeNameOutsideMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4952,7 +4952,7 @@ End Class
 
         <Fact()>
         Public Sub NamespaceName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -4984,7 +4984,7 @@ End Class
 
         <Fact()>
         Public Sub NamespaceNameInDeclaration()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5011,7 +5011,7 @@ End Class
 
         <Fact()>
         Public Sub NamespaceNameWithConflictingField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5045,12 +5045,12 @@ End Class
 
         <Fact()>
         Public Sub MissingNamespaceName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
     Private Sub M()
-        Dim x As Baz.Foo.String'BIND:"Foo"
+        Dim x As Baz.Goo.String'BIND:"Goo"
     End Sub
 
     Private Function F() As String
@@ -5062,9 +5062,9 @@ End Class
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Equal("Baz.Foo", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Baz.Goo", semanticInfo.Type.ToTestDisplayString())
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind)
-            Assert.Equal("Baz.Foo", semanticInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal("Baz.Goo", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
@@ -5079,7 +5079,7 @@ End Class
 
         <Fact()>
         Public Sub RightSideOfQualifiedName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5117,7 +5117,7 @@ End Namespace
 
         <Fact()>
         Public Sub RHSInDeclaration()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5148,7 +5148,7 @@ End Class
 
         <Fact()>
         Public Sub ImportsRHS()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports NS1.NS2'BIND:"NS2"
@@ -5180,7 +5180,7 @@ End Namespace
 
         <Fact()>
         Public Sub ImportsLHS()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports NS1.NS2'BIND:"NS1"
@@ -5212,7 +5212,7 @@ End Namespace
 
         <Fact()>
         Public Sub AmbiguousType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5258,7 +5258,7 @@ End Module
 
         <Fact()>
         Public Sub AmbiguousField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5304,7 +5304,7 @@ End Module
 
         <Fact()>
         Public Sub InNamespaceDeclaration()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace AAA.BBB'BIND:"AAA"
@@ -5331,7 +5331,7 @@ End Namespace
 
         <Fact()>
         Public Sub LocalInitializerWithConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5362,7 +5362,7 @@ End Class
 
         <Fact()>
         Public Sub LocalInitializerWithConversion2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5393,7 +5393,7 @@ End Class
 
         <Fact()>
         Public Sub ArgumentWithParentConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5428,7 +5428,7 @@ End Class
 
         <Fact()>
         Public Sub LocalWithConversionInParent()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5460,7 +5460,7 @@ End Class
         <WorkItem(539179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539179")>
         <Fact()>
         Public Sub LocalWithConversionInParent2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class C
@@ -5492,7 +5492,7 @@ End Class
 
         <Fact()>
         Public Sub FieldInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5524,7 +5524,7 @@ End Class
 
         <Fact()>
         Public Sub AutoPropertyInitializers()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -5556,7 +5556,7 @@ End Class
         <WorkItem(541562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541562")>
         <Fact()>
         Public Sub ObjectCreationInAsNew()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5584,7 +5584,7 @@ End Class
         <WorkItem(541563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541563")>
         <Fact()>
         Public Sub NewDelegateCreation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5613,7 +5613,7 @@ End Module
         <WorkItem(541581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541581")>
         <Fact()>
         Public Sub ImplicitConversionTestFieldInit()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -5638,7 +5638,7 @@ End Module
 
         <Fact()>
         Public Sub IdentityCIntConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5674,7 +5674,7 @@ End Module
         <WorkItem(528541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528541")>
         <Fact()>
         Public Sub ImplicitConversionTestLongNumericToInteger()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -5706,7 +5706,7 @@ End Module
         <WorkItem(541596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541596")>
         <Fact()>
         Public Sub ImplicitConversionExprReturnedByLambda()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5737,7 +5737,7 @@ End Module
         <WorkItem(541608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541608")>
         <Fact()>
         Public Sub IncompleteAttributeOnMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class B
@@ -5757,7 +5757,7 @@ End Class
         <WorkItem(541625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541625")>
         <Fact()>
         Public Sub ImplicitConvExtensionMethodReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5792,7 +5792,7 @@ End Module
 
         <Fact()>
         Public Sub NamedArgument1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class Class1
@@ -5805,7 +5805,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         x.f(4, a:="hello")'BIND:"a"
@@ -5831,7 +5831,7 @@ End Module
 
         <Fact()>
         Public Sub NamedArgument2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5852,7 +5852,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         x.f(4, "hithere", b:="hello")'BIND:"b"
@@ -5886,7 +5886,7 @@ End Module
 
         <Fact()>
         Public Sub NamedArgument3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5907,7 +5907,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         x.f(4, "hithere", zappa:="hello")'BIND:"zappa"
@@ -5933,7 +5933,7 @@ End Module
 
         <Fact()>
         Public Sub NamedArgumentInOnProperty()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5966,7 +5966,7 @@ Public Class Class1
 End Class
 
 Public Module M1
-    Sub foo()
+    Sub goo()
         Dim x As New Class1
 
         Dim y As Integer = x.f(4, c:=12, b:="hi") 'BIND:"c"'BIND:"c"
@@ -5995,7 +5995,7 @@ End Module
         <WorkItem(541412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541412")>
         <Fact()>
         Public Sub TestGetSemanticInfoFromAttributeSyntax_Error_MissingSystemImport()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class AAttribute
@@ -6036,7 +6036,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSemanticInfoFromAttributeSyntax_Error_MustInheritAttributeClass()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6083,7 +6083,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSemanticInfoFromIdentifierSyntax_Error_MustInheritAttributeClass()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6128,7 +6128,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSemanticInfoFromAttributeSyntax_Error_GenericAttributeClass()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6171,7 +6171,7 @@ End Class
         <WorkItem(539822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539822")>
         <Fact()>
         Public Sub UseTypeAsVariable()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6206,7 +6206,7 @@ End Module
 
         <Fact()>
         Public Sub ForEachWithOneDimensionalArray()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6256,7 +6256,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachWithMultiDimensionalArray()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6308,7 +6308,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachOverString()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6356,7 +6356,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachCustomCollection()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6387,7 +6387,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6423,7 +6423,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachCustomCollectionWithDispose()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6459,7 +6459,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6495,7 +6495,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachCustomCollectionWithDisposeError()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6528,7 +6528,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6573,7 +6573,7 @@ BC30149: Class 'CustomEnumerator' must implement 'Sub Dispose()' for interface '
 
         <Fact()>
         Public Sub ForEachCustomCollectionWithMissingMoveNext()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -6605,7 +6605,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection 'BIND:"For Each element as Custom In myCustomCollection"
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -6638,7 +6638,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachNotMatchingDesignPatternIEnumerable()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -6692,7 +6692,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachNotMatchingDesignPatternGenericIEnumerable()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -6750,7 +6750,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachGenericIEnumerable()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -6796,7 +6796,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachInvalidCollection()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
  Option Strict On
@@ -6837,7 +6837,7 @@ End Class
 
         <Fact()>
         Public Sub ForEachLateBinding()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict off
@@ -6883,7 +6883,7 @@ End Class
 
         <Fact()>
         Public Sub NewDelegate()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6893,10 +6893,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del 
-        d = New Del(AddressOf foo)'BIND:"Del"
+        d = New Del(AddressOf goo)'BIND:"Del"
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
     End Sub
 End Module
     ]]></file>
@@ -6920,7 +6920,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegate2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6930,10 +6930,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del 
-        d = New Del(AddressOf foo) 'BIND:"New Del(AddressOf foo)"
+        d = New Del(AddressOf goo) 'BIND:"New Del(AddressOf goo)"
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
     End Sub
 End Module
     ]]></file>
@@ -6958,7 +6958,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegateWrongMethodSignature()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -6968,10 +6968,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del
-        d = New Del(AddressOf foo)'BIND:"Del"
+        d = New Del(AddressOf goo)'BIND:"Del"
     End Sub
 
-    Sub foo(y As String, z As String)
+    Sub goo(y As String, z As String)
     End Sub
 End Module
     ]]></file>
@@ -6995,7 +6995,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegateWrongMethodSignature2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7005,10 +7005,10 @@ Delegate Sub Del(x As Integer)
 Module Program
     Sub Main(args As String())
         Dim d As Del
-        d = New Del(AddressOf foo)'BIND:"New Del(AddressOf foo)"
+        d = New Del(AddressOf goo)'BIND:"New Del(AddressOf goo)"
     End Sub
 
-    Sub foo(y As String, z As String)
+    Sub goo(y As String, z As String)
     End Sub
 End Module
     ]]></file>
@@ -7033,7 +7033,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegateOnLambda()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7046,7 +7046,7 @@ Module Program
         d = New Del(Sub(x) Console.WriteLine(x)) 'BIND:"Del"'BIND:"Del"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7070,7 +7070,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegateOnLambda2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7083,7 +7083,7 @@ Module Program
         d = New Del(Sub(x) Console.WriteLine(x)) 'BIND:"New Del(Sub(x) Console.WriteLine(x))"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7108,7 +7108,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegateOnMismatchedLambda()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7121,7 +7121,7 @@ Module Program
         d = New Del(Sub(x, y) Console.WriteLine(x)) 'BIND:"Del"'BIND:"Del"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7145,7 +7145,7 @@ End Module
 
         <Fact()>
         Public Sub NewDelegateOnMismatchedLambda2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7158,7 +7158,7 @@ Module Program
         d = New Del(Sub(x, y) Console.WriteLine(x)) 'BIND:"New Del(Sub(x, y) Console.WriteLine(x))"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7183,7 +7183,7 @@ End Module
 
         <Fact()>
         Public Sub NewOfInaccessibleClass()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7199,7 +7199,7 @@ Module Program
         o = New X.Y(3)'BIND:"X.Y"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7223,7 +7223,7 @@ End Module
 
         <Fact()>
         Public Sub NewOfInaccessibleClass2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7239,7 +7239,7 @@ Module Program
         o = New X.Y(3)'BIND:"New X.Y(3)"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7266,7 +7266,7 @@ End Module
 
         <Fact()>
         Public Sub OverloadResolutionFailureOnNew()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7283,7 +7283,7 @@ Module Program
         o = New X(3, 4)'BIND:"X"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7306,7 +7306,7 @@ End Module
 
         <Fact()>
         Public Sub OverloadResolutionFailureOnNew2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7323,7 +7323,7 @@ Module Program
         o = New X(3, 4)'BIND:"New X(3, 4)"
     End Sub
 
-    Sub foo()
+    Sub goo()
     End Sub
 End Module
     ]]></file>
@@ -7354,7 +7354,7 @@ End Module
         <WorkItem(542695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542695")>
         <Fact()>
         Public Sub TestCandidateReasonForInaccessibleMethod()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Class1
@@ -7392,7 +7392,7 @@ End Class
         <WorkItem(542701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542701")>
         <Fact()>
         Public Sub GenericTypeWithNoTypeArgsOnAttribute_AttributeSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Gen(Of T)
@@ -7430,7 +7430,7 @@ End Class
 
         <Fact()>
         Public Sub GenericTypeWithNoTypeArgsOnAttribute_IdentifierSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Gen(Of T)
@@ -7471,11 +7471,11 @@ End Class
 
         <Fact()>
         Public Sub NextVariable()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class X
-    Sub Foo()
+    Sub Goo()
         For i As Integer = 1 To 10
 
         Next i'BIND:"i"
@@ -7504,7 +7504,7 @@ End Class
         <WorkItem(542009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542009")>
         <Fact()>
         Public Sub Bug8966()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -7552,7 +7552,7 @@ End Module
 
         <Fact()>
         Public Sub ImplicitLocal1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -7605,7 +7605,7 @@ End Module
 
         <Fact()>
         Public Sub ImplicitLocal2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -7660,7 +7660,7 @@ End Module
 
         <Fact()>
         Public Sub ImplicitLocalInLambdaInInitializer()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -7737,7 +7737,7 @@ End Module
         <WorkItem(542301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542301")>
         <Fact()>
         Public Sub Bug9489()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7763,7 +7763,7 @@ End Module
         <WorkItem(542596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542596")>
         <Fact()>
         Public Sub BindMethodInvocationWhenUnnamedArgFollowsNamed()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -7778,13 +7778,15 @@ Module Module1
 End Module
         </file>
     </compilation>)
-
+            compilation.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
+                 ~
+                                               </errors>)
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
+            Assert.Equal("Sub Module1.M1(x As System.Int32, y As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
 
-            Assert.Equal(Nothing, semanticInfo.Symbol)
-
-
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -7802,17 +7804,21 @@ Module Module1
 End Module
         </file>
     </compilation>)
-
+            compilation.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
+                 ~
+                                               </errors>)
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
 
-            Assert.Equal(Nothing, semanticInfo.Symbol)
+            Assert.Equal("Sub Module1.M1(x As System.Int32, y As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
 
         End Sub
 
         <WorkItem(542332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542332")>
         <Fact()>
         Public Sub BindArrayBoundOfField()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class class1
@@ -7845,7 +7851,7 @@ End Class
         <WorkItem(542858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542858")>
         <Fact()>
         Public Sub TypeNamesInsideCastExpression()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7881,7 +7887,7 @@ End Module
         <WorkItem(542933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542933")>
         <Fact()>
         Public Sub CTypeOnALambdaExpr()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -7915,7 +7921,7 @@ End Module
 
         <Fact()>
         Public Sub AliasInLocalDecl()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7953,7 +7959,7 @@ End Module
 
         <Fact()>
         Public Sub AliasInTryCast()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -7992,7 +7998,7 @@ End Module
 
         <Fact()>
         Public Sub AliasInDirectCast()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8031,7 +8037,7 @@ End Module
 
         <Fact()>
         Public Sub AliasInCType()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8070,7 +8076,7 @@ End Module
 
         <Fact()>
         Public Sub AliasInGenericTypeArgument()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8110,7 +8116,7 @@ End Module
         <WorkItem(542885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542885")>
         <Fact()>
         Public Sub AliasInGenericArgOfLocal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Threading
@@ -8148,14 +8154,14 @@ End Module
         <WorkItem(542841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542841")>
         <Fact()>
         Public Sub AliasInArrayCreation()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Imports IClon = System.ICloneable
 
 Module M
-    Sub Foo()
+    Sub Goo()
         Dim y = New IClon() {}'BIND:"IClon"
     End Sub
 End Module
@@ -8186,7 +8192,7 @@ End Module
         <WorkItem(542808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542808")>
         <Fact()>
         Public Sub InvocationWithMissingCloseParen()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Diagnostics
@@ -8197,7 +8203,7 @@ Class C
     End Sub
 End Class
     ]]></file>
-</compilation>, additionalRefs:={SystemRef})
+</compilation>, references:={SystemRef})
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of MemberAccessExpressionSyntax)(compilation, "a.vb")
 
@@ -8215,7 +8221,7 @@ End Class
 
         <Fact()>
         Public Sub FailedOverloadResolutionOnCallShouldHaveMemberGroup()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8226,17 +8232,17 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim v As A = New A()
-        dim r = v.Foo("hello")'BIND:"Foo"
+        dim r = v.Goo("hello")'BIND:"Goo"
     End Sub
 
 
 End Module
 
 Class A
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Return 1
     End Function
-    'Public Function Foo(x as integer, y as Integer) As Integer
+    'Public Function Goo(x as integer, y as Integer) As Integer
     '    Return 1
     'End Function
 End Class
@@ -8249,17 +8255,17 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function A.Foo() As System.Int32", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Function A.Goo() As System.Int32", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function A.Foo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Function A.Goo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
         End Sub
 
         <Fact()>
         Public Sub MyBaseNew()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8304,7 +8310,7 @@ End Class
 
         <Fact()>
         Public Sub MyBaseNew2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8349,7 +8355,7 @@ End Class
 
         <Fact()>
         Public Sub MyBaseNew3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8394,7 +8400,7 @@ End Class
 
         <Fact()>
         Public Sub MyBaseNew4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -8440,7 +8446,7 @@ End Class
         <WorkItem(542941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542941")>
         <Fact()>
         Public Sub QualifiedTypeInDim()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Program
@@ -8478,7 +8484,7 @@ End Class
         <WorkItem(543031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543031")>
         <Fact()>
         Public Sub MissingIdentifierSyntaxNodeIncompleteMethodDecl()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -8500,16 +8506,16 @@ End Module
         <WorkItem(543099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543099")>
         <Fact()>
         Public Sub GetSymbolForOptionalParamMethodCall()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
             <compilation>
                 <file name="a.vb"><![CDATA[
 Imports System
 Module Program
-    Sub Foo(x As Integer, Optional y As Double = #1/1/2001#)
+    Sub Goo(x As Integer, Optional y As Double = #1/1/2001#)
 
     End Sub
     Sub Main(args As String())
-        Foo(1)'BIND:"Foo"
+        Goo(1)'BIND:"Goo"
     End Sub
 End Module
 
@@ -8522,7 +8528,7 @@ End Module
             Assert.Null(semanticSummary.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub Program.Foo(x As System.Int32, [y As System.Double])", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub Program.Goo(x As System.Int32, [y As System.Double])", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -8530,14 +8536,14 @@ End Module
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub Program.Foo(x As System.Int32, [y As System.Double])", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub Program.Goo(x As System.Int32, [y As System.Double])", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
         <WorkItem(10607, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub GetSymbolForOptionalParamMethodCallWithOutParenthesis()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -8545,10 +8551,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub Foo(Optional i As Integer = 1)
+    Sub Goo(Optional i As Integer = 1)
     End Sub
     Sub Main(args As String())
-        Foo'BIND:"Foo"
+        Goo'BIND:"Goo"
     End Sub
 End Module
 
@@ -8564,7 +8570,7 @@ End Module
             Assert.Equal(TypeKind.Structure, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub Program.Foo([i As System.Int32 = 1])", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub Program.Goo([i As System.Int32 = 1])", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -8577,7 +8583,7 @@ End Module
         <WorkItem(542217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542217")>
         <Fact()>
         Public Sub ConflictingAliases()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports S = System
@@ -8620,11 +8626,11 @@ End Module
 
         <Fact()>
         Public Sub StaticLocals()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
-    Public Function foo() As Integer
+    Public Function goo() As Integer
         Static i As Integer = 23
         i = i + 1
         Return i
@@ -8650,7 +8656,7 @@ End Class
 
 
             Dim containingType = DirectCast(model, SemanticModel).GetEnclosingSymbol(SLDeclaration.SpanStart)
-            Assert.Equal("Function C.foo() As System.Int32", DirectCast(containingType, Symbol).ToTestDisplayString())
+            Assert.Equal("Function C.goo() As System.Int32", DirectCast(containingType, Symbol).ToTestDisplayString())
 
             'GetSymbolInfo
             'GetSpeculativeSymbolInfo()
@@ -8668,7 +8674,7 @@ End Class
         <WorkItem(530631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530631")>
         <Fact()>
         Public Sub Bug16603()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -8695,7 +8701,7 @@ End Module
         <WorkItem(543278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543278")>
         <Fact()>
         Public Sub ModuleNameInObjectCreationExpr()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -8726,7 +8732,7 @@ End Module
 
         <Fact()>
         Public Sub ModuleNameInObjectCreationExpr2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -8765,7 +8771,7 @@ BC30371: Module 'Program' cannot be used as a type.
 
         <Fact()>
         Public Sub ClassWithInaccessibleConstructorsInObjectCreationExpr()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C1
@@ -8780,7 +8786,7 @@ Module Program
 
     End Sub
 
-public mustinherit class Foo
+public mustinherit class Goo
 public sub new()
 end sub
 end class
@@ -8803,7 +8809,7 @@ End Module
 
         <Fact()>
         Public Sub ClassWithInaccessibleConstructorsInObjectCreationExpr2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C1
@@ -8818,7 +8824,7 @@ Module Program
 
     End Sub
 
-public mustinherit class Foo
+public mustinherit class Goo
 public sub new()
 end sub
 end class
@@ -8846,7 +8852,7 @@ End Module
         <WorkItem(542844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542844")>
         <Fact()>
         Public Sub Bug10246()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C(Of T)
@@ -8878,7 +8884,7 @@ End Class
         <WorkItem(530093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530093")>
         <Fact()>
         Public Sub Bug530093()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -8893,14 +8899,14 @@ End Class
             Dim symbolInfo = semanticModel1.GetSymbolInfo(node1)
             Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length)
-            Assert.Equal("[Me] As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Me As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Null(symbolInfo.Symbol)
         End Sub
 
         <WorkItem(530093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530093")>
         <Fact()>
         Public Sub Bug530093b()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -8915,13 +8921,13 @@ End Class
             Dim symbolInfo = semanticModel1.GetSymbolInfo(node1)
             Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length)
-            Assert.Equal("[Me] As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Me As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Null(symbolInfo.Symbol)
         End Sub
 
         <Fact()>
         Public Sub NewOfModule()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -8957,7 +8963,7 @@ End Module
 
         <Fact()>
         Public Sub NewOfModule2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -8994,7 +9000,7 @@ End Module
 
         <Fact()>
         Public Sub NewOfInterface()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9030,7 +9036,7 @@ End Interface
 
         <Fact()>
         Public Sub NewOfInterface2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9067,7 +9073,7 @@ End Interface
 
         <Fact()>
         Public Sub NewOfNotCreatable()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9105,7 +9111,7 @@ End Class
 
         <Fact()>
         Public Sub NewOfNotCreatable2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9147,7 +9153,7 @@ End Class
 
         <Fact(), WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub NewOfNotCreatable3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9212,7 +9218,7 @@ End Class
 
         <Fact(), WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub NewOfNotCreatable4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9274,7 +9280,7 @@ End Class
 
         <Fact(), WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub NewOfNotCreatable5()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9339,7 +9345,7 @@ End Class
 
         <Fact(), WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub NewOfNotCreatable6()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9406,7 +9412,7 @@ End Class
 
         <Fact(), WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")>
         Public Sub NewOfNotCreatable7()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9465,7 +9471,7 @@ End Class
 
         <Fact()>
         Public Sub NewOfUnconstrainedTypeParameter()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9502,7 +9508,7 @@ End Class
 
         <Fact()>
         Public Sub NewOfUnconstrainedTypeParameter2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -9538,7 +9544,7 @@ End Class
         <WorkItem(543534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543534")>
         <Fact()>
         Public Sub InterfaceCreationExpression()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I
@@ -9575,7 +9581,7 @@ End Class
 
         <Fact()>
         Public Sub InterfaceCreationExpression2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface I
@@ -9618,7 +9624,7 @@ BC30375: 'New' cannot be used on an interface.
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <Fact()>
         Public Sub AliasAttributeName()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 imports A = A1
@@ -9657,12 +9663,12 @@ End Class
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <Fact()>
         Public Sub AliasAttributeName_02_AttributeSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<Foo> 'BIND:"Foo"
+<Goo> 'BIND:"Goo"
 Class C
 End Class
     ]]></file>
@@ -9686,7 +9692,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9694,12 +9700,12 @@ End Class
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <Fact()>
         Public Sub AliasAttributeName_02_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<Foo> 'BIND:"Foo"
+<Goo> 'BIND:"Goo"
 Class C
 End Class
     ]]></file>
@@ -9722,7 +9728,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9730,12 +9736,12 @@ End Class
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <Fact()>
         Public Sub AliasAttributeName_03_AttributeSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
             <compilation>
                 <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class C
 End Class
     ]]></file>
@@ -9758,19 +9764,19 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <Fact()>
         Public Sub AliasAttributeName_03_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
           <compilation>
               <file name="a.vb"><![CDATA[
-imports FooAttribute = System.ObsoleteAttribute
+imports GooAttribute = System.ObsoleteAttribute
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class C
 End Class
     ]]></file>
@@ -9793,7 +9799,7 @@ End Class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Dim aliasInfo = GetAliasInfoForTest(compilation, "a.vb")
             Assert.NotNull(aliasInfo)
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
@@ -9802,7 +9808,7 @@ End Class
         <Fact()>
         Public Sub AliasQualifiedAttributeName_01()
 
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 namespace N
@@ -9842,7 +9848,7 @@ end class
         <Fact()>
         Public Sub AliasQualifiedAttributeName_02()
 
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 namespace N
@@ -9883,7 +9889,7 @@ end class
         <Fact()>
         Public Sub AliasQualifiedAttributeName_03()
 
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 namespace N
@@ -9926,7 +9932,7 @@ end class
 
         <Fact()>
         Public Sub AliasQualifiedAttributeName_04()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 namespace N
@@ -9970,12 +9976,12 @@ end class
         <Fact()>
         Public Sub AliasAttributeName_NonAttributeAlias()
 
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = C
+imports GooAttribute = C
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class C
 end class
     ]]></file>
@@ -10004,12 +10010,12 @@ end class
         <Fact()>
         Public Sub AliasAttributeName_NonAttributeAlias_GenericType()
 
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
-imports FooAttribute = Gen(of Integer)
+imports GooAttribute = Gen(of Integer)
 
-<FooAttribute> 'BIND:"FooAttribute"
+<GooAttribute> 'BIND:"GooAttribute"
 Class Gen(of T)
 end class
     ]]></file>
@@ -10037,7 +10043,7 @@ end class
 
         <Fact(), WorkItem(545085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545085")>
         Public Sub ColorColorBug13346()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class Compilation
@@ -10082,19 +10088,19 @@ End Class
         <WorkItem(529702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529702")>
         <Fact()>
         Public Sub ColorColorBug14084()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
 
 Class A(Of T As C)
     Class B
         Dim t As T 
-        Sub Foo()
-            T.Foo()'BIND:"T"
+        Sub Goo()
+            T.Goo()'BIND:"T"
         End Sub
     End Class
 End Class
@@ -10124,7 +10130,7 @@ End Class
         <WorkItem(546097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546097")>
         <Fact()>
         Public Sub LambdaParametersAsOptional()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -10137,7 +10143,7 @@ End Module
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of LiteralExpressionSyntax)(compilation, "a.vb")
             Assert.Null(semanticSummary.Symbol)
 
-            compilation = CreateCompilationWithMscorlib(
+            compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -10155,7 +10161,7 @@ End Module
         <Fact()>
         Public Sub OptionalParameterOutsideType()
             ' Method.
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Sub M(Optional o As Object = 3) 'BIND:"3"
@@ -10166,7 +10172,7 @@ End Sub
             Assert.Null(semanticSummary.Symbol)
 
             ' Method with type arguments.
-            compilation = CreateCompilationWithMscorlib(
+            compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Sub M(Of T)(Optional o As Object = 3) 'BIND:"3"
@@ -10177,7 +10183,7 @@ End Sub
             Assert.Null(semanticSummary.Symbol)
 
             ' Property.
-            compilation = CreateCompilationWithMscorlib(
+            compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 ReadOnly Property P(Optional o As Object = 3) As Object 'BIND:"3"
@@ -10191,7 +10197,7 @@ End Property
             Assert.Null(semanticSummary.Symbol)
 
             ' Event.
-            compilation = CreateCompilationWithMscorlib(
+            compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Event E(Optional o As Object = 3) 'BIND:"3"
@@ -10204,7 +10210,7 @@ Event E(Optional o As Object = 3) 'BIND:"3"
 
         <Fact>
         Public Sub ConstantUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -10214,7 +10220,7 @@ Class A
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -10225,7 +10231,7 @@ End Class
 
         <Fact>
         Public Sub CallUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -10237,7 +10243,7 @@ Class A
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -10248,7 +10254,7 @@ End Class
 
         <Fact>
         Public Sub AddressOfUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -10259,7 +10265,7 @@ Class A
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -10270,7 +10276,7 @@ End Class
 
         <Fact>
         Public Sub TypeExpressionUnevaluatedReceiver()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -10282,7 +10288,7 @@ Class A
     End Function
 End Class
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -10297,7 +10303,7 @@ End Class
         <WorkItem(792647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792647")>
         <Fact>
         Public Sub ImplementsIEquatable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -10325,7 +10331,7 @@ End Class
 
         <Fact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")>
         Public Sub AliasWithAnError()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System

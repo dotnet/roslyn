@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             If targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) Then
                 Return SpecializedCollections.SingletonEnumerable(
-                            New RecommendedKeyword("Resume Next", VBFeaturesResources.OnErrorResumeNextKeywordToolTip))
+                            New RecommendedKeyword("Resume Next", VBFeaturesResources.When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error))
             End If
 
             If context.IsMultiLineStatementContext Then
                 Return SpecializedCollections.SingletonEnumerable(
-                            New RecommendedKeyword("Resume", VBFeaturesResources.OnErrorResumeNextKeywordToolTip))
+                            New RecommendedKeyword("Resume", VBFeaturesResources.When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error))
                 ' TODO: we are inconsistent here in Dev10. We offer "On Error Resume Next" even after typing just "On",
                 ' yet curiously we don't show "Resume Next" as it's own statement. This might be something to fix if
                 ' we determine we even care.

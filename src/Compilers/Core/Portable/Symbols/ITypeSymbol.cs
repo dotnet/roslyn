@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis
         bool IsAnonymousType { get; }
 
         /// <summary>
+        /// Is this a symbol for a tuple .
+        /// </summary>
+        bool IsTupleType { get; }
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then <see cref="OriginalDefinition"/> gets the original symbol as it was defined in
         /// source or metadata.

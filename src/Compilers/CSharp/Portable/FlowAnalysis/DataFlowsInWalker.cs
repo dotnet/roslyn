@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void NoteBranch(
             PendingBranch pending,
-            BoundStatement gotoStmt,
+            BoundNode gotoStmt,
             BoundStatement targetStmt)
         {
             targetStmt.AssertIsLabeledStatement();
@@ -91,22 +91,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void ReportUnassigned(
-            Symbol symbol,
-            CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             // TODO: how to handle fields of structs?
-            if (RegionContains(node.Span) && !(symbol is FieldSymbol))
+            if (RegionContains(node.Span))
             {
-                _dataFlowsIn.Add(symbol);
+                // if the field access is reported as unassigned it should mean the original local
+                // or parameter flows in, so we should get the symbol associated with the expression
+                _dataFlowsIn.Add(symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol);
             }
 
-            base.ReportUnassigned(symbol, node);
+            base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
         }
 
         protected override void ReportUnassignedOutParameter(
             ParameterSymbol parameter,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             Location location)
         {
             if (node != null && node is ReturnStatementSyntax && RegionContains(node.Span))
@@ -115,18 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             base.ReportUnassignedOutParameter(parameter, node, location);
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
-        {
-            if (RegionContains(node.Span))
-            {
-                //  if the field access is reported as unassigned it should mean the original local 
-                //  or parameter flows in, so we should get the symbol associated with the expression
-                _dataFlowsIn.Add(GetNonFieldSymbol(unassignedSlot));
-            }
-
-            base.ReportUnassigned(fieldSymbol, unassignedSlot, node);
         }
     }
 }

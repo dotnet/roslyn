@@ -32,7 +32,7 @@ namespace Microsoft.Cci
 
         #region IGenericParameter Members
 
-        public IEnumerable<ITypeReference> GetConstraints(EmitContext context)
+        public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
             return _parentParameter.GetConstraints(context);
         }
@@ -174,14 +174,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public IManagedPointerTypeReference AsManagedPointerTypeReference
-        {
-            get
-            {
-                return this as IManagedPointerTypeReference;
-            }
-        }
-
         public ITypeDefinition AsTypeDefinition(EmitContext context)
         {
             return this as ITypeDefinition;
@@ -232,9 +224,9 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
-        public PrimitiveTypeCode TypeCode(EmitContext context)
+        public PrimitiveTypeCode TypeCode
         {
-            return PrimitiveTypeCode.NotPrimitive;
+            get { return PrimitiveTypeCode.NotPrimitive; }
         }
 
         #endregion

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return TestAsync(element.NormalizedValue)
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(code As String, options As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(code, DirectCast(options, ParseOptions))
+        Protected Overrides Function CreateWorkspaceFromFile(code As String, options As ParseOptions) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(code, DirectCast(options, ParseOptions))
         End Function
     End Class
 End Namespace

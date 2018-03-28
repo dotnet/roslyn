@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create binder for binding the body of a method. 
         ''' </summary>
-        Public Sub New(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(methodSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder)
             MyBase.New(methodSymbol, root, containingBinder)
 
             ' this could be a synthetic method that does not have syntax for the method body
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CreateFunctionValueLocal(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode) As LocalSymbol
+        Private Function CreateFunctionValueLocal(methodSymbol As MethodSymbol, root As SyntaxNode) As LocalSymbol
             Dim methodBlock = TryCast(root, MethodBlockBaseSyntax)
 
             Debug.Assert(Not TypeOf methodSymbol Is SourceMethodSymbol OrElse

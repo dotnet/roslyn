@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return m_SyntaxNode
             End Get

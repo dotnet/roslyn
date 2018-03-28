@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -111,12 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+            public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {
-                get
-                {
-                    return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-                }
+                return GetEmptyTypeArgumentCustomModifiers(ordinal);
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)
@@ -182,6 +182,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override bool IsAbstract
+            {
+                get { return false; }
+            }
+
+            internal sealed override bool IsByRefLikeType
+            {
+                get { return false;  }
+            }
+
+            internal sealed override bool IsReadOnly
             {
                 get { return false; }
             }
@@ -304,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return DefaultMarshallingCharSet; }
             }
 
-            internal override bool IsSerializable
+            public override bool IsSerializable
             {
                 get { return false; }
             }
@@ -339,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -347,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = t2 as AnonymousTypePublicSymbol;
-                return (object)other != null && this.TypeDescriptor.Equals(other.TypeDescriptor, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+                return (object)other != null && this.TypeDescriptor.Equals(other.TypeDescriptor, comparison);
             }
 
             public override int GetHashCode()

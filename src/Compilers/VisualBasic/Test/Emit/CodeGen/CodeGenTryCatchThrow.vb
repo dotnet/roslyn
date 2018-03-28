@@ -267,14 +267,14 @@ Module EmitTest
         System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Dim ex As Exception
-            foo(ex)
+            goo(ex)
             Console.Write(ex.Message)
         Finally
             System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 
-    Sub foo(ByRef ex As Exception)
+    Sub goo(ByRef ex As Exception)
         Dim x As Integer = 0
         Try
             x = x \ x
@@ -285,7 +285,7 @@ End Module
     </file>
 </compilation>,
 expectedOutput:="Attempted to divide by zero.").
-            VerifyIL("EmitTest.foo",
+            VerifyIL("EmitTest.goo",
             <![CDATA[
 {
   // Code size       26 (0x1a)
@@ -708,7 +708,7 @@ End Class
 
         <Fact()>
         Public Sub ThrowNothing()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module M
@@ -980,7 +980,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation, expectedOutput:="Exited Try")
 
@@ -1008,7 +1008,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation, expectedOutput:="Exited Try")
 

@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationPropertyInfo GetInfo(IPropertySymbol property)
         {
-            CodeGenerationPropertyInfo info;
-            s_propertyToInfoMap.TryGetValue(property, out info);
+            s_propertyToInfoMap.TryGetValue(property, out var info);
             return info;
         }
 

@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -47,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend MustInherit Class Binder
 
-        Private Shared ReadOnly s_noTypes As ImmutableArray(Of TypeSymbol) = ImmutableArray(Of TypeSymbol).Empty
         Private Shared ReadOnly s_noArguments As ImmutableArray(Of BoundExpression) = ImmutableArray(Of BoundExpression).Empty
 
         Protected ReadOnly m_containingBinder As Binder
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Some nodes have special binder's for their contents
         ''' </summary>
-        Public Overridable Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overridable Function GetBinder(node As SyntaxNode) As Binder
             Return m_containingBinder.GetBinder(node)
         End Function
 
@@ -324,6 +324,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable ReadOnly Property ContainingMember As Symbol
             Get
                 Return m_containingBinder.ContainingMember
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Additional members associated with the binding context
+        ''' Currently, this field is only used for multiple field/property symbols initialized by an AsNew initializer, e.g. "Dim x, y As New Integer" or "WithEvents x, y as New Object"
+        ''' </summary>
+        Public Overridable ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return m_containingBinder.AdditionalContainingMembers
             End Get
         End Property
 
@@ -455,11 +465,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         ''' type isn't found.
         ''' </summary>
-        Friend Function GetWellKnownType(type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+        Friend Function GetWellKnownType(type As WellKnownType, syntax As SyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
             Return GetWellKnownType(Me.Compilation, type, syntax, diagBag)
         End Function
 
-        Friend Shared Function GetWellKnownType(compilation As VisualBasicCompilation, type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+        Friend Shared Function GetWellKnownType(compilation As VisualBasicCompilation, type As WellKnownType, syntax As SyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol As NamedTypeSymbol = compilation.GetWellKnownType(type)
             Debug.Assert(typeSymbol IsNot Nothing)
 
@@ -510,6 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim candidateProperty = DirectCast(candidate, PropertySymbol)
                 If candidateProperty.Type.SpecialType <> SpecialType.System_String OrElse
+                    candidateProperty.RefCustomModifiers.Length > 0 OrElse
                     candidateProperty.TypeCustomModifiers.Length > 0 OrElse
                     candidateProperty.ParameterCount <> 1 Then
 
@@ -517,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim parameter = candidateProperty.Parameters(0)
-                If parameter.CustomModifiers.Length > 0 Then
+                If parameter.CustomModifiers.Length > 0 OrElse parameter.RefCustomModifiers.Length > 0 Then
                     Continue For
                 End If
 
@@ -538,11 +549,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the assembly version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
-        Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+        Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As SyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Return GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, syntax, diagnostics)
         End Function
 
-        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, syntax As SyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
             Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(assembly, member, useSiteError)
 
@@ -570,11 +581,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
-        Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
+        Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As SyntaxNode, diagBag As DiagnosticBag) As Symbol
             Return GetWellKnownTypeMember(Me.Compilation, member, syntax, diagBag)
         End Function
 
-        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
+        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, syntax As SyntaxNode, diagBag As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
             Dim memberSymbol As Symbol = GetWellKnownTypeMember(compilation, member, useSiteError)
 
@@ -624,15 +635,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get an error symbol.
         ''' </summary>
-        Public Overridable Function GetErrorSymbol(name As String,
-                                                   errorInfo As DiagnosticInfo,
-                                                   candidateSymbols As ImmutableArray(Of Symbol),
-                                                   resultKind As LookupResultKind) As ErrorTypeSymbol
-            Return m_containingBinder.GetErrorSymbol(name, errorInfo, candidateSymbols, resultKind)
+        Public Shared Function GetErrorSymbol(
+            name As String,
+            errorInfo As DiagnosticInfo,
+            candidateSymbols As ImmutableArray(Of Symbol),
+            resultKind As LookupResultKind,
+            Optional reportErrorWhenReferenced As Boolean = False
+        ) As ErrorTypeSymbol
+            Return New ExtendedErrorTypeSymbol(errorInfo, name, 0, candidateSymbols, resultKind, reportErrorWhenReferenced)
         End Function
 
-        Public Function GetErrorSymbol(name As String, errorInfo As DiagnosticInfo) As ErrorTypeSymbol
-            Return GetErrorSymbol(name, errorInfo, ImmutableArray(Of Symbol).Empty, LookupResultKind.Empty)
+        Public Shared Function GetErrorSymbol(name As String, errorInfo As DiagnosticInfo, Optional reportErrorWhenReferenced As Boolean = False) As ErrorTypeSymbol
+            Return GetErrorSymbol(name, errorInfo, ImmutableArray(Of Symbol).Empty, LookupResultKind.Empty, reportErrorWhenReferenced)
         End Function
 
         ''' <summary>
@@ -882,50 +896,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' information to report diagnostics, then store the symbols so that diagnostics
         ''' can be reported at a later stage.
         ''' </summary>
-        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As VisualBasicSyntaxNode)
+        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As SyntaxNode)
             If Not Me.SuppressObsoleteDiagnostics Then
                 ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
             End If
         End Sub
 
-        Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As VisualBasicSyntaxNode)
-            Debug.Assert(context IsNot Nothing)
-            Debug.Assert(symbol IsNot Nothing)
+        Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As SyntaxNode)
+            Dim kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(context, symbol)
 
-            If symbol.ObsoleteState = ThreeState.False Then
-                Return
-            End If
+            Dim info As DiagnosticInfo = Nothing
+            Select Case kind
+                Case ObsoleteDiagnosticKind.Diagnostic
+                    info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol)
+                Case ObsoleteDiagnosticKind.Lazy, ObsoleteDiagnosticKind.LazyPotentiallySuppressed
+                    info = New LazyObsoleteDiagnosticInfo(symbol, context)
+            End Select
 
-            Dim data = symbol.ObsoleteAttributeData
-            If data Is Nothing Then
-                ' Obsolete attribute has errors.
-                Return
-            End If
-
-            ' If we haven't cracked attributes on the symbol at all or we haven't
-            ' cracked attribute arguments enough to be able to report diagnostics for
-            ' ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
-            ' later stage.
-            If symbol.ObsoleteState = ThreeState.Unknown OrElse data.IsUninitialized Then
-                diagnostics.Add(New LazyObsoleteDiagnosticInfo(symbol, context), node.GetLocation())
-                Return
-            End If
-
-            Dim inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(context)
-
-            ' If we are in a context that is already obsolete, there is no point reporting
-            ' more obsolete diagnostics.
-            If inObsoleteContext = ThreeState.True Then
-                Return
-            ElseIf inObsoleteContext = ThreeState.Unknown Then
-                ' If the context is unknown, then store the symbol so that we can do this check at a
-                ' later stage
-                diagnostics.Add(New LazyObsoleteDiagnosticInfo(symbol, context), node.GetLocation())
-                Return
-            End If
-
-            ' We have all the information we need to report diagnostics right now. So do it.
-            Dim info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol)
             If info IsNot Nothing Then
                 diagnostics.Add(info, node.GetLocation())
             End If

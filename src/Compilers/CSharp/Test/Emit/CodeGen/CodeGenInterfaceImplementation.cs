@@ -351,17 +351,17 @@ class Test
 
             var asmRef = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asmRef },
                 assemblyName: "OHI_ExpImpImplVBNested001");
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new[] { asmRef, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ExpImpImplVBNested002");
 
-            var comp3 = CreateCompilationWithMscorlib(
+            var comp3 = CreateCompilation(
                 text3,
                 references: new MetadataReference[] { asmRef, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -2572,7 +2572,7 @@ using System;
  
 interface I<T>
 {
-    void Foo();
+    void Goo();
 }
  
 class C : I<int[][,]>
@@ -2580,15 +2580,15 @@ class C : I<int[][,]>
     static void Main()
     {
         I<int[][,]> x = new C();
-        Action a = x.Foo;
+        Action a = x.Goo;
         Console.WriteLine(a.Method);
     }
  
-    void I<int[][,]>.Foo() { }
+    void I<int[][,]>.Goo() { }
 }
 ";
             // NOTE: order reversed from C# notation.
-            CompileAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Foo()");
+            CompileAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Goo()");
         }
 
         [Fact]
@@ -2632,7 +2632,7 @@ public class D : B, I
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
@@ -2727,13 +2727,13 @@ public class D : B<char>, I<char>
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
             var global = comp.GlobalNamespace;
             var derivedType = global.GetMember<NamedTypeSymbol>("D");
-            var interfaceType = derivedType.Interfaces.Single();
+            var interfaceType = derivedType.Interfaces().Single();
             Assert.Equal(global.GetMember<NamedTypeSymbol>("I"), interfaceType.OriginalDefinition);
-            var baseType = derivedType.BaseType;
+            var baseType = derivedType.BaseType();
             Assert.Equal(global.GetMember<NamedTypeSymbol>("B"), baseType.OriginalDefinition);
 
             var baseMethods = Enumerable.Range(1, 4).Select(i => baseType.GetMember<MethodSymbol>("M" + i)).ToArray();

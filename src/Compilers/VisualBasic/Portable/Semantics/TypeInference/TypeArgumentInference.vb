@@ -1,14 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -100,8 +95,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride Function InferTypeAndPropagateHints() As Boolean
 
             <Conditional("DEBUG")>
-            Public Sub VerifyIncomingInferenceComplete( _
-                    ByVal nodeType As InferenceNodeType _
+            Public Sub VerifyIncomingInferenceComplete(
+                    ByVal nodeType As InferenceNodeType
                 )
                 If Not Graph.SomeInferenceHasFailed() Then
                     For Each current As InferenceNode In IncomingEdges
@@ -121,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Parameter As ParameterSymbol
             Public InferredFromObject As Boolean
             Public TypeParameter As TypeParameterSymbol
-            Public ArgumentLocation As VisualBasicSyntaxNode
+            Public ArgumentLocation As SyntaxNode
 
         End Class
 
@@ -228,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function InferTypeAndPropagateHints() As Boolean
                 Dim numberOfIncomingEdges As Integer = IncomingEdges.Count
                 Dim restartAlgorithm As Boolean = False
-                Dim argumentLocation As VisualBasicSyntaxNode
+                Dim argumentLocation As SyntaxNode
                 Dim numberOfIncomingWithNothing As Integer = 0
 
                 If numberOfIncomingEdges > 0 Then
@@ -302,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If firstInferredType Is Nothing Then
                             firstInferredType = currentTypeInfo.ResultType
 
-                        ElseIf Not firstInferredType.IsSameTypeIgnoringCustomModifiers(currentTypeInfo.ResultType) Then
+                        ElseIf Not firstInferredType.IsSameTypeIgnoringAll(currentTypeInfo.ResultType) Then
                             ' Whidbey failed hard here, in Orcas we added dominant type information.
                             Graph.MarkInferenceLevel(InferenceLevel.Orcas)
                         End If
@@ -360,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub AddTypeHint(
                 type As TypeSymbol,
                 typeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -380,7 +375,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each competitor As DominantTypeDataTypeInference In InferenceTypeCollection.GetTypeDataList()
 
                         ' Do not merge array literals with other expressions
-                        If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringCustomModifiers(competitor.ResultType) Then
+                        If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
+                            competitor.ResultType = TypeInferenceCollection.MergeTupleNames(competitor.ResultType, type)
                             competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
                                                                         competitor.InferenceRestrictions,
                                                                         inferenceRestrictions)
@@ -569,16 +565,23 @@ HandleAsAGeneralExpression:
 
                         Dim arrayLiteral As BoundArrayLiteral = Nothing
                         Dim argumentTypeByAssumption As Boolean = False
+                        Dim expressionType As TypeSymbol
 
                         If Expression.Kind = BoundKind.ArrayLiteral Then
                             arrayLiteral = DirectCast(Expression, BoundArrayLiteral)
                             argumentTypeByAssumption = arrayLiteral.NumberOfCandidates <> 1
+                            expressionType = New ArrayLiteralTypeSymbol(arrayLiteral)
+
+                        ElseIf Expression.Kind = BoundKind.TupleLiteral Then
+                            expressionType = DirectCast(Expression, BoundTupleLiteral).InferredType
+                        Else
+                            expressionType = Expression.Type
                         End If
 
                         ' Need to create an ArrayLiteralTypeSymbol
                         inferenceOk = Graph.InferTypeArgumentsFromArgument(
                             Expression.Syntax,
-                            If(Expression.Kind <> BoundKind.ArrayLiteral, Expression.Type, New ArrayLiteralTypeSymbol(arrayLiteral)),
+                            expressionType,
                             argumentTypeByAssumption,
                             ParameterType,
                             Parameter,
@@ -731,7 +734,7 @@ HandleAsAGeneralExpression:
                 ' The process of populating the graph also seeds type hints for type parameters referenced by explicitly typed
                 ' lambda parameters. Also, hints sometimes have restrictions placed on them that limit what conversions the dominant type
                 ' algorithm can consider when it processes them. The restrictions are generally driven by the context in which type
-                ' parameters are used. For example if a type parameter is used as a type parameter of another type (something like IFoo(of T)),
+                ' parameters are used. For example if a type parameter is used as a type parameter of another type (something like IGoo(of T)),
                 ' then the dominant type algorithm is not allowed to consider any conversions. There are similar restrictions for
                 ' Array co-variance.
 
@@ -994,7 +997,7 @@ HandleAsAGeneralExpression:
                     argIndex = parameterToArgumentMap(paramIndex)
                     Dim argument = If(argIndex = -1, Nothing, arguments(argIndex))
 
-                    If argument Is Nothing OrElse argument.HasErrors OrElse targetType.IsErrorType() Then
+                    If argument Is Nothing OrElse argument.HasErrors OrElse targetType.IsErrorType() OrElse argument.Kind = BoundKind.OmittedArgument Then
                         Continue For
                     End If
 
@@ -1040,6 +1043,8 @@ HandleAsAGeneralExpression:
                         AddLambdaToGraph(argNode, argument.GetBinderFromLambda())
                     Case BoundKind.AddressOfOperator
                         AddAddressOfToGraph(argNode, DirectCast(argument, BoundAddressOfOperator).Binder)
+                    Case BoundKind.TupleLiteral
+                        AddTupleLiteralToGraph(argNode)
                     Case Else
                         AddTypeToGraph(argNode, isOutgoingEdge:=True)
                 End Select
@@ -1099,15 +1104,48 @@ HandleAsAGeneralExpression:
 
                         Dim possiblyGenericType = DirectCast(parameterType, NamedTypeSymbol)
 
-                        Do
-                            For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                                AddTypeToGraph(typeArgument, argNode, isOutgoingEdge, haveSeenTypeParameters)
+                        Dim elementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                        If possiblyGenericType.TryGetElementTypesIfTupleOrCompatible(elementTypes) Then
+                            For Each elementType In elementTypes
+                                AddTypeToGraph(elementType, argNode, isOutgoingEdge, haveSeenTypeParameters)
                             Next
+                        Else
 
-                            possiblyGenericType = possiblyGenericType.ContainingType
-                        Loop While possiblyGenericType IsNot Nothing
+                            Do
+                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                                    AddTypeToGraph(typeArgument, argNode, isOutgoingEdge, haveSeenTypeParameters)
+                                Next
+
+                                possiblyGenericType = possiblyGenericType.ContainingType
+                            Loop While possiblyGenericType IsNot Nothing
+                        End If
                 End Select
 
+            End Sub
+
+            Private Sub AddTupleLiteralToGraph(argNode As ArgumentNode)
+                AddTupleLiteralToGraph(argNode.ParameterType, argNode)
+            End Sub
+
+            Private Sub AddTupleLiteralToGraph(
+                parameterType As TypeSymbol,
+                argNode As ArgumentNode
+            )
+                Debug.Assert(argNode.Expression.Kind = BoundKind.TupleLiteral)
+
+                Dim tupleLiteral = DirectCast(argNode.Expression, BoundTupleLiteral)
+                Dim tupleArguments = tupleLiteral.Arguments
+
+                If parameterType.IsTupleOrCompatibleWithTupleOfCardinality(tupleArguments.Length) Then
+                    Dim parameterElementTypes = parameterType.GetElementTypesOfTupleOrCompatible
+                    For i As Integer = 0 To tupleArguments.Length - 1
+                        RegisterArgument(tupleArguments(i), parameterElementTypes(i), argNode.Parameter)
+                    Next
+
+                    Return
+                End If
+
+                AddTypeToGraph(argNode, isOutgoingEdge:=True)
             End Sub
 
             Private Sub AddAddressOfToGraph(argNode As ArgumentNode, binder As Binder)
@@ -1251,7 +1289,7 @@ HandleAsAGeneralExpression:
                 genericParameter As TypeParameterSymbol,
                 inferredType As TypeSymbol,
                 inferredTypeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -1291,16 +1329,24 @@ HandleAsAGeneralExpression:
 
                         Dim possiblyGenericType = DirectCast(parameterType, NamedTypeSymbol)
 
-                        Do
-                            For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                                If RefersToGenericParameterToInferArgumentFor(typeArgument) Then
+                        Dim elementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                        If possiblyGenericType.TryGetElementTypesIfTupleOrCompatible(elementTypes) Then
+                            For Each elementType In elementTypes
+                                If RefersToGenericParameterToInferArgumentFor(elementType) Then
                                     Return True
                                 End If
                             Next
+                        Else
+                            Do
+                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                                    If RefersToGenericParameterToInferArgumentFor(typeArgument) Then
+                                        Return True
+                                    End If
+                                Next
 
-                            possiblyGenericType = possiblyGenericType.ContainingType
-                        Loop While possiblyGenericType IsNot Nothing
-
+                                possiblyGenericType = possiblyGenericType.ContainingType
+                            Loop While possiblyGenericType IsNot Nothing
+                        End If
                 End Select
 
                 Return False
@@ -1320,7 +1366,7 @@ HandleAsAGeneralExpression:
             '   -- If P is Array Of T, and A is Array Of X, then infer X for T
             '   -- If P is ByRef T, then infer A for T
             Private Function InferTypeArgumentsFromArgumentDirectly(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -1331,12 +1377,8 @@ HandleAsAGeneralExpression:
 
                 If argumentType Is Nothing OrElse argumentType.IsVoidType() Then
                     ' We should never be able to infer a value from something that doesn't provide a value, e.g:
-                    ' Foo(Of T) can't be passed Sub bar(), as in Foo(Bar())  
+                    ' Goo(Of T) can't be passed Sub bar(), as in Goo(Bar())  
                     Return False
-                End If
-
-                If Not RefersToGenericParameterToInferArgumentFor(parameterType) Then
-                    Return True
                 End If
 
                 ' If a generic method is parameterized by T, an argument of type A matching a parameter of type
@@ -1346,6 +1388,7 @@ HandleAsAGeneralExpression:
                 '   -- If P is G(Of T) and A is G(Of X), then infer X for T
                 '   -- If P is Array Of T, and A is Array Of X, then infer X for T
                 '   -- If P is ByRef T, then infer A for T
+                '   -- If P is (T, T) and A is (X, X), then infer X for T
 
                 If parameterType.IsTypeParameter() Then
 
@@ -1357,18 +1400,53 @@ HandleAsAGeneralExpression:
                         param,
                         False,
                         inferenceRestrictions)
+                    Return True
+                End If
+
+
+                Dim parameterElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+
+                If parameterType.GetNullableUnderlyingTypeOrSelf().TryGetElementTypesIfTupleOrCompatible(parameterElementTypes) AndAlso
+                   If(parameterType.IsNullableType(), argumentType.GetNullableUnderlyingTypeOrSelf(), argumentType).
+                       TryGetElementTypesIfTupleOrCompatible(argumentElementTypes) Then
+
+                    If parameterElementTypes.Length <> argumentElementTypes.Length Then
+                        Return False
+                    End If
+
+                    For typeArgumentIndex As Integer = 0 To parameterElementTypes.Length - 1
+
+                        Dim parameterElementType = parameterElementTypes(typeArgumentIndex)
+                        Dim argumentElementType = argumentElementTypes(typeArgumentIndex)
+
+                        ' propagate restrictions to the elements
+                        If Not InferTypeArgumentsFromArgument(
+                                        argumentLocation,
+                                        argumentElementType,
+                                        argumentTypeByAssumption,
+                                        parameterElementType,
+                                        param,
+                                        digThroughToBasesAndImplements,
+                                        inferenceRestrictions
+                          ) Then
+                            Return False
+                        End If
+                    Next
+
+                    Return True
 
                 ElseIf parameterType.Kind = SymbolKind.NamedType Then
-                    ' e.g. handle foo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
+                    ' e.g. handle goo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
 
-                    Dim parameterTypeAsNamedType = DirectCast(parameterType, NamedTypeSymbol)
+                    Dim parameterTypeAsNamedType = DirectCast(parameterType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                     If parameterTypeAsNamedType.IsGenericType Then
 
-                        Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType, NamedTypeSymbol), Nothing)
+                        Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol), Nothing)
 
                         If argumentTypeAsNamedType IsNot Nothing AndAlso argumentTypeAsNamedType.IsGenericType Then
-                            If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(parameterTypeAsNamedType.OriginalDefinition) Then
+                            If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringAll(parameterTypeAsNamedType.OriginalDefinition) Then
 
                                 Do
 
@@ -1414,7 +1492,7 @@ HandleAsAGeneralExpression:
                                         ' hints and type-inference works. That's because all our hints inhere to the
                                         ' type parameter T; in an ideal world, the ByRef hint would inhere to the parameter.
                                         ' But I don't think we'll ever do better than this, just because trying to do
-                                        ' type inference inhering to arguments/parameters becomes exponential.
+                                        ' type inference inferring to arguments/parameters becomes exponential.
                                         ' Variance generic parameters will work the same.
 
                                         ' Dev10#595234: each Param'sInferenceRestriction is found as a modification of the surrounding InferenceRestriction:
@@ -1424,7 +1502,7 @@ HandleAsAGeneralExpression:
                                             Case VarianceKind.In
 
                                                 paramInferenceRestrictions = Conversions.InvertConversionRequirement(
-                                                    Conversions.StrengthenConversionRequirementToReference(inferenceRestrictions))
+                                                Conversions.StrengthenConversionRequirementToReference(inferenceRestrictions))
 
                                             Case VarianceKind.Out
 
@@ -1446,14 +1524,14 @@ HandleAsAGeneralExpression:
                                         End If
 
                                         If Not InferTypeArgumentsFromArgument(
-                                                                            argumentLocation,
-                                                                            argumentTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
-                                                                            argumentTypeByAssumption,
-                                                                            parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
-                                                                            param,
-                                                                            _DigThroughToBasesAndImplements,
-                                                                            paramInferenceRestrictions
-                                                                      ) Then
+                                                                        argumentLocation,
+                                                                        argumentTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
+                                                                        argumentTypeByAssumption,
+                                                                        parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
+                                                                        param,
+                                                                        _DigThroughToBasesAndImplements,
+                                                                        paramInferenceRestrictions
+                                                                  ) Then
                                             ' TODO: Would it make sense to continue through other type arguments even if inference failed for 
                                             '       the current one?
                                             Return False
@@ -1479,13 +1557,13 @@ HandleAsAGeneralExpression:
 
                             ' lwischik: ??? what do array elements have to do with nullables?
                             Return InferTypeArgumentsFromArgument(
-                                    argumentLocation,
-                                    argumentType,
-                                    argumentTypeByAssumption,
-                                    parameterTypeAsNamedType.GetNullableUnderlyingType(),
-                                    param,
-                                    digThroughToBasesAndImplements,
-                                    Conversions.CombineConversionRequirements(inferenceRestrictions, RequiredConversion.ArrayElement))
+                                argumentLocation,
+                                argumentType,
+                                argumentTypeByAssumption,
+                                parameterTypeAsNamedType.GetNullableUnderlyingType(),
+                                param,
+                                digThroughToBasesAndImplements,
+                                Conversions.CombineConversionRequirements(inferenceRestrictions, RequiredConversion.ArrayElement))
 
                         End If
 
@@ -1542,7 +1620,7 @@ HandleAsAGeneralExpression:
             ' here (to show success at pattern-matching) and leave the downstream code to produce an error message about
             ' failing to infer T.
             Friend Function InferTypeArgumentsFromArgument(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -1550,6 +1628,10 @@ HandleAsAGeneralExpression:
                 digThroughToBasesAndImplements As MatchGenericArgumentToParameter,
                 inferenceRestrictions As RequiredConversion
             ) As Boolean
+
+                If Not RefersToGenericParameterToInferArgumentFor(parameterType) Then
+                    Return True
+                End If
 
                 ' First try to the things directly. Only if this fails will we bother searching for things like List->IEnumerable.
                 Dim Inferred As Boolean = InferTypeArgumentsFromArgumentDirectly(
@@ -1697,7 +1779,6 @@ HandleAsAGeneralExpression:
                             param,
                             digThroughToBasesAndImplements,
                             inferenceRestrictions)
-
             End Function
 
             Private Function FindMatchingBase(
@@ -1730,7 +1811,7 @@ HandleAsAGeneralExpression:
                     Return False
                 End If
 
-                If baseSearchType.IsSameTypeIgnoringCustomModifiers(fixedType) Then
+                If baseSearchType.IsSameTypeIgnoringAll(fixedType) Then
                     ' If the types checked were already identical, then exit
                     Return False
                 End If
@@ -1760,7 +1841,7 @@ HandleAsAGeneralExpression:
                 If match Is Nothing Then
                     match = type
                     Return True
-                ElseIf match.IsSameTypeIgnoringCustomModifiers(type) Then
+                ElseIf match.IsSameTypeIgnoringAll(type) Then
                     Return True
                 Else
                     match = Nothing
@@ -1776,7 +1857,7 @@ HandleAsAGeneralExpression:
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
                         For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If constraint.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseInterface.OriginalDefinition) Then
+                            If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
                                 End If
@@ -1789,7 +1870,7 @@ HandleAsAGeneralExpression:
 
                     Case Else
                         For Each [interface] In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If [interface].OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseInterface.OriginalDefinition) Then
+                            If [interface].OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual([interface], match) Then
                                     Return False
                                 End If
@@ -1808,7 +1889,7 @@ HandleAsAGeneralExpression:
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
                         For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If constraint.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseClass.OriginalDefinition) Then
+                            If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
                                 End If
@@ -1826,7 +1907,7 @@ HandleAsAGeneralExpression:
                         Dim baseType As NamedTypeSymbol = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
 
                         While baseType IsNot Nothing
-                            If baseType.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseClass.OriginalDefinition) Then
+                            If baseType.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(baseType, match) Then
                                     Return False
                                 End If
@@ -2072,7 +2153,7 @@ HandleAsAGeneralExpression:
                             Dim unboundLambda = DirectCast(argument, UnboundLambda)
 
                             If unboundLambda.IsFunctionLambda Then
-                                Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void))
+                                Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
                                 Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = unboundLambda.InferReturnType(inferenceSignature)
 
                                 If Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
@@ -2090,8 +2171,9 @@ HandleAsAGeneralExpression:
 
                                 Else
                                     Dim boundLambda As BoundLambda = unboundLambda.Bind(New UnboundLambda.TargetSignature(inferenceSignature.ParameterTypes,
-                                                                                                                          inferenceSignature.IsByRef,
-                                                                                                                          returnTypeInfo.Key))
+                                                                                                                          inferenceSignature.ParameterIsByRef,
+                                                                                                                          returnTypeInfo.Key,
+                                                                                                                          returnsByRef:=False))
 
                                     Debug.Assert(boundLambda.LambdaSymbol.ReturnType Is returnTypeInfo.Key)
                                     If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors Then
@@ -2134,7 +2216,7 @@ HandleAsAGeneralExpression:
                                     Dim lambdaReturnNamedType = DirectCast(lambdaReturnType, NamedTypeSymbol)
                                     Dim returnNamedType = DirectCast(returnType, NamedTypeSymbol)
                                     If lambdaReturnNamedType.Arity = 1 AndAlso
-                                            IsSameTypeIgnoringCustomModifiers(lambdaReturnNamedType.OriginalDefinition,
+                                            IsSameTypeIgnoringAll(lambdaReturnNamedType.OriginalDefinition,
                                                                               returnNamedType.OriginalDefinition) Then
 
                                         ' We can assume that the lambda will have return type Task(Of T) or IEnumerable(Of T)
@@ -2157,7 +2239,8 @@ HandleAsAGeneralExpression:
 
                                 If Not invokeMethod.IsSub AndAlso (unboundLambda.Flags And SourceMemberFlags.Async) <> 0 Then
                                     Dim boundLambda As BoundLambda = unboundLambda.Bind(New UnboundLambda.TargetSignature(delegateParams,
-                                                                            unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void)))
+                                                                            unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void),
+                                                                            returnsByRef:=False))
 
                                     If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors() Then
                                         If _asyncLambdaSubToFunctionMismatch Is Nothing Then
@@ -2262,8 +2345,5 @@ HandleAsAGeneralExpression:
             End Sub
 
         End Class
-
     End Class
-
 End Namespace
-

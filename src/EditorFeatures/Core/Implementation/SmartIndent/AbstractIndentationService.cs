@@ -1,19 +1,19 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal abstract partial class AbstractIndentationService : IIndentationService
+    internal abstract partial class AbstractIndentationService : ISynchronousIndentationService
     {
         protected abstract IFormattingRule GetSpecializedIndentationFormattingRule();
 
@@ -27,36 +27,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             return formattingRules;
         }
 
-        public async Task<IndentationResult?> GetDesiredIndentationAsync(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult? GetDesiredIndentation(
+            Document document, int lineNumber, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-            if (textSnapshot == null)
-            {
-                // text snapshot doesn't exit. return null
-                return null;
-            }
-
-            var lineToBeIndented = textSnapshot.GetLineFromLineNumber(lineNumber);
+            var lineToBeIndented = sourceText.Lines[lineNumber];
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
-            var optionSet = document.Project.Solution.Workspace.Options;
 
-            // enter on a token case.
-            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, optionSet, cancellationToken))
+            // There are two important cases for indentation.  The first is when we're simply
+            // trying to figure out the appropriate indentation on a blank line (i.e. after
+            // hitting enter at the end of a line, or after moving to a blank line).  The 
+            // second is when we're trying to figure out indentation for a non-blank line
+            // (i.e. after hitting enter in the middle of a line, causing tokens to move to
+            // the next line).  If we're in the latter case, we defer to the Formatting engine
+            // as we need it to use all its rules to determine where the appropriate location is
+            // for the following tokens to go.
+            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, documentOptions, cancellationToken))
             {
                 return null;
             }
 
-            var indenter = await GetIndenterAsync(document, lineToBeIndented, formattingRules, optionSet, cancellationToken).ConfigureAwait(false);
-            return indenter.GetDesiredIndentation();
+            var indenter = GetIndenter(
+                document.GetLanguageService<ISyntaxFactsService>(),
+                root.SyntaxTree, lineToBeIndented, formattingRules,
+                documentOptions, cancellationToken);
+
+            return indenter.GetDesiredIndentation(document);
         }
 
-        protected abstract Task<AbstractIndenter> GetIndenterAsync(Document document, ITextSnapshotLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract AbstractIndenter GetIndenter(
+            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
 
         protected abstract bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules, SyntaxNode root, ITextSnapshotLine line, OptionSet optionSet, CancellationToken cancellationToken);
+            IEnumerable<IFormattingRule> formattingRules, SyntaxNode root, TextLine line, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

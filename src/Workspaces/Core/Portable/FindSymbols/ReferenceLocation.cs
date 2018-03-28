@@ -41,6 +41,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal bool IsWrittenTo { get; }
 
+        /// <summary>
+        /// Indicates if this location is a duplicate of some another ReferenceLocation.
+        /// In this case, it's acceptable for a presenter to not show this location and
+        /// intead prefer the latter.
+        /// </summary>
+        internal bool IsDuplicateReferenceLocation;
+
         public CandidateReason CandidateReason { get; }
 
         internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, bool isWrittenTo, CandidateReason candidateReason)
@@ -57,16 +64,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this was not an exact reference to a location, but was instead a possible
         /// location that was found through error tolerance.  For example, a call to a method like
-        /// "Foo()" could show up as an error tolerance location to a method "Foo(int i)" if no
-        /// actual "Foo()" method existed.
+        /// "Goo()" could show up as an error tolerance location to a method "Goo(int i)" if no
+        /// actual "Goo()" method existed.
         /// </summary>
-        public bool IsCandidateLocation
-        {
-            get
-            {
-                return this.CandidateReason != CandidateReason.None;
-            }
-        }
+        public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
 
         public static bool operator ==(ReferenceLocation left, ReferenceLocation right)
         {

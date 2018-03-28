@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -59,7 +59,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { $$");
+   event Goo Bar { $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -67,7 +67,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { [Bar] $$");
+   event Goo Bar { [Bar] $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -75,7 +75,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { remove { } $$");
+   event Goo Bar { remove { } $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -83,7 +83,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { remove { } [Bar] $$");
+   event Goo Bar { remove { } [Bar] $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -91,7 +91,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { set { } $$");
+   event Goo Bar { set { } $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -99,7 +99,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   event Foo Bar { add $$");
+   event Goo Bar { add $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -107,7 +107,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   event Foo Bar { add { } $$");
+   event Goo Bar { add { } $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -115,7 +115,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   int Foo { $$");
+   int Goo { $$");
         }
     }
 }

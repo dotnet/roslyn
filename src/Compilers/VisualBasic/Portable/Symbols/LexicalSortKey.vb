@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Debug.Assert(location.PossiblyEmbeddedOrMySourceSpan.Start >= 0)
 
-                Dim tree = DirectCast(location.SourceTree, VisualBasicSyntaxTree)
+                Dim tree = DirectCast(location.PossiblyEmbeddedOrMySourceTree, VisualBasicSyntaxTree)
                 Debug.Assert(tree Is Nothing OrElse tree.GetEmbeddedKind = location.EmbeddedKind)
 
                 Dim treeKind As SyntaxTreeKind = GetEmbeddedKind(tree)
@@ -185,6 +185,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' the compilation and an attempt of building the LexicalSortKey will simply assert and crash.
             If first.SourceTree IsNot Nothing AndAlso first.SourceTree Is second.SourceTree Then
                 Return first.PossiblyEmbeddedOrMySourceSpan.Start - second.PossiblyEmbeddedOrMySourceSpan.Start
+            End If
+
+            Dim firstKey = New LexicalSortKey(first, compilation)
+            Dim secondKey = New LexicalSortKey(second, compilation)
+            Return LexicalSortKey.Compare(firstKey, secondKey)
+        End Function
+
+        Public Shared Function Compare(first As SyntaxReference, second As SyntaxReference, compilation As VisualBasicCompilation) As Integer
+            ' This is a shortcut to avoid building complete keys for the case when both locations belong to the same tree.
+            ' Also saves us in some speculative SemanticModel scenarios when the tree we are dealing with doesn't belong to
+            ' the compilation and an attempt of building the LexicalSortKey will simply assert and crash.
+            If first.SyntaxTree IsNot Nothing AndAlso first.SyntaxTree Is second.SyntaxTree Then
+                Return first.Span.Start - second.Span.Start
             End If
 
             Dim firstKey = New LexicalSortKey(first, compilation)

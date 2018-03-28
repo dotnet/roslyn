@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class InterfaceTests
@@ -17,12 +17,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                             <Document>
 interface I
 {
-    void [|$$Foo|]();
+    void [|$$Goo|]();
 }
  
 class C : I
 {
-    void I.[|Foo|]() { }
+    void I.[|Goo|]() { }
 }
                         </Document>
                         </Project>
@@ -40,12 +40,12 @@ class C : I
                             <Document>
 interface I
 {
-    void [|Foo|]();
+    void [|Goo|]();
 }
  
 class C : I
 {
-    void I.[|$$Foo|]() { }
+    void I.[|$$Goo|]() { }
 }
                         </Document>
                         </Project>
@@ -65,13 +65,13 @@ namespace N
 {
     interface I
     {
-        void [|Foo|]();
+        void [|Goo|]();
     }
 }
  
 class C : N.I
 {
-    void N.I.[|$$Foo|]() { }
+    void N.I.[|$$Goo|]() { }
 }
                         </Document>
                         </Project>
@@ -90,13 +90,13 @@ namespace N
 {
     interface [|I|]
     {
-        void Foo();
+        void Goo();
     }
 }
  
 class C : N.[|I|]
 {
-    void N.[|$$I|].Foo() { }
+    void N.[|$$I|].Goo() { }
 }
                         </Document>
                         </Project>

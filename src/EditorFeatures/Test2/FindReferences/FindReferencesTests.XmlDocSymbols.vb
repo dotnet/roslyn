@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException1() As Task
             Dim input =
 <Workspace>
@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -43,10 +43,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException2() As Task
             Dim input =
 <Workspace>
@@ -69,10 +69,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException2_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -91,10 +91,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException3() As Task
             Dim input =
 <Workspace>
@@ -126,10 +126,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException3_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -156,10 +156,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException3_Inverse() As Task
             Dim input =
 <Workspace>
@@ -191,10 +191,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestException3_Inverse_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -221,10 +221,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         ]]></Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefConstructor1() As Task
             Dim input =
 <Workspace>
@@ -254,11 +254,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(769369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefConstructor1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -284,10 +284,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefConstructor2() As Task
             Dim input =
 <Workspace>
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact(Skip:="769477"), Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -343,10 +343,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParam1() As Task
             Dim input =
 <Workspace>
@@ -363,15 +363,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// 
                 /// </summary>
                 /// <param name="[|x|]"></param>
-                static void Foo(int {|Definition:$$x|}) { [|x|] = 1; }  
+                static void Goo(int {|Definition:$$x|}) { [|x|] = 1; }  
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParam1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -385,17 +385,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' 
                 ''' </summary>
                 ''' <param name="[|x|]"></param>
-                Shared Sub Foo({|Definition:$$x|} As Integer) 
+                Shared Sub Goo({|Definition:$$x|} As Integer) 
                     [|x|] = 1
                 End Sub  
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParam2() As Task
             Dim input =
 <Workspace>
@@ -412,15 +412,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// 
                 /// </summary>
                 /// <param name="[|$$x|]"></param>
-                static void Foo(int {|Definition:x|}) { [|x|] = 1; }  
+                static void Goo(int {|Definition:x|}) { [|x|] = 1; }  
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParam2_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -434,14 +434,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' 
                 ''' </summary>
                 ''' <param name="[|$$x|]"></param>
-                Shared Sub Foo({|Definition:x|} As Integer) 
+                Shared Sub Goo({|Definition:x|} As Integer) 
                     [|x|] = 1
                 End Sub  
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -461,12 +461,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// 
                 /// </summary>
                 /// <param name="[|@if|]"></param>
-                static void Foo(int {|Definition:$$@if|}) { }
+                static void Goo(int {|Definition:$$@if|}) { }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -483,16 +483,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' 
                 ''' </summary>
                 ''' <param name="[|@if|]"></param>
-                Shared Sub Foo({|Definition:$$[if]|} As Integer)
+                Shared Sub Goo({|Definition:$$[if]|} As Integer)
                 End Sub
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParamRef1() As Task
             Dim input =
 <Workspace>
@@ -511,15 +511,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// <param name="[|x|]"></param>
                 /// <param name="y"></param>
                 /// <param name="@if"></param>
-                static void Foo(int {|Definition:x|}, int y, out int @if) { @if = 2; [|x|] = 1; }
+                static void Goo(int {|Definition:x|}, int y, out int @if) { @if = 2; [|x|] = 1; }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParamRef1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -535,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' <param name="[|x|]"></param>
                 ''' <param name="y"></param>
                 ''' <param name="[if]"></param>
-                Shared Sub Foo({|Definition:x|} As Integer, y As Integer, ByRef [if] As Integer) 
+                Shared Sub Goo({|Definition:x|} As Integer, y As Integer, ByRef [if] As Integer) 
                     [if] = 2 
                     [|x|] = 1
                 End Sub
@@ -543,10 +543,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestPermission() As Task
             Dim input =
 <Workspace>
@@ -559,15 +559,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     System.[|Security|].PermissionSet x;
                 }
                 /// <permission cref="System.[|$$Security|].PermissionSet"></permission>  
-                static void Foo(int x, int y, out int @if) { @if = 2; }
+                static void Goo(int x, int y, out int @if) { @if = 2; }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestPermission_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -578,17 +578,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim x As System.[|Security|].PermissionSet
                 End Sub
                 ''' <permission cref="System.[|$$Security|].PermissionSet"></permission>  
-                Shared Sub Foo(x As Integer, y As Integer, ByRef [if] As Integer) 
+                Shared Sub Goo(x As Integer, y As Integer, ByRef [if] As Integer) 
                     [if] = 2
                 End Sub
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameters1() As Task
             Dim input =
 <Workspace>
@@ -599,21 +599,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             class Generic<T>
             {   
                 public Generic() { }
-                public T Foo(T x) { return x; }    
+                public T Goo(T x) { return x; }    
                 /// <summary>
                 /// <typeparam name="[|$$U|]"></typeparam>
                 /// </summary>
                 /// <param name="x"></param>
                 /// <returns></returns>
-                public [|U|] Foo<{|Definition:U|}>([|U|] x) {return x; }
+                public [|U|] Goo<{|Definition:U|}>([|U|] x) {return x; }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameters1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -624,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Class Generic(Of T)
                 Public Sub New()
                 End Sub
-                Public Function Foo(x As T) As T 
+                Public Function Goo(x As T) As T 
                     Return x
                 End Function    
                 ''' <summary>
@@ -632,17 +632,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' </summary>
                 ''' <param name="x"></param>
                 ''' <returns></returns>
-                Public Function Foo(Of {|Definition:U|})(x As [|U|]) As [|U|] 
+                Public Function Goo(Of {|Definition:U|})(x As [|U|]) As [|U|] 
                     Return x
                 End Function
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameters2() As Task
             Dim input =
 <Workspace>
@@ -658,15 +658,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// </summary>
                 /// <param name="x"></param>
                 /// <returns></returns>
-                public [|$$T|] Foo([|T|] x) { return x; }    
+                public [|$$T|] Goo([|T|] x) { return x; }    
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameters2_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -682,17 +682,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' </summary>
                 ''' <param name="x"></param>
                 ''' <returns></returns>
-                Public Function Foo(x As [|T|]) As [|$$T|] 
+                Public Function Goo(x As [|T|]) As [|$$T|] 
                     Return x
                 End Function    
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParametersInCref() As Task
             Dim input =
 <Workspace>
@@ -702,18 +702,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             class Tester<{|Definition:T|}>
             {
                 /// <summary>
-                /// <see cref="Tester{T}.Foo(T)"/>
+                /// <see cref="Tester{T}.Goo(T)"/>
                 /// </summary>
                 /// <param name="x"></param>
-                public static void Foo([|$$T|] x) { }
+                public static void Goo([|$$T|] x) { }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParametersInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -722,19 +722,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Imports System
             Class Tester(Of {|Definition:T|})
                 ''' <summary>
-                ''' <see cref="Tester(Of T).Foo(T)"/>
+                ''' <see cref="Tester(Of T).Goo(T)"/>
                 ''' </summary>
                 ''' <param name="x"></param>
-                Public Shared Sub Foo(x As [|$$T|]) 
+                Public Shared Sub Goo(x As [|$$T|]) 
                 End Sub
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodParametersInCref() As Task
             Dim input =
 <Workspace>
@@ -744,19 +744,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             class {|Definition:Tester|}
             {
                 /// <summary>
-                /// <seealso cref="[|Tester|].Foo([|Tester|])"/>
+                /// <seealso cref="[|Tester|].Goo([|Tester|])"/>
                 /// </summary>
                 /// <param name="x"></param>
-                public static void Foo(int x) { }
-                public static void Foo([|$$Tester|] x) { }
+                public static void Goo(int x) { }
+                public static void Goo([|$$Tester|] x) { }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodParametersInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -765,21 +765,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Imports System
             Class {|Definition:Tester|}
                 ''' <summary>
-                ''' <seealso cref="[|Tester|].Foo([|Tester|])"/>
+                ''' <seealso cref="[|Tester|].Goo([|Tester|])"/>
                 ''' </summary>
                 ''' <param name="x"></param>
-                Public Shared Sub Foo(x As Integer)
+                Public Shared Sub Goo(x As Integer)
                 End Sub
-                Public Shared Sub Foo(x As [|$$Tester|]) 
+                Public Shared Sub Goo(x As [|$$Tester|]) 
                 End Sub
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFieldInCref() As Task
             Dim input =
 <Workspace>
@@ -809,10 +809,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFieldInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -838,10 +838,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestSpecialTypeSimpleNameInCref() As Task
             Dim input =
 <Workspace>
@@ -859,15 +859,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// </summary>
                 /// <returns>int</returns>
                 /// <value>int</value>
-                public static [|$$int|] Foo() { return 1; } // Invoke FAR on int here
+                public static [|$$int|] Goo() { return 1; } // Invoke FAR on int here
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestSpecialTypeSimpleNameInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -882,14 +882,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' <summary>
                 ''' <see cref="[|Integer|]"/> 
                 ''' </summary>
-                Public Shared Function Foo() As [|$$Integer|] 
+                Public Shared Function Goo() As [|$$Integer|] 
                     Return 1 ' Invoke FAR on Integer here
                 End Function
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -901,24 +901,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             using System;
             interface I
             {
-                void {|Definition:Foo|}();
+                void {|Definition:Goo|}();
             }
             abstract class C
             {
                 public abstract void Boo();
-                public void {|Definition:Foo|}() { }
+                public void {|Definition:Goo|}() { }
             }
             class A : C, I
             {
                 /// <summary>
-                /// <seealso cref="[|Foo|]()"/>
+                /// <seealso cref="[|Goo|]()"/>
                 /// </summary>
-                public override void Boo() { [|$$Foo|](); }
+                public override void Boo() { [|$$Goo|](); }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -929,28 +929,28 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
             Imports System
             Interface I
-                Sub {|Definition:Foo|}()
+                Sub {|Definition:Goo|}()
             End Interface
             Abstract Class C
                 Public MustOverride Sub Boo()
-                Public Sub {|Definition:Foo|}() 
+                Public Sub {|Definition:Goo|}() 
                 End Sub
             End Class
             Class A : Inherits C : Implements I
                 ''' <summary>
-                ''' <seealso cref="[|Foo|]()"/>
+                ''' <seealso cref="[|Goo|]()"/>
                 ''' </summary>
-                Public Overrides Sub Boo() Implements I.[|Foo|]
-                    [|$$Foo|]()
+                Public Overrides Sub Boo() Implements I.[|Goo|]
+                    [|$$Goo|]()
                 End Sub
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInterfaceInCref2() As Task
             Dim input =
 <Workspace>
@@ -959,26 +959,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             using System;
             interface I
             {
-                void {|Definition:Foo|}();
+                void {|Definition:Goo|}();
             }
             abstract class C
             {
-                public abstract void {|Definition:Foo|}();
+                public abstract void {|Definition:Goo|}();
             }
             class A : C, I
             {
                 /// <summary>
-                /// <seealso cref="[|Foo|]()"/>
+                /// <seealso cref="[|Goo|]()"/>
                 /// </summary>
-                public override void {|Definition:$$Foo|}() {  } 
+                public override void {|Definition:$$Goo|}() {  } 
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInterfaceInCref2_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -986,25 +986,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
             Imports System
             Interface I
-                Sub {|Definition:Foo|}()
+                Sub {|Definition:Goo|}()
             End Interface
             MustInherit Class C
-                Public MustOverride Sub {|Definition:Foo|}()
+                Public MustOverride Sub {|Definition:Goo|}()
             End Class
             Class A : Inherits C : Implements I
                 ''' <summary>
-                ''' <seealso cref="[|Foo|]()"/>
+                ''' <seealso cref="[|Goo|]()"/>
                 ''' </summary>
-                Public Overrides Sub {|Definition:$$Foo|}() Implements I.[|Foo|]
+                Public Overrides Sub {|Definition:$$Goo|}() Implements I.[|Goo|]
                 End Sub 
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInterfaceInCref3() As Task
             Dim input =
 <Workspace>
@@ -1013,30 +1013,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             using System;
             interface I
             {
-                void {|Definition:Foo|}();
+                void {|Definition:Goo|}();
             }
             abstract class C
             {
-                public abstract void Foo();
+                public abstract void Goo();
             }
             class A : C, I
             {
                 /// <summary>
-                /// <seealso cref="Foo()"/>
+                /// <seealso cref="Goo()"/>
                 /// </summary>
-                public override void Foo() {  } 
+                public override void Goo() {  } 
                 /// <summary>
-                /// <see cref="I.[|$$Foo|]()"/>
+                /// <see cref="I.[|$$Goo|]()"/>
                 /// </summary>
-                void I.{|Definition:Foo|}() { }
+                void I.{|Definition:Goo|}() { }
             }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInterfaceInCref3_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1044,30 +1044,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
             Imports System
             Interface I
-                Sub {|Definition:Foo|}()
+                Sub {|Definition:Goo|}()
             End Interface
             MustInherit Class C
-                Public MustOverride Sub Foo()
+                Public MustOverride Sub Goo()
             End Class
             Class A : Inherits C : Implements I
                 ''' <summary>
-                ''' <seealso cref="Foo()"/>
+                ''' <seealso cref="Goo()"/>
                 ''' </summary>
-                Public Overrides Sub Foo()
+                Public Overrides Sub Goo()
                 End Sub 
                 ''' <summary>
-                ''' <see cref="I.[|$$Foo|]()"/>
+                ''' <see cref="I.[|$$Goo|]()"/>
                 ''' </summary>
-                Public Sub {|Definition:FooImpl|}() Implements I.[|Foo|]
+                Public Sub {|Definition:GooImpl|}() Implements I.[|Goo|]
                 End Sub
             End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInheritanceInCref1() As Task
             Dim input =
 <Workspace>
@@ -1094,11 +1094,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(769369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInheritanceInCref1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1121,10 +1121,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOverloadingInCref() As Task
             Dim input =
 <Workspace>
@@ -1143,10 +1143,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOverloadingInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1166,10 +1166,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInheritanceInCref() As Task
             Dim input =
 <Workspace>
@@ -1192,10 +1192,10 @@ class Q : P
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInheritanceInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1215,10 +1215,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestConstructorInCref() As Task
             Dim input =
 <Workspace>
@@ -1237,11 +1237,11 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(769369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769369")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestConstructorInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1261,10 +1261,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDelegateInCref() As Task
             Dim input =
 <Workspace>
@@ -1285,10 +1285,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDelegateInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1309,10 +1309,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestScopeInCref() As Task
             Dim input =
 <Workspace>
@@ -1339,10 +1339,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestScopeInCref_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1364,10 +1364,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOperatorInCref() As Task
             Dim input =
 <Workspace>
@@ -1394,10 +1394,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOperatorInCrefVisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1421,10 +1421,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexInCref1() As Task
             Dim input =
 <Workspace>
@@ -1450,10 +1450,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexInCref1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1480,10 +1480,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexInCref2() As Task
             Dim input =
 <Workspace>
@@ -1509,10 +1509,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexInCref2_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -1539,10 +1539,10 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexInCref3() As Task
             Dim input =
 <Workspace>
@@ -1574,7 +1574,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact(Skip:="783135"), Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1607,7 +1607,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Roslyn.Test.Utilities
 
@@ -13,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Alpha.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Error)
+            document.SetSeverity("Alpha.Analyzer", "Test001", ReportDiagnostic.Error)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -36,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Alpha.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Warn)
+            document.SetSeverity("Alpha.Analyzer", "Test001", ReportDiagnostic.Warn)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -59,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Beta.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Warn)
+            document.SetSeverity("Beta.Analyzer", "Test001", ReportDiagnostic.Warn)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -88,7 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Alpha.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Error)
+            document.SetSeverity("Alpha.Analyzer", "Test001", ReportDiagnostic.Error)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -111,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Alpha.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Default)
+            document.SetSeverity("Alpha.Analyzer", "Test001", ReportDiagnostic.Default)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -133,7 +134,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Alpha.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Default)
+            document.SetSeverity("Alpha.Analyzer", "Test001", ReportDiagnostic.Default)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -158,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Dim document = New XDocument(startingRuleSet)
 
-            document.SetSeverity("Alpha.Analyzer", "Test001", CodeAnalysis.ReportDiagnostic.Default)
+            document.SetSeverity("Alpha.Analyzer", "Test001", ReportDiagnostic.Default)
 
             Dim expectedRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">

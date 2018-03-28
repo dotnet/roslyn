@@ -10,15 +10,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class TypeEarlyWellKnownAttributeData
         Inherits CommonTypeEarlyWellKnownAttributeData
 
-        Private _hasEmbeddedAttribute As Boolean = False
-        Friend Property HasEmbeddedAttribute As Boolean
+        Private _hasVisualBasicEmbeddedAttribute As Boolean = False
+        Friend Property HasVisualBasicEmbeddedAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasEmbeddedAttribute
+                Return Me._hasVisualBasicEmbeddedAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasEmbeddedAttribute = value
+                Me._hasVisualBasicEmbeddedAttribute = value
                 SetDataStored()
             End Set
         End Property

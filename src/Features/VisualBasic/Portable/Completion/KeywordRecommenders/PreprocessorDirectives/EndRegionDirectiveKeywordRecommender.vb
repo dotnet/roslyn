@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
             If context.IsPreprocessorEndDirectiveKeywordContext AndAlso
                HasUnmatchedRegionDirective(context, cancellationToken) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Region", VBFeaturesResources.EndRegionKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Region", VBFeaturesResources.Terminates_a_SharpRegion_block))
             End If
 
             If context.IsPreprocessorStartContext Then
                 Dim directives = context.SyntaxTree.GetStartDirectives(cancellationToken)
 
                 If HasUnmatchedRegionDirective(context, cancellationToken) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#End Region", VBFeaturesResources.EndRegionKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#End Region", VBFeaturesResources.Terminates_a_SharpRegion_block))
                 End If
             End If
 

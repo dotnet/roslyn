@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -566,6 +566,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SymbolAnalyzerAction analyzerAction = new SymbolAnalyzerAction(action, symbolKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).AddSymbolAction(analyzerAction);
             _symbolActions = _symbolActions.Add(analyzerAction);
+
+            // The SymbolAnalyzerAction does not handle SymbolKind.Parameter because the compiler
+            // does not make CompilationEvents for them. As a workaround, handle them specially by
+            // registering further SymbolActions (for Methods) and utilize the results to construct
+            // the necessary SymbolAnalysisContexts.
+
+            if (symbolKinds.Contains(SymbolKind.Parameter))
+            {
+                RegisterSymbolAction(
+                    analyzer, 
+                    context => 
+                    {
+                        ImmutableArray<IParameterSymbol> parameters;
+
+                        switch (context.Symbol.Kind)
+                        {
+                            case SymbolKind.Method:
+                                parameters = ((IMethodSymbol)context.Symbol).Parameters;
+                                break;
+                            case SymbolKind.Property:
+                                parameters = ((IPropertySymbol)context.Symbol).Parameters;
+                                break;
+                            case SymbolKind.NamedType:
+                                var namedType = (INamedTypeSymbol)context.Symbol;
+                                var delegateInvokeMethod = namedType.DelegateInvokeMethod;
+                                parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
+                                break;
+                            default:
+                                throw new ArgumentException($"{context.Symbol.Kind} is not supported.", nameof(context));
+                        }
+
+                        foreach (var parameter in parameters)
+                        {
+                            if (!parameter.IsImplicitlyDeclared)
+                            {
+                                action(new SymbolAnalysisContext(
+                                    parameter,
+                                    context.Compilation,
+                                    context.Options,
+                                    context.ReportDiagnostic,
+                                    context.IsSupportedDiagnostic,
+                                    context.CancellationToken));
+                            }
+                        }
+                    }, 
+                    ImmutableArray.Create(SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType));
+            }   
         }
 
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
@@ -660,8 +707,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
-
-        internal static readonly AnalyzerActions Empty = new AnalyzerActions();
 
         internal AnalyzerActions()
         {

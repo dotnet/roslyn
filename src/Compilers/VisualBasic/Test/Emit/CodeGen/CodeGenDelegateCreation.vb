@@ -39,7 +39,7 @@ End Class
     </file>
 </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(c1, symbolValidator:=
                     Sub([module])
@@ -345,7 +345,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -431,7 +431,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -522,7 +522,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -551,26 +551,26 @@ Imports System
 Delegate Sub SubDel(p As String)
 
 Class C2
-    Public Shared Sub foo(p as string)
+    Public Shared Sub goo(p as string)
     end sub
 
     Public Sub AssignDelegates()
-        Dim v1 As System.Delegate = AddressOf foo
-        Dim v2 As System.MulticastDelegate = AddressOf C2.foo
+        Dim v1 As System.Delegate = AddressOf goo
+        Dim v2 As System.MulticastDelegate = AddressOf C2.goo
     End Sub
 End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
 BC30939: 'AddressOf' expression cannot be converted to '[Delegate]' because type '[Delegate]' is declared 'MustInherit' and cannot be created.
-        Dim v1 As System.Delegate = AddressOf foo
+        Dim v1 As System.Delegate = AddressOf goo
                                     ~~~~~~~~~~~~~
 BC30939: 'AddressOf' expression cannot be converted to 'MulticastDelegate' because type 'MulticastDelegate' is declared 'MustInherit' and cannot be created.
-        Dim v2 As System.MulticastDelegate = AddressOf C2.foo
+        Dim v2 As System.MulticastDelegate = AddressOf C2.goo
                                              ~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -592,11 +592,11 @@ BC30939: 'AddressOf' expression cannot be converted to 'MulticastDelegate' becau
             field = param
         end sub
 
-        public sub foo()
+        public sub goo()
             console.writeline("Hello " &amp; Me.field)
         end sub
 
-        public shared sub foo2()
+        public shared sub goo2()
             console.writeline("... and again.")
         end sub
 
@@ -609,10 +609,10 @@ BC30939: 'AddressOf' expression cannot be converted to 'MulticastDelegate' becau
             x
 
             Dim c as new C1("again.")
-            Dim y as new D(addressof c.foo)
+            Dim y as new D(addressof c.goo)
             y
 
-            Dim z as new D(addressof C1.foo2)
+            Dim z as new D(addressof C1.goo2)
             z
         End Sub
         Public Sub Method()
@@ -622,7 +622,7 @@ BC30939: 'AddressOf' expression cannot be converted to 'MulticastDelegate' becau
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -710,7 +710,7 @@ Hello again.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -829,7 +829,7 @@ Imports System
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                  expectedOutput:=<![CDATA[
@@ -874,7 +874,7 @@ Hello from instance WideningValueDelegate S1
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -988,7 +988,7 @@ Imports System
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1089,7 +1089,7 @@ Hello from instance IdentityValueDelegate S1
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1136,7 +1136,7 @@ Hello from instance WideningValueDelegate
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1229,7 +1229,7 @@ Hello from instance WideningNullableDelegate
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1275,7 +1275,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1360,7 +1360,7 @@ Hello from instance WideningReturnNullableFunction
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1398,7 +1398,7 @@ Hello from instance NarrowingValueDelegate
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1433,7 +1433,7 @@ Hello from instance NarrowingNullableDelegate 23
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1465,7 +1465,7 @@ Hello from instance OmittingArgumentsDelegate.
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
@@ -1503,7 +1503,7 @@ Hello from instance OmittingArgumentsDelegate.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1548,7 +1548,7 @@ Hello from instance OmittingReturnValueSub.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1614,7 +1614,7 @@ Hello from instance OmittingOptionalParameter1Sub.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1659,7 +1659,7 @@ Hello from instance ParamArrayInSubPerfectMatch1Sub.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                  expectedOutput:=<![CDATA[
@@ -1817,7 +1817,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 Called SubWithParamArray: 1 2
 SubWithParamArray returned: 1 2
@@ -1862,7 +1862,7 @@ Module M
     Console.WriteLine("ByRefParamArraySubOfBase returned: " &amp; arr2(0).field &amp; " " &amp; arr2(1).field)    
 
     ' testing Delegate Sub(ByRef x as Base()) with
-    ' Sub foo (ByRef ParamArray x as Base())
+    ' Sub goo (ByRef ParamArray x as Base())
     dim d5 as ByRefArrayOfBase = addressof DelegateByRefParamArray.ByRefParamArraySubOfBase
     Dim arr3(1) as DelegateByRefParamArray_Base
     arr3(0) = new DelegateByRefParamArray_Base(1)
@@ -1877,7 +1877,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 SubWithByRefParamArrayOfReferenceTypes_Identify_1 returned: 1 2
@@ -1914,7 +1914,7 @@ End Module
     </file>
     </compilation>
                 CompileAndVerify(source,
-                    additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                    references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                     expectedOutput:=<![CDATA[
 Called SubWithParamArray: 1 2
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_2.
@@ -2026,12 +2026,12 @@ End Class
 Module Module1
     Delegate Function MyDelegate() as Derived
 
-    Public Function foo() as Base
+    Public Function goo() as Base
         return new Derived()
     End Function
 
     Sub Main()
-        Dim x1 As new MyDelegate(AddressOf foo)
+        Dim x1 As new MyDelegate(AddressOf goo)
         Console.WriteLine(x1())
     End Sub
 
@@ -2044,10 +2044,10 @@ expectedOutput:=<![CDATA[
 Derived
     ]]>)
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom)).
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom)).
                 AssertTheseDiagnostics(<expected>
 BC42016: Implicit conversion from 'Base' to 'Derived'.
-        Dim x1 As new MyDelegate(AddressOf foo)
+        Dim x1 As new MyDelegate(AddressOf goo)
                                  ~~~~~~~~~~~~~
                                        </expected>)
         End Sub
@@ -2077,7 +2077,7 @@ BC42016: Implicit conversion from 'Base' to 'Derived'.
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompileAndVerify(source,
                                 expectedOutput:=<![CDATA[
@@ -2091,7 +2091,7 @@ Hello from lambda 3.
         ''' bug 7319
         <Fact>
         Public Sub AddressOfAndGenerics1()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -2100,10 +2100,10 @@ Module M1
         Console.WriteLine(x)
     End Sub
 
-    Delegate Sub Foo(p as Byte)
+    Delegate Sub Goo(p as Byte)
 
     Sub Main()
-        Dim x As new Foo(AddressOf Bar(Of String))
+        Dim x As new Goo(AddressOf Bar(Of String))
         x.Invoke(23)
     End Sub
 End Module
@@ -2137,7 +2137,7 @@ End Module
     </compilation>
 
             CompileAndVerify(source,
-                additionalRefs:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
+                references:={TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray},
                 expectedOutput:=<![CDATA[
 ByRefParamArraySubOfBase returned: 23 2 3
     ]]>)
@@ -2415,8 +2415,8 @@ P1
 
 Imports System
 Module Test
-    Sub foo(x As Func(Of Exception, Exception), y As Func(Of Exception, ArgumentException), z As Func(Of Exception, ArgumentException), a As Func(Of Exception, Exception), b As Func(Of ArgumentException, Exception), c As Func(Of ArgumentException, Exception))
-        Console.WriteLine("foo")
+    Sub goo(x As Func(Of Exception, Exception), y As Func(Of Exception, ArgumentException), z As Func(Of Exception, ArgumentException), a As Func(Of Exception, Exception), b As Func(Of ArgumentException, Exception), c As Func(Of ArgumentException, Exception))
+        Console.WriteLine("goo")
     End Sub
     Sub Main()
         Dim f1 As Func(Of Exception, ArgumentException) = Function(a As Exception) New ArgumentException()
@@ -2426,12 +2426,12 @@ Module Test
         f = f1
         f1 = f2
         f2 = f1
-        foo(f1, f1, f1, f1, f2, f2)
+        goo(f1, f1, f1, f1, f2, f2)
     End Sub
 End Module
     </file>
 </compilation>
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
@@ -2469,7 +2469,7 @@ Imports System.Collections.Generic
 ' VB has different behavior between whether the below class is generic 
 ' or non-generic. The below code produces no errors. However, if I get
 ' rid of the "(Of T, U)" bit in the below line, the code suddenly
-' starts reporting error BC30794 (No 'foo' is most specific).
+' starts reporting error BC30794 (No 'goo' is most specific).
 Public Class Runner(Of T, U)
     Delegate Function Del1(Of TT, UU)(
         x As TT,
@@ -2483,7 +2483,7 @@ Public Class Runner(Of T, U)
 
     'Most specific overload in Dev10 VB
     'In Dev10 C# this overload is less specific - but in Dev10 VB this is (strangely) more specific
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         xx As TT,
         yy As UU,
         zz As VV)
@@ -2492,7 +2492,7 @@ Public Class Runner(Of T, U)
 
     'Can bind to this overload - but above overload is more specific in Dev10 VB
     'In Dev10 C# this overload is more specific - but in Dev10 VB this is (strangely) less specific
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)),
         y As Del1(Of UU, VV),
         z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
@@ -2500,7 +2500,7 @@ Public Class Runner(Of T, U)
     End Sub
 
     'Unrelated overload
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, UU, VV),
         y As Func(Of UU, VV, TT),
         z As Func(Of VV, TT, UU))
@@ -2508,8 +2508,8 @@ Public Class Runner(Of T, U)
     End Sub
 
     Public Sub Run(Of AA, BB, CC)()
-        Dim d As Del2(Of AA, BB, CC) = AddressOf foo
-        Dim d2 As Del2(Of Long, Long, Long) = AddressOf foo
+        Dim d As Del2(Of AA, BB, CC) = AddressOf goo
+        Dim d2 As Del2(Of Long, Long, Long) = AddressOf goo
         d(Nothing, Nothing, Nothing)
         d2(Nothing, Nothing, Nothing)
     End Sub
@@ -2524,7 +2524,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertNoErrors(c)
                 CompileAndVerify(c, expectedOutput:="passpass")
             Next
@@ -2552,7 +2552,7 @@ Class Runner(Of T, U)
         z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
 
     'Should bind to this overload
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, List(Of TT), UU, Dictionary(Of List(Of TT), UU)),
         y As Del1(Of UU, VV),
         z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
@@ -2560,7 +2560,7 @@ Class Runner(Of T, U)
     End Sub
 
     'Unrelated overload
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, UU, VV),
         y As Func(Of UU, VV, TT),
         z As Func(Of VV, TT, UU))
@@ -2568,8 +2568,8 @@ Class Runner(Of T, U)
     End Sub
 
     Public Sub Run(Of AA, BB, CC)()
-        Dim d As Del2(Of AA, BB, CC) = AddressOf foo
-        Dim d2 As Del2(Of Long, Long, Long) = AddressOf foo
+        Dim d As Del2(Of AA, BB, CC) = AddressOf goo
+        Dim d2 As Del2(Of Long, Long, Long) = AddressOf goo
         d(Nothing, Nothing, Nothing)
         d2(Nothing, Nothing, Nothing)
     End Sub
@@ -2584,7 +2584,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertNoErrors(c)
                 CompileAndVerify(c, expectedOutput:="passpass")
             Next
@@ -2612,7 +2612,7 @@ Class Runner(Of T, U)
         z As Action(Of VV, List(Of VV), Dictionary(Of List(Of VV), TT)))
 
     'Should bind to this overload
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         xx As TT,
         yy As UU,
         zz As VV)
@@ -2620,7 +2620,7 @@ Class Runner(Of T, U)
     End Sub
 
     'Unrelated overload
-    Sub foo(Of TT, UU, VV)(
+    Sub goo(Of TT, UU, VV)(
         x As Func(Of TT, UU, VV),
         y As Func(Of UU, VV, TT),
         z As Func(Of VV, TT, UU))
@@ -2628,8 +2628,8 @@ Class Runner(Of T, U)
     End Sub
 
     Public Sub Run(Of AA, BB, CC)()
-        Dim d As Del2(Of AA, BB, CC) = AddressOf foo
-        Dim d2 As Del2(Of Long, Long, Long) = AddressOf foo
+        Dim d As Del2(Of AA, BB, CC) = AddressOf goo
+        Dim d2 As Del2(Of Long, Long, Long) = AddressOf goo
         d(Nothing, Nothing, Nothing)
         d2(Nothing, Nothing, Nothing)
     End Sub
@@ -2696,7 +2696,7 @@ Option Strict Off
     End Class
 
     Class C3
-        Public Shared Sub foo(Optional ByVal y As C1 = Nothing)
+        Public Shared Sub goo(Optional ByVal y As C1 = Nothing)
             res1 = "Correct Method called"
 
             if y is nothing then
@@ -2705,19 +2705,19 @@ Option Strict Off
 
         End Sub
 
-        Public shared sub foo(arg as integer)
+        Public shared sub goo(arg as integer)
         End Sub
 
     End Class
 
-    Delegate Sub foo6(ByVal arg As Long)
+    Delegate Sub goo6(ByVal arg As Long)
 
     Friend Module DelOverl0020mod
         Public res1 As String
 
 
         Sub Main()
-            Dim d6 As foo6 = AddressOf c3.foo
+            Dim d6 As goo6 = AddressOf c3.goo
             d6(5L)
             System.Console.WriteLine(res1)
         End Sub
@@ -2732,15 +2732,15 @@ Option Strict Off
 {
   // Code size       32 (0x20)
   .maxstack  2
-  .locals init (foo6 V_0) //d6
+  .locals init (goo6 V_0) //d6
   IL_0000:  ldnull
   IL_0001:  ldftn      "Sub DelOverl0020mod._Lambda$__1(Long)"
-  IL_0007:  newobj     "Sub foo6..ctor(Object, System.IntPtr)"
+  IL_0007:  newobj     "Sub goo6..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldloc.0
   IL_000e:  ldc.i4.5
   IL_000f:  conv.i8
-  IL_0010:  callvirt   "Sub foo6.Invoke(Long)"
+  IL_0010:  callvirt   "Sub goo6.Invoke(Long)"
   IL_0015:  ldsfld     "DelOverl0020mod.res1 As String"
   IL_001a:  call       "Sub System.Console.WriteLine(String)"
   IL_001f:  ret
@@ -2751,20 +2751,20 @@ Option Strict Off
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldnull
-  IL_0001:  call       "Sub C3.foo(C1)"
+  IL_0001:  call       "Sub C3.goo(C1)"
   IL_0006:  ret
 }
 ]]>)
 #Else
             ' According to the spec, zero argument relaxation can be used only when target method has NO parameters.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30950: No accessible method 'foo' has a signature compatible with delegate 'Delegate Sub foo6(arg As Long)':
-    'Public Shared Sub foo([y As C1 = Nothing])': Argument matching parameter 'y' narrows from 'Long' to 'C1'.
-    'Public Shared Sub foo(arg As Integer)': Argument matching parameter 'arg' narrows from 'Long' to 'Integer'.
-            Dim d6 As foo6 = AddressOf c3.foo
+BC30950: No accessible method 'goo' has a signature compatible with delegate 'Delegate Sub goo6(arg As Long)':
+    'Public Shared Sub goo([y As C1 = Nothing])': Argument matching parameter 'y' narrows from 'Long' to 'C1'.
+    'Public Shared Sub goo(arg As Integer)': Argument matching parameter 'arg' narrows from 'Long' to 'Integer'.
+            Dim d6 As goo6 = AddressOf c3.goo
                                        ~~~~~~
 </expected>)
 #End If
@@ -2780,41 +2780,41 @@ Imports System
 
 Class C1
     Event e As Action(Of Exception)
-    Sub Foo(ParamArray x() As Integer) Handles MyClass.e
+    Sub Goo(ParamArray x() As Integer) Handles MyClass.e
     End Sub
 
     Sub Test()
-        Dim e1 As Action(Of Exception) = AddressOf Foo
+        Dim e1 As Action(Of Exception) = AddressOf Goo
     End Sub
 End Class
 
 Class C2
     Event e As Action(Of Exception)
-    Sub Foo(Optional x As Integer = 2) Handles MyClass.e
+    Sub Goo(Optional x As Integer = 2) Handles MyClass.e
     End Sub
 
     Sub Test()
-        Dim e1 As Action(Of Exception) = AddressOf Foo
+        Dim e1 As Action(Of Exception) = AddressOf Goo
     End Sub
 End Class
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC31029: Method 'Foo' cannot handle event 'e' because they do not have a compatible signature.
-    Sub Foo(ParamArray x() As Integer) Handles MyClass.e
+BC31029: Method 'Goo' cannot handle event 'e' because they do not have a compatible signature.
+    Sub Goo(ParamArray x() As Integer) Handles MyClass.e
                                                        ~
-BC31143: Method 'Public Sub Foo(ParamArray x As Integer())' does not have a signature compatible with delegate 'Delegate Sub Action(Of Exception)(obj As Exception)'.
-        Dim e1 As Action(Of Exception) = AddressOf Foo
+BC31143: Method 'Public Sub Goo(ParamArray x As Integer())' does not have a signature compatible with delegate 'Delegate Sub Action(Of Exception)(obj As Exception)'.
+        Dim e1 As Action(Of Exception) = AddressOf Goo
                                                    ~~~
-BC31029: Method 'Foo' cannot handle event 'e' because they do not have a compatible signature.
-    Sub Foo(Optional x As Integer = 2) Handles MyClass.e
+BC31029: Method 'Goo' cannot handle event 'e' because they do not have a compatible signature.
+    Sub Goo(Optional x As Integer = 2) Handles MyClass.e
                                                        ~
-BC31143: Method 'Public Sub Foo([x As Integer = 2])' does not have a signature compatible with delegate 'Delegate Sub Action(Of Exception)(obj As Exception)'.
-        Dim e1 As Action(Of Exception) = AddressOf Foo
+BC31143: Method 'Public Sub Goo([x As Integer = 2])' does not have a signature compatible with delegate 'Delegate Sub Action(Of Exception)(obj As Exception)'.
+        Dim e1 As Action(Of Exception) = AddressOf Goo
                                                    ~~~
 </expected>)
         End Sub

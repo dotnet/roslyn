@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             {
                 var block = GetImmediatelyContainingBlock();
 
-                // if we're the start of a "catch(Foo e)" clause, then add "e".
+                // if we're the start of a "catch(Goo e)" clause, then add "e".
                 if (block != null && block.IsParentKind(SyntaxKind.CatchClause))
                 {
                     var catchClause = (CatchClauseSyntax)block.Parent;
@@ -171,8 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
                 StatementSyntax previousStatement;
 
-                var block = _parentStatement as BlockSyntax;
-                if (block != null &&
+                if (_parentStatement is BlockSyntax block &&
                     block.CloseBraceToken == _token)
                 {
                     // If we're at the last brace of a block, use the last
@@ -198,6 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                             break;
                         case SyntaxKind.ForStatement:
                         case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachVariableStatement:
                         case SyntaxKind.IfStatement:
                         case SyntaxKind.CheckedStatement:
                         case SyntaxKind.UncheckedStatement:
@@ -251,7 +251,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                         AddLastStatementOfConstruct((statement as ForStatementSyntax).Statement);
                         break;
                     case SyntaxKind.ForEachStatement:
-                        AddLastStatementOfConstruct((statement as ForEachStatementSyntax).Statement);
+                    case SyntaxKind.ForEachVariableStatement:
+                        AddLastStatementOfConstruct((statement as CommonForEachStatementSyntax).Statement);
                         break;
                     case SyntaxKind.IfStatement:
                         var ifStatement = statement as IfStatementSyntax;

@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -49,19 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator)
         {
-            WithRuntimeInstance(compilation, null, true, validator);
+            WithRuntimeInstance(compilation, null, validator: validator);
         }
 
         internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
         {
-            WithRuntimeInstance(compilation, references, true, validator);
+            WithRuntimeInstance(compilation, references, includeLocalSignatures: true, includeIntrinsicAssembly: true, validator: validator);
         }
 
-        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, bool includeLocalSignatures, Action<RuntimeInstance> validator)
+        internal static void WithRuntimeInstance(
+            Compilation compilation,
+            IEnumerable<MetadataReference> references,
+            bool includeLocalSignatures,
+            bool includeIntrinsicAssembly,
+            Action<RuntimeInstance> validator)
         {
             foreach (var debugFormat in new[] { DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb })
             {
-                using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures))
+                using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly))
                 {
                     validator(instance);
                 }
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             DebugInformationFormat debugFormat = DebugInformationFormat.Pdb,
             bool includeLocalSignatures = true)
         {
-            var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures);
+            var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly: true);
             _runtimeInstances.Add(instance);
             return instance;
         }
@@ -184,9 +191,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int atLineNumber = -1,
             bool includeSymbols = true)
         {
-            ResultProperties resultProperties;
-            string error;
-            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
+            Assert.Null(error);
+            return result;
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var result = Evaluate(compilation, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
             Assert.Null(error);
             return result;
         }
@@ -201,11 +218,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int atLineNumber = -1,
             bool includeSymbols = true)
         {
-            var compilation0 = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
                 source,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
-            var runtime = CreateRuntimeInstance(compilation0, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
+            return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            out ResultProperties resultProperties,
+            out string error,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -271,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static void VerifyTypeParameters(NamedTypeSymbol type)
         {
             AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(type.TypeArguments, typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
+            AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
             var container = type.ContainingType;
             if ((object)container != null)
             {
@@ -300,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal static Alias VariableAlias(string name, string typeAssemblyQualifiedName)
         {
-            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(Guid), null);
         }
 
         internal static Alias ObjectIdAlias(uint id, Type type = null)
@@ -312,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             Assert.NotEqual(0u, id); // Not a valid id.
             var name = $"${id}";
-            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(Guid), null);
         }
 
         internal static Alias ReturnValueAlias(int id = -1, Type type = null)
@@ -324,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
             var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
-            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
         }
 
         internal static Alias ExceptionAlias(Type type = null, bool stowed = false)
@@ -337,12 +366,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var name = "Error";
             var fullName = stowed ? "$stowedexception" : "$exception";
             var kind = stowed ? DkmClrAliasKind.StowedException : DkmClrAliasKind.Exception;
-            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
         }
 
-        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
+        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, ReadOnlyCollection<byte> payload)
         {
-            return new Alias(kind, name, fullName, type, customTypeInfo);
+            return new Alias(kind, name, fullName, type, (payload == null) ? default(Guid) : CustomTypeInfo.PayloadTypeId, payload);
         }
 
         internal static MethodDebugInfo<TypeSymbol, LocalSymbol> GetMethodDebugInfo(RuntimeInstance runtime, string qualifiedMethodName, int ilOffset = 0)
@@ -352,9 +381,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var peModule = (PEModuleSymbol)peMethod.ContainingModule;
 
             var symReader = runtime.Modules.Single(mi => mi.ModuleVersionId == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
-            var symbolProvider = new CSharpEESymbolProvider((SourceAssemblySymbol)peCompilation.Assembly, peModule, peMethod);
+            var symbolProvider = new CSharpEESymbolProvider(peCompilation.SourceAssembly, peModule, peMethod);
 
-            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
+            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
+        }
+        
+        internal static void CheckAttribute(IEnumerable<byte> assembly, IMethodSymbol method, AttributeDescription description, bool expected)
+        {
+            var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
+
+            var typeName = method.ContainingType.Name;
+            var typeHandle = module.MetadataReader.TypeDefinitions
+                .Single(handle => module.GetTypeDefNameOrThrow(handle) == typeName);
+
+            var methodName = method.Name;
+            var methodHandle = module
+                .GetMethodsOfTypeOrThrow(typeHandle)
+                .Single(handle => module.GetMethodDefNameOrThrow(handle) == methodName);
+
+            var returnParamHandle = module.GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault();
+
+            if (returnParamHandle.IsNil)
+            {
+                Assert.False(expected);
+            }
+            else
+            {
+                var attributes = module
+                    .GetCustomAttributesOrThrow(returnParamHandle)
+                    .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
+
+                if (expected)
+                {
+                    Assert.Equal(1, attributes.Count());
+                }
+                else
+                {
+                    Assert.Empty(attributes);
+                }
+            }
         }
     }
 }

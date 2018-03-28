@@ -2,11 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.CodeAnalysis.CSharp.Scripting</id>
-    <summary>Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.</summary>
+    <summary>
+      Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.
+    </summary>
     <description>
       Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.
-    </description>
 
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -22,8 +27,10 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\dotnet" />
-    <file src="Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\dotnet" />
+    <!-- Include PDB unless embedded into DLL -->
+    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\netstandard1.3" />
+    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,12 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <remarks>
     /// SourceFieldSymbol takes care of the initializer (plus "var" in the interactive case).
     /// </remarks>
-    internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbol
+    internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbolFromDeclarator
     {
         private readonly SourceEventSymbol _associatedEvent;
 
         internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag discardedDiagnostics)
-            : base(associatedEvent.containingType, declaratorSyntax, (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private, modifierErrors: true, diagnostics: discardedDiagnostics)
+            : base(associatedEvent.containingType,
+                   declaratorSyntax,
+                   (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private,
+                   modifierErrors: true, 
+                   diagnostics: discardedDiagnostics)
         {
             _associatedEvent = associatedEvent;
         }
@@ -47,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));

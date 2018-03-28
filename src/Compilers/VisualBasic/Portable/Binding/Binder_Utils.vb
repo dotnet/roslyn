@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If the identifier has a type character, report an error on it.
         ''' </summary>
-        Public Sub DisallowTypeCharacter(identifier As SyntaxToken,
+        Public Shared Sub DisallowTypeCharacter(identifier As SyntaxToken,
                                          diagBag As DiagnosticBag,
                                          Optional errid As ERRID = ERRID.ERR_TypecharNotallowed)
             If (identifier.GetTypeCharacter() <> TypeCharacter.None) Then
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Public Function DecodeVariance(varianceKeywordOpt As SyntaxToken) As VarianceKind
+        Public Shared Function DecodeVariance(varianceKeywordOpt As SyntaxToken) As VarianceKind
             Select Case varianceKeywordOpt.Kind
                 Case SyntaxKind.None
                     Return VarianceKind.None
@@ -142,6 +143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         defaultAccessibility As Accessibility,
                                         diagBag As DiagnosticBag) As MemberModifiers
             Dim foundModifiers As SourceMemberFlags = Nothing
+            Dim privateProtectedToken As SyntaxToken = Nothing
+            Dim privateOverridableModifier As SyntaxToken = Nothing
+            Dim privateMustOverrideModifier As SyntaxToken = Nothing
+            Dim privateNotOverridableModifier As SyntaxToken = Nothing
 
             ' Go through each modifiers, accumulating flags of what we've seen and reporting errors.
             For Each keywordSyntax In syntax
@@ -158,7 +163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateSpecifier)
                 ElseIf (currentModifier And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
-                       Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) Then
+                       Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) AndAlso
+                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private)) Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateAccessCategoryUsed)
                 ElseIf (currentModifier And SourceMemberFlags.AllOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllOverrideModifiers) <> 0 Then
@@ -177,16 +183,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_OverridesImpliesOverridable)
                 ElseIf (currentModifier And SourceMemberFlags.PrivateOverridableModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.PrivateOverridableModifiers) <> 0 Then
-                    ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Private", "Overridable")
+                    privateOverridableModifier = keywordSyntax
+                    foundModifiers = foundModifiers Or currentModifier
                 ElseIf (currentModifier And SourceMemberFlags.ShadowsAndOverrides) <> 0 AndAlso
                     (foundModifiers And SourceMemberFlags.ShadowsAndOverrides) <> 0 Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Overrides", "Shadows")
                 ElseIf (currentModifier And SourceMemberFlags.PrivateMustOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.PrivateMustOverrideModifiers) <> 0 Then
-                    ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Private", "MustOverride")
+                    privateMustOverrideModifier = keywordSyntax
+                    foundModifiers = foundModifiers Or currentModifier
                 ElseIf (currentModifier And SourceMemberFlags.PrivateNotOverridableModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.PrivateNotOverridableModifiers) <> 0 Then
-                    ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Private", "NotOverridable")
+                    privateNotOverridableModifier = keywordSyntax
+                    foundModifiers = foundModifiers Or currentModifier
                 ElseIf (currentModifier And (SourceMemberFlags.Iterator Or SourceMemberFlags.WriteOnly)) <> 0 AndAlso
                        (foundModifiers And (SourceMemberFlags.Iterator Or SourceMemberFlags.WriteOnly)) <> 0 Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Iterator", "WriteOnly")
@@ -196,6 +205,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  Note: Need to be present both MustInherit & NotInheritable for properly reporting #30926
                     foundModifiers = foundModifiers Or currentModifier
                 Else
+                    If currentModifier = SourceMemberFlags.Private OrElse currentModifier = SourceMemberFlags.Protected Then
+                        privateProtectedToken = keywordSyntax
+                    End If
                     foundModifiers = foundModifiers Or currentModifier
                 End If
             Next
@@ -206,6 +218,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.Public
             ElseIf (foundModifiers And (SourceMemberFlags.Friend Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Friend Or SourceMemberFlags.Protected) Then
                 access = Accessibility.ProtectedOrFriend
+            ElseIf (foundModifiers And (SourceMemberFlags.Private Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Private Or SourceMemberFlags.Protected) Then
+                access = Accessibility.ProtectedAndFriend
+                InternalSyntax.Parser.CheckFeatureAvailability(
+                    diagBag,
+                    privateProtectedToken.GetLocation(),
+                    DirectCast(privateProtectedToken.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                    InternalSyntax.Feature.PrivateProtected)
             ElseIf (foundModifiers And SourceMemberFlags.Friend) <> 0 Then
                 access = Accessibility.Friend
             ElseIf (foundModifiers And SourceMemberFlags.Protected) <> 0 Then
@@ -214,6 +233,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.Private
             Else
                 access = defaultAccessibility
+            End If
+
+            If access = Accessibility.Private Then
+                If (foundModifiers And SourceMemberFlags.Overridable) <> 0 Then
+                    ReportDiagnostic(diagBag, privateOverridableModifier, ERRID.ERR_BadSpecifierCombo2, "Private", "Overridable")
+                ElseIf (foundModifiers And SourceMemberFlags.MustOverride) <> 0 Then
+                    ReportDiagnostic(diagBag, privateMustOverrideModifier, ERRID.ERR_BadSpecifierCombo2, "Private", "MustOverride")
+                ElseIf (foundModifiers And SourceMemberFlags.NotOverridable) <> 0 Then
+                    ReportDiagnostic(diagBag, privateNotOverridableModifier, ERRID.ERR_BadSpecifierCombo2, "Private", "NotOverridable")
+                End If
+                foundModifiers = foundModifiers And Not (SourceMemberFlags.Overridable Or SourceMemberFlags.MustOverride Or SourceMemberFlags.NotOverridable)
             End If
 
             ' Add accessibility into the flags.
@@ -361,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Given an identifier and an As clause, return true if the identifier does not have a type
         ''' declared for it (e.g., no type character and no as clause).
         ''' </summary>
-        Private Function HasDefaultType(identifierSyntax As SyntaxToken,
+        Private Shared Function HasDefaultType(identifierSyntax As SyntaxToken,
                                         asClauseOptSyntax As AsClauseSyntax) As Boolean
             Return (identifierSyntax.GetTypeCharacter() = TypeCharacter.None AndAlso asClauseOptSyntax Is Nothing)
         End Function
@@ -370,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Given an identifier and an As clause, return true if the identifier does not have a type
         ''' declared for it (e.g., no type character and no as clause).
         ''' </summary>
-        Private Function HasDefaultType(identifierSyntax As ModifiedIdentifierSyntax,
+        Private Shared Function HasDefaultType(identifierSyntax As ModifiedIdentifierSyntax,
                                        asClauseOptSyntax As AsClauseSyntax) As Boolean
             Return HasDefaultType(identifierSyntax.Identifier, asClauseOptSyntax)
         End Function
@@ -379,12 +409,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Given an identifier, return true if the identifier declares an array.
         ''' (e.g., identifier  specifies ())
         ''' </summary>
-        Public Function IsArrayType(identifierSyntax As ModifiedIdentifierSyntax) As Boolean
-            If identifierSyntax.ArrayBounds IsNot Nothing OrElse identifierSyntax.ArrayRankSpecifiers.Count > 0 Then
-                Return True
-            End If
-
-            Return False
+        Public Shared Function IsArrayType(identifierSyntax As ModifiedIdentifierSyntax) As Boolean
+            Return identifierSyntax.ArrayBounds IsNot Nothing OrElse identifierSyntax.ArrayRankSpecifiers.Count > 0
         End Function
 
         ''' <summary>
@@ -660,58 +686,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' default type is object.
-                Return GetSpecialType(specialType.System_Object, identifier, diagBag)
+                Return GetSpecialType(SpecialType.System_Object, identifier, diagBag)
             End If
         End Function
 
         Public Shared Function GetSpecialTypeForTypeCharacter(typeChar As TypeCharacter, ByRef typeCharacterString As String) As SpecialType
-            Dim specialType As SpecialType = specialType.None
+            Dim specialType As SpecialType = SpecialType.None
 
             Select Case typeChar
                 Case TypeCharacter.Decimal
-                    specialType = specialType.System_Decimal
+                    specialType = SpecialType.System_Decimal
                     typeCharacterString = "@"
                 Case TypeCharacter.DecimalLiteral
-                    specialType = specialType.System_Decimal
+                    specialType = SpecialType.System_Decimal
                     typeCharacterString = "D"
                 Case TypeCharacter.Double
-                    specialType = specialType.System_Double
+                    specialType = SpecialType.System_Double
                     typeCharacterString = "#"
                 Case TypeCharacter.DoubleLiteral
-                    specialType = specialType.System_Double
+                    specialType = SpecialType.System_Double
                     typeCharacterString = "R"
                 Case TypeCharacter.Integer
-                    specialType = specialType.System_Int32
+                    specialType = SpecialType.System_Int32
                     typeCharacterString = "%"
                 Case TypeCharacter.IntegerLiteral
-                    specialType = specialType.System_Int32
+                    specialType = SpecialType.System_Int32
                     typeCharacterString = "I"
                 Case TypeCharacter.Long
-                    specialType = specialType.System_Int64
+                    specialType = SpecialType.System_Int64
                     typeCharacterString = "&"
                 Case TypeCharacter.LongLiteral
-                    specialType = specialType.System_Int64
+                    specialType = SpecialType.System_Int64
                     typeCharacterString = "L"
                 Case TypeCharacter.ShortLiteral
-                    specialType = specialType.System_Int16
+                    specialType = SpecialType.System_Int16
                     typeCharacterString = "S"
                 Case TypeCharacter.Single
-                    specialType = specialType.System_Single
+                    specialType = SpecialType.System_Single
                     typeCharacterString = "!"
                 Case TypeCharacter.SingleLiteral
-                    specialType = specialType.System_Single
+                    specialType = SpecialType.System_Single
                     typeCharacterString = "F"
                 Case TypeCharacter.String
-                    specialType = specialType.System_String
+                    specialType = SpecialType.System_String
                     typeCharacterString = "$"
                 Case TypeCharacter.UIntegerLiteral
-                    specialType = specialType.System_UInt32
+                    specialType = SpecialType.System_UInt32
                     typeCharacterString = "UI"
                 Case TypeCharacter.ULongLiteral
-                    specialType = specialType.System_UInt64
+                    specialType = SpecialType.System_UInt64
                     typeCharacterString = "UL"
                 Case TypeCharacter.UShortLiteral
-                    specialType = specialType.System_UInt16
+                    specialType = SpecialType.System_UInt16
                     typeCharacterString = "US"
                 Case TypeCharacter.None
                     typeCharacterString = Nothing
@@ -722,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return specialType
         End Function
 
-        Public Shared Function ExtractTypeCharacter(node As VisualBasicSyntaxNode) As TypeCharacter
+        Public Shared Function ExtractTypeCharacter(node As SyntaxNode) As TypeCharacter
             Dim result As TypeCharacter = TypeCharacter.None
 
             If node IsNot Nothing Then
@@ -744,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Decode an option "On" or "Off" values into true or false. Not specified is considered true.
         ''' </summary>
-        Public Function DecodeOnOff(keywordSyntax As SyntaxToken) As Boolean
+        Public Shared Function DecodeOnOff(keywordSyntax As SyntaxToken) As Boolean
             If keywordSyntax.Node Is Nothing Then
                 Return True
             Else
@@ -762,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Decode an option "Text" or "Binary" value into true or false. The syntax is not optional.
         ''' </summary>
-        Public Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
+        Public Shared Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
 
             Select Case keywordSyntax.Kind
                 Case SyntaxKind.TextKeyword
@@ -971,7 +997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' TODO: Caller is O(n^2).
-        Friend Sub CheckParameterNameNotDuplicate(
+        Friend Shared Sub CheckParameterNameNotDuplicate(
                                                  params As ArrayBuilder(Of ParameterSymbol),
                                                  nParams As Integer,
                                                  syntax As ParameterSyntax,
@@ -1423,7 +1449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' In ParameterDefaultValue we also allow conversion of T --> S?
                 If context = ConstantContext.ParameterDefaultValue AndAlso conversionType.IsNullableType Then
-                    If IsSameTypeIgnoringCustomModifiers(conversionType.GetNullableUnderlyingType, operandType) Then
+                    If IsSameTypeIgnoringAll(conversionType.GetNullableUnderlyingType, operandType) Then
                         ' A trivial case: T --> T?
                         Return nestedConstValue
                     Else
@@ -1452,7 +1478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' type by nested conversion(s) and now has type of the argument
 
             ' No actual conversion is done
-            If IsSameTypeIgnoringCustomModifiers(operandType, conversionType) Then
+            If IsSameTypeIgnoringAll(operandType, conversionType) Then
                 Return nestedConstValue
             End If
 
@@ -1522,6 +1548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         AccessibilityProtected = CUShort(Accessibility.Protected)
         AccessibilityFriend = CUShort(Accessibility.Friend)
         AccessibilityProtectedFriend = CUShort(Accessibility.ProtectedOrFriend)
+        AccessibilityPrivateProtected = CUShort(Accessibility.ProtectedAndFriend)
         AccessibilityPublic = CUShort(Accessibility.Public)
         AccessibilityMask = &H7
 

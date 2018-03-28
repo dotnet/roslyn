@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal partial class WorkspaceTaskSchedulerFactory
     {
-        internal sealed class WorkspaceTaskQueue : IWorkspaceTaskScheduler
+        protected sealed class WorkspaceTaskQueue : IWorkspaceTaskScheduler
         {
             private readonly WorkspaceTaskSchedulerFactory _factory;
             private readonly SimpleTaskQueue _queue;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _queue = new SimpleTaskQueue(taskScheduler);
             }
 
-            public T3 ScheduleTask<T1, T2, T3>(Func<T1, T2, T3> taskScheduler, string taskName, T1 arg1, T2 arg2) where T3 : Task
+            private T3 ScheduleTask<T1, T2, T3>(Func<T1, T2, T3> taskScheduler, string taskName, T1 arg1, T2 arg2) where T3 : Task
             {
                 taskName = taskName ?? GetType().Name + ".Task";
                 var asyncToken = _factory.BeginAsyncOperation(taskName);
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Host
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }
 
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }
 
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }

@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Version AssemblyVersionPattern => null;
+
         internal override ImmutableArray<byte> PublicKey
         {
             get { return Identity.PublicKey; }

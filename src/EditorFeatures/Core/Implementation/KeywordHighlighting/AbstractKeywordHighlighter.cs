@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             {
                 for (var parent = token.Parent; parent != null; parent = parent.Parent)
                 {
-                    if (parent is TNode)
+                    if (parent is TNode parentTNode)
                     {
-                        var highlights = GetHighlights((TNode)parent, cancellationToken);
+                        var highlights = GetHighlights(parentTNode, cancellationToken);
 
                         // Only return them if any of them matched
                         if (highlights.Any(span => span.IntersectsWith(position)))

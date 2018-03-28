@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         public class DefaultMemberAttribute : Attribute { }
     }
 }";
-            var c = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
             c.VerifyDiagnostics();
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text).VerifyDiagnostics();
         }
 
         [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Void { }
     public struct Boolean { private Boolean m_value; Boolean Use(Boolean b) { m_value = b; return m_value; } }
 }";
-            CreateCompilation(
+            CreateEmptyCompilation(
                 text,
                 options: TestOptions.ReleaseDll)
             .VerifyDiagnostics();
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class Object { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         return (int)d;
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
             // Instead, we report no errors and assert during emit.
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -286,7 +286,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -306,7 +306,7 @@ public class C1
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -323,7 +323,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -344,7 +344,7 @@ public class C1
     public struct Decimal { }
     public struct TypedReference { }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -362,7 +362,58 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+    //         rrr = refresult;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
+    // (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
+    //         rrr = (object)__makeref(result);
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
+);
+        }
+
+        [Fact()]
+        public void NoTypedRefBox_RefStruct()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct Decimal { }
+    public class Attribute{ }
+    public class ObsoleteAttribute: Attribute
+    {
+        public ObsoleteAttribute(string message, bool error){}
+    }
+
+    // Make the type ref struct. Should work just fine.
+    public ref struct TypedReference { }
+}";
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static object rrr;
+
+    public static T Read<T>() where T : new()
+    {
+        T result = new T();
+        var refresult = __makeref(result);
+        rrr = refresult;
+        rrr = (object)__makeref(result);
+        return result;
+    }
+}
+";
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
     //         rrr = refresult;
@@ -406,7 +457,7 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
@@ -419,7 +470,7 @@ namespace System.Collections
         }
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
                 // (5,9): error CS0656: Missing compiler required member 'System.String.get_Length'
@@ -476,7 +527,7 @@ namespace System.Collections
         }
     }
 }";
-            CreateCompilation(
+            CreateEmptyCompilation(
                 text,
                 options: TestOptions.ReleaseDll)
             .VerifyDiagnostics();
@@ -541,14 +592,14 @@ namespace System.Collections
         }
     }
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                     text,
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
 
 
             //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Skipped).
                 VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
@@ -679,7 +730,7 @@ namespace System
         }
     }
 ";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                     text,
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
@@ -688,7 +739,7 @@ namespace System
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("program.Main()",
 @"
 {
@@ -785,14 +836,14 @@ namespace System
             return unchecked((int)((long)m_value));
         }
 
-        public unsafe static IntPtr Foo() 
+        public unsafe static IntPtr Goo() 
         {
             return new IntPtr(0);
         }
 
         public unsafe static bool Bar(IntPtr value1) 
         {
-            return value1.m_value == Foo().m_value;
+            return value1.m_value == Goo().m_value;
         }
     }
 
@@ -804,7 +855,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 
@@ -816,7 +867,7 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            CompileAndVerify(comp, verify: false).
+            CompileAndVerify(comp, verify: Verification.Fails).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)
@@ -892,7 +943,7 @@ namespace System
   .locals init (System.IntPtr V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldfld      ""void* System.IntPtr.m_value""
-  IL_0007:  call       ""System.IntPtr System.IntPtr.Foo()""
+  IL_0007:  call       ""System.IntPtr System.IntPtr.Goo()""
   IL_000c:  stloc.0
   IL_000d:  ldloca.s   V_0
   IL_000f:  ldfld      ""void* System.IntPtr.m_value""

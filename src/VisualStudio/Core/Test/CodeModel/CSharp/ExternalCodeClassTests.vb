@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Doc Comment"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment1() As Task
+        Public Sub TestDocComment1()
             Dim code =
 <Code>
 /// &lt;summary&gt;This is my comment!&lt;/summary&gt;
@@ -20,11 +20,11 @@ class C$$
 }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
-        End Function
+            TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDocComment2() As Task
+        Public Sub TestDocComment2()
             Dim code =
 <Code>
 /// &lt;summary&gt;This is my comment!&lt;/summary&gt;
@@ -34,13 +34,13 @@ class C$$
 }
 </Code>
 
-            Await TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
-        End Function
+            TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
+        End Sub
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestExpectedClassMembers() As Task
+        Public Sub TestExpectedClassMembers()
             Dim code =
 <Code>
 class C$$
@@ -61,7 +61,7 @@ class C$$
 }
 </Code>
 
-            Await TestElement(code,
+            TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(7, members.Count)
@@ -94,7 +94,7 @@ class C$$
                     Assert.Equal("C", member7.Name)
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementFunction, member7.Kind)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : WellKnownMemberNames.ExplicitConversionName;
 
             return new SourceUserDefinedConversionSymbol(
-                containingType, name, location, syntax, diagnostics,
-                syntax.Body == null && syntax.ExpressionBody != null);
+                containingType, name, location, syntax, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -35,19 +34,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics,
-            bool isExpressionBodied) :
+            DiagnosticBag diagnostics) :
             base(
                 MethodKind.Conversion,
                 name,
                 containingType,
                 location,
-                syntax.GetReference(),
-                syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
-                syntax.Modifiers,
-                diagnostics,
-                isExpressionBodied)
+                syntax,
+                diagnostics)
         {
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
+            if (syntax.ParameterList.Parameters.Count != 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
+            }
         }
 
         internal new ConversionOperatorDeclarationSyntax GetSyntax()

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.Text.Editor;
@@ -30,11 +30,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
+        public static CaretPreservingEditTransaction TryCreate(string description, 
+            ITextView textView,
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
+        {
+            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out var unused))
+            {
+                return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
+            }
+
+            return null;
+        }
+
         public void Complete()
         {
             if (!_active)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.TheTransactionIsAlreadyComplete);
+                throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
             }
 
             _editorOperations.AddAfterTextBufferChangePrimitive();
@@ -50,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             if (!_active)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.TheTransactionIsAlreadyComplete);
+                throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
             }
 
             if (_transaction != null)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         public void GetChildren(DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
             InspectionContext.InspectionSession.InvokeResultProvider(
+                this,
                 MethodId.GetChildren,
                 r =>
                 {
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 
         public string GetUnderlyingString()
         {
-            return InspectionContext.InspectionSession.InvokeResultProvider(MethodId.GetUnderlyingString, r => r.GetUnderlyingString(this));
+            return InspectionContext.InspectionSession.InvokeResultProvider(this, MethodId.GetUnderlyingString, r => r.GetUnderlyingString(this));
         }
     }
 }

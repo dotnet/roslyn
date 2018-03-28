@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Reduces the number of segments toward the target number of segments,
-        /// if the number of regments is deemed to be too large (beyond the maximum).
+        /// if the number of segments is deemed to be too large (beyond the maximum).
         /// </summary>
         private static void ReduceSegmentCountIfNecessary(ArrayBuilder<SourceText> segments)
         {

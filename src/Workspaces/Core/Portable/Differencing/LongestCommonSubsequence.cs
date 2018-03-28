@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Differencing
@@ -13,83 +11,164 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal abstract class LongestCommonSubsequence<TSequence>
     {
-        private const int DeleteCost = 1;
-        private const int InsertCost = 1;
-        private const int UpdateCost = 2;
-
-        protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
-
-        protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
+        // VArray struct enables array indexing in range [-d...d].
+        private struct VArray
         {
-            int[,] d = ComputeCostMatrix(oldSequence, oldLength, newSequence, newLength);
-            int i = oldLength;
-            int j = newLength;
+            private readonly int[] _array;
 
-            while (i != 0 && j != 0)
+            public VArray(int d)
             {
-                if (d[i, j] == d[i - 1, j] + DeleteCost)
+                _array = new int[2 * d + 1];
+            }
+
+            public void CopyFrom(VArray otherVArray)
+            {
+                int copyDelta = Offset - otherVArray.Offset;
+                if (copyDelta >= 0)
                 {
-                    i--;
-                }
-                else if (d[i, j] == d[i, j - 1] + InsertCost)
-                {
-                    j--;
+                    Array.Copy(otherVArray._array, 0, _array, copyDelta, otherVArray._array.Length);
                 }
                 else
                 {
-                    i--;
-                    j--;
-                    yield return new KeyValuePair<int, int>(i, j);
+                    Array.Copy(otherVArray._array, -copyDelta, _array, 0, _array.Length);
                 }
             }
+
+            public int this[int index]
+            {
+                get
+                {
+                    return _array[index + Offset];
+                }
+                set
+                {
+                    _array[index + Offset] = value;
+                }
+            }
+
+            private int Offset
+            {
+                get
+                {
+                    return _array.Length / 2;
+                }
+            }
+        }
+
+        protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
+
+        // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
+        protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
+        {
+            Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+
+            int x = oldLength;
+            int y = newLength;
+
+            while (x > 0 || y > 0)
+            {
+                VArray currentV = stackOfVs.Pop();
+                int d = stackOfVs.Count;
+                int k = x - y;
+
+                // "snake" == single delete or insert followed by 0 or more diagonals
+                // snake end point is in V
+                int yEnd = currentV[k];
+                int xEnd = yEnd + k;
+
+                // does the snake first go down (insert) or right(delete)?
+                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                int kPrev = right ? k - 1 : k + 1;
+
+                // snake start point
+                int yStart = currentV[kPrev];
+                int xStart = yStart + kPrev;
+
+                // snake mid point
+                int yMid = right ? yStart : yStart + 1;
+                int xMid = yMid + k;
+
+                // return the matching pairs between (xMid, yMid) and (xEnd, yEnd) = diagonal part of the snake
+                while (xEnd > xMid)
+                {
+                    Debug.Assert(yEnd > yMid);
+                    xEnd--;
+                    yEnd--;
+                    yield return new KeyValuePair<int, int>(xEnd, yEnd);
+                }
+
+                x = xStart;
+                y = yStart;
+            }
+
         }
 
         protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            int[,] d = ComputeCostMatrix(oldSequence, oldLength, newSequence, newLength);
-            int i = oldLength;
-            int j = newLength;
+            Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
-            while (i != 0 && j != 0)
-            {
-                if (d[i, j] == d[i - 1, j] + DeleteCost)
-                {
-                    i--;
-                    yield return new SequenceEdit(i, -1);
-                }
-                else if (d[i, j] == d[i, j - 1] + InsertCost)
-                {
-                    j--;
-                    yield return new SequenceEdit(-1, j);
-                }
-                else
-                {
-                    i--;
-                    j--;
-                    yield return new SequenceEdit(i, j);
-                }
-            }
+            int x = oldLength;
+            int y = newLength;
 
-            while (i > 0)
+            while (x > 0 || y > 0)
             {
-                i--;
-                yield return new SequenceEdit(i, -1);
-            }
+                VArray currentV = stackOfVs.Pop();
+                int d = stackOfVs.Count;
+                int k = x - y;
 
-            while (j > 0)
-            {
-                j--;
-                yield return new SequenceEdit(-1, j);
+                // "snake" == single delete or insert followed by 0 or more diagonals
+                // snake end point is in V
+                int yEnd = currentV[k];
+                int xEnd = yEnd + k;
+
+                // does the snake first go down (insert) or right(delete)?
+                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                int kPrev = right ? k - 1 : k + 1;
+
+                // snake start point
+                int yStart = currentV[kPrev];
+                int xStart = yStart + kPrev;
+
+                // snake mid point
+                int yMid = right ? yStart : yStart + 1;
+                int xMid = yMid + k;
+
+                // return the matching pairs between (xMid, yMid) and (xEnd, yEnd) = diagonal part of the snake
+                while (xEnd > xMid)
+                {
+                    Debug.Assert(yEnd > yMid);
+                    xEnd--;
+                    yEnd--;
+                    yield return new SequenceEdit(xEnd, yEnd);
+                }
+
+                // return the insert/delete between (xStart, yStart) and (xMid, yMid) = the vertical/horizontal part of the snake
+                if (xMid > 0 || yMid > 0)
+                {
+                    if (xStart == xMid)
+                    {
+                        // insert
+                        yield return new SequenceEdit(-1, --yMid);
+                    }
+                    else
+                    {
+                        // delete
+                        yield return new SequenceEdit(--xMid, -1);
+                    }
+                }
+
+                x = xStart;
+                y = yStart;
             }
         }
 
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
-        /// The smaller distance the more of their elements match.
+        /// The smaller distance the more similar the sequences are.
         /// </summary>
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
-        /// The smaller distance the more of their elements match.
+        /// The smaller distance the more similar the sequences are.
         /// </summary>
         protected double ComputeDistance(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
@@ -98,6 +177,15 @@ namespace Microsoft.CodeAnalysis.Differencing
             if (oldLength == 0 || newLength == 0)
             {
                 return (oldLength == newLength) ? 0.0 : 1.0;
+            }
+
+            // If the sequences differ significantly in size their distance will be very close to 1.0 
+            // (even if one is a strict subsequence of the other).
+            // Avoid running an expensive LCS algorithm on such sequences.
+            double lenghtRatio = (oldLength > newLength) ? oldLength / newLength : newLength / oldLength;
+            if (lenghtRatio > 100)
+            {
+                return 1.0;
             }
 
             int lcsLength = 0;
@@ -112,57 +200,101 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         /// <summary>
-        /// Calculates costs of all paths in an edit graph starting from vertex (0,0) and ending in vertex (lengthA, lengthB). 
+        /// Calculates a list of "V arrays" using Eugene W. Myers O(ND) Difference Algoritm
         /// </summary>
         /// <remarks>
-        /// The edit graph for A and B has a vertex at each point in the grid (i,j), i in [0, lengthA] and j in [0, lengthB].
         /// 
+        /// The algorithm was inspired by Myers' Diff Algorithm described in an article by Nicolas Butler:
+        /// https://www.codeproject.com/articles/42279/investigating-myers-diff-algorithm-part-of
+        /// The author has approved the use of his code from the article under the Apache 2.0 license.
+        /// 
+        /// The algorithm works on an imaginary edit graph for A and B which has a vertex at each point in the grid(i, j), i in [0, lengthA] and j in [0, lengthB].
         /// The vertices of the edit graph are connected by horizontal, vertical, and diagonal directed edges to form a directed acyclic graph.
         /// Horizontal edges connect each vertex to its right neighbor. 
         /// Vertical edges connect each vertex to the neighbor below it.
         /// Diagonal edges connect vertex (i,j) to vertex (i-1,j-1) if <see cref="ItemsEqual"/>(sequenceA[i-1],sequenceB[j-1]) is true.
         /// 
-        /// Editing starts with S = []. 
-        /// Move along horizontal edge (i-1,j)-(i,j) represents the fact that sequenceA[i-1] is not added to S.
-        /// Move along vertical edge (i,j-1)-(i,j) represents an insert of sequenceB[j-1] to S.
-        /// Move along diagonal edge (i-1,j-1)-(i,j) represents an addition of sequenceB[j-1] to S via an acceptable 
-        /// change of sequenceA[i-1] to sequenceB[j-1].
+        /// Move right along horizontal edge (i-1,j)-(i,j) represents a delete of sequenceA[i-1].
+        /// Move down along vertical edge (i,j-1)-(i,j) represents an insert of sequenceB[j-1].
+        /// Move along diagonal edge (i-1,j-1)-(i,j) represents an match of sequenceA[i-1] to sequenceB[j-1].
+        /// The number of diagonal edges on the path from (0,0) to (lengthA, lengthB) is the length of the longest common sub.
+        ///
+        /// The function does not actually allocate this graph. Instead it uses Eugene W. Myers' O(ND) Difference Algoritm to calculate a list of "V arrays" and returns it in a Stack. 
+        /// A "V array" is a list of end points of so called "snakes". 
+        /// A "snake" is a path with a single horizontal (delete) or vertical (insert) move followed by 0 or more diagonals (matching pairs).
         /// 
-        /// In every vertex the cheapest outgoing edge is selected. 
-        /// The number of diagonal edges on the path from (0,0) to (lengthA, lengthB) is the length of the longest common subsequence.
+        /// Unlike the algorithm in the article this implementation stores 'y' indexes and prefers 'right' moves instead of 'down' moves in ambiguous situations
+        /// to preserve the behavior of the original diff algorithm (deletes first, inserts after).
+        /// 
+        /// The number of items in the list is the length of the shortest edit script = the number of inserts/edits between the two sequences = D. 
+        /// The list can be used to determine the matching pairs in the sequences (GetMatchingPairs method) or the full editing script (GetEdits method).
+        /// 
+        /// The algorithm uses O(ND) time and memory where D is the number of delete/inserts and N is the sum of lengths of the two sequences.
+        /// 
+        /// VArrays store just the y index because x can be calculated: x = y + k.
         /// </remarks>
-        private int[,] ComputeCostMatrix(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
+        private Stack<VArray> ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            var la = oldLength + 1;
-            var lb = newLength + 1;
+            Stack<VArray> stackOfVs = new Stack<VArray>();
 
-            // TODO: Optimization possible: O(ND) time, O(N) space
-            // EUGENE W. MYERS: An O(ND) Difference Algorithm and Its Variations
-            var d = new int[la, lb];
+            // special-case: the first "snake" to start at (-1,0 )
+            VArray previousV = new VArray(1);
+            VArray currentV;
 
-            d[0, 0] = 0;
-            for (int i = 1; i <= oldLength; i++)
+            bool reachedEnd= false;
+
+            for (int d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {
-                d[i, 0] = d[i - 1, 0] + DeleteCost;
-            }
-
-            for (int j = 1; j <= newLength; j++)
-            {
-                d[0, j] = d[0, j - 1] + InsertCost;
-            }
-
-            for (int i = 1; i <= oldLength; i++)
-            {
-                for (int j = 1; j <= newLength; j++)
+                // V is in range [-d...d] => use d to offset the k-based array indices to non-negative values
+                if (d == 0)
                 {
-                    int m1 = d[i - 1, j - 1] + (ItemsEqual(oldSequence, i - 1, newSequence, j - 1) ? 0 : UpdateCost);
-                    int m2 = d[i - 1, j] + DeleteCost;
-                    int m3 = d[i, j - 1] + InsertCost;
-                    d[i, j] = Math.Min(Math.Min(m1, m2), m3);
+                    currentV = previousV;
                 }
-            }
+                else
+                {
+                    currentV = new VArray(d);
+                    currentV.CopyFrom(previousV);
+                }
 
-            return d;
+                for (int k = -d; k <= d; k += 2)
+                {
+                    // down or right? 
+                    bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                    int kPrev = right ? k - 1 : k + 1;
+
+                    // start point
+                    int yStart = currentV[kPrev];
+                    int xStart = yStart + kPrev;
+
+                    // mid point
+                    int yMid = right ? yStart : yStart + 1;
+                    int xMid = yMid + k;
+
+                    // end point
+                    int xEnd = xMid;
+                    int yEnd = yMid;
+
+                    // follow diagonal
+                    while (xEnd < oldLength && yEnd < newLength && ItemsEqual(oldSequence, xEnd, newSequence, yEnd))
+                    {
+                        xEnd++;
+                        yEnd++;
+                    }
+
+                    // save end point
+                    currentV[k] = yEnd;
+                    Debug.Assert(xEnd == yEnd + k);
+
+                    // check for solution
+                    if (xEnd >= oldLength && yEnd >= newLength)
+                    {
+                        reachedEnd = true;
+                    }
+                }
+                stackOfVs.Push(currentV);
+                previousV = currentV;
+            }
+            return stackOfVs;
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var proxyType = proxyValue.Type;
             var itemsMemberExpansion = RootHiddenExpansion.CreateExpansion(
                 proxyType.GetMemberByName("Items"),
-                DynamicFlagsMap.Create(new TypeAndCustomInfo(proxyType)));
+                CustomTypeInfoTypeArgumentMap.Create(new TypeAndCustomInfo(proxyType)));
             return new DynamicViewExpansion(proxyValue, itemsMemberExpansion);
         }
 
@@ -91,7 +91,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var fullName = isRootExpression ? name : parent.ChildFullNamePrefix;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                fullNameProvider.GetClrObjectCreationExpression(inspectionContext, proxyTypeAndInfo.ClrType, proxyTypeAndInfo.Info, fullName);
+                fullNameProvider.GetClrObjectCreationExpression(
+                    inspectionContext,
+                    proxyTypeAndInfo.ClrType,
+                    proxyTypeAndInfo.Info,
+                    new[] { fullName });
             var formatSpecifiers = isRootExpression ? Formatter.NoFormatSpecifiers : parent.FormatSpecifiers;
             return new EvalResult(
                 ExpansionKind.DynamicView,

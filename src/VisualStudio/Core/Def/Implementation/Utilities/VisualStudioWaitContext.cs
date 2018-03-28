@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -21,26 +22,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private string _message;
         private bool _allowCancel;
 
+        public IProgressTracker ProgressTracker { get; }
+
         public VisualStudioWaitContext(
             IGlobalOperationNotificationService notificationService,
             IVsThreadedWaitDialogFactory dialogFactory,
             string title,
             string message,
-            bool allowCancel)
+            bool allowCancel,
+            bool showProgress)
         {
             _title = title;
             _message = message;
             _allowCancel = allowCancel;
             _cancellationTokenSource = new CancellationTokenSource();
 
-            _dialog = CreateDialog(dialogFactory);
+            this.ProgressTracker = showProgress
+                ? new ProgressTracker((_1, _2) => UpdateDialog())
+                : new ProgressTracker();
+
+            _dialog = CreateDialog(dialogFactory, showProgress);
             _registration = notificationService.Start(title);
         }
 
-        private IVsThreadedWaitDialog3 CreateDialog(IVsThreadedWaitDialogFactory dialogFactory)
+        private IVsThreadedWaitDialog3 CreateDialog(
+            IVsThreadedWaitDialogFactory dialogFactory, bool showProgress)
         {
-            IVsThreadedWaitDialog2 dialog2;
-            Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out dialog2));
+            Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out var dialog2));
             Contract.ThrowIfNull(dialog2);
 
             var dialog3 = (IVsThreadedWaitDialog3)dialog2;
@@ -55,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 szStatusBarText: null,
                 fIsCancelable: _allowCancel,
                 iDelayToShowDialog: DelayToShowDialogSecs,
-                fShowProgress: false,
-                iTotalSteps: 0,
-                iCurrentStep: 0,
+                fShowProgress: showProgress,
+                iTotalSteps: this.ProgressTracker.TotalItems,
+                iCurrentStep: this.ProgressTracker.CompletedItems,
                 pCallback: callback);
 
             return dialog3;
@@ -103,25 +111,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            bool hasCancelled;
             _dialog.UpdateProgress(
                 _message,
                 szProgressText: null,
                 szStatusBarText: null,
-                iCurrentStep: 0,
-                iTotalSteps: 0,
+                iCurrentStep: this.ProgressTracker.CompletedItems,
+                iTotalSteps: this.ProgressTracker.TotalItems,
                 fDisableCancel: !_allowCancel,
-                pfCanceled: out hasCancelled);
-        }
-
-        public void UpdateProgress()
-        {
+                pfCanceled: out var hasCancelled);
         }
 
         public void Dispose()
         {
-            int canceled;
-            _dialog.EndWaitDialog(out canceled);
+            _dialog.EndWaitDialog(out var canceled);
 
             if (canceled == 0)
             {

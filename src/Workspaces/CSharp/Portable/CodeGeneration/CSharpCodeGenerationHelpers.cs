@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -51,6 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.Internal:
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;
@@ -171,7 +176,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
             where TDeclaration : SyntaxNode
         {
-            var index = GetInsertionIndex(declarationList, declaration, options, availableIndices, after, before);
+            var index = GetInsertionIndex(
+                declarationList, declaration, options, availableIndices,
+                CSharpDeclarationComparer.WithoutNamesInstance,
+                CSharpDeclarationComparer.WithNamesInstance,
+                after, before);
+
             if (availableIndices != null)
             {
                 availableIndices.Insert(index, true);
@@ -188,114 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
         {
             return declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
-        }
-
-        public static int GetInsertionIndex<TDeclaration>(
-            SyntaxList<TDeclaration> declarationList,
-            TDeclaration declaration,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices,
-            Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
-            where TDeclaration : SyntaxNode
-        {
-            Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
-
-            if (options != null)
-            {
-                // Try to strictly obey the after option by inserting immediately after the member containing the location
-                if (options.AfterThisLocation != null)
-                {
-                    var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.AfterThisLocation.SourceSpan.Start);
-                    if (afterMember != null)
-                    {
-                        var index = declarationList.IndexOf(afterMember);
-                        index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
-                    }
-                }
-
-                // Try to strictly obey the before option by inserting immediately before the member containing the location
-                if (options.BeforeThisLocation != null)
-                {
-                    var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.BeforeThisLocation.SourceSpan.End);
-                    if (beforeMember != null)
-                    {
-                        var index = declarationList.IndexOf(beforeMember);
-                        index = GetPreferredIndex(index, availableIndices, forward: false);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
-                    }
-                }
-
-                if (options.AutoInsertionLocation)
-                {
-                    if (declarationList.IsEmpty())
-                    {
-                        return 0;
-                    }
-                    else if (declarationList.IsSorted(CSharpDeclarationComparer.Instance))
-                    {
-                        var result = Array.BinarySearch(declarationList.ToArray(), declaration, CSharpDeclarationComparer.Instance);
-                        var index = GetPreferredIndex(result < 0 ? ~result : result, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
-                    }
-
-                    if (after != null)
-                    {
-                        var member = after(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
-                            if (index >= 0)
-                            {
-                                index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
-                            }
-                        }
-                    }
-
-                    if (before != null)
-                    {
-                        var member = before(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
-
-                            if (index >= 0)
-                            {
-                                index = GetPreferredIndex(index, availableIndices, forward: false);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Otherwise, add the declaration to the end.
-            {
-                var index = GetPreferredIndex(declarationList.Count, availableIndices, forward: false);
-                if (index != -1)
-                {
-                    return index;
-                }
-            }
-
-            return declarationList.Count;
         }
 
         public static SyntaxNode GetContextNode(
@@ -360,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TSyntaxNode node,
             ISymbol symbol,
             CodeGenerationOptions options,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             where TSyntaxNode : SyntaxNode
         {
             if (!options.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
@@ -368,8 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return node;
             }
 
-            string comment;
-            var result = TryGetDocumentationComment(symbol, "///", out comment, cancellationToken)
+            var result = TryGetDocumentationComment(symbol, "///", out var comment, cancellationToken)
                 ? node.WithPrependedLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(comment))
                       .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
                 : node;

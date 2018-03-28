@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxIdentifier : SyntaxToken
         {
+            static SyntaxIdentifier()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifier), r => new SyntaxIdentifier(r));
+            }
+
             protected readonly string TextField;
 
             internal SyntaxIdentifier(string text)
@@ -36,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 writer.WriteString(this.TextField);
             }
 
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new SyntaxIdentifier(r);
-            }
-
             public override string Text
             {
                 get { return this.TextField; }
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 get { return this.TextField; }
             }
 
-            internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
             {
                 return new SyntaxIdentifierWithTrivia(this.Kind, this.TextField, this.TextField, trivia, null, this.GetDiagnostics(), this.GetAnnotations());
             }
 
-            internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
             {
                 return new SyntaxIdentifierWithTrivia(this.Kind, this.TextField, this.TextField, null, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }

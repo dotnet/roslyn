@@ -25,19 +25,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _returnsByRef As Boolean
         Private ReadOnly _returnType As TypeSymbol
         Private ReadOnly _returnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
         Private ReadOnly _explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
         Private ReadOnly _isOverrides As Boolean
 
         Public Sub New(ByVal name As String, ByVal m_containingType As TypeSymbol, ByVal methodKind As MethodKind, ByVal callingConvention As CallingConvention, ByVal typeParameters As ImmutableArray(Of TypeParameterSymbol), ByVal parameters As ImmutableArray(Of ParameterSymbol),
-         ByVal returnsByRef As Boolean, ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), ByVal explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol),
+                       ByVal returnsByRef As Boolean, ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier),
+                       ByVal explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol),
                        Optional isOverrides As Boolean = False)
             _callingConvention = callingConvention
             _typeParameters = typeParameters
             _returnsByRef = returnsByRef
             _returnType = returnType
             _returnTypeCustomModifiers = returnTypeCustomModifiers
+            _refCustomModifiers = refCustomModifiers
             _parameters = parameters
-            _explicitInterfaceImplementations = If(explicitInterfaceImplementations.IsDefault, ImmutableArray(Of MethodSymbol).Empty, explicitInterfaceImplementations)
+            _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty()
             _containingType = m_containingType
             _methodKind = methodKind
             _name = name
@@ -89,6 +92,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers() As ImmutableArray(Of CustomModifier)
             Get
                 Return _returnTypeCustomModifiers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers() As ImmutableArray(Of CustomModifier)
+            Get
+                Return _refCustomModifiers
             End Get
         End Property
 
@@ -220,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Throw ExceptionUtilities.Unreachable
             End Get

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -90,6 +91,13 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                 return false;
             }
 
+            bool isByRef = IsByRef(signature, ref position);
+
+            if (IsByRefMethod(method) != isByRef)
+            {
+                return false;
+            }
+
             // get the return type
             if (!MatchType(GetReturnType(method), signature, ref position))
             {
@@ -111,18 +119,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
 
         private bool MatchParameter(ParameterSymbol parameter, ImmutableArray<byte> signature, ref int position)
         {
-            SignatureTypeCode typeCode = (SignatureTypeCode)signature[position];
-            bool isByRef;
-
-            if (typeCode == SignatureTypeCode.ByReference)
-            {
-                isByRef = true;
-                position++;
-            }
-            else
-            {
-                isByRef = false;
-            }
+            bool isByRef = IsByRef(signature, ref position);
 
             if (IsByRefParam(parameter) != isByRef)
             {
@@ -130,6 +127,21 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             }
 
             return MatchType(GetParamType(parameter), signature, ref position);
+        }
+
+        private static bool IsByRef(ImmutableArray<byte> signature, ref int position)
+        {
+            SignatureTypeCode typeCode = (SignatureTypeCode)signature[position];
+
+            if (typeCode == SignatureTypeCode.ByReference)
+            {
+                position++;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
 
@@ -160,8 +172,8 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                     // ...
                     // ELEMENT_TYPE_VALUETYPE 0x11 Followed by TypeDef or TypeRef token
                     // ELEMENT_TYPE_CLASS 0x12 Followed by TypeDef or TypeRef token
-
-                    return MatchTypeToTypeId(type, signature[position++]);
+                    short expectedType = ReadTypeId(signature, ref position);
+                    return MatchTypeToTypeId(type, expectedType);
 
                 case SignatureTypeCode.Array:
                     if (!MatchType(GetMDArrayElementType(type), signature, ref position))
@@ -211,6 +223,23 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         }
 
         /// <summary>
+        /// Read a type Id from the signature.
+        /// This may consume one or two bytes, and therefore increment the position correspondingly.
+        /// </summary>
+        private static short ReadTypeId(ImmutableArray<byte> signature, ref int position)
+        {
+            var firstByte = signature[position++];
+            if (firstByte == (byte)WellKnownType.ExtSentinel)
+            {
+                return (short)(signature[position++] + WellKnownType.ExtSentinel);
+            }
+            else
+            {
+                return firstByte;
+            }
+        }
+
+        /// <summary>
         /// Should return null in case of error.
         /// </summary>
         protected abstract TypeSymbol GetGenericTypeArgument(TypeSymbol type, int argumentIndex);
@@ -255,7 +284,9 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         protected abstract ImmutableArray<ParameterSymbol> GetParameters(PropertySymbol property);
 
         protected abstract TypeSymbol GetParamType(ParameterSymbol parameter);
+
         protected abstract bool IsByRefParam(ParameterSymbol parameter);
+        protected abstract bool IsByRefMethod(MethodSymbol method);
 
         protected abstract TypeSymbol GetFieldType(FieldSymbol field);
     }

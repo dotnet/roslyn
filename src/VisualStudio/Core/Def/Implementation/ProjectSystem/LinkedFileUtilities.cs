@@ -8,13 +8,19 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal class LinkedFileUtilities : ForegroundThreadAffinitizedObject
+    internal sealed class LinkedFileUtilities : ForegroundThreadAffinitizedObject
     {
         private LinkedFileUtilities()
         {
         }
 
-        private static LinkedFileUtilities s_singleton = new LinkedFileUtilities();
+        private static readonly LinkedFileUtilities s_singleton = new LinkedFileUtilities();
+
+        public static bool IsCurrentContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
+        {
+            // runningDocumentTable might be null for tests.
+            return runningDocumentTable != null && document.Project.Hierarchy == GetContextHierarchy(document, runningDocumentTable);
+        }
 
         /// <summary>
         /// Finds the current context hierarchy for the given document. If the document is in a
@@ -42,16 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IVsHierarchy GetContextHierarchyFromRunningDocumentTable(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
         {
             AssertIsForeground();
-
-            uint docCookie;
-            if (!runningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out docCookie))
+            if (!runningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out var docCookie))
             {
                 return null;
             }
 
-            IVsHierarchy hierarchy;
-            uint itemid;
-            runningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
+            runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
             return hierarchy;
         }
@@ -86,8 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private IVsHierarchy GetSharedItemContextHierarchy(IVsHierarchy hierarchy)
         {
-            object contextHierarchy;
-            if (hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy, out contextHierarchy) != VSConstants.S_OK)
+            if (hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy, out var contextHierarchy) != VSConstants.S_OK)
             {
                 return null;
             }
@@ -107,36 +108,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IVsHierarchy GetSharedHierarchyForItemInternal(IVsHierarchy headProjectHierarchy, uint itemId)
         {
             AssertIsForeground();
-
-            object isShared;
-            if (headProjectHierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_IsSharedItem, out isShared) != VSConstants.S_OK || !(bool)isShared)
+            if (headProjectHierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_IsSharedItem, out var isShared) != VSConstants.S_OK || !(bool)isShared)
             {
                 return null;
             }
 
-            object sharedHierarchy;
-            return headProjectHierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_SharedProjectHierarchy, out sharedHierarchy) == VSConstants.S_OK
+            return headProjectHierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_SharedProjectHierarchy, out var sharedHierarchy) == VSConstants.S_OK
                 ? sharedHierarchy as IVsHierarchy
                 : null;
         }
 
-        public static IVisualStudioHostProject GetContextHostProject(IVsHierarchy sharedHierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        public static AbstractProject GetContextHostProject(IVsHierarchy sharedHierarchy, VisualStudioProjectTracker projectTracker)
         {
-            return s_singleton.GetContextHostProjectInternal(sharedHierarchy, hostProjectContainer);
+            return s_singleton.GetContextHostProjectInternal(sharedHierarchy, projectTracker);
         }
 
-        private IVisualStudioHostProject GetContextHostProjectInternal(IVsHierarchy hierarchy, IVisualStudioHostProjectContainer hostProjectContainer)
+        private AbstractProject GetContextHostProjectInternal(IVsHierarchy hierarchy, VisualStudioProjectTracker projectTracker)
         {
             hierarchy = GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
             var projectName = GetActiveIntellisenseProjectContextInternal(hierarchy);
 
             if (projectName != null)
             {
-                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.ProjectSystemName == projectName);
+                return projectTracker.ImmutableProjects.FirstOrDefault(p => p.ProjectSystemName == projectName);
             }
             else
             {
-                return hostProjectContainer.GetProjects().FirstOrDefault(p => p.Hierarchy == hierarchy);
+                return projectTracker.ImmutableProjects.FirstOrDefault(p => p.Hierarchy == hierarchy);
             }
         }
 
@@ -145,9 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             hierarchy = GetSharedItemContextHierarchy(hierarchy) ?? hierarchy;
-
-            object intellisenseProjectName;
-            return hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out intellisenseProjectName) == VSConstants.S_OK
+            return hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var intellisenseProjectName) == VSConstants.S_OK
                 ? intellisenseProjectName as string
                 : null;
         }
@@ -178,12 +174,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool TryGetItemIdInSharedHierarchyInternal(IVsHierarchy hierarchy, uint itemId, IVsHierarchy sharedHierarchy, out uint itemIdInSharedHierarchy)
         {
-            string fullPath;
-            int found;
             VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
 
-            if (ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out fullPath))
-                && ErrorHandler.Succeeded(((IVsProject)sharedHierarchy).IsDocumentInProject(fullPath, out found, priority, out itemIdInSharedHierarchy))
+            if (ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out var fullPath))
+                && ErrorHandler.Succeeded(((IVsProject)sharedHierarchy).IsDocumentInProject(fullPath, out var found, priority, out itemIdInSharedHierarchy))
                 && found != 0
                 && itemIdInSharedHierarchy != (uint)VSConstants.VSITEMID.Nil)
             {

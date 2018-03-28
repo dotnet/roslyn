@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public abstract partial class AbstractMetadataAsSourceTests
     {
-        internal static async Task GenerateAndVerifySourceAsync(string metadataSource, string symbolName, string projectLanguage, string expected, bool compareTokens = true, bool includeXmlDocComments = false)
+        internal static async Task GenerateAndVerifySourceAsync(
+            string metadataSource, string symbolName, string projectLanguage, string expected, bool includeXmlDocComments = false, string languageVersion = null)
         {
-            using (var context = await TestContext.CreateAsync(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments))
+            using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion))
             {
-                await context.GenerateAndVerifySourceAsync(symbolName, expected, compareTokens);
+                await context.GenerateAndVerifySourceAsync(symbolName, expected);
             }
         }
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class D {}"
             };
 
-            using (var context = await TestContext.CreateAsync(projectLanguage))
+            using (var context = TestContext.Create(projectLanguage))
             {
                 var projectId = ProjectId.CreateNewId();
                 var metadataProject = context.CurrentSolution
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
             var symbolName = "C";
 
-            using (var context = await TestContext.CreateAsync(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
+            using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
             {
                 var metadataSymbol = await context.ResolveSymbolAsync(symbolName);
                 var metadataSymbolId = metadataSymbol.GetSymbolKey();

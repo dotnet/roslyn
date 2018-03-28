@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,11 +9,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal partial class CSharpTypeStyleDiagnosticAnalyzerBase
+    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase
     {
         internal class State
         {
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
-                        IsPredefinedTypeInDeclaration(declaration)
+                        IsPredefinedTypeInDeclaration(declaration, semanticModel)
                      || IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
             }
 
@@ -77,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
-                var initializerExpression = GetInitializerExpression(initializer);
+                var initializerExpression = GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel,cancellationToken, declaredTypeSymbol);
+                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, cancellationToken, declaredTypeSymbol);
             }
 
             /// <summary>
@@ -91,34 +89,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             /// to var. <see cref="SyntaxFacts.IsPredefinedType(SyntaxKind)"/> considers string
             /// and object but the compiler's implementation of IsIntrinsicType does not.
             /// </remarks>
-            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement)
+            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement, SemanticModel semanticModel)
             {
-                var predefinedType = GetTypeSyntaxFromDeclaration(declarationStatement) as PredefinedTypeSyntax;
+                var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
-                return predefinedType != null
-                    ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
+                return typeSyntax != null
+                    ? IsMadeOfSpecialTypes(semanticModel.GetTypeInfo(typeSyntax).Type)
                     : false;
+            }
+
+            /// <summary>
+            /// Returns true for type that are arrays/nullable/pointer types of special types
+            /// </summary>
+            private bool IsMadeOfSpecialTypes(ITypeSymbol type)
+            {
+                if (type == null)
+                {
+                    return false;
+                }
+
+                while (true)
+                {
+                    type = type.RemoveNullableIfPresent();
+
+                    if (type.IsArrayType())
+                    {
+                        type = ((IArrayTypeSymbol)type).ElementType;
+                        continue;
+                    }
+
+                    if (type.IsPointerType())
+                    {
+                        type = ((IPointerTypeSymbol)type).PointedAtType;
+                        continue;
+                    }
+
+                    return type.IsSpecialType();
+                }
             }
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                TypeSyntax typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
+                var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
-                return typeSyntax != null
-                     ? typeSyntax.IsTypeInferred(semanticModel) &&
-                        semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true
-                     : false;
+                return typeSyntax != null &&
+                    typeSyntax.IsTypeInferred(semanticModel) &&
+                    semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true;
             }
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
             {
-                if (declarationStatement is VariableDeclarationSyntax)
+                switch (declarationStatement)
                 {
-                    return ((VariableDeclarationSyntax)declarationStatement).Type;
-                }
-                else if (declarationStatement is ForEachStatementSyntax)
-                {
-                    return ((ForEachStatementSyntax)declarationStatement).Type;
+                    case VariableDeclarationSyntax varDecl:
+                        return varDecl.Type;
+                    case ForEachStatementSyntax forEach:
+                        return forEach.Type;
+                    case DeclarationExpressionSyntax declExpr:
+                        return declExpr.Type;
                 }
 
                 return null;
@@ -136,17 +164,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Value);
                 _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Value);
 
-                if (styleForIntrinsicTypes.IsChecked)
+                if (styleForIntrinsicTypes.Value)
                 {
                     stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
                 }
 
-                if (styleForApparent.IsChecked)
+                if (styleForApparent.Value)
                 {
                     stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
                 }
 
-                if (styleForElsewhere.IsChecked)
+                if (styleForElsewhere.Value)
                 {
                     stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
                 }

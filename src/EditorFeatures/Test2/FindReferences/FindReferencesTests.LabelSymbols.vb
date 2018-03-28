@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLabel1() As Task
             Dim input =
 <Workspace>
@@ -12,20 +12,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
-            $${|Definition:Foo|}:
-                int Foo;
-                goto [|Foo|];
+            $${|Definition:Goo|}:
+                int Goo;
+                goto [|Goo|];
             }
         }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLabel2() As Task
             Dim input =
 <Workspace>
@@ -33,21 +33,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
-            {|Definition:Foo|}:
-                int Foo;
-                goto [|$$Foo|];
+            {|Definition:Goo|}:
+                int Goo;
+                goto [|$$Goo|];
             }
         }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNumericLabel1() As Task
             Dim input =
 <Workspace>
@@ -62,11 +62,11 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNumericLabel2() As Task
             Dim input =
 <Workspace>
@@ -81,7 +81,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

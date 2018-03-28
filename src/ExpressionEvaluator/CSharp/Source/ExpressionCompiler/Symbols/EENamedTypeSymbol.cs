@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly NamespaceSymbol _container;
         private readonly NamedTypeSymbol _baseType;
         private readonly string _name;
-        private readonly CSharpSyntaxNode _syntax;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<MethodSymbol> _methods;
 
@@ -30,14 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string methodName,
             CompilationContext context,
             GenerateMethodBody generateMethodBody) :
-            this(container, baseType, syntax, currentFrame, typeName, (m, t) => ImmutableArray.Create<MethodSymbol>(context.CreateMethod(t, methodName, syntax, generateMethodBody)))
+            this(container, baseType, currentFrame, typeName, (m, t) => ImmutableArray.Create<MethodSymbol>(context.CreateMethod(t, methodName, syntax, generateMethodBody)))
         {
         }
 
         internal EENamedTypeSymbol(
             NamespaceSymbol container,
             NamedTypeSymbol baseType,
-            CSharpSyntaxNode syntax,
             MethodSymbol currentFrame,
             string typeName,
             Func<MethodSymbol, EENamedTypeSymbol, ImmutableArray<MethodSymbol>> getMethods,
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             _container = container;
             _baseType = baseType;
-            _syntax = syntax;
             _name = typeName;
             this.SourceTypeParameters = sourceTypeParameters;
             _typeParameters = getTypeParameters(currentFrame.ContainingType, this);
@@ -57,14 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal EENamedTypeSymbol(
             NamespaceSymbol container,
             NamedTypeSymbol baseType,
-            CSharpSyntaxNode syntax,
             MethodSymbol currentFrame,
             string typeName,
             Func<MethodSymbol, EENamedTypeSymbol, ImmutableArray<MethodSymbol>> getMethods)
         {
             _container = container;
             _baseType = baseType;
-            _syntax = syntax;
             _name = typeName;
 
             // What we want is to map all original type parameters to the corresponding new type parameters
@@ -138,12 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -251,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return false; }
         }
@@ -326,6 +318,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal sealed override bool IsByRefLikeType
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get { return false; }
+        }
+
         public override bool IsSealed
         {
             get { return true; }
@@ -340,6 +342,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get { return false; }
         }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

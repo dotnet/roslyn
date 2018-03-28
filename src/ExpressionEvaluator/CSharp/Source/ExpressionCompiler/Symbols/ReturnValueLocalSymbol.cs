@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _index = index;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             get { return false; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             var method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName);
             var argument = new BoundLiteral(

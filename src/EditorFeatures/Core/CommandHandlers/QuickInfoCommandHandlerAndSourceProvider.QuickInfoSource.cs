@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = null;
-
-                object eventHookupValue;
                 if (quickInfoContent.Count != 0 ||
-                    session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out eventHookupValue))
+                    session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out object eventHookupValue))
                 {
                     // No quickinfo if it's the event hookup popup.
                     return;
@@ -39,11 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 {
                     var textView = session.TextView;
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
-
-                    Controller controller;
-                    if (_commandHandler.TryGetController(args, out controller))
+                    if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        controller.InvokeQuickInfo(position.Value, trackMouse: true, augmentSession: session);
+                        controller.InvokeQuickInfo(position.Value, trackMouse: session.TrackMouse, augmentSession: session);
                     }
                 }
             }

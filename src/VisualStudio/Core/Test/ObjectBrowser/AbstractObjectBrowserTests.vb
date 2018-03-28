@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.ExceptionServices
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
@@ -18,9 +19,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                    </Workspace>
         End Function
 
+        Protected Function GetWorkspaceDefinition(code As XElement, metaDataCode As XElement, commonReferences As Boolean) As XElement
+            Return <Workspace>
+                       <Project Language=<%= LanguageName %> CommonReferences=<%= commonReferences %>>
+                           <Document><%= code.Value.Trim() %></Document>
+                           <MetadataReferenceFromSource Language=<%= LanguageName %> CommonReferences="true">
+                               <Document><%= metaDataCode.Value.Trim() %></Document>
+                           </MetadataReferenceFromSource>
+                       </Project>
+                   </Workspace>
+        End Function
+
         <HandleProcessCorruptedStateExceptions()>
-        Friend Async Function CreateLibraryManagerAsync(definition As XElement) As Threading.Tasks.Task(Of TestState)
-            Dim workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+        Friend Function CreateLibraryManager(definition As XElement) As TestState
+            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
             Dim result As TestState = Nothing
 
             Try

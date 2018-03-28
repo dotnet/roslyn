@@ -1,10 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
-Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
+Imports Microsoft.CodeAnalysis.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class FunctionAggregationSignatureHelpProviderTests
@@ -32,8 +31,8 @@ End Module
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> Count() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> Count({Expression1} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Count({VBWorkspaceResources.expression} As Boolean) As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -59,7 +58,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -68,7 +67,7 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -98,7 +97,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -107,7 +106,7 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -137,7 +136,7 @@ End Class
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -146,7 +145,7 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -186,7 +185,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 Imports System
 
-Public Module Foo
+Public Module Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     <Extension()>
     Public Function GetRandomNumber(ByVal values As IEnumerable(Of Integer)) As Integer
@@ -200,11 +199,11 @@ Public Module Foo
 End Module
 ]]></Text>.Value
             Dim expectedOrderedItemsMetadataOnly = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsMetadataOnly.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItemsMetadataOnly.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{Extension}> GetRandomNumber({Expression1} As Double) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> GetRandomNumber({VBWorkspaceResources.expression} As Double) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,

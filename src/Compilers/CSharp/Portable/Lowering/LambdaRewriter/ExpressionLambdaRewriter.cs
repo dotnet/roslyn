@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
 
-        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, CSharpSyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
+        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            CSharpSyntaxNode old = _bound.Syntax;
+            SyntaxNode old = _bound.Syntax;
             _bound.Syntax = node.Syntax;
             var result = VisitInternal(node);
             _bound.Syntax = old;
@@ -199,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConditionalOperator((BoundConditionalOperator)node);
                 case BoundKind.Conversion:
                     return VisitConversion((BoundConversion)node);
+                case BoundKind.PassByCopy:
+                    return Visit(((BoundPassByCopy)node).Expression);
                 case BoundKind.DelegateCreationExpression:
                     return VisitDelegateCreationExpression((BoundDelegateCreationExpression)node);
                 case BoundKind.FieldAccess:
@@ -231,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnaryOperator:
                     return VisitUnaryOperator((BoundUnaryOperator)node);
 
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                 case BoundKind.HostObjectMemberReference:
                 case BoundKind.Literal:
                 case BoundKind.Local:
@@ -343,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // error should have been reported earlier
                     // Bound.Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, node.Syntax.Location);
-                    return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), ExpressionType);
+                    return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), ExpressionType);
                 }
             }
             else
@@ -372,10 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // should have been reported earlier.
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), ExpressionType);
+            return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), ExpressionType);
         }
 
-        private string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
+        private static string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
         {
             isChecked = opKind.IsChecked();
             isLifted = opKind.IsLifted();
@@ -456,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
                     conversion.ConversionKind.IsImplicitConversion() &&
-                    conversion.ConversionKind != ConversionKind.NullLiteral &&
+                    conversion.ConversionKind != ConversionKind.DefaultOrNullLiteral &&
                     conversion.Type.StrippedType().IsEnumType())
                 {
                     operand = conversion.Operand;
@@ -535,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertIndex(BoundExpression expr, TypeSymbol oldType, TypeSymbol newType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var kind = _bound.Compilation.Conversions.ClassifyConversion(oldType, newType, ref useSiteDiagnostics).Kind;
+            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteDiagnostics).Kind;
             Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
             switch (kind)
             {
@@ -586,14 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 e = conversion.Update(
                     conversion.Operand,
-                    conversion.ConversionKind,
-                    conversion.ResultKind,
+                    conversion.Conversion,
                     isBaseConversion: conversion.IsBaseConversion,
-                    symbolOpt: conversion.SymbolOpt,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
-                    isExtensionMethod: conversion.IsExtensionMethod,
-                    isArrayIndex: conversion.IsArrayIndex,
                     constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);
             }
@@ -647,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var e1 = Convert(Visit(node.Operand), node.Operand.Type, intermediate, node.Checked, false);
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                     return Convert(Constant(_bound.Null(_objectType)), _objectType, node.Type, false, node.ExplicitCastInCode);
                 default:
                     return Convert(Visit(node.Operand), node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode);
@@ -692,10 +691,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
-            var mg = node.Argument as BoundMethodGroup;
-            if (mg != null)
+            if (node.Argument.Kind == BoundKind.MethodGroup)
             {
-                return DelegateCreation(mg.ReceiverOpt, node.MethodOpt, node.Type, node.MethodOpt.IsStatic && !mg.SearchExtensionMethods);
+                throw ExceptionUtilities.UnexpectedValue(BoundKind.MethodGroup);
+            }
+
+            if ((object)node.MethodOpt != null)
+            {
+                bool staticMember = node.MethodOpt.IsStatic && !node.IsExtensionMethod;
+                return DelegateCreation(node.Argument, node.MethodOpt, node.Type, staticMember);
             }
 
             var d = node.Argument.Type as NamedTypeSymbol;
@@ -978,14 +982,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // error should have been reported earlier
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
         }
 
         private static BoundExpression VisitPointerElementAccess(BoundPointerElementAccess node)
         {
             // error should have been reported earlier
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
         }
 
         private BoundExpression VisitPropertyAccess(BoundPropertyAccess node)
@@ -1017,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // error should have been reported earlier
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
         }
 
         private BoundExpression VisitUnaryOperator(BoundUnaryOperator node)
@@ -1074,15 +1078,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ExprFactory(string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] arguments)
         {
             return _bound.StaticCall(_ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None, ExpressionType, name, typeArgs, arguments);
-        }
-
-        private BoundExpression ExprFactory(WellKnownMember method, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] arguments)
-        {
-            var m0 = _bound.WellKnownMethod(method);
-            Debug.Assert((object)m0 != null);
-            Debug.Assert(m0.ParameterCount == arguments.Length);
-            var m1 = m0.Construct(typeArgs);
-            return _bound.Call(null, m1, arguments);
         }
 
         private BoundExpression Constant(BoundExpression node)

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
 Imports System.Threading.Tasks
@@ -6,8 +6,6 @@ Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 Imports Xunit
-
-#Disable Warning RS0003 ' Do not directly await a Task
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 

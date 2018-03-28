@@ -3,13 +3,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static class DeclarationConflictHelpers
     {
-        public static IEnumerable<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters)
+        public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters)
         {
             var potentiallyConfictingMethods =
                 renamedMethod.ContainingType.GetMembers(renamedMethod.Name)
@@ -30,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             foreach (var signature in GetAllSignatures(renamedMethod, trimOptionalParameters))
             {
-                IMethodSymbol conflictingSymbol;
-
-                if (signatureToConflictingMember.TryGetValue(signature, out conflictingSymbol))
+                if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
                 {
                     if (!(conflictingSymbol.PartialDefinitionPart != null && conflictingSymbol.PartialDefinitionPart == renamedMethod) &&
                         !(conflictingSymbol.PartialImplementationPart != null && conflictingSymbol.PartialImplementationPart == renamedMethod))

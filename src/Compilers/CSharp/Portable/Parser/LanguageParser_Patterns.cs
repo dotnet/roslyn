@@ -1,192 +1,572 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
+
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal partial class LanguageParser : SyntaxParser
     {
-        // Priority is the TypeSyntax. It might return TypeSyntax which might be a constant pattern such as enum 'Days.Sunday' 
-        // We handle such cases in the binder of is operator.
-        // It is used for parsing patterns in the is operators.
-        private CSharpSyntaxNode ParseTypeOrPattern()
+        /// <summary>
+        /// Parses the type, or pattern, right-hand operand of an is expression.
+        /// Priority is the TypeSyntax. It may return a TypeSyntax which turns out in binding to
+        /// be a constant pattern such as enum 'Days.Sunday'. We handle such cases in the binder of the is operator.
+        /// Note that the syntax `_` will be parsed as a type.
+        /// </summary>
+        private CSharpSyntaxNode ParseTypeOrPatternForIsOperator()
+        {
+            return CheckRecursivePatternFeature(ParseTypeOrPatternForIsOperatorCore());
+        }
+
+        private CSharpSyntaxNode CheckRecursivePatternFeature(CSharpSyntaxNode node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.DeconstructionPattern:
+                case SyntaxKind.DiscardPattern:
+                case SyntaxKind.PropertyPattern:
+                case SyntaxKind.VarPattern when ((VarPatternSyntax)node).Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation:
+                    return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
+                default:
+                    return node;
+            }
+        }
+
+        private CSharpSyntaxNode ParseTypeOrPatternForIsOperatorCore()
         {
             var tk = this.CurrentToken.Kind;
-            CSharpSyntaxNode node = null;
+            Precedence precedence = GetPrecedence(SyntaxKind.IsPatternExpression);
 
+            // We will parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
+            // So x is y < z should be parsed as (x is y) < z
+            // But x is y << z should be parsed as x is (y << z)
+            Debug.Assert(Precedence.Shift == precedence + 1);
+
+            // For totally broken syntax, parse a type for error recovery purposes
             switch (tk)
             {
-                case SyntaxKind.AsteriskToken:
-                    var asteriskToken = this.EatToken();
-                    return _syntaxFactory.WildcardPattern(asteriskToken);
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CloseBraceToken:
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CommaToken:
                     // HACK: for error recovery, we prefer a (missing) type.
-                    return this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    return this.ParseType(ParseTypeMode.AfterIs);
                 default:
                     // attempt to disambiguate.
                     break;
             }
 
-            // If it is a nameof, skip the 'if' and parse as a constant pattern.
+            // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
+            bool typeCannotBePattern = tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_";
+                // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword))
+                (tk == SyntaxKind.IdentifierToken &&
+                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
             {
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
+
+                    if (!type.IsMissing && !typeCannotBePattern)
+                    {
+                        PatternSyntax p = ParsePatternContinued(type, false);
+                        if (p != null)
+                        {
+                            return p;
+                        }
+                    }
 
                     tk = this.CurrentToken.ContextualKind;
-                    if (!type.IsMissing)
+                    if ((!IsExpectedBinaryOperator(tk) || GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) <= precedence) &&
+                        // member selection is not formally a binary operator but has higher precedence than relational
+                        tk != SyntaxKind.DotToken)
                     {
-                        // X.Y.Z ( ... ) : PositionalPattern
-                        if (tk == SyntaxKind.OpenParenToken)
-                        {
-                            node = _syntaxFactory.PositionalPattern(type, this.ParseSubPositionalPatternList());
-                            node = CheckFeatureAvailability(node, MessageID.IDS_FeaturePatternMatching2);
-                        }
-                        // X.Y.Z { ... } : PropertyPattern
-                        else if (tk == SyntaxKind.OpenBraceToken)
-                        {
-                            node = ParsePropertyPatternBody(type);
-                        }
-                        // X.Y.Z id
-                        else if (this.IsTrueIdentifier())
-                        {
-                            var identifier = ParseIdentifierToken();
-                            node = _syntaxFactory.DeclarationPattern(type, identifier);
-                        }
+                        // it is a typical "is Type" operator.
+                        // Note that we don't bother checking for primary expressions such as X[e], X(e), X++, and X--
+                        // as those are never semantically valid constant expressions for a pattern
+                        return type;
                     }
-                    if (node == null)
-                    {
-                        Debug.Assert(Precedence.Shift == Precedence.Relational + 1);
-                        if ((IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational) ||
-                            tk == SyntaxKind.DotToken) // member selection is not formally a binary operator but has higher precedence than relational
-                        {
-                            this.Reset(ref resetPoint);
-                            // We parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
-                            // So x is y < z should be parsed as (x is y) < z
-                            // But x is y << z should be parsed as x is (y << z)
-                            node = _syntaxFactory.ConstantPattern(this.ParseSubExpression(Precedence.Shift));
-                        }
-                        // it is a typical is operator! 
-                        else
-                        {
-                            // Note that we don't bother checking for primary expressions such as X[e], X(e), X++, and X--
-                            // as those are never semantically valid constant expressions for a pattern, and X(e) is
-                            // syntactically a recursive pattern that we checked for earlier.
-                            node = type;
-                        }
-                    }
+
+                    this.Reset(ref resetPoint);
                 }
                 finally
                 {
                     this.Release(ref resetPoint);
                 }
             }
-            else
+            // check to see if it looks like a recursive pattern.
+            else if (!typeCannotBePattern && (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken))
             {
-                // it still might be a pattern such as (operand is 3) or (operand is nameof(x))
-                node = _syntaxFactory.ConstantPattern(this.ParseExpressionCore());
-            }
-            return node;
-        }
+                var resetPoint = this.GetResetPoint();
+                try
+                {
+                    PatternSyntax p = ParsePatternContinued(null, false);
+                    if (p != null)
+                    {
+                        return p;
+                    }
 
-        private PropertyPatternSyntax ParsePropertyPatternBody(TypeSyntax type)
-        {
-            var open = this.EatToken(SyntaxKind.OpenBraceToken);
-            var list = this.ParseSubPropertyPatternList(ref open);
-            var close = this.EatToken(SyntaxKind.CloseBraceToken);
-            return _syntaxFactory.PropertyPattern(type, open, list, close);
-        }
-
-        private SubPositionalPatternListSyntax ParseSubPositionalPatternList()
-        {
-            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.SubPositionalPatternList)
-            {
-                return (SubPositionalPatternListSyntax)this.EatNode();
+                    // this can occur when we encounter a misplaced lambda expression.
+                    this.Reset(ref resetPoint);
+                }
+                finally
+                {
+                    this.Release(ref resetPoint);
+                }
             }
 
-            SyntaxToken openToken, closeToken;
-            SeparatedSyntaxList<SubPositionalPatternSyntax> subPatterns;
-            ParseSubPositionalPatternList(out openToken, out subPatterns, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
-
-            return _syntaxFactory.SubPositionalPatternList(openToken, subPatterns, closeToken);
+            // In places where a pattern is supported, we do not support tuple types
+            // due to both syntactic and semantic ambiguities between tuple types and positional patterns.
+            // But it still might be a pattern such as (operand is 3) or (operand is nameof(x))
+            return _syntaxFactory.ConstantPattern(this.ParseSubExpressionCore(precedence));
         }
 
-        private void ParseSubPositionalPatternList(
+        //
+        // Parse an expression where a declaration expression would be permitted. This is suitable for use after
+        // the `out` keyword in an argument list, or in the elements of a tuple literal (because they may
+        // be on the left-hand-side of a deconstruction). The first element of a tuple is handled slightly
+        // differently, as we check for the comma before concluding that the identifier should cause a
+        // disambiguation. For example, for the input `(A < B , C > D)`, we treat this as a tuple with
+        // two elements, because if we considered the `A<B,C>` to be a type, it wouldn't be a tuple at
+        // all. Since we don't have such a thing as a one-element tuple (even for deconstruction), the
+        // absence of the comma after the `D` means we don't treat the `D` as contributing to the
+        // disambiguation of the expression/type. More formally, ...
+        //
+        // If a sequence of tokens can be parsed(in context) as a* simple-name* (§7.6.3), *member-access* (§7.6.5),
+        // or* pointer-member-access* (§18.5.2) ending with a* type-argument-list* (§4.4.1), the token immediately
+        // following the closing `>` token is examined, to see if it is
+        // - One of `(  )  ]  }  :  ;  ,  .  ?  ==  !=  |  ^  &&  ||  &  [`; or
+        // - One of the relational operators `<  >  <=  >=  is as`; or
+        // - A contextual query keyword appearing inside a query expression; or
+        // - In certain contexts, we treat *identifier* as a disambiguating token.Those contexts are where the
+        //   sequence of tokens being disambiguated is immediately preceded by one of the keywords `is`, `case`
+        //   or `out`, or arises while parsing the first element of a tuple literal(in which case the tokens are
+        //   preceded by `(` or `:` and the identifier is followed by a `,`) or a subsequent element of a tuple literal.
+        //
+        // If the following token is among this list, or an identifier in such a context, then the *type-argument-list* is
+        // retained as part of the *simple-name*, *member-access* or  *pointer-member-access* and any other possible parse
+        // of the sequence of tokens is discarded.Otherwise, the *type-argument-list* is not considered to be part of the
+        // *simple-name*, *member-access* or *pointer-member-access*, even if there is no other possible parse of the
+        // sequence of tokens.Note that these rules are not applied when parsing a *type-argument-list* in a *namespace-or-type-name* (§3.8).
+        //
+        // See also ScanTypeArgumentList where these disambiguation rules are encoded.
+        //
+        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
+        {
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation)
+                ? this.ParseDeclarationExpression(mode, feature)
+                : this.ParseSubExpression(Precedence.Expression);
+        }
+
+        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation)
+        {
+            if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
+            {
+                // can't be a declaration expression.
+                return false;
+            }
+
+            var resetPoint = this.GetResetPoint();
+            try
+            {
+                bool typeIsVar = IsVarType();
+                SyntaxToken lastTokenOfType;
+                if (ScanType(mode, out lastTokenOfType) == ScanTypeFlags.NotType)
+                {
+                    return false;
+                }
+
+                // check for a designation
+                if (!ScanDesignation(permitTupleDesignation && (typeIsVar || IsPredefinedType(lastTokenOfType.Kind))))
+                {
+                    return false;
+                }
+
+                switch (mode)
+                {
+                    case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                    case ParseTypeMode.AfterTupleComma:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseParenToken;
+                    default:
+                        // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                        // There we err on the side of accepting a declaration.
+                        return true;
+                }
+            }
+            finally
+            {
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+            }
+        }
+
+        /// <summary>
+        /// Is the following set of tokens, interpreted as a type, the type `var`?
+        /// </summary>
+        private bool IsVarType()
+        {
+            if (!this.CurrentToken.IsIdentifierVar())
+            {
+                return false;
+            }
+
+            switch (this.PeekToken(1).Kind)
+            {
+                case SyntaxKind.DotToken:
+                case SyntaxKind.ColonColonToken:
+                case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.LessThanToken:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        private bool ScanDesignation(bool permitTuple)
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                default:
+                    return false;
+                case SyntaxKind.IdentifierToken:
+                    bool result = this.IsTrueIdentifier();
+                    this.EatToken();
+                    return result;
+                case SyntaxKind.OpenParenToken:
+                    if (!permitTuple)
+                    {
+                        return false;
+                    }
+
+                    bool sawComma = false;
+                    while (true)
+                    {
+                        this.EatToken(); // consume the `(` or `,`
+                        if (!ScanDesignation(permitTuple: true))
+                        {
+                            return false;
+                        }
+                        switch (this.CurrentToken.Kind)
+                        {
+                            case SyntaxKind.CloseParenToken:
+                                this.EatToken();
+                                return sawComma;
+                            case SyntaxKind.CommaToken:
+                                sawComma = true;
+                                continue;
+                            default:
+                                return false;
+                        }
+                    }
+            }
+        }
+
+        /// <summary>
+        /// Here is the grammar being parsed:
+        /// ``` antlr
+        /// pattern
+        /// 	: declaration_pattern
+        /// 	| constant_pattern
+        /// 	| deconstruction_pattern
+        /// 	| property_pattern
+        /// 	| discard_pattern
+        /// 	;
+        /// declaration_pattern
+        /// 	: type identifier
+        /// 	;
+        /// constant_pattern
+        /// 	: expression
+        /// 	;
+        /// deconstruction_pattern
+        /// 	: type? '(' subpatterns? ')' property_subpattern? identifier?
+        /// 	;
+        /// subpatterns
+        /// 	: subpattern
+        /// 	| subpattern ',' subpatterns
+        /// 	;
+        /// subpattern
+        /// 	: pattern
+        /// 	| identifier ':' pattern
+        /// 	;
+        /// property_subpattern
+        /// 	: '{' subpatterns? '}'
+        /// 	;
+        /// property_pattern
+        /// 	: property_subpattern identifier?
+        /// 	;
+        /// discard_pattern
+        /// 	: '_'
+        /// 	;
+        /// ```
+        ///
+        /// Priority is the ExpressionSyntax. It might return ExpressionSyntax which might be a constant pattern such as 'case 3:' 
+        /// All constant expressions are converted to the constant pattern in the switch binder if it is a match statement.
+        /// It is used for parsing patterns in the switch cases. It never returns constant pattern, because for a `case` we
+        /// need to use a pre-pattern-matching syntax node for a constant case.
+        /// </summary>
+        /// <param name="forCase">prevents the use of "when" for the identifier</param>
+        /// <returns></returns>
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool forCase, Precedence precedence)
+        {
+            // handle common error recovery situations during typing
+            var tk = this.CurrentToken.Kind;
+            switch (tk)
+            {
+                case SyntaxKind.CommaToken:
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.CloseParenToken:
+                case SyntaxKind.CloseBracketToken:
+                case SyntaxKind.EqualsGreaterThanToken:
+                    return this.ParseIdentifierName(ErrorCode.ERR_MissingPattern);
+            }
+
+            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_")
+            {
+                // In a pattern, we reserve `_` as a wildcard. It cannot be used (with that spelling) as the
+                // type of a declaration or recursive pattern, nor as a type in an in-type expression starting
+                // in C# 7. The binder will give a diagnostic if
+                // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
+                // PROTOTYPE(patterns2): Should we use the "contextual keyword" infrastructure for this?
+                return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
+            }
+
+            var resetPoint = this.GetResetPoint();
+            try
+            {
+                TypeSyntax type = null;
+                if ((SyntaxFacts.IsPredefinedType(tk) || tk == SyntaxKind.IdentifierToken) &&
+                      // If it is a nameof, skip the 'if' and parse as an expression. 
+                      (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+                {
+                    type = this.ParseType(ParseTypeMode.DefinitePattern);
+                    if (type.IsMissing)
+                    {
+                        // either it is not shaped like a type, or it is a constant expression.
+                        this.Reset(ref resetPoint);
+                        type = null;
+                    }
+                }
+
+                PatternSyntax p = ParsePatternContinued(type, forCase);
+                if (p != null)
+                {
+                    return (forCase && p is ConstantPatternSyntax c) ? c.expression : (CSharpSyntaxNode)p;
+                }
+
+                this.Reset(ref resetPoint);
+                return this.ParseSubExpression(precedence);
+            }
+            finally
+            {
+                this.Release(ref resetPoint);
+            }
+        }
+
+        private PatternSyntax ParsePatternContinued(TypeSyntax type, bool forCase)
+        {
+            bool parsePropertySubpattern(out PropertySubpatternSyntax propertySubpatternResult)
+            {
+                propertySubpatternResult = null;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    propertySubpatternResult = ParsePropertySubpattern();
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool parseDesignation(out VariableDesignationSyntax designationResult)
+            {
+                designationResult = null;
+                if (this.IsTrueIdentifier() && (!forCase || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                {
+                    designationResult = ParseSimpleDesignation();
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool looksLikeCast()
+            {
+                var resetPoint = this.GetResetPoint();
+                bool result = this.ScanCast(forPattern: true);
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                return result;
+            }
+
+            if (type?.Kind == SyntaxKind.IdentifierName)
+            {
+                var typeIdentifier = (IdentifierNameSyntax)type;
+                var typeIdentifierToken = typeIdentifier.Identifier;
+                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword)
+                {
+                    // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
+                    var varToken = ConvertToKeyword(typeIdentifierToken);
+                    bool wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
+                    var varDesignation = ParseDesignation();
+                    if (wasTupleDesignator)
+                    {
+                        return _syntaxFactory.VarPattern(varToken, varDesignation);
+                    }
+                    else
+                    {
+                        // PROTOTYPE(patterns2): we parse it as a declaration pattern when we have simple designation, for compatibility.
+                        // PROTOTYPE(patterns2): can we change it to use a var pattern in all cases?
+                        // PROTOTYPE(patterns2): For example: return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
+                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
+                    }
+                }
+            }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && (type != null || !looksLikeCast()))
+            {
+                // It is possible this is a parenthesized (constant) expression.
+                // We normalize later.
+                ParseSubpatternList(
+                    openToken: out SyntaxToken openParenToken,
+                    subPatterns: out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+                    closeToken: out SyntaxToken closeParenToken,
+                    openKind: SyntaxKind.OpenParenToken,
+                    closeKind: SyntaxKind.CloseParenToken);
+
+                parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern0);
+                parseDesignation(out VariableDesignationSyntax designation0);
+
+                if (type == null &&
+                    propertySubpattern0 == null &&
+                    designation0 == null &&
+                    subPatterns.Count == 1 &&
+                    subPatterns[0].NameColon == null)
+                {
+                    if (subPatterns[0].Pattern is ConstantPatternSyntax cp)
+                    {
+                        // There is an ambiguity between a deconstruction pattern `(` pattern `)`
+                        // and a constant expression pattern that happens to be parenthesized.
+                        // Per 2017-11-20 LDM we treat such syntax as a parenthesized expression always.
+                        return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                    }
+                }
+
+                var result = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
+
+                // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
+                // single subpattern but for which the type is omitted.
+                // This keeps the design space open for using parentheses for grouping patterns in the future, e.g. if we introduce `or` and
+                // `and` patterns. We may add other ways to disambiguate later (e.g. a property subpattern or a trailing comma inside the parens).
+                return (type == null && subPatterns.Count == 1) ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresType) : result;
+            }
+
+            if (parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern))
+            {
+                parseDesignation(out VariableDesignationSyntax designation0);
+                return _syntaxFactory.PropertyPattern(type, propertySubpattern, designation0);
+            }
+
+            if (type != null && parseDesignation(out VariableDesignationSyntax designation))
+            {
+                return _syntaxFactory.DeclarationPattern(type, designation);
+            }
+
+            // let the caller fall back to its default (expression or type)
+            return null;
+        }
+
+        private PatternSyntax ParsePattern(Precedence precedence)
+        {
+            var node = ParseExpressionOrPattern(forCase: false, precedence: precedence);
+            switch (node)
+            {
+                case PatternSyntax pattern:
+                    return pattern;
+                case ExpressionSyntax expression:
+                    return _syntaxFactory.ConstantPattern(expression);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
+
+        private PropertySubpatternSyntax ParsePropertySubpattern()
+        {
+            ParseSubpatternList(
+                openToken: out SyntaxToken openBraceToken,
+                subPatterns: out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+                closeToken: out SyntaxToken closeBraceToken,
+                openKind: SyntaxKind.OpenBraceToken,
+                closeKind: SyntaxKind.CloseBraceToken);
+            return _syntaxFactory.PropertySubpattern(openBraceToken, subPatterns, closeBraceToken);
+        }
+
+        private void ParseSubpatternList(
             out SyntaxToken openToken,
-            out SeparatedSyntaxList<SubPositionalPatternSyntax> subPatterns,
+            out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind)
         {
-            var open = this.EatToken(openKind);
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfArgumentList;
+            Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBraceToken);
+            Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBraceToken);
+            Debug.Assert((openKind == SyntaxKind.OpenParenToken) == (closeKind == SyntaxKind.CloseParenToken));
+            Debug.Assert(openKind == this.CurrentToken.Kind);
 
-            SeparatedSyntaxListBuilder<SubPositionalPatternSyntax> list = default(SeparatedSyntaxListBuilder<SubPositionalPatternSyntax>);
+            openToken = this.EatToken(openKind);
+            var list = _pool.AllocateSeparated<SubpatternElementSyntax>();
             try
             {
-                if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                tryAgain:
+
+                if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    tryAgain:
-                    if (list.IsNull)
-                    {
-                        list = _pool.AllocateSeparated<SubPositionalPatternSyntax>();
-                    }
+                    // first pattern
+                    list.Add(this.ParseSubpatternElement());
 
-                    if (this.IsPossibleArgumentExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    // additional patterns
+                    while (true)
                     {
-                        // first argument
-                        list.Add(this.ParseSubPositionalPattern());
-
-                        // additional arguments
-                        while (true)
+                        if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
+                            this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
+                            this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         {
-                            if (this.CurrentToken.Kind == closeKind || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                            {
-                                break;
-                            }
-                            else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleArgumentExpression())
-                            {
-                                list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                                list.Add(this.ParseSubPositionalPattern());
-                                continue;
-                            }
-                            else if (this.SkipBadSubPatternListTokens(ref open, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
-                            {
-                                break;
-                            }
+                            break;
+                        }
+                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
+                        {
+                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                            list.Add(this.ParseSubpatternElement());
+                            continue;
+                        }
+                        else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
+                        {
+                            break;
                         }
                     }
-                    else if (this.SkipBadSubPatternListTokens(ref open, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
-                    {
-                        goto tryAgain;
-                    }
+                }
+                else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
+                {
+                    goto tryAgain;
                 }
 
-                _termState = saveTerm;
-
-                openToken = open;
                 closeToken = this.EatToken(closeKind);
                 subPatterns = list.ToList();
             }
             finally
             {
-                if (!list.IsNull)
-                {
-                    _pool.Free(list);
-                }
+                _pool.Free(list);
             }
         }
 
-        private SubPositionalPatternSyntax ParseSubPositionalPattern()
+        private SubpatternElementSyntax ParseSubpatternElement()
         {
             NameColonSyntax nameColon = null;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
@@ -196,221 +576,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 nameColon = _syntaxFactory.NameColon(name, colon);
             }
 
-            PatternSyntax pattern = this.CurrentToken.Kind == SyntaxKind.CommaToken ?
-                                            this.AddError(_syntaxFactory.ConstantPattern(this.CreateMissingIdentifierName()), ErrorCode.ERR_MissingArgument) :
-                                            ParsePattern();
-
-            return _syntaxFactory.SubPositionalPattern(nameColon, pattern);
+            var pattern = ParsePattern(Precedence.Ternary);
+            return this._syntaxFactory.SubpatternElement(nameColon, pattern);
         }
 
-        // This method is used when we always want a pattern as a result.
-        // For instance, it is used in parsing recursivepattern and propertypattern.
-        // SubPatterns in these (recursivepattern, propertypattern) must be a type of Pattern.
-        private PatternSyntax ParsePattern()
+        /// <summary>
+        /// Check the next token to see if it is valid as the first token of a subpattern element.
+        /// Used to assist in error recovery for subpattern lists (e.g. determining which tokens to skip)
+        /// to ensure we make forward progress during recovery.
+        /// </summary>
+        private bool IsPossibleSubpatternElement()
         {
-            var node = this.ParseExpressionOrPattern();
-            if (node is PatternSyntax)
-            {
-                return (PatternSyntax)node;
-            }
-
-            Debug.Assert(node is ExpressionSyntax);
-            return _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
+            return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        // Priority is the ExpressionSyntax. It might return ExpressionSyntax which might be a constant pattern such as 'case 3:' 
-        // All constant expressions are converted to the constant pattern in the switch binder if it is a match statement.
-        // It is used for parsing patterns in the switch cases. It never returns constant pattern!
-        private CSharpSyntaxNode ParseExpressionOrPattern()
-        {
-            var tk = this.CurrentToken.Kind;
-            CSharpSyntaxNode node = null;
-
-            if (tk == SyntaxKind.AsteriskToken)
-            {
-                var asteriskToken = this.EatToken();
-                return _syntaxFactory.WildcardPattern(asteriskToken);
-            }
-
-            // If it is a nameof, skip the 'if' and parse as an expression. 
-            if ((SyntaxFacts.IsPredefinedType(tk) || tk == SyntaxKind.IdentifierToken) &&
-                  this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword)
-            {
-                var resetPoint = this.GetResetPoint();
-                try
-                {
-                    TypeSyntax type = this.ParseTypeCore(parentIsParameter: false, isOrAs: true, expectSizes: false, isArrayCreation: false);
-                    tk = this.CurrentToken.Kind;
-                    if (!type.IsMissing)
-                    {
-                        // X.Y.Z ( ... ) : PositionalPattern
-                        if (tk == SyntaxKind.OpenParenToken)
-                        {
-                            node = _syntaxFactory.PositionalPattern(type, this.ParseSubPositionalPatternList());
-                            node = CheckFeatureAvailability(node, MessageID.IDS_FeaturePatternMatching2);
-                        }
-                        // X.Y.Z { ... } : PropertyPattern
-                        else if (tk == SyntaxKind.OpenBraceToken)
-                        {
-                            node = ParsePropertyPatternBody(type);
-                        }
-                        // X.Y.Z id
-                        else if (this.IsTrueIdentifier())
-                        {
-                            var identifier = ParseIdentifierToken();
-                            node = _syntaxFactory.DeclarationPattern(type, identifier);
-                        }
-                    }
-                    if (node == null)
-                    {
-                        // it is an expression for typical switch case. 
-                        // This can be transformed to the constant pattern in the SwitchBinder if there is a CaseMatchLabel in the sections.
-                        this.Reset(ref resetPoint);
-                        node = this.ParseSubExpression(Precedence.Expression);
-                    }
-                }
-                finally
-                {
-                    this.Release(ref resetPoint);
-                }
-            }
-            else
-            {
-                node = this.ParseSubExpression(Precedence.Expression);
-            }
-            return node;
-        }
-
-        private SeparatedSyntaxList<ExpressionSyntax> ParseSubPropertyPatternList(ref SyntaxToken openBrace)
-        {
-            var subPatterns = _pool.AllocateSeparated<ExpressionSyntax>();
-            this.ParseSubPropertyPatternList(ref openBrace, subPatterns);
-            var result = subPatterns.ToList();
-            _pool.Free(subPatterns);
-            return result;
-        }
-
-        private void ParseSubPropertyPatternList(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list)
-        {
-            if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
-            {
-                tryAgain:
-                if (IsPossibleSubPropertyPattern() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    // first argument
-                    list.Add(ParseSubPropertyPattern());
-
-                    // additional arguments
-                    while (true)
-                    {
-                        if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleSubPropertyPattern())
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-
-                            // check for exit case after legal trailing comma
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                            {
-                                break;
-                            }
-
-                            list.Add(ParseSubPropertyPattern());
-                            continue;
-                        }
-                        else if (this.SkipBadSubPatternListTokens(ref openBrace, list, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else if (this.SkipBadSubPatternListTokens(ref openBrace, list, SyntaxKind.IdentifierToken, SyntaxKind.CloseBraceToken) == PostSkipAction.Continue)
-                {
-                    goto tryAgain;
-                }
-            }
-        }
-
-        private bool IsPossibleSubPropertyPattern()
-        {
-            return (this.CurrentToken.Kind == SyntaxKind.IdentifierToken) && (this.PeekToken(1).Kind == SyntaxKind.IsKeyword);
-        }
-
-        private IsPatternExpressionSyntax ParseSubPropertyPattern()
-        {
-            var name = this.EatToken(SyntaxKind.IdentifierToken);
-            var identifier = _syntaxFactory.IdentifierName(name);
-            var isKeyword = this.EatToken(SyntaxKind.IsKeyword);
-
-            PatternSyntax pattern = this.CurrentToken.Kind == SyntaxKind.CommaToken ?
-                                                        this.AddError(_syntaxFactory.ConstantPattern(this.CreateMissingIdentifierName()), ErrorCode.ERR_MissingArgument) :
-                                                        ParsePattern();
-            return _syntaxFactory.IsPatternExpression(identifier, isKeyword, pattern);
-        }
-
-        private PostSkipAction SkipBadSubPatternListTokens<TNode>(ref SyntaxToken open, SeparatedSyntaxListBuilder<TNode> list, SyntaxKind expected, SyntaxKind closeKind) where TNode : CSharpSyntaxNode
+        private PostSkipAction SkipBadPatternListTokens(
+            ref SyntaxToken open,
+            SeparatedSyntaxListBuilder<SubpatternElementSyntax> list,
+            SyntaxKind expected,
+            SyntaxKind closeKind)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossiblePattern(),
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
                 p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
                 expected);
-        }
-
-        // It should not be accurate. This method is just used in the SkipBadSubPatternListTokens.
-        // It is very general way of checking whether there is a possible pattern.
-        private bool IsPossiblePattern()
-        {
-            // TODO(@gafter): this doesn't accept many forms that should be accepted, such as (1+1).
-            var tk = this.CurrentToken.Kind;
-            switch (tk)
-            {
-                case SyntaxKind.AsteriskToken:
-                case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.CharacterLiteralToken:
-                case SyntaxKind.NumericLiteralToken:
-                case SyntaxKind.NullKeyword:
-                case SyntaxKind.TrueKeyword:
-                case SyntaxKind.FalseKeyword:
-                case SyntaxKind.ArgListKeyword:
-                    return true;
-                case SyntaxKind.IdentifierToken:
-                    var next = this.PeekToken(1).Kind;
-                    if (next == SyntaxKind.DotToken || next == SyntaxKind.OpenBraceToken ||
-                       next == SyntaxKind.OpenParenToken)
-                    {
-                        return true;
-                    }
-                    break;
-            }
-
-            return false;
-        }
-
-        private ExpressionSyntax ParseMatchExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
-        {
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var sections = _pool.Allocate<MatchSectionSyntax>();
-            while (this.CurrentToken.Kind == SyntaxKind.CaseKeyword)
-            {
-                var mcase = this.ParseMatchSection();
-                sections.Add(mcase);
-            }
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var result = _syntaxFactory.MatchExpression(leftOperand, opToken, openParen, sections, closeParen);
-            _pool.Free(sections);
-            return result;
-        }
-
-        private MatchSectionSyntax ParseMatchSection()
-        {
-            var caseKeyword = this.EatToken(SyntaxKind.CaseKeyword);
-            var pattern = ParsePattern();
-            var whenClause = ParseWhenClauseOpt();
-            var colon = this.EatToken(SyntaxKind.ColonToken);
-            var expression = ParseExpressionCore();
-            return _syntaxFactory.MatchSection(caseKeyword, pattern, whenClause, colon, expression);
         }
     }
 }

@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Sub New(containingBinder As Binder, sourceFile As SourceFile, tree As SyntaxTree)
             MyBase.New(containingBinder, tree)
+            Debug.Assert(sourceFile IsNot Nothing)
             _sourceFile = sourceFile
         End Sub
 

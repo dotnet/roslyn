@@ -4,16 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
@@ -21,14 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     [ExportLanguageService(typeof(ISimplificationService), LanguageNames.CSharp), Shared]
     internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
     {
-        protected override IEnumerable<AbstractReducer> GetReducers()
+        // 1. the cast simplifier should run earlier then everything else to minimize the type expressions
+        // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
+        private static readonly ImmutableArray<AbstractReducer> s_reducers =
+            ImmutableArray.Create<AbstractReducer>(
+                new CSharpCastReducer(),
+                new CSharpNameReducer(),
+                new CSharpExtensionMethodReducer(),
+                new CSharpParenthesesReducer(),
+                new CSharpEscapingReducer(),
+                new CSharpMiscellaneousReducer(),
+                new CSharpInferredMemberNameReducer(),
+                new CSharpDefaultExpressionReducer());
+
+        public CSharpSimplificationService() : base(s_reducers)
         {
-            yield return new CSharpCastReducer();
-            yield return new CSharpNameReducer(); // the cast simplifier should run earlier to minimize the type expressions
-            yield return new CSharpParenthesesReducer();
-            yield return new CSharpExtensionMethodReducer();
-            yield return new CSharpEscapingReducer();
-            yield return new CSharpMiscellaneousReducer();
         }
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
@@ -51,9 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
                 else
                 {
-                    throw new ArgumentException(
-                        CSharpWorkspaceResources.OnlyAttributesConstructorI,
-                        paramName: "node");
+                    throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit, nameof(node));
                 }
             }
         }
@@ -65,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
                 var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
-                SyntaxToken rewrittenTokenWithElasticTrivia;
-                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
+                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
                 }
@@ -84,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             if (SyntaxFacts.GetKeywordKind(syntaxToken.ValueText) == SyntaxKind.None && SyntaxFacts.GetContextualKeywordKind(syntaxToken.ValueText) == SyntaxKind.None)
+            {
+                return syntaxToken;
+            }
+
+            if (SyntaxFacts.GetContextualKeywordKind(syntaxToken.ValueText) == SyntaxKind.UnderscoreToken)
             {
                 return syntaxToken;
             }
@@ -116,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             var firstRewrittenToken = rewrittenNode.GetFirstToken(true, false, true, true);
             var firstOriginalToken = originalNode.GetFirstToken(true, false, true, true);
-
-            SyntaxToken rewrittenTokenWithLeadingElasticTrivia;
-            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out rewrittenTokenWithLeadingElasticTrivia))
+            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out var rewrittenTokenWithLeadingElasticTrivia))
             {
                 return rewrittenNode.ReplaceToken(firstRewrittenToken, rewrittenTokenWithLeadingElasticTrivia);
             }
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static bool TryAddLeadingElasticTriviaIfNecessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
         {
-            tokenWithLeadingWhitespace = default(SyntaxToken);
+            tokenWithLeadingWhitespace = default;
 
             if (token.HasLeadingTrivia)
             {
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
-        private static readonly string s_CS8019_UnusedUsingDirective = "CS8019";
+        private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
@@ -175,14 +179,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 
-                    if (node != null)
+                    if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);
                     }
                 }
             }
+        }
+
+        // Is the tuple on either side of a deconstruction (top-level or nested)?
+        private static bool IsTupleInDeconstruction(SyntaxNode tuple)
+        {
+            Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
+            var currentTuple = tuple;
+            do
+            {
+                var parent = currentTuple.Parent;
+                if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return true;
+                }
+
+                if (!parent.IsKind(SyntaxKind.Argument))
+                {
+                    return false;
+                }
+
+                var grandParent = parent.Parent;
+                if (!grandParent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+
+                currentTuple = grandParent;
+            }
+            while (true);
         }
     }
 }

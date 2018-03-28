@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.Editor;
@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService, TProject> : IVsContainedLanguage
+    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedLanguage
     {
         public int GetColorizer(out IVsColorizer colorizer)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             var commandHandlerServiceFactory = ComponentModel.GetService<ICommandHandlerServiceFactory>();
-            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService, TProject>(_languageService, wpfTextView, commandHandlerServiceFactory, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
+            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, commandHandlerServiceFactory, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
 
             return VSConstants.S_OK;
         }

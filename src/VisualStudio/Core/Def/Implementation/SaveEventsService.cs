@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -42,8 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (!_subscribed)
             {
-                uint runningDocumentTableEventCookie;
-                Marshal.ThrowExceptionForHR(_runningDocumentTable.AdviseRunningDocTableEvents(this, out runningDocumentTableEventCookie));
+                Marshal.ThrowExceptionForHR(_runningDocumentTable.AdviseRunningDocTableEvents(this, out var runningDocumentTableEventCookie));
                 _subscribed = true;
             }
         }
@@ -95,18 +94,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void OnBeforeSaveWorker(uint docCookie)
         {
-            // We want to raise a save event for this document. First let's try to get the docData
-            uint flags;
-            uint readLocks;
-            uint writeLocks;
-            string moniker;
-            IVsHierarchy hierarchy;
-            uint itemid;
             var docData = IntPtr.Zero;
 
             try
             {
-                Marshal.ThrowExceptionForHR(_runningDocumentTable.GetDocumentInfo(docCookie, out flags, out readLocks, out writeLocks, out moniker, out hierarchy, out itemid, out docData));
+                // We want to raise a save event for this document. First let's try to get the docData
+                Marshal.ThrowExceptionForHR(_runningDocumentTable.GetDocumentInfo(docCookie, out var flags, out var readLocks, out var writeLocks, out var moniker, out var hierarchy, out var itemid, out docData));
 
                 var textBuffer = TryGetTextBufferFromDocData(docData);
 
@@ -118,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (textBufferAdapter != null)
                     {
                         // OK, we want to go and raise a save event. Currently, CommandArgs demands that we have a view, so let's try to go and find one.
-                        IVsEnumTextViews enumTextViews;
-                        _textManager.EnumViews(textBufferAdapter, out enumTextViews);
+                        _textManager.EnumViews(textBufferAdapter, out var enumTextViews);
                         IVsTextView[] views = new IVsTextView[1];
                         uint fetched = 0;
 
@@ -148,9 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
         private ITextBuffer TryGetTextBufferFromDocData(IntPtr docData)
         {
-            var shimTextBuffer = Marshal.GetObjectForIUnknown(docData) as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (Marshal.GetObjectForIUnknown(docData) is IVsTextBuffer shimTextBuffer)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }

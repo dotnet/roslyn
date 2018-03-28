@@ -1,8 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -57,23 +58,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.WriteLine("Foo")
+    Function Goo() As Integer
+        Console.WriteLine("Goo")
         Return 0
     End Function
 
     Sub Main()
-        Select Case Foo()
+        Select Case Goo()
         End Select
     End Sub
 End Module
     ]]></file>
 </compilation>,
-    expectedOutput:="Foo").VerifyIL("M1.Main", <![CDATA[
+    expectedOutput:="Goo").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size        7 (0x7)
   .maxstack  1
-  IL_0000:  call       "Function M1.Foo() As Integer"
+  IL_0000:  call       "Function M1.Goo() As Integer"
   IL_0005:  pop
   IL_0006:  ret
 }
@@ -1411,22 +1412,20 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       31 (0x1f)
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0009
-  IL_0005:  ldloc.0
-  IL_0006:  ldc.i4.1
-  IL_0007:  bne.un.s   IL_0014
-  IL_0009:  ldstr      "Success"
-  IL_000e:  call       "Sub System.Console.WriteLine(String)"
-  IL_0013:  ret
-  IL_0014:  ldstr      "Fail"
-  IL_0019:  call       "Sub System.Console.WriteLine(String)"
-  IL_001e:  ret
+  IL_0003:  ldc.i4.1
+  IL_0004:  bgt.un.s   IL_0011
+  IL_0006:  ldstr      "Success"
+  IL_000b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0010:  ret
+  IL_0011:  ldstr      "Fail"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
@@ -1453,26 +1452,27 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       55 (0x37)
-  .maxstack  1
+  // Code size       44 (0x2c)
+  .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  switch    (
-  IL_0021,
-  IL_0016,
-  IL_0016)
-  IL_0014:  br.s       IL_002c
-  IL_0016:  ldstr      "Fail"
+  IL_0003:  brfalse.s  IL_0016
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  ldc.i4.1
+  IL_0009:  bgt.un.s   IL_0021
+  IL_000b:  ldstr      "Fail"
+  IL_0010:  call       "Sub System.Console.WriteLine(String)"
+  IL_0015:  ret
+  IL_0016:  ldstr      "Success"
   IL_001b:  call       "Sub System.Console.WriteLine(String)"
   IL_0020:  ret
-  IL_0021:  ldstr      "Success"
+  IL_0021:  ldstr      "Fail"
   IL_0026:  call       "Sub System.Console.WriteLine(String)"
   IL_002b:  ret
-  IL_002c:  ldstr      "Fail"
-  IL_0031:  call       "Sub System.Console.WriteLine(String)"
-  IL_0036:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
@@ -1499,7 +1499,7 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       61 (0x3d)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldc.i4.0
@@ -1507,21 +1507,23 @@ End Module
   IL_0002:  ldloc.0
   IL_0003:  ldc.i4.1
   IL_0004:  sub
-  IL_0005:  switch    (
-  IL_001c,
-  IL_001c,
-  IL_0027,
-  IL_0027)
-  IL_001a:  br.s       IL_0032
-  IL_001c:  ldstr      "Fail"
-  IL_0021:  call       "Sub System.Console.WriteLine(String)"
-  IL_0026:  ret
-  IL_0027:  ldstr      "Fail"
-  IL_002c:  call       "Sub System.Console.WriteLine(String)"
-  IL_0031:  ret
-  IL_0032:  ldstr      "Success"
-  IL_0037:  call       "Sub System.Console.WriteLine(String)"
-  IL_003c:  ret
+  IL_0005:  ldc.i4.1
+  IL_0006:  ble.un.s   IL_0010
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.3
+  IL_000a:  sub
+  IL_000b:  ldc.i4.1
+  IL_000c:  ble.un.s   IL_001b
+  IL_000e:  br.s       IL_0026
+  IL_0010:  ldstr      "Fail"
+  IL_0015:  call       "Sub System.Console.WriteLine(String)"
+  IL_001a:  ret
+  IL_001b:  ldstr      "Fail"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ret
+  IL_0026:  ldstr      "Success"
+  IL_002b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0030:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
@@ -1727,13 +1729,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Foo()
+            Case Goo()
                 Console.WriteLine("Success")
             Case 0
                 Console.WriteLine("Fail")
@@ -1751,7 +1753,7 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  bne.un.s   IL_0015
   IL_000a:  ldstr      "Success"
   IL_000f:  call       "Sub System.Console.WriteLine(String)"
@@ -1776,13 +1778,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Foo(), 0
+            Case Goo(), 0
                 Console.WriteLine("Success")
             Case 1 - 1
                 Console.WriteLine("Fail")
@@ -1800,7 +1802,7 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  beq.s      IL_000d
   IL_000a:  ldloc.0
   IL_000b:  brtrue.s   IL_0018
@@ -1827,13 +1829,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Foo() + 1, 2
+            Case Goo() + 1, 2
                 Console.WriteLine("Fail")
             Case 3, 4
                 Console.WriteLine("Fail")
@@ -1851,7 +1853,7 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  ldc.i4.1
   IL_0009:  add.ovf
   IL_000a:  beq.s      IL_0010
@@ -1885,13 +1887,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Is < Foo() + 1
+            Case Is < Goo() + 1
                 Console.WriteLine("Success")
             Case 0
                 Console.WriteLine("Fail")
@@ -1909,7 +1911,7 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  ldc.i4.1
   IL_0009:  add.ovf
   IL_000a:  bge.s      IL_0017
@@ -1936,14 +1938,14 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Foo() - 1 To Foo() + 1
+            Case Goo() - 1 To Goo() + 1
                 Console.WriteLine("Success")
             Case 0
                 Console.Write("Fail")
@@ -1953,7 +1955,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       58 (0x3a)
   .maxstack  3
@@ -1961,12 +1963,12 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  ldc.i4.1
   IL_0009:  sub.ovf
   IL_000a:  blt.s      IL_0021
   IL_000c:  ldloc.0
-  IL_000d:  call       "Function M1.Foo() As Integer"
+  IL_000d:  call       "Function M1.Goo() As Integer"
   IL_0012:  ldc.i4.1
   IL_0013:  add.ovf
   IL_0014:  bgt.s      IL_0021
@@ -1993,14 +1995,14 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Foo() + 1 To Foo() + 2
+            Case Goo() + 1 To Goo() + 2
                 Console.WriteLine("Fail")
             Case 0
                 Console.WriteLine("Success")
@@ -2010,7 +2012,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       58 (0x3a)
   .maxstack  3
@@ -2018,12 +2020,12 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  ldc.i4.1
   IL_0009:  add.ovf
   IL_000a:  blt.s      IL_0021
   IL_000c:  ldloc.0
-  IL_000d:  call       "Function M1.Foo() As Integer"
+  IL_000d:  call       "Function M1.Goo() As Integer"
   IL_0012:  ldc.i4.2
   IL_0013:  add.ovf
   IL_0014:  bgt.s      IL_0021
@@ -2050,14 +2052,14 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case Foo() - 1 To 1
+            Case Goo() - 1 To 1
                 Console.Write("Success,")
             Case 0
                 Console.Write("Fail,")
@@ -2066,14 +2068,14 @@ Module M1
         End Select
 
         Select Case 0
-            Case 1 To Foo()
+            Case 1 To Goo()
                 Console.Write("Fail,")
             Case Else
                 Console.Write("Success,")
         End Select
 
         Select Case 0
-            Case Foo() - 1 To -2
+            Case Goo() - 1 To -2
                 Console.WriteLine("Fail")
             Case 0
                 Console.WriteLine("Success")
@@ -2084,7 +2086,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Success,Success,Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Success,Success,Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size      142 (0x8e)
   .maxstack  3
@@ -2094,7 +2096,7 @@ End Module
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function M1.Foo() As Integer"
+  IL_0003:  call       "Function M1.Goo() As Integer"
   IL_0008:  ldc.i4.1
   IL_0009:  sub.ovf
   IL_000a:  blt.s      IL_001c
@@ -2117,7 +2119,7 @@ End Module
   IL_0038:  ldc.i4.1
   IL_0039:  blt.s      IL_004f
   IL_003b:  ldloc.1
-  IL_003c:  call       "Function M1.Foo() As Integer"
+  IL_003c:  call       "Function M1.Goo() As Integer"
   IL_0041:  bgt.s      IL_004f
   IL_0043:  ldstr      "Fail,"
   IL_0048:  call       "Sub System.Console.Write(String)"
@@ -2127,7 +2129,7 @@ End Module
   IL_0059:  ldc.i4.0
   IL_005a:  stloc.2
   IL_005b:  ldloc.2
-  IL_005c:  call       "Function M1.Foo() As Integer"
+  IL_005c:  call       "Function M1.Goo() As Integer"
   IL_0061:  ldc.i4.1
   IL_0062:  sub.ovf
   IL_0063:  blt.s      IL_0075
@@ -2157,13 +2159,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
     Sub Main()
         Select Case 0
-            Case -1 To Foo() + 1
+            Case -1 To Goo() + 1
                 Console.WriteLine("Success")
             Case 0
                 Console.WriteLine("Fail")
@@ -2184,7 +2186,7 @@ End Module
   IL_0003:  ldc.i4.m1
   IL_0004:  blt.s      IL_001b
   IL_0006:  ldloc.0
-  IL_0007:  call       "Function M1.Foo() As Integer"
+  IL_0007:  call       "Function M1.Goo() As Integer"
   IL_000c:  ldc.i4.1
   IL_000d:  add.ovf
   IL_000e:  bgt.s      IL_001b
@@ -2211,8 +2213,8 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
@@ -2220,7 +2222,7 @@ Module M1
         Select Case 0
             Case Is < 0
                 Console.WriteLine("Fail")
-            Case Foo() - 1 To Foo() + 1
+            Case Goo() - 1 To Goo() + 1
                 Console.WriteLine("Success")
             Case Else
                 Console.WriteLine("Fail")
@@ -2228,7 +2230,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       59 (0x3b)
   .maxstack  3
@@ -2242,12 +2244,12 @@ End Module
   IL_000b:  call       "Sub System.Console.WriteLine(String)"
   IL_0010:  ret
   IL_0011:  ldloc.0
-  IL_0012:  call       "Function M1.Foo() As Integer"
+  IL_0012:  call       "Function M1.Goo() As Integer"
   IL_0017:  ldc.i4.1
   IL_0018:  sub.ovf
   IL_0019:  blt.s      IL_0030
   IL_001b:  ldloc.0
-  IL_001c:  call       "Function M1.Foo() As Integer"
+  IL_001c:  call       "Function M1.Goo() As Integer"
   IL_0021:  ldc.i4.1
   IL_0022:  add.ovf
   IL_0023:  bgt.s      IL_0030
@@ -2269,13 +2271,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
-        Select Case Foo()
+        Select Case Goo()
             Case -2 To -1
                 Console.WriteLine("Fail")
             Case 1
@@ -2286,12 +2288,12 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       52 (0x34)
   .maxstack  2
   .locals init (Integer V_0)
-  IL_0000:  call       "Function M1.Foo() As Integer"
+  IL_0000:  call       "Function M1.Goo() As Integer"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.s   -2
@@ -2323,13 +2325,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
-        Select Case Foo()
+        Select Case Goo()
             Case -1, 1, 3
                 Console.WriteLine("Fail")
             Case -2, 0, 2
@@ -2340,12 +2342,12 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       74 (0x4a)
   .maxstack  2
   .locals init (Integer V_0)
-  IL_0000:  call       "Function M1.Foo() As Integer"
+  IL_0000:  call       "Function M1.Goo() As Integer"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.s   -2
@@ -2379,13 +2381,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
-        Select Case Foo()
+        Select Case Goo()
             Case -1, 1, 3
                 Console.WriteLine("Fail")
             Case 2.5 - 2.4
@@ -2402,12 +2404,12 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       85 (0x55)
   .maxstack  2
   .locals init (Integer V_0)
-  IL_0000:  call       "Function M1.Foo() As Integer"
+  IL_0000:  call       "Function M1.Goo() As Integer"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.s   -2
@@ -3132,13 +3134,13 @@ End Module
     <file name="a.vb"><![CDATA[
 Imports System        
 Module M1
-    Function Foo() As Integer
-        Console.Write("Foo,")
+    Function Goo() As Integer
+        Console.Write("Goo,")
         Return 0
     End Function
 
     Sub Main()
-        Select Case Foo()
+        Select Case Goo()
             Case -1, 1, 3
                 Console.WriteLine("Fail")
             Case 2.5 - 2.4
@@ -3155,12 +3157,12 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, expectedOutput:="Foo,Success").VerifyIL("M1.Main", <![CDATA[
+</compilation>, expectedOutput:="Goo,Success").VerifyIL("M1.Main", <![CDATA[
 {
   // Code size       85 (0x55)
   .maxstack  2
   .locals init (Integer V_0)
-  IL_0000:  call       "Function M1.Foo() As Integer"
+  IL_0000:  call       "Function M1.Goo() As Integer"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.s   -2
@@ -4210,6 +4212,8 @@ End Module
             VerifySynthesizedStringHashMethod(compVerifier, expected:=True)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23818, "https://github.com/dotnet/roslyn/issues/23818")>
         <Fact()>
         Public Sub SelectCase_IfList_String_RelationalRangeClauses()
             Dim compVerifier = CompileAndVerify(
@@ -4349,6 +4353,22 @@ End Module
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
+
+            Dim compilation = compVerifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().First()
+
+            Assert.Equal("""6"" To ""8""", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: '"6" To "8"')
+  Min: 
+    null
+  Max: 
+    null
+]]>.Value)
         End Sub
 
         <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
@@ -4568,7 +4588,7 @@ End Module
 
         <Fact()>
         Public Sub MissingReferenceToVBRuntime()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System        
@@ -4596,7 +4616,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class m1
@@ -4612,7 +4632,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
     Select ""
@@ -4652,7 +4672,7 @@ End Module
         <WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
         <Fact()>
         Public Sub MissingCharsProperty()
-            CompilationUtils.CreateCompilationWithReferences(
+            CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class M1
@@ -4958,7 +4978,7 @@ Module Module1
     Function boo(i As Integer) As String
         Select Case i
             Case 42
-                Dim x = "foo"
+                Dim x = "goo"
                 If x <> "bar" Then
                     Exit Select
                 End If
@@ -4983,7 +5003,7 @@ End Module
   IL_0002:  ldloc.1
   IL_0003:  ldc.i4.s   42
   IL_0005:  bne.un.s   IL_001f
-  IL_0007:  ldstr      "foo"
+  IL_0007:  ldstr      "goo"
   IL_000c:  stloc.2
   IL_000d:  ldloc.2
   IL_000e:  ldstr      "bar"
@@ -5017,7 +5037,7 @@ Module Module1
     Function boo(i As Integer) As String
         Select Case i
             Case 42
-                Dim x = "foo"
+                Dim x = "goo"
                 If x <> "bar" Then
                     Exit Select
                 End If
@@ -5040,7 +5060,7 @@ End Module
   IL_0002:  ldloc.0
   IL_0003:  ldc.i4.s   42
   IL_0005:  bne.un.s   IL_0018
-  IL_0007:  ldstr      "foo"
+  IL_0007:  ldstr      "goo"
   IL_000c:  ldstr      "bar"
   IL_0011:  ldc.i4.0
   IL_0012:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer"

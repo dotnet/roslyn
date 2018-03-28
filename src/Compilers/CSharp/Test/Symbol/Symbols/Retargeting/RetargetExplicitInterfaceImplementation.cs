@@ -141,11 +141,11 @@ public  class D : C
             var interfaceV2Event4 = (EventSymbol)interfaceV2.GetMembers("Event4").Single();
 
             var classD = globalNamespace2.GetTypeMembers("D").Single();
-            var retargetedClassC = classD.BaseType;
+            var retargetedClassC = classD.BaseType();
 
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetedClassC);
 
-            Assert.Equal(interfaceV2, retargetedClassC.Interfaces.Single());
+            Assert.Equal(interfaceV2, retargetedClassC.Interfaces().Single());
 
             var retargetedClassCMethod1 = (MethodSymbol)retargetedClassC.GetMembers("Interface1.Method1").Single();
             {
@@ -391,9 +391,9 @@ public  class D3 : C3
             var classD2 = globalNamespace2.GetTypeMembers("D2").Single();
             var classD3 = globalNamespace2.GetTypeMembers("D3").Single();
 
-            var retargetedClassC1 = classD1.BaseType;
-            var retargetedClassC2 = classD2.BaseType;
-            var retargetedClassC3 = classD3.BaseType;
+            var retargetedClassC1 = classD1.BaseType();
+            var retargetedClassC2 = classD2.BaseType();
+            var retargetedClassC3 = classD3.BaseType();
 
             var retargetedClassC1Method1 = (MethodSymbol)retargetedClassC1.GetMembers("Interface2<S>.Method1").Single();
             var retargetedClassC1Method1Impl = retargetedClassC1Method1.ExplicitInterfaceImplementations.Single();

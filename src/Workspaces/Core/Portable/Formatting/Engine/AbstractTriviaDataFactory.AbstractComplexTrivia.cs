@@ -3,7 +3,6 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -32,10 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 this.TreeInfo = treeInfo;
                 this.OriginalString = this.TreeInfo.GetTextBetween(token1, token2);
-
-                int lineBreaks;
-                int spaces;
-                ExtractLineAndSpace(this.OriginalString, out lineBreaks, out spaces);
+                ExtractLineAndSpace(this.OriginalString, out var lineBreaks, out var spaces);
 
                 this.LineBreaks = lineBreaks;
                 this.Spaces = spaces;
@@ -147,10 +143,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // okay, we need to do expansive calculation to find out actual space between two tokens
                 var trivia = Format(context, formattingRules, this.LineBreaks, indentation, cancellationToken);
                 var triviaString = CreateString(trivia, cancellationToken);
-
-                int lineBreaks;
-                int spaces;
-                ExtractLineAndSpace(triviaString, out lineBreaks, out spaces);
+                ExtractLineAndSpace(triviaString, out var lineBreaks, out var spaces);
 
                 return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }

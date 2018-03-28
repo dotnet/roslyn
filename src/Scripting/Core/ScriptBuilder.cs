@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -43,6 +44,10 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private readonly InteractiveAssemblyLoader _assemblyLoader;
 
+        private static EmitOptions s_EmitOptionsWithDebuggingInformation = new EmitOptions(
+            debugInformationFormat: PdbHelpers.GetPlatformSpecificDebugInformationFormat(),
+            pdbChecksumAlgorithm: default(HashAlgorithmName));
+
         static ScriptBuilder()
         {
             s_globalAssemblyNamePrefix = "\u211B*" + Guid.NewGuid().ToString();
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, CancellationToken cancellationToken)
+        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, bool emitDebugInformation, CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             try
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
-                var executor = Build<T>(compilation, diagnostics, cancellationToken);
+                var executor = Build<T>(compilation, diagnostics, emitDebugInformation, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
@@ -115,22 +120,16 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         private Func<object[], Task<T>> Build<T>(
             Compilation compilation,
-            DiagnosticBag diagnostics,
+            DiagnosticBag diagnostics, 
+            bool emitDebugInformation,
             CancellationToken cancellationToken)
         {
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
+            using (var pdbStreamOpt = emitDebugInformation ? new MemoryStream() : null)
             {
-                var emitResult = compilation.Emit(
-                    peStream: peStream,
-                    pdbStream: null,
-                    xmlDocumentationStream: null,
-                    win32Resources: null,
-                    manifestResources: null,
-                    options: EmitOptions.Default,
-                    cancellationToken: cancellationToken);
-
+                var emitResult = Emit(peStream, pdbStreamOpt, compilation, GetEmitOptions(emitDebugInformation), cancellationToken);
                 diagnostics.AddRange(emitResult.Diagnostics);
 
                 if (!emitResult.Success)
@@ -152,11 +151,38 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 peStream.Position = 0;
 
-                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream: null);
+                if (pdbStreamOpt != null)
+                {
+                    pdbStreamOpt.Position = 0;
+                }
+
+                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStreamOpt);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();
             }
+        }
+
+        // internal for testing
+        internal static EmitOptions GetEmitOptions(bool emitDebugInformation)
+            => emitDebugInformation ? s_EmitOptionsWithDebuggingInformation : EmitOptions.Default;
+
+        // internal for testing
+        internal static EmitResult Emit(
+            Stream peStream, 
+            Stream pdbStreamOpt, 
+            Compilation compilation,
+            EmitOptions options,
+            CancellationToken cancellationToken)
+        {
+            return compilation.Emit(
+                peStream: peStream,
+                pdbStream: pdbStreamOpt,
+                xmlDocumentationStream: null,
+                win32Resources: null,
+                manifestResources: null,
+                options: options,
+                cancellationToken: cancellationToken);
         }
 
         internal static MethodInfo GetEntryPointRuntimeMethod(IMethodSymbol entryPoint, Assembly assembly, CancellationToken cancellationToken)

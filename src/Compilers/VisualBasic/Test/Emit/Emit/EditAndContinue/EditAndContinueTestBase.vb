@@ -8,9 +8,11 @@ Imports System.Runtime.CompilerServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.MetadataUtilities
+Imports Microsoft.Metadata.Tools
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -19,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         ' PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         Protected Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
+
+        Protected Shared ReadOnly ValueTupleRefs As MetadataReference() = {SystemRuntimeFacadeRef, ValueTupleRef}
 
         Friend Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
@@ -259,6 +263,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 "Handle({0}, TableIndex.{1})",
                 MetadataTokens.GetRowNumber(handle),
                 index)
+        End Function
+
+        Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
+            Return New VisualBasicSymbolMatcher(
+                Nothing,
+                fromCompilation.SourceAssembly,
+                Nothing,
+                toCompilation.SourceAssembly,
+                Nothing,
+                Nothing)
         End Function
     End Class
 

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -43,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim builder = ArrayBuilder(Of ParameterSymbol).GetInstance()
             For Each p As ParameterSymbol In implementingMethod.Parameters
                 Dim implementedParameter = implementedMethod.Parameters(p.Ordinal)
-                builder.Add(New SynthesizedParameterSymbolWithCustomModifiers(Me, implementedParameter.Type, p.Ordinal, p.IsByRef, p.Name,
-                                                                              implementedParameter.CustomModifiers, implementedParameter.CountOfCustomModifiersPrecedingByRef))
+                builder.Add(SynthesizedParameterSymbol.Create(Me, implementedParameter.Type, p.Ordinal, p.IsByRef, p.Name,
+                                                              implementedParameter.CustomModifiers, implementedParameter.RefCustomModifiers))
             Next
 
             _parameters = builder.ToImmutableAndFree()
@@ -184,6 +185,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
+        End Sub
+
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            Dim compilation = Me.DeclaringCompilation
+            If Me.ReturnType.ContainsTupleNames() AndAlso
+                compilation.HasTupleNamesAttributes AndAlso
+                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+
+                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
+            End If
         End Sub
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean

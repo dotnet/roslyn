@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
         {
-            IContentType contentType;
-            if (!window.Properties.TryGetProperty(typeof(IContentType), out contentType))
+            if (!window.Properties.TryGetProperty(typeof(IContentType), out IContentType contentType))
             {
                 contentType = _contentTypeRegistry.GetContentType(ContentType);
             }

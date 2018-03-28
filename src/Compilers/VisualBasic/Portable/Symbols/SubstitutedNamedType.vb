@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+        Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return OriginalDefinition.IsSerializable
             End Get
@@ -138,9 +139,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend NotOverridable Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
             Get
-                Return OriginalDefinition.HasEmbeddedAttribute
+                Return OriginalDefinition.HasCodeAnalysisEmbeddedAttribute
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+            Get
+                Return OriginalDefinition.HasVisualBasicEmbeddedAttribute
             End Get
         End Property
 
@@ -536,6 +543,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return OriginalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
+        Friend NotOverridable Overrides Iterator Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            For Each definition In OriginalDefinition.GetSynthesizedWithEventsOverrides()
+                Yield SubstituteTypeParametersForMemberProperty(definition)
+            Next
+        End Function
+
         ''' <summary>
         ''' Base class for symbols representing non-generic or open generic types contained within constructed generic type.
         ''' For example: A(Of Integer).B, A(Of Integer).B.C or A(Of Integer).B.C(Of ).
@@ -663,11 +676,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                Get
-                    Return CreateEmptyTypeArgumentsCustomModifiers(Arity)
-                End Get
-            End Property
+            Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End Function
 
             Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                 Get
@@ -838,11 +849,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                Get
-                    Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-                End Get
-            End Property
+            Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End Function
 
             Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                 Get
@@ -944,15 +953,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                Get
-                    If _hasTypeArgumentsCustomModifiers Then
-                        Return _substitution.GetTypeArgumentsCustomModifiersFor(OriginalDefinition)
-                    End If
+            Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                If _hasTypeArgumentsCustomModifiers Then
+                    Return _substitution.GetTypeArgumentsCustomModifiersFor(OriginalDefinition.TypeParameters(ordinal))
+                End If
 
-                    Return CreateEmptyTypeArgumentsCustomModifiers(Arity)
-                End Get
-            End Property
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End Function
 
             Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                 Get
@@ -1006,11 +1013,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 If _hasTypeArgumentsCustomModifiers Then
-                    Dim modifiers = TypeArgumentsCustomModifiers
-                    Dim otherModifiers = other.TypeArgumentsCustomModifiers
-
                     For i As Integer = 0 To count - 1 Step 1
-                        If Not modifiers(i).SequenceEqual(otherModifiers(i)) Then
+                        If Not GetTypeArgumentCustomModifiers(i).SequenceEqual(other.GetTypeArgumentCustomModifiers(i)) Then
                             Return False
                         End If
                     Next
@@ -1024,8 +1028,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                   GetUnificationUseSiteDiagnosticRecursive(_typeArguments, owner, checkedTypes))
 
                 If result Is Nothing AndAlso _hasTypeArgumentsCustomModifiers Then
-                    For Each modifiers In Me.TypeArgumentsCustomModifiers
-                        result = GetUnificationUseSiteDiagnosticRecursive(modifiers, owner, checkedTypes)
+                    For i As Integer = 0 To Me.Arity - 1
+                        result = GetUnificationUseSiteDiagnosticRecursive(Me.GetTypeArgumentCustomModifiers(i), owner, checkedTypes)
 
                         If result IsNot Nothing Then
                             Exit For

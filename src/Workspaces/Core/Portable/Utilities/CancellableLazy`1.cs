@@ -26,8 +26,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                T tmp;
-                return this.TryGetValue(out tmp);
+                return this.TryGetValue(out var tmp);
             }
         }
 
@@ -40,12 +39,12 @@ namespace Roslyn.Utilities
             }
             else
             {
-                value = default(T);
+                value = default;
                 return false;
             }
         }
 
-        public T GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public T GetValue(CancellationToken cancellationToken = default)
         {
             var gate = _gate;
             if (gate != null)

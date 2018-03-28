@@ -35,14 +35,15 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         internal abstract TypeSymbol SubstituteTypeParameters(ModuleSymbol moduleSymbol, TypeSymbol generic, ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> arguments, ImmutableArray<bool> refersToNoPiaLocalType);
 
-        internal abstract TypeSymbol GetByRefReturnTypeSymbol(ModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef);
-
         internal abstract TypeSymbol MakePointerTypeSymbol(ModuleSymbol moduleSymbol, TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers);
         internal abstract TypeSymbol GetSpecialType(ModuleSymbol moduleSymbol, SpecialType specialType);
         internal abstract TypeSymbol GetSystemTypeSymbol(ModuleSymbol moduleSymbol);
         internal abstract TypeSymbol GetEnumUnderlyingType(ModuleSymbol moduleSymbol, TypeSymbol type);
 
-        internal abstract bool IsVolatileModifierType(ModuleSymbol moduleSymbol, TypeSymbol type);
+        internal abstract bool IsAcceptedVolatileModifierType(ModuleSymbol moduleSymbol, TypeSymbol type);
+        internal abstract bool IsAcceptedInAttributeModifierType(TypeSymbol type);
+        internal abstract bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type);
+        
         internal abstract Cci.PrimitiveTypeCode GetPrimitiveTypeCode(ModuleSymbol moduleSymbol, TypeSymbol type);
     }
 }

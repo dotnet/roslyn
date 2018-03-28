@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static IEnumerable<Document> GetRelatedDocumentsWithChanges(this SourceText text)
         {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(text.Container, out workspace))
+            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
                 var ids = workspace.GetRelatedDocumentIds(text.Container);
                 var sol = workspace.CurrentSolution.WithDocumentText(ids, text, PreservationMode.PreserveIdentity);
@@ -32,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static Document GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
         {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(text.Container, out workspace))
+            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
                 if (id == null || !workspace.CurrentSolution.ContainsDocument(id))
@@ -53,8 +51,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static IEnumerable<Document> GetRelatedDocuments(this SourceTextContainer container)
         {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
+            if (Workspace.TryGetWorkspace(container, out var workspace))
             {
                 var sol = workspace.CurrentSolution;
                 var ids = workspace.GetRelatedDocumentIds(container);
@@ -70,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static Document GetOpenDocumentInCurrentContext(this SourceTextContainer container)
         {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
+            if (Workspace.TryGetWorkspace(container, out var workspace))
             {
                 var id = workspace.GetDocumentIdInCurrentContext(container);
                 return workspace.CurrentSolution.GetDocument(id);

@@ -1,32 +1,36 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 {
     [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.CSharp)]
     internal class SemanticQuickInfoProvider : AbstractSemanticQuickInfoProvider
     {
-        [ImportingConstructor]
-        public SemanticQuickInfoProvider(
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(textBufferFactoryService, contentTypeRegistryService, projectionBufferFactoryService,
-                   editorOptionsFactoryService, textEditorFactoryService, glyphService, typeMap)
+        /// <summary>
+        /// If the token is the '=>' in a lambda, or the 'delegate' in an anonymous function,
+        /// return the syntax for the lambda or anonymous function.
+        /// </summary>
+        protected override bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found)
         {
+            if (token.IsKind(SyntaxKind.EqualsGreaterThanToken)
+                && token.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression))
+            {
+                // () =>
+                found = token.Parent;
+                return true;
+            }
+            else if (token.IsKind(SyntaxKind.DelegateKeyword) && token.Parent.IsKind(SyntaxKind.AnonymousMethodExpression))
+            {
+                // delegate (...) { ... }
+                found = token.Parent;
+                return true;
+            }
+
+            found = null;
+            return false;
         }
 
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)

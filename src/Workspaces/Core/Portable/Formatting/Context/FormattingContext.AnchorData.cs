@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -22,37 +21,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.OriginalColumn = originalColumn;
             }
 
-            public TextSpan TextSpan
-            {
-                get
-                {
-                    return _operation.TextSpan;
-                }
-            }
+            public TextSpan TextSpan => _operation.TextSpan;
 
-            public SyntaxToken AnchorToken
-            {
-                get
-                {
-                    return _operation.AnchorToken;
-                }
-            }
+            public SyntaxToken AnchorToken => _operation.AnchorToken;
 
-            public SyntaxToken StartToken
-            {
-                get
-                {
-                    return _operation.StartToken;
-                }
-            }
+            public SyntaxToken StartToken => _operation.StartToken;
 
-            public SyntaxToken EndToken
-            {
-                get
-                {
-                    return _operation.EndToken;
-                }
-            }
+            public SyntaxToken EndToken => _operation.EndToken;
 
             public int OriginalColumn { get; }
         }

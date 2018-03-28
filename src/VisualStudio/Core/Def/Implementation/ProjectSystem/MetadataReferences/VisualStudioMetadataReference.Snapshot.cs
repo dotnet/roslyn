@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationComments;
 using Roslyn.Utilities;
 
@@ -23,11 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// When the compilation is recreated for a solution the compiler asks for metadata again and we need to provide the original content,
         /// not read the file again. Therefore we need to save the timestamp on the <see cref="Snapshot"/>.
         /// 
-        /// When the VS observes a change in a metadata reference file the <see cref="Project"/> version is advanced and a new instance of 
+        /// When the VS observes a change in a metadata reference file the project version is advanced and a new instance of 
         /// <see cref="Snapshot"/> is created for the corresponding reference.
         /// </remarks>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal sealed class Snapshot : PortableExecutableReference
+        internal sealed class Snapshot : PortableExecutableReference, ISupportTemporaryStorage
         {
             private readonly VisualStudioMetadataReferenceManager _provider;
             private readonly DateTime _timestamp;
@@ -93,6 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private string GetDebuggerDisplay()
             {
                 return "Metadata File: " + FilePath;
+            }
+
+            public IEnumerable<ITemporaryStreamStorage> GetStorages()
+            {
+                return _provider.GetStorages(this.FilePath, _timestamp);
             }
         }
     }

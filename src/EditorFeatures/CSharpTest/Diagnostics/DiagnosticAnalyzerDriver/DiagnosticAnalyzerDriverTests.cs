@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -29,30 +30,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            // AllInOneCSharpCode has no pattern matching.
-            var syntaxKindsPatterns = new HashSet<SyntaxKind>();
-            syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.WildcardPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.PositionalPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.SubPositionalPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
-            syntaxKindsPatterns.Add(SyntaxKind.LetStatement);
-            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
+            // PROTOTYPE(patterns2): Add examples of all the new pattern types once supported.
+            var syntaxKinds = new HashSet<SyntaxKind>();
+            syntaxKinds.Add(SyntaxKind.SubpatternElement);
+            syntaxKinds.Add(SyntaxKind.DeconstructionPattern);
+            syntaxKinds.Add(SyntaxKind.DiscardPattern);
+            syntaxKinds.Add(SyntaxKind.VarPattern);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.ExperimentalParseOptions))
+            using (var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsPatterns);
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKinds);
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }
@@ -72,7 +65,7 @@ class C
 ";
 
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var ideEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
@@ -80,13 +73,13 @@ class C
                 {
                     Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && e.ReturnsVoid));
                     Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && !e.ReturnsVoid));
-                    Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.SymbolKind == SymbolKind.NamedType));
+                    Assert.True(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.SymbolKind == SymbolKind.NamedType));
                     Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.SymbolKind == SymbolKind.Property));
                 }
             }
 
             var compilerEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var compilerEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
                 compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { compilerEngineAnalyzer });
@@ -94,7 +87,7 @@ class C
                 {
                     Assert.False(compilerEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && e.ReturnsVoid));
                     Assert.False(compilerEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && !e.ReturnsVoid));
-                    Assert.False(compilerEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.SymbolKind == SymbolKind.NamedType));
+                    Assert.True(compilerEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.SymbolKind == SymbolKind.NamedType));
                     Assert.False(compilerEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.SymbolKind == SymbolKind.Property));
                 }
             }
@@ -105,7 +98,7 @@ class C
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
+            using (var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
@@ -144,7 +137,7 @@ class C
         [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(TestResource.AllInOneCSharpCode, TestOptions.Regular))
+            using (var workspace = TestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular))
             {
                 var currentProject = workspace.CurrentSolution.Projects.Single();
 
@@ -152,7 +145,7 @@ class C
                 var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
-                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.GetDocumentState());
+                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
                 AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
@@ -170,6 +163,8 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
+            public bool OpenFileOnly(Workspace workspace) => false;
+
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
                 return DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
@@ -182,7 +177,7 @@ class C
             var source = @"x";
 
             var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
-            using (var ideEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
                 var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
@@ -242,7 +237,7 @@ class C
 ";
 
             var analyzer = new CodeBlockAnalyzerFactory();
-            using (var ideEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
                 var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
@@ -261,7 +256,7 @@ class C
 }
 ";
 
-            using (var compilerEngineWorkspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
                 var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
@@ -315,6 +310,35 @@ class C
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Node.GetLocation()));
                 }
             }
+        }
+
+        [Fact]
+        public async Task TestDiagnosticSpan()
+        {
+            var source = @"// empty code";
+
+            var analyzer = new InvalidSpanAnalyzer();
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            {
+                var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync());
+
+                var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
+                AssertEx.Any(diagnostics, d => d.Id == AnalyzerHelper.AnalyzerExceptionDiagnosticId);
+            }
+        }
+
+        private class InvalidSpanAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxTreeAction(Analyze);
+
+            private void Analyze(SyntaxTreeAnalysisContext context)
+                => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000))));
         }
     }
 }

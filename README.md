@@ -3,18 +3,22 @@
 [//]: # (Begin current test results)
 
 ### Windows - Unit Tests
-||Debug x86|Debug x64|Release x86|Release x64|Determinism|
-|:--:|:--:|:--:|:--:|:--:|:--:|
-|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_determinism/)|
-|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_determinism/)|
-|**hotfix**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_determinism/)|
+|Branch|Debug x86|Debug x64|Release x86|Release x64|Determinism|Debug Integration|Release Integration|
+|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+|**master**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/master/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/master/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_vs-integration/)|
+|**dev15.0.x**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.0.x/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.0.x/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_vs-integration/)|
+|**dev15.5.x**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.5.x/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.5.x/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/windows_release_vs-integration/)|
+|**dev15.6.x**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.6.x/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.6.x/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/windows_release_vs-integration/)|
+|**dev16**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev16/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev16/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_vs-integration/)|
 
 ### Linux/Mac - Unit Tests
-||Linux|Mac OSX|
-|:--:|:--:|:--:|
-|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_mac_dbg_unit32/)|
-|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_mac_dbg_unit32/)|
-|**hotfix**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_mac_dbg_unit32/)|
+|Branch|Ubuntu14|Ubuntu16|macOS|
+|:--:|:--:|:--:|:--:|
+|**master**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/)|
+|**dev15.0.x**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/linux_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/linux_debug/)||[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/mac_debug/)|
+|**dev15.5.x**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.5.x/job/mac_debug/)|
+|**dev15.6.x**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.6.x/job/mac_debug/)|
+|**dev16**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/mac_debug/)|
 
 [//]: # (End current test results)
 
@@ -23,10 +27,20 @@
 
 Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
+### Language Design Discussion
+
+We are now taking language feature discussion in other repositories:
+- https://github.com/dotnet/csharplang for C# specific issues
+- https://github.com/dotnet/vblang for VB-specific features
+- https://github.com/dotnet/csharplang for features that affect both languages
+
+Discussion about the transition of language design to the new repos is at https://github.com/dotnet/roslyn/issues/18002.
+
 ### Download C# and Visual Basic
 
-Want to start developing in C# and Visual Basic? Download [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
-which has the latest features built-in. There are also [prebuilt Azure VM images](https://azure.microsoft.com/en-us/marketplace/virtual-machines/all/?term=Visual+Studio+2015) available with VS 2015 already installed.
+Want to start developing in C# and Visual Basic? Download [Visual Studio 2017](https://www.visualstudio.com/downloads/), which has the latest features built-in. There are 
+also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202017) available with 
+Visual Studio 2017 already installed.
 
 To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
 
@@ -35,7 +49,10 @@ nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
 nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
 ```
 
-To get the latest "preview" drop, published about once per month, add the `-pre` switch to the nuget commands.
+Daily NuGet builds of the project are also available in our MyGet feed:
+
+> [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
+
 
 ### Source code
 
@@ -56,7 +73,6 @@ To get the latest "preview" drop, published about once per month, add the `-pre`
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
-* [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 * [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 * Also take a look at our [Wiki](https://github.com/dotnet/roslyn/wiki) for more information on how to contribute, what the labels on issue mean, etc.
@@ -68,10 +84,9 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 * [How to Contribute](https://github.com/dotnet/roslyn/wiki/Contributing-Code)
 * [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
 
-Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
+Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/labels/help%20wanted) is a great place to start.
 
-This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of conduct](http://www.dotnetfoundation.org/code-of-conduct).
-
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ### .NET Foundation
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.IO;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
     internal sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
     {
         private static readonly CSharpParseOptions s_parseOptions =
-            new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);
+            new CSharpParseOptions(languageVersion: LanguageVersion.Latest, kind: SourceCodeKind.Script);
 
         private const string InteractiveResponseFile = "CSharpInteractive.rsp";
 
@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 usings: imports,
                 sourceReferenceResolver: sourceReferenceResolver,
                 metadataReferenceResolver: metadataReferenceResolver,
-                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
+                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
+                ).WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
         }
 
         public override bool CanExecuteCode(string text)
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         protected override CommandLineParser CommandLineParser
         {
-            get { return CSharpCommandLineParser.ScriptRunner; }
+            get { return CSharpCommandLineParser.Script; }
         }
     }
 }

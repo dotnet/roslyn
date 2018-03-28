@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -67,11 +68,6 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetMDArrayTypeSymbol(this.moduleSymbol, rank, elementType, customModifiers, sizes, lowerBounds);
         }
 
-        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
-        {
-            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType, countOfCustomModifiersPrecedingByRef);
-        }
-
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
@@ -92,9 +88,19 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetEnumUnderlyingType(this.moduleSymbol, type);
         }
 
-        protected bool IsVolatileModifierType(TypeSymbol type)
+        protected bool IsAcceptedVolatileModifierType(TypeSymbol type)
         {
-            return _factory.IsVolatileModifierType(this.moduleSymbol, type);
+            return _factory.IsAcceptedVolatileModifierType(this.moduleSymbol, type);
+        }
+
+        protected bool IsAcceptedInAttributeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedInAttributeModifierType(type);
+        }
+
+        protected bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedUnmanagedTypeModifierType(type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)
@@ -208,8 +214,8 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (int rank in fullName.ArrayRanks)
                 {
-                    Debug.Assert(rank > 0);
-                    container = rank == 1 ?
+                    Debug.Assert(rank >= 0);
+                    container = rank == 0 ?
                                 GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) :
                                 GetMDArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>), ImmutableArray<int>.Empty, default(ImmutableArray<int>));
                 }

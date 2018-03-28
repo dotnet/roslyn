@@ -6,13 +6,13 @@
  - **Code block:** A single unit of executable code, e.g. a method body, parameter default value, field initializer, etc.)
 
 **Axioms:**
- - Two different analyzers are assumed not to share state. No actions of a single analyzer execute concurrently, but actions of different analyzers may execute concurrently. (This is likely to be refined as we develop more sophisticated concurrency strategies, but it will remain true that actions will generally not require locks to avoid races.)
+ - Two different analyzers are assumed not to share state. No actions of a single analyzer execute concurrently, unless they explicitly configure concurrent execution in the `DiagnosticAnalyzer.Initialize` method by invoking `AnalysisContext.EnableConcurrentExecution`. Actions of different analyzers may execute concurrently. (This is likely to be refined as we develop more sophisticated concurrency strategies, but it will remain true that actions will generally not require locks to avoid races.)
  - The context used to register an action affects the lifetime of the registration but does not otherwise affect the semantics of applying the action.
  - If an analyzer has multiple applicable actions of any given kind, all of those actions are applied in an arbitrary order.
 
 **Ordering of actions:**
 
-The `DiagnosticAnalyzer.Initialize` method of an analyzer is invoked once per session, before any actions of an analyzer can be applied. The actions registered by `Initialize` methods form the initial set of actions used for each compilation in a session.
+The `DiagnosticAnalyzer.Initialize` method of an analyzer is invoked before any actions of an analyzer can be applied. The actions registered by `Initialize` methods form the initial set of actions used for each compilation. `Initialize` method may be invoked multiple times on an analyzer instance in a session, but is guaranteed to be invoked only once for any given compilation.
 
 The following rules related to action invocation apply per compilation or per any environmental change that invalidates prior analysis (e.g. changes to analyzer options or changes to non-compiled documents used by analyzers). For purposes of this specification, such environmental changes act as if they create a new compilation.
 

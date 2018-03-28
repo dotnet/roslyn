@@ -43,7 +43,7 @@ End Class
     ]]></file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -70,7 +70,7 @@ End Class
     ]]></file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -94,7 +94,7 @@ End Class
     ]]></file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -133,13 +133,13 @@ End Module
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
 
             CompileAndVerify(compilation, expectedOutput:="False")
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(HasValidFonts))>
         Public Sub MyWinformApp()
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[
@@ -211,7 +211,7 @@ End Class
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithOutputKind(OutputKind.WindowsApplication).WithParseOptions(parseOptions).WithMainTypeName("Form1")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources, {SystemWindowsFormsRef, SystemDrawingRef}, compilationOptions)
             compilation.VerifyDiagnostics()
 
             CompileAndVerify(compilation, expectedOutput:="HelloWinform")
@@ -242,7 +242,7 @@ End Module
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
 
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
@@ -277,13 +277,13 @@ Imports System.Collections.Generic
 
 Module Module1
     Sub Main()
-        My.Application.Foo()'BIND:"Foo"
+        My.Application.Goo()'BIND:"Goo"
     End Sub
 End Module
 
 Namespace My
     Partial Class MyApplication
-        Public Function Foo() As Integer
+        Public Function Goo() As Integer
             Return 1
         End Function
     End Class
@@ -300,7 +300,7 @@ End Namespace
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources, options:=compilationOptions)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, options:=compilationOptions)
 
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
@@ -309,7 +309,7 @@ End Namespace
             Assert.Null(semanticSummary.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Function My.MyApplication.Foo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Function My.MyApplication.Goo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -317,14 +317,14 @@ End Namespace
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function My.MyApplication.Foo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Function My.MyApplication.Goo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
 
             Dim sym = semanticSummary.Symbol
 
             Assert.IsType(Of SourceLocation)(sym.Locations(0))
-            Assert.Equal("Public Function Foo() As Integer", sym.DeclaringSyntaxReferences(0).GetSyntax().ToString())
+            Assert.Equal("Public Function Goo() As Integer", sym.DeclaringSyntaxReferences(0).GetSyntax().ToString())
 
             Dim parent = sym.ContainingType
             Assert.Equal(1, parent.Locations.OfType(Of SourceLocation).Count)

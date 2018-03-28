@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -783,7 +784,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return SpecializedCollections.EmptyEnumerable(Of FieldSymbol)()
                 End Function
 
-                Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+                Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get
@@ -905,7 +912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property IsSerializable As Boolean
+                Public Overrides ReadOnly Property IsSerializable As Boolean
                     Get
                         Return False
                     End Get
@@ -929,11 +936,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-                    Get
-                        Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-                    End Get
-                End Property
+                Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                    Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+                End Function
 
                 Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                     Get
@@ -988,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             ImmutableArray.Create(
                                 New TypedConstant(_comClass.GetSpecialType(SpecialType.System_Int16),
                                                         TypedConstantKind.Primitive,
-                                                        CShort(ComInterfaceType.InterfaceIsIDispatch)))))
+                                                        CShort(Cci.Constants.ComInterfaceType_InterfaceIsIDispatch)))))
                     End If
 
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
@@ -1008,6 +1013,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
                     Return Nothing
+                End Function
+
+                Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+                    Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
                 End Function
             End Class
 
@@ -1262,7 +1271,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return ClonedFrom.RefCustomModifiers
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property Syntax As SyntaxNode
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get
@@ -1404,6 +1419,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return _clonedFrom.RefCustomModifiers
+                    End Get
+                End Property
+
                 Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                     Get
                         Throw ExceptionUtilities.Unreachable
@@ -1535,12 +1556,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         Return _clonedFrom.IsCallerFilePath
-                    End Get
-                End Property
-
-                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-                    Get
-                        Return _clonedFrom.CountOfCustomModifiersPrecedingByRef
                     End Get
                 End Property
 
@@ -1797,6 +1812,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
                         Return _clonedFrom.TypeCustomModifiers
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return _clonedFrom.RefCustomModifiers
                     End Get
                 End Property
 

@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
@@ -71,13 +73,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             return true;
         }
 
+        /// <summary>
+        /// Returns null indicating a failure.
+        /// </summary>
         public async Task<IList<string>> GetProximityExpressionsAsync(
             Document document,
             int position,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return Do(tree, position, cancellationToken);
+            try
+            {
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                return Do(tree, position, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return null;
+            }
         }
 
         // Internal for testing purposes

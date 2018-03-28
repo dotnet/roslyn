@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 
         Protected Overrides Function GetEndingString(document As Document, position As Integer, cancellationToken As CancellationToken) As String
             ' prepare expansive information from document
-            Dim root = DirectCast(document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), SyntaxNode)
-            Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+            Dim text = root.SyntaxTree.GetText(cancellationToken)
 
             ' get line where the caret is on
             Dim line = text.Lines.GetLineFromPosition(position)

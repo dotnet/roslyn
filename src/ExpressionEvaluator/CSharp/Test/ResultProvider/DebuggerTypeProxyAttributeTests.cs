@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -1099,6 +1099,52 @@ class P
             var children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("F", "3", "int", "(new C(3)).F"));
+        }
+
+        [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]
+        [Fact]
+        public void AccessibilityTrumpedByAttribute()
+        {
+            var source =
+@"using System.Diagnostics;
+[DebuggerTypeProxy(typeof(P))]
+class C
+{
+}
+class P
+{
+    public P(C c)
+    {
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private int[] _someArray = { 10, 20 };
+
+    private object SomethingPrivate = 3;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    internal object InternalCollapsed { get { return 1; } }
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    private object PrivateCollapsed { get { return 3; } }
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    private int[] PrivateRootHidden { get { return _someArray; } }
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("C");
+            var value = CreateDkmClrValue(
+                value: type.Instantiate(),
+                type: type,
+                evalFlags: DkmEvaluationResultFlags.None);
+            var evalResult = FormatResult("new C()", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
+            Verify(evalResult,
+                EvalResult("new C()", "{C}", "C", "new C()", DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("InternalCollapsed", "1", "object {int}", "new P(new C()).InternalCollapsed", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("PrivateCollapsed", "3", "object {int}", "new P(new C()).PrivateCollapsed", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("[0]", "10", "int", "new P(new C()).PrivateRootHidden[0]"),
+                EvalResult("[1]", "20", "int", "new P(new C()).PrivateRootHidden[1]"),
+                EvalResult("Raw View", null, "", "new C(), raw", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -8,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader : AbstractAnalyzerAssemblyLoader
+    internal sealed class ShadowCopyAnalyzerAssemblyLoader :
+#if NET46
+        DesktopAnalyzerAssemblyLoader
+#else
+        CoreClrAnalyzerAssemblyLoader
+#endif
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of
@@ -17,6 +23,8 @@ namespace Microsoft.CodeAnalysis
         /// for scavenge operations.
         /// </summary>
         private readonly string _baseDirectory;
+
+        internal readonly Task DeleteLeftoverDirectoriesTask;
 
         /// <summary>
         /// The directory where this instance of <see cref="ShadowCopyAnalyzerAssemblyLoader"/>
@@ -41,12 +49,22 @@ namespace Microsoft.CodeAnalysis
                 _baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "AnalyzerShadowCopies");
             }
 
-            Task.Run((Action)DeleteLeftoverDirectories);
+            DeleteLeftoverDirectoriesTask = Task.Run((Action)DeleteLeftoverDirectories);
         }
 
         private void DeleteLeftoverDirectories()
         {
-            foreach (var subDirectory in Directory.EnumerateDirectories(_baseDirectory))
+            IEnumerable<string> subDirectories;
+            try
+            {
+                subDirectories = Directory.EnumerateDirectories(_baseDirectory);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return;
+            }
+
+            foreach (var subDirectory in subDirectories)
             {
                 string name = Path.GetFileName(subDirectory).ToLowerInvariant();
                 Mutex mutex = null;
@@ -75,13 +93,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods",
-            MessageId = "System.Reflection.Assembly.LoadFrom",
-            Justification = @"We need to call Assembly.LoadFrom in order to load analyzer assemblies. 
-We can't use Assembly.Load(AssemblyName) because we need to be able to load assemblies outside of the csc/vbc/vbcscompiler/VS binding paths.
-We can't use Assembly.Load(byte[]) because VS won't load resource assemblies for those due to an assembly binding optimization.
-That leaves Assembly.LoadFrom(string) as the only option that works everywhere.")]
-        protected override Assembly LoadCore(string fullPath)
+        protected override Assembly LoadImpl(string fullPath)
         {
             if (_shadowCopyDirectory == null)
             {
@@ -91,7 +103,7 @@ That leaves Assembly.LoadFrom(string) as the only option that works everywhere."
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
 
-            return Assembly.LoadFrom(shadowCopyPath);
+            return base.LoadImpl(shadowCopyPath);
         }
 
         private string CopyFileAndResources(string fullPath, string assemblyDirectory)

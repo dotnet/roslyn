@@ -58,13 +58,26 @@ End Module
     </file>
 </compilation>
             Dim ref = MetadataReference.CreateFromImage(TestResources.General.Regress40025DLL.AsImmutableOrNull())
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
 BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the definition for event 'Public Event ee As PlayRecordCallback'. Add one to your project.
         AddHandler d.ee, Nothing
                    ~~~~
 </errors>)
+
+            Dim diagnostics = c1.GetDiagnostics()
+            Assert.True(diagnostics.Any(Function(d) d.Code = ERRID.ERR_UnreferencedAssemblyEvent3))
+
+            For Each d In diagnostics
+                If d.Code = ERRID.ERR_UnreferencedAssemblyEvent3 Then
+                    Dim actualAssemblyId = c1.GetUnreferencedAssemblyIdentities(d).Single()
+                    Dim expectedAssemblyId As AssemblyIdentity = Nothing
+                    AssemblyIdentity.TryParseDisplayName("System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", expectedAssemblyId)
+
+                    Assert.Equal(actualAssemblyId, expectedAssemblyId)
+                End If
+            Next
         End Sub
 
 

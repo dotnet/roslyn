@@ -52,6 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
                 Return Identity.PublicKey

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
                 default:
 
-                    throw new ArgumentException("fileType was not a valid OutputFileType", "fileType");
+                    throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType));
             }
 
             SetOption(ref _outputKind, newOutputKind);

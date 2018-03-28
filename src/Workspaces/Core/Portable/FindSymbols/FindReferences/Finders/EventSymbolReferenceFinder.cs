@@ -17,17 +17,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(IEventSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IEventSymbol> symbolAndProjectId,
+            Solution solution, 
+            IImmutableSet<Project> projects, 
+            CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-            baseSymbols = baseSymbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-            var backingField = symbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Where(f => symbol.Equals(f.AssociatedSymbol));
-            var associatedNamedType = symbol.ContainingType.GetTypeMembers().Where(n => symbol.Equals(n.AssociatedSymbol));
+            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
-            return baseSymbols.Concat(backingField).Concat(associatedNamedType);
+            var symbol = symbolAndProjectId.Symbol;
+            var backingFields = symbol.ContainingType.GetMembers()
+                                                     .OfType<IFieldSymbol>()
+                                                     .Where(f => symbol.Equals(f.AssociatedSymbol))
+                                                     .Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s))
+                                                     .ToImmutableArray();
+
+            var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
+                                                            .Where(n => symbol.Equals(n.AssociatedSymbol))
+                                                            .Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s))
+                                                            .ToImmutableArray();
+
+            return baseSymbols.Concat(backingFields)
+                              .Concat(associatedNamedTypes);
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IEventSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -36,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IEventSymbol symbol,
             Document document,
             CancellationToken cancellationToken)

@@ -1,10 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -16,11 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// from its default blue. As a work around, we listen to <see cref="IClassificationFormatMap.ClassificationFormatMappingChanged"/>
     /// and update the classification format maps that we care about.
     /// </summary>
-    [Export]
-    internal sealed class HACK_ThemeColorFixer
+    [Export(typeof(IWpfTextViewConnectionListener))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [TextViewRole(PredefinedTextViewRoles.Analyzable)]
+    internal sealed class HACK_ThemeColorFixer : IWpfTextViewConnectionListener
     {
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
+
+        private bool _done;
 
         [ImportingConstructor]
         private HACK_ThemeColorFixer(
@@ -32,9 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
             _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
-
-            // make this to run on UI thread when there is no work for the application
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -46,10 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             var textFormatMap = _classificationFormatMapService.GetClassificationFormatMap("text");
             var tooltipFormatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
-            var immediateFormatMap = _classificationFormatMapService.GetClassificationFormatMap("immediate");
 
             UpdateForegroundColors(textFormatMap, tooltipFormatMap);
-            UpdateForegroundColors(textFormatMap, immediateFormatMap);
         }
 
         private void UpdateForegroundColors(
@@ -85,6 +89,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.TypeParameterName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ModuleName, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.FieldName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.EnumMemberName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.ConstantName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.LocalName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.ParameterName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.MethodName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.ExtensionMethodName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.PropertyName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.EventName, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralText, sourceFormatMap, targetFormatMap);
@@ -117,6 +131,24 @@ namespace Microsoft.VisualStudio.LanguageServices
             targetProps = targetProps.SetForegroundBrush(sourceProps.ForegroundBrush);
 
             targetFormatMap.SetTextProperties(classificationType, targetProps);
+        }
+
+        public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        {
+            // DevDiv https://devdiv.visualstudio.com/DevDiv/_workitems/edit/130129:
+            //
+            // This needs to be scheduled after editor has been composed. Otherwise
+            // it may cause UI delays by composing the editor before it is needed
+            // by the rest of VS.
+            if (!_done)
+            {
+                _done = true;
+                VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
+            }
+        }
+
+        public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        {
         }
     }
 }

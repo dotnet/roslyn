@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
         {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
+            get { return Cci.PrimitiveTypeCode.NotPrimitive; }
         }
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef
@@ -219,10 +220,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.IGenericParameter.GetConstraints(EmitContext context)
+        IEnumerable<Cci.TypeReferenceWithAttributes> Cci.IGenericParameter.GetConstraints(EmitContext context)
         {
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
+
             var seenValueType = false;
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                var typeRef = moduleBeingBuilt.GetSpecialType(
+                    SpecialType.System_ValueType,                  
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    diagnostics: context.Diagnostics);
+
+                var modifier = CSharpCustomModifier.CreateRequired(
+                    moduleBeingBuilt.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType));
+
+                // emit "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
+                yield return new Cci.TypeReferenceWithAttributes(new Cci.ModifiedTypeReference(typeRef, ImmutableArray.Create<Cci.ICustomModifier>(modifier)));
+
+                // do not emit another one for Dev11 similarities
+                seenValueType = true;
+            }
+
             foreach (var type in this.ConstraintTypesNoUseSiteDiagnostics)
             {
                 switch (type.SpecialType)
@@ -234,16 +253,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         seenValueType = true;
                         break;
                 }
-                yield return moduleBeingBuilt.Translate(type,
-                                                        syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                        diagnostics: context.Diagnostics);
+                var typeRef = moduleBeingBuilt.Translate(type,
+                                                            syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                            diagnostics: context.Diagnostics);
+
+                yield return type.GetTypeRefWithAttributes(this.DeclaringCompilation,
+                                                            typeRef);
             }
+
             if (this.HasValueTypeConstraint && !seenValueType)
             {
                 // Add System.ValueType constraint to comply with Dev11 output
-                yield return moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
-                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                             diagnostics: context.Diagnostics);
+                var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
+                                                                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                                diagnostics: context.Diagnostics);
+
+                yield return new Cci.TypeReferenceWithAttributes(typeRef);
             }
         }
 
@@ -259,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.HasValueTypeConstraint;
+                return this.HasValueTypeConstraint || this.HasUnmanagedTypeConstraint;
             }
         }
 
@@ -269,7 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //  add constructor constraint for value type constrained 
                 //  type parameters to comply with Dev11 output
-                return this.HasConstructorConstraint || this.HasValueTypeConstraint;
+                //  do this for "unmanaged" constraint too
+                return this.HasConstructorConstraint || this.HasValueTypeConstraint || this.HasUnmanagedTypeConstraint;
             }
         }
 

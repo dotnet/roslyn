@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -47,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
         protected override bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, out ITypeSymbol typeSymbol)
         {
             typeSymbol = null;
-
-            Document document;
-            if (!TryGetDocument(out document))
+            if (!TryGetDocument(out var document))
             {
                 return false;
             }
@@ -60,15 +57,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
                 return false;
             }
 
-            SnapshotSpan subjectBufferFieldSpan;
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out subjectBufferFieldSpan))
+            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out var subjectBufferFieldSpan))
             {
                 return false;
             }
 
             var expressionSpan = subjectBufferFieldSpan.Span.ToTextSpan();
 
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var token = syntaxTree.FindTokenOnRightOfPosition(expressionSpan.Start, cancellationToken);
             var expressionNode = token.GetAncestor(n => n.Span == expressionSpan);
 
@@ -95,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
             var documentWithCaseAdded = document.WithText(textWithCaseAdded);
 
-            var syntaxRoot = documentWithCaseAdded.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxRoot = documentWithCaseAdded.GetSyntaxRootSynchronously(cancellationToken);
             var nodeToReplace = syntaxRoot.DescendantNodes().FirstOrDefault(n => n.Span == typeSpanToAnnotate);
 
             if (nodeToReplace == null)
@@ -107,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var documentWithAnnotations = documentWithCaseAdded.WithSyntaxRoot(updatedRoot);
 
             var simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken: cancellationToken).Result;
-            simplifiedTypeName = simplifiedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
+            simplifiedTypeName = simplifiedDocument.GetSyntaxRootSynchronously(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
             return true;
         }
     }

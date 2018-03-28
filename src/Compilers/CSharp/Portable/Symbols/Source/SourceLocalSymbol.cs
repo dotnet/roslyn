@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class SourceLocalSymbol : LocalSymbol
     {
-        protected readonly Binder binder;
+        private readonly Binder _scopeBinder;
 
         /// <summary>
         /// Might not be a method symbol.
@@ -29,48 +30,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbol _type;
 
         /// <summary>
-        /// There are three ways to initialize a fixed statement local:
-        ///   1) with an address;
-        ///   2) with an array (or fixed-size buffer); or
-        ///   3) with a string.
-        /// 
-        /// In the first two cases, the resulting local will be emitted with a "pinned" modifier.
-        /// In the third case, it is not the fixed statement local but a synthesized temp that is pinned.  
-        /// Unfortunately, we can't distinguish these cases when the local is declared; we only know
-        /// once we have bound the initializer.
+        /// Scope to which the local can "escape" via aliasing/ref assignment.
+        /// Not readonly because we can only know escape values after binding the initializer.
         /// </summary>
-        /// <remarks>
-        /// CompareExchange doesn't support bool, so use an int.  First bit is true/false, second bit 
-        /// is read/unread (debug-only).
-        /// </remarks>
-        private int _isSpecificallyNotPinned;
+        protected uint _refEscapeScope;
+
+        /// <summary>
+        /// Scope to which the local's values can "escape" via ordinary assignments.
+        /// Not readonly because we can only know escape values after binding the initializer.
+        /// </summary>
+        protected uint _valEscapeScope;
 
         private SourceLocalSymbol(
             Symbol containingSymbol,
-            Binder binder,
-            RefKind refKind,
+            Binder scopeBinder,
+            bool allowRefKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
         {
             Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
-            Debug.Assert(binder != null);
+            Debug.Assert(scopeBinder != null);
 
-            this.binder = binder;
+            this._scopeBinder = scopeBinder;
             this._containingSymbol = containingSymbol;
             this._identifierToken = identifierToken;
-            this._refKind = refKind;
-            this._typeSyntax = typeSyntax;
+            this._typeSyntax = allowRefKind ? typeSyntax?.SkipRef(out this._refKind) : typeSyntax;
             this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
+
+            _refEscapeScope = this._refKind == RefKind.None ?
+                                        scopeBinder.LocalScopeDepth :
+                                        Binder.ExternalScope; // default to returnable, unless there is initializer
+
+            // we do not know the type yet. 
+            // assume this is returnable in case we never get to know our type.
+            _valEscapeScope = Binder.ExternalScope;
         }
 
-        internal Binder Binder
+        /// <summary>
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </summary>
+        internal Binder ScopeBinder
         {
-            get { return binder; }
+            get { return _scopeBinder; }
+        }
+
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return _scopeBinder.ScopeDesignator; }
+        }
+
+        internal override uint RefEscapeScope => _refEscapeScope;
+
+        internal override uint ValEscapeScope => _valEscapeScope;
+
+        /// <summary>
+        /// Binder that should be used to bind type syntax for the local.
+        /// </summary>
+        internal Binder TypeSyntaxBinder
+        {
+            get { return _scopeBinder; } // Scope binder should be good enough for this.
+        }
+
+        // When the variable's type has not yet been inferred,
+        // don't let the debugger force inference.
+        internal new string GetDebuggerDisplay()
+        {
+            return ((object)_type != null)
+                ? base.GetDebuggerDisplay()
+                : $"{this.Kind} <var> ${this.Name}";
         }
 
         public static SourceLocalSymbol MakeForeachLocal(
@@ -80,22 +112,103 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             ExpressionSyntax collection)
         {
-            return new ForEachLocal(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
+            return new ForEachLocalSymbol(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
         }
 
+        /// <summary>
+        /// Make a local variable symbol for an element of a deconstruction,
+        /// which can be inferred (if necessary) by binding the enclosing statement.
+        /// </summary>
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="nodeBinder">
+        /// Enclosing binder for the location where the local is declared.
+        /// It should be used to bind something at that location.
+        /// </param>
+        /// <param name="closestTypeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="kind"></param>
+        /// <param name="deconstruction"></param>
+        /// <returns></returns>
+        public static SourceLocalSymbol MakeDeconstructionLocal(
+            Symbol containingSymbol,
+            Binder scopeBinder,
+            Binder nodeBinder,
+            TypeSyntax closestTypeSyntax,
+            SyntaxToken identifierToken,
+            LocalDeclarationKind kind,
+            SyntaxNode deconstruction)
+        {
+            Debug.Assert(closestTypeSyntax != null);
+            Debug.Assert(nodeBinder != null);
+
+            Debug.Assert(closestTypeSyntax.Kind() != SyntaxKind.RefType);
+            return closestTypeSyntax.IsVar
+                ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, nodeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind);
+        }
+
+        /// <summary>
+        /// Make a local variable symbol whose type can be inferred (if necessary) by binding and enclosing construct.
+        /// </summary>
+        internal static LocalSymbol MakeLocalSymbolWithEnclosingContext(
+            Symbol containingSymbol,
+            Binder scopeBinder,
+            Binder nodeBinder,
+            TypeSyntax typeSyntax,
+            SyntaxToken identifierToken,
+            LocalDeclarationKind kind,
+            SyntaxNode nodeToBind,
+            SyntaxNode forbiddenZone)
+        {
+            Debug.Assert(
+                nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
+                nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
+                    new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
+                        Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
+                nodeToBind is ExpressionSyntax);
+            Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
+            return typeSyntax?.IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
+                ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
+        }
+
+        /// <summary>
+        /// Make a local variable symbol which can be inferred (if necessary) by binding its initializing expression.
+        /// </summary>
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="allowRefKind"></param>
+        /// <param name="typeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="declarationKind"></param>
+        /// <param name="initializer"></param>
+        /// <param name="initializerBinderOpt">
+        /// Binder that should be used to bind initializer, if different from the <paramref name="scopeBinder"/>.
+        /// </param>
+        /// <returns></returns>
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
-            Binder binder,
-            RefKind refKind,
+            Binder scopeBinder,
+            bool allowRefKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
-            EqualsValueClauseSyntax initializer = null)
+            EqualsValueClauseSyntax initializer = null,
+            Binder initializerBinderOpt = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-            return (initializer == null) ?
-                new SourceLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind) :
-                new LocalWithInitializer(containingSymbol, binder, refKind, typeSyntax, identifierToken, initializer, declarationKind);
+            return (initializer != null)
+                ? new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt ?? scopeBinder, declarationKind)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind, typeSyntax, identifierToken, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -122,27 +235,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-#if DEBUG
-                if ((_isSpecificallyNotPinned & 2) == 0)
-                {
-                    Interlocked.CompareExchange(ref _isSpecificallyNotPinned, _isSpecificallyNotPinned | 2, _isSpecificallyNotPinned);
-                    Debug.Assert((_isSpecificallyNotPinned & 2) == 2, "Regardless of which thread won, the read bit should be set.");
-                }
-#endif
-                return _declarationKind == LocalDeclarationKind.FixedVariable && (_isSpecificallyNotPinned & 1) == 0;
+                // even when dealing with "fixed" locals it is the underlying managed reference that gets pinned
+                // the pointer variable itself is not pinned.
+                return false;
             }
         }
 
-        internal void SetSpecificallyNotPinned()
-        {
-            Debug.Assert((_isSpecificallyNotPinned & 2) == 0, "Shouldn't be writing after first read.");
-            Interlocked.CompareExchange(ref _isSpecificallyNotPinned, _isSpecificallyNotPinned | 1, _isSpecificallyNotPinned);
-            Debug.Assert((_isSpecificallyNotPinned & 1) == 1, "Regardless of which thread won, the flag bit should be set.");
-        }
-
-        internal virtual void SetReturnable()
+        internal virtual void SetRefEscape(uint value)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal virtual void SetValEscape(uint value)
+        {
+            _valEscapeScope = value;
         }
 
         public override Symbol ContainingSymbol
@@ -172,14 +278,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#if DEBUG
+        // We use this to detect infinite recursion in type inference.
+        private int concurrentTypeResolutions = 0;
+#endif
+
         public override TypeSymbol Type
         {
             get
             {
                 if ((object)_type == null)
                 {
+#if DEBUG
+                    concurrentTypeResolutions++;
+                    Debug.Assert(concurrentTypeResolutions < 50);
+#endif
                     TypeSymbol localType = GetTypeSymbol();
-                    SetTypeSymbol(localType);
+                    SetType(localType);
                 }
 
                 return _type;
@@ -192,14 +307,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_typeSyntax == null)
                 {
-                    // in "let x = 1;" there is no syntax corresponding to the type.
+                    // in "e is {} x" there is no syntax corresponding to the type.
                     return true;
                 }
 
                 if (_typeSyntax.IsVar)
                 {
                     bool isVar;
-                    TypeSymbol declType = this.binder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
+                    TypeSymbol declType = this.TypeSyntaxBinder.BindTypeOrVarKeyword(_typeSyntax, new DiagnosticBag(), out isVar);
                     return isVar;
                 }
 
@@ -211,19 +326,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
-            Binder typeBinder = this.binder;
+            Binder typeBinder = this.TypeSyntaxBinder;
 
             bool isVar;
             TypeSymbol declType;
-            if (_typeSyntax == null)
+            if (_typeSyntax == null) // In recursive patterns the type may be omitted.
             {
-                // in "let x = 1;", there is no syntax for the type. It is just inferred.
-                declType = null;
                 isVar = true;
+                declType = null;
             }
             else
             {
-                declType = typeBinder.BindType(_typeSyntax, diagnostics, out isVar);
+                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipRef(out _), diagnostics, out isVar);
             }
 
             if (isVar)
@@ -245,6 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)declType != null);
 
+            //
+            // Note that we drop the diagnostics on the floor! That is because this code is invoked mainly in
+            // IDE scenarios where we are attempting to use the types of a variable before we have processed
+            // the code which causes the variable's type to be inferred. In batch compilation, on the
+            // other hand, local variables have their type inferred, if necessary, in the course of binding
+            // the statements of a method from top to bottom, and an inferred type is given to a variable
+            // before the variable's type is used by the compiler.
+            //
             diagnostics.Free();
             return declType;
         }
@@ -257,9 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal void SetTypeSymbol(TypeSymbol newType)
+        internal void SetType(TypeSymbol newType)
         {
-#if PATTERNS_FIXED
             TypeSymbol originalType = _type;
 
             // In the event that we race to set the type of a local, we should
@@ -273,9 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Interlocked.CompareExchange(ref _type, newType, null);
             }
-#else
-            Interlocked.CompareExchange(ref _type, newType, _type);
-#endif
         }
 
         /// <summary>
@@ -305,23 +423,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
+                        Debug.Assert(node is VariableDeclaratorSyntax);
+                        break;
+
                     case LocalDeclarationKind.Constant:
                     case LocalDeclarationKind.FixedVariable:
                     case LocalDeclarationKind.UsingVariable:
-                    case LocalDeclarationKind.ForInitializerVariable:
                         Debug.Assert(node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.ForEachIterationVariable:
-                        Debug.Assert(node is ForEachStatementSyntax);
+                        Debug.Assert(node is ForEachStatementSyntax || node is SingleVariableDesignationSyntax);
                         break;
 
                     case LocalDeclarationKind.CatchVariable:
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
+                    case LocalDeclarationKind.OutVariable:
+                    case LocalDeclarationKind.DeclarationExpressionVariable:
+                    case LocalDeclarationKind.DeconstructionVariable:
                     case LocalDeclarationKind.PatternVariable:
-                        Debug.Assert(node is DeclarationPatternSyntax || node is LetStatementSyntax);
+                        Debug.Assert(node is SingleVariableDesignationSyntax);
                         break;
 
                     default:
@@ -347,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Diagnostic>.Empty;
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _refKind; }
         }
@@ -370,9 +493,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_identifierToken.GetHashCode(), _containingSymbol.GetHashCode());
         }
 
+        /// <summary>
+        /// Symbol for a local whose type can be inferred by binding its initializer.
+        /// </summary>
         private sealed class LocalWithInitializer : SourceLocalSymbol
         {
             private readonly EqualsValueClauseSyntax _initializer;
+            private readonly Binder _initializerBinder;
 
             /// <summary>
             /// Store the constant value and the corresponding diagnostics together
@@ -381,44 +508,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private EvaluatedConstant _constantTuple;
 
-            /// <summary>
-            /// Unfortunately we can only know a ref local is returnable after binding the initializer.
-            /// </summary>
-            private bool _returnable;
-
             public LocalWithInitializer(
                 Symbol containingSymbol,
-                Binder binder,
-                RefKind refKind,
+                Binder scopeBinder,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 EqualsValueClauseSyntax initializer,
+                Binder initializerBinder,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, scopeBinder, true, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
                 Debug.Assert(initializer != null);
 
                 _initializer = initializer;
+                _initializerBinder = initializerBinder;
 
-                // byval locals are always returnable
-                // byref locals with initializers are assumed not returnable unless proven otherwise
-                // NOTE: if we assumed returnable, then self-referring initializer could result in 
-                //       a randomly changing returnability when initializer is bound concurrently.
-                _returnable = refKind == RefKind.None;
+                // default to the current scope in case we need to handle self-referential error cases.
+                _refEscapeScope = _scopeBinder.LocalScopeDepth;
+                _valEscapeScope = _scopeBinder.LocalScopeDepth;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                var newBinder = new ImplicitlyTypedLocalBinder(this.binder, this);
-                var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
-                if (initializerOpt != null)
-                {
-                    return initializerOpt.Type;
-                }
-
-                return null;
+                BoundExpression initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
+                return initializerOpt?.Type;
             }
+
+            internal override SyntaxNode ForbiddenZone => _initializer;
 
             /// <summary>
             /// Determine the constant value of this local and the corresponding diagnostics.
@@ -431,14 +548,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsConst && _constantTuple == null)
                 {
                     var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    var initValueNodeLocation = _initializer.Value.Location;
+                    Location initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
-                    var type = this.Type;
+                    TypeSymbol type = this.Type;
                     if (boundInitValue == null)
                     {
-                        var inProgressBinder = new LocalInProgressBinder(this, this.binder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
+                        var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
+                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
                     }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
@@ -469,42 +586,207 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _constantTuple == null ? ImmutableArray<Diagnostic>.Empty : _constantTuple.Diagnostics;
             }
 
-            internal override void SetReturnable()
+            internal override void SetRefEscape(uint value)
             {
-                _returnable = true;
+                Debug.Assert(value <= _refEscapeScope);
+                _refEscapeScope = value;
             }
 
-            internal override bool IsReturnable
+            internal override void SetValEscape(uint value)
             {
-                get
-                {
-                    return _returnable;
-                }
+                Debug.Assert(value <= _valEscapeScope);
+                _valEscapeScope = value;
             }
         }
 
-        private sealed class ForEachLocal : SourceLocalSymbol
+        /// <summary>
+        /// Symbol for a foreach iteration variable that can be inferred by binding the
+        /// collection element type of the foreach.
+        /// </summary>
+        private sealed class ForEachLocalSymbol : SourceLocalSymbol
         {
             private readonly ExpressionSyntax _collection;
 
-            public ForEachLocal(
+            public ForEachLocalSymbol(
                 Symbol containingSymbol,
-                Binder binder,
+                ForEachLoopBinder scopeBinder,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, scopeBinder, allowRefKind: true, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 _collection = collection;
             }
 
+            /// <summary>
+            /// We initialize the base's ScopeBinder with a ForEachLoopBinder, so it is safe
+            /// to cast it to that type here.
+            /// </summary>
+            private ForEachLoopBinder ForEachLoopBinder => (ForEachLoopBinder)ScopeBinder;
+
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                // Normally, it would not be safe to cast to a specific binder type.  However, we verified the type
-                // in the factory method call for this symbol.
-                return ((ForEachLoopBinder)this.binder).InferCollectionElementType(diagnostics, _collection);
+                return ForEachLoopBinder.InferCollectionElementType(diagnostics, _collection);
+            }
+
+            /// <summary>
+            /// There is no forbidden zone for a foreach loop, because the iteration
+            /// variable is not in scope in the collection expression.
+            /// </summary>
+            internal override SyntaxNode ForbiddenZone => null;
+        }
+
+        /// <summary>
+        /// Symbol for a deconstruction local that might require type inference.
+        /// For instance, local `x` in `var (x, y) = ...` or `(var x, int y) = ...`.
+        /// </summary>
+        private class DeconstructionLocalSymbol : SourceLocalSymbol
+        {
+            private readonly SyntaxNode _deconstruction;
+            private readonly Binder _nodeBinder;
+
+            public DeconstructionLocalSymbol(
+                Symbol containingSymbol,
+                Binder scopeBinder,
+                Binder nodeBinder,
+                TypeSyntax typeSyntax,
+                SyntaxToken identifierToken,
+                LocalDeclarationKind declarationKind,
+                SyntaxNode deconstruction)
+            : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
+            {
+                Debug.Assert(deconstruction.Kind() == SyntaxKind.SimpleAssignmentExpression || deconstruction.Kind() == SyntaxKind.ForEachVariableStatement);
+
+                _deconstruction = deconstruction;
+                _nodeBinder = nodeBinder;
+            }
+
+            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
+            {
+                // Try binding enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
+                switch (_deconstruction.Kind())
+                {
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        var assignment = (AssignmentExpressionSyntax)_deconstruction;
+                        Debug.Assert(assignment.IsDeconstruction());
+                        DeclarationExpressionSyntax declaration = null;
+                        ExpressionSyntax expression = null;
+                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, ref declaration, ref expression);
+                        break;
+
+                    case SyntaxKind.ForEachVariableStatement:
+                        Debug.Assert(this.ScopeBinder.GetBinder((ForEachVariableStatementSyntax)_deconstruction) == _nodeBinder);
+                        _nodeBinder.BindForEachDeconstruction(diagnostics, _nodeBinder);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
+                }
+
+                Debug.Assert((object)this._type != null);
+                return this._type;
+            }
+
+            internal override SyntaxNode ForbiddenZone
+            {
+                get
+                {
+                    switch (_deconstruction.Kind())
+                    {
+                        case SyntaxKind.SimpleAssignmentExpression:
+                            return _deconstruction;
+
+                        case SyntaxKind.ForEachVariableStatement:
+                            // There is no forbidden zone for a foreach statement, because the
+                            // variables are not in scope in the expression.
+                            return null;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
+                    }
+                }
+            }
+        }
+
+        private class LocalSymbolWithEnclosingContext : SourceLocalSymbol
+        {
+            private readonly SyntaxNode _forbiddenZone;
+            private readonly Binder _nodeBinder;
+            private readonly SyntaxNode _nodeToBind;
+
+            public LocalSymbolWithEnclosingContext(
+                Symbol containingSymbol,
+                Binder scopeBinder,
+                Binder nodeBinder,
+                TypeSyntax typeSyntax,
+                SyntaxToken identifierToken,
+                LocalDeclarationKind declarationKind,
+                SyntaxNode nodeToBind,
+                SyntaxNode forbiddenZone)
+                : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
+            {
+                Debug.Assert(
+                    nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                    nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
+                    nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                    nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                    nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
+                    nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
+                    nodeToBind is ExpressionSyntax);
+                Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
+                this._nodeBinder = nodeBinder;
+                this._nodeToBind = nodeToBind;
+                this._forbiddenZone = forbiddenZone;
+            }
+
+            internal override SyntaxNode ForbiddenZone => _forbiddenZone;
+
+            // This type is currently used for out variables and pattern variables.
+            // Pattern variables do not have a forbidden zone, so we only need to produce
+            // the diagnostic for out variables here.
+            internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
+
+            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
+            {
+                switch (_nodeToBind.Kind())
+                {
+                    case SyntaxKind.ThisConstructorInitializer:
+                    case SyntaxKind.BaseConstructorInitializer:
+                        var initializer = (ConstructorInitializerSyntax)_nodeToBind;
+                        _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
+                        break;
+                    case SyntaxKind.ArgumentList:
+                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
+                        _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
+                        break;
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        _nodeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);
+                        break;
+                    case SyntaxKind.VariableDeclarator:
+                        // This occurs, for example, in
+                        // int x, y[out var Z, 1 is int I];
+                        // for (int x, y[out var Z, 1 is int I]; ;) {}
+                        _nodeBinder.BindDeclaratorArguments((VariableDeclaratorSyntax)_nodeToBind, diagnostics);
+                        break;
+                    case SyntaxKind.SwitchExpressionArm:
+                        var arm = (SwitchExpressionArmSyntax)_nodeToBind;
+                        var armBinder = (SwitchExpressionArmBinder)_nodeBinder;
+                        armBinder.BindSwitchExpressionArm(arm, diagnostics);
+                        break;
+                    default:
+                        _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);
+                        break;
+                }
+
+                if ((object)this._type == null)
+                {
+                    Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
+                    SetType(_nodeBinder.CreateErrorType("var"));
+                }
+
+                return this._type;
             }
         }
     }

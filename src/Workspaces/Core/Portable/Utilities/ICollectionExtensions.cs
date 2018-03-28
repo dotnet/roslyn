@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -21,6 +21,19 @@ namespace Roslyn.Utilities
                 {
                     collection.Add(item);
                 }
+            }
+        }
+
+        public static void AddRange<T>(this ICollection<T> collection, ImmutableArray<T> values)
+        {
+            if (collection == null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+
+            foreach (var item in values)
+            {
+                collection.Add(item);
             }
         }
     }

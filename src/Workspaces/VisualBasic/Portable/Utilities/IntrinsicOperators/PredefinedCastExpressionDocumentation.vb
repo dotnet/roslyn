@@ -21,14 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property DocumentationText As String
             Get
-                Return String.Format(VBWorkspaceResources.ConvertsToDataType, _resultingType.ToDisplayString())
+                Return String.Format(VBWorkspaceResources.Converts_an_expression_to_the_0_data_type, _resultingType.ToDisplayString())
             End Get
         End Property
 
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.ExpressionToConvert
+                    Return VBWorkspaceResources.The_expression_to_be_evaluated_and_converted
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Expression1
+                    Return VBWorkspaceResources.expression
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, _keywordText),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}

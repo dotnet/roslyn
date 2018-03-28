@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -619,24 +620,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private const int MaxPublicKeyBytes = 2048;
-
         private static bool TryParsePublicKey(string value, out ImmutableArray<byte> key)
         {
-            ImmutableArray<byte> result;
-            if (value.Length > (MaxPublicKeyBytes * 2) || !TryParseHexBytes(value, out result))
+            if (!TryParseHexBytes(value, out key) ||
+                !MetadataHelpers.IsValidPublicKey(key))
             {
                 key = default(ImmutableArray<byte>);
                 return false;
             }
 
-            if (!MetadataHelpers.IsValidPublicKey(result))
-            {
-                key = default(ImmutableArray<byte>);
-                return false;
-            }
-
-            key = result;
             return true;
         }
 

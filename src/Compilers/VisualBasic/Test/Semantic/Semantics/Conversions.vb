@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ConversionsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_noConversion As ConversionKind = Nothing
+        Private Const s_noConversion As ConversionKind = Nothing
 
         <Fact()>
         Public Sub TryCastDirectCastConversions()
@@ -1484,8 +1484,8 @@ End Class
 
             Assert.NotEqual(modifiedArrayInt32, arrayInt32)
             Assert.NotEqual(arrayInt32, modifiedArrayInt32)
-            Assert.True(arrayInt32.IsSameTypeIgnoringCustomModifiers(modifiedArrayInt32))
-            Assert.True(modifiedArrayInt32.IsSameTypeIgnoringCustomModifiers(arrayInt32))
+            Assert.True(arrayInt32.IsSameTypeIgnoringAll(modifiedArrayInt32))
+            Assert.True(modifiedArrayInt32.IsSameTypeIgnoringAll(arrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(arrayInt32, modifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(modifiedArrayInt32, arrayInt32)))
 
@@ -1495,8 +1495,8 @@ End Class
 
             Assert.NotEqual(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)
             Assert.NotEqual(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)
-            Assert.True(enumerableOfArrayInt32.IsSameTypeIgnoringCustomModifiers(enumerableOfModifiedArrayInt32))
-            Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringCustomModifiers(enumerableOfArrayInt32))
+            Assert.True(enumerableOfArrayInt32.IsSameTypeIgnoringAll(enumerableOfModifiedArrayInt32))
+            Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringAll(enumerableOfArrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)))
 
@@ -2777,7 +2777,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -2831,7 +2831,7 @@ End Class
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "TI1Array").WithArguments("TestInterface1()", "Integer()", "TestInterface1", "Integer"),
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "InArray").WithArguments("Integer()", "TestInterface1()", "Integer", "TestInterface1"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -2882,7 +2882,7 @@ End Class
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "TI1Array").WithArguments("TestInterface1()", "Integer()", "TestInterface1", "Integer"),
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "InArray").WithArguments("Integer()", "TestInterface1()", "Integer", "TestInterface1"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -3048,7 +3048,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3085,7 +3085,7 @@ End Class
                 Diagnostic(ERRID.ERR_IdentityDirectCastForFloat, "[Do]"),
                 Diagnostic(ERRID.ERR_TypeMismatch2, "Si").WithArguments("Single", "Double"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3225,7 +3225,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3253,7 +3253,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeMismatch2, "St").WithArguments("String", "Char()"),
                 Diagnostic(ERRID.ERR_TryCastOfUnconstrainedTypeParam1, "T").WithArguments("T"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -4023,9 +4023,9 @@ Public Module Program
         Dim inner As New C1(Of Integer).S1
         outer.EnumField = C1(Of Integer).E1.A
         inner.EnumField = C1(Of Integer).E1.A     
-        Foo(inner.EnumField)
+        Goo(inner.EnumField)
     End Sub
-    Sub Foo(x As Object)
+    Sub Goo(x As Object)
         Console.WriteLine(x.ToString)
     End Sub
 End Module]]>,
@@ -4207,7 +4207,7 @@ End Module
         <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4240,7 +4240,7 @@ End Module
         <WorkItem(545760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545760")>
         <Fact()>
         Public Sub Bug14409()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4263,7 +4263,7 @@ End Module
         <WorkItem(545760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545760")>
         <Fact()>
         Public Sub Bug14409_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4296,7 +4296,7 @@ BC30519: Overload resolution failed because no accessible 'Test' can be called w
         <WorkItem(571095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571095")>
         <Fact()>
         Public Sub Bug571095()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 imports System
@@ -4333,7 +4333,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer(*,*)'.
         <WorkItem(31, "https://roslyn.codeplex.com/workitem/31")>
         <Fact()>
         Public Sub BugCodePlex_31()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4415,7 +4415,7 @@ CType(value As BooleanEx) As Boolean")
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_01()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4454,7 +4454,7 @@ BC30439: Constant expression not representable in type 'Integer'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_02()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4493,7 +4493,7 @@ BC30439: Constant expression not representable in type 'Integer?'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_03()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4534,7 +4534,7 @@ BC30439: Constant expression not representable in type 'Short'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_04()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4596,7 +4596,7 @@ BC30439: Constant expression not representable in type 'Short?'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_05()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4630,7 +4630,7 @@ End Module
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_06()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4664,7 +4664,7 @@ End Module
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_07()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4688,7 +4688,7 @@ BC30439: Constant expression not representable in type 'Integer?'.
         <WorkItem(2094, "https://github.com/dotnet/roslyn/issues/2094")>
         <Fact()>
         Public Sub DirectCastNothingToAStructure()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Class Program
@@ -4730,7 +4730,7 @@ Expected - 2
         <WorkItem(8475, "https://github.com/dotnet/roslyn/issues/8475")>
         <Fact()>
         Public Sub ConvertConstantBeforeItsDeclaration()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Class Program
@@ -4748,6 +4748,334 @@ BC32000: Local variable 'STR' cannot be referred to before it is declared.
         Dim x as Integer = STR
                            ~~~
 </expected>)
+        End Sub
+
+        <WorkItem(9887, "https://github.com/dotnet/roslyn/issues/9887")>
+        <Fact()>
+        Public Sub ConvertReferenceTypeToIntrinsicValueType()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+
+Module Module1
+    Sub Main()
+        Dim value As System.IComparable = 1.0R
+        TestBoolean(value)
+        TestByte(value)
+        TestSByte(value)
+        TestShort(value)
+        TestUShort(value)
+        TestInt(value)
+        TestUInt(value)
+        TestLng(value)
+        TestULng(value)
+        TestDec(value)
+
+        Dim value2 As System.IComparable = 1
+        TestSng(value2)
+        TestDbl(value)
+
+        Dim value3 As System.IComparable = "2016-5-23"
+        TestDate(value3)
+        TestChar(value3)
+    End Sub
+
+    Private Sub TestArray(value2 As System.Collections.IEnumerable)
+        System.Console.WriteLine(CType(value2, Integer()))
+    End Sub
+
+    Private Sub TestString(value2 As IComparable)
+        System.Console.WriteLine(CStr(value2))
+    End Sub
+
+    Private Sub TestChar(value3 As IComparable)
+        System.Console.WriteLine(CChar(value3))
+    End Sub
+
+    Private Sub TestDate(value3 As IComparable)
+        System.Console.WriteLine(CDate(value3).Day)
+    End Sub
+
+    Private Sub TestDbl(value As IComparable)
+        System.Console.WriteLine(CDbl(value))
+    End Sub
+
+    Private Sub TestSng(value2 As IComparable)
+        System.Console.WriteLine(CSng(value2))
+    End Sub
+
+    Private Sub TestDec(value As IComparable)
+        System.Console.WriteLine(CDec(value))
+    End Sub
+
+    Private Sub TestULng(value As IComparable)
+        System.Console.WriteLine(CULng(value))
+    End Sub
+
+    Private Sub TestLng(value As IComparable)
+        System.Console.WriteLine(CLng(value))
+    End Sub
+
+    Private Sub TestUInt(value As IComparable)
+        System.Console.WriteLine(CUInt(value))
+    End Sub
+
+    Private Sub TestInt(value As IComparable)
+        System.Console.WriteLine(CInt(value))
+    End Sub
+
+    Private Sub TestUShort(value As IComparable)
+        System.Console.WriteLine(CUShort(value))
+    End Sub
+
+    Private Sub TestShort(value As IComparable)
+        System.Console.WriteLine(CShort(value))
+    End Sub
+
+    Private Sub TestSByte(value As IComparable)
+        System.Console.WriteLine(CSByte(value))
+    End Sub
+
+    Private Sub TestByte(value As IComparable)
+        System.Console.WriteLine(CByte(value))
+    End Sub
+
+    Private Sub TestBoolean(value As IComparable)
+        System.Console.WriteLine(CBool(value))
+    End Sub
+
+    Sub TestTypeParameter(Of T)(value As IComparable)
+        System.Console.WriteLine(CType(value, T))
+    End Sub
+End Module
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+"True
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+23
+2")
+
+            verifier.VerifyIL("Module1.TestArray",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  castclass  "Integer()"
+  IL_0006:  call       "Sub System.Console.WriteLine(Object)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestString",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  castclass  "String"
+  IL_0006:  call       "Sub System.Console.WriteLine(String)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestChar",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToChar(Object) As Char"
+  IL_0006:  call       "Sub System.Console.WriteLine(Char)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestDate",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (Date V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDate(Object) As Date"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function Date.get_Day() As Integer"
+  IL_000e:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0013:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestDbl",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDouble(Object) As Double"
+  IL_0006:  call       "Sub System.Console.WriteLine(Double)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestSng",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToSingle(Object) As Single"
+  IL_0006:  call       "Sub System.Console.WriteLine(Single)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestDec",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDecimal(Object) As Decimal"
+  IL_0006:  call       "Sub System.Console.WriteLine(Decimal)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestULng",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToULong(Object) As ULong"
+  IL_0006:  call       "Sub System.Console.WriteLine(ULong)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestLng",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToLong(Object) As Long"
+  IL_0006:  call       "Sub System.Console.WriteLine(Long)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestUInt",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToUInteger(Object) As UInteger"
+  IL_0006:  call       "Sub System.Console.WriteLine(UInteger)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestInt",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestUShort",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToUShort(Object) As UShort"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestShort",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToShort(Object) As Short"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestSByte",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToSByte(Object) As SByte"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestByte",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToByte(Object) As Byte"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestBoolean",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean"
+  IL_0006:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestTypeParameter",
+            <![CDATA[
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  unbox.any  "T"
+  IL_0006:  box        "T"
+  IL_000b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0010:  ret
+}
+]]>)
         End Sub
 
     End Class

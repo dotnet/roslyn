@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 
 namespace Roslyn.Utilities
@@ -49,17 +50,20 @@ namespace Roslyn.Utilities
                 }
             }
 
-            private static class _RuntimeEnvironment
+            private static class _Directory
             {
-                internal static readonly Type TypeOpt = ReflectionUtilities.TryGetType("System.Runtime.InteropServices.RuntimeEnvironment, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+                internal static readonly Type Type = typeof(Directory);
 
-                internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
+                internal static readonly Func<string[]> s_getLogicalDrivesOpt = Type
                     .GetTypeInfo()
-                    .GetDeclaredMethod("GetRuntimeDirectory", SpecializedCollections.EmptyArray<Type>())?
-                    .CreateDelegate<Func<string>>();
+                    .GetDeclaredMethod("GetLogicalDrives")?
+                    .CreateDelegate<Func<string[]>>();
             }
 
-            internal static string TryGetRuntimeDirectory() => _RuntimeEnvironment.GetRuntimeDirectoryOpt?.Invoke();
+            internal static string[] GetLogicalDrives()
+            {
+                return _Directory.s_getLogicalDrivesOpt?.Invoke() ?? Array.Empty<string>();
+            }
 
             private static class _Assembly
             {
@@ -69,6 +73,11 @@ namespace Roslyn.Utilities
                     .GetTypeInfo()
                     .GetDeclaredMethod("Load", typeof(byte[]))
                     .CreateDelegate<Func<byte[], Assembly>>();
+
+                internal static readonly Func<byte[], byte[], Assembly> Load_bytes_with_Pdb = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("Load", typeof(byte[]), typeof(byte[]))
+                    .CreateDelegate<Func<byte[], byte[], Assembly>>();
 
                 internal static readonly Func<string, Assembly> LoadFile = Type
                     .GetTypeInfo()
@@ -137,6 +146,16 @@ namespace Roslyn.Utilities
                 return _Assembly.Load_bytes(peImage);
             }
 
+            internal static Assembly LoadAssembly(byte[] peImage, byte[] pdbImage)
+            {
+                if (_Assembly.Load_bytes_with_Pdb == null)
+                {
+                    throw new PlatformNotSupportedException();
+                }
+
+                return _Assembly.Load_bytes_with_Pdb(peImage, pdbImage);
+            }
+
             internal static Assembly LoadAssembly(string path)
             {
                 if (_Assembly.LoadFile == null)
@@ -184,8 +203,8 @@ namespace Roslyn.Utilities
 
                 private Assembly Stub(object sender, object resolveEventArgs)
                 {
-                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, SpecializedCollections.EmptyArray<object>());
-                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, SpecializedCollections.EmptyArray<object>());
+                    var name = (string)_ResolveEventArgs.get_Name.Invoke(resolveEventArgs, Array.Empty<object>());
+                    var requestingAssembly = (Assembly)_ResolveEventArgs.get_RequestingAssembly.Invoke(resolveEventArgs, Array.Empty<object>());
 
                     return _handler(name, requestingAssembly);
                 }
@@ -206,7 +225,7 @@ namespace Roslyn.Utilities
                     throw new PlatformNotSupportedException();
                 }
 
-                return _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+                return _AppDomain.get_CurrentDomain.Invoke(null, Array.Empty<object>());
             }
 
             internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)

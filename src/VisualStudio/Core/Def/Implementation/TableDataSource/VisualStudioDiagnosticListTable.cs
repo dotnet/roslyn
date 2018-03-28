@@ -1,8 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,9 +9,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.TaskStatusCenter;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(VisualStudioDiagnosticListTable))]
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
             ITableManagerProvider provider) :
-            this(serviceProvider, (Workspace)workspace, diagnosticService, errorSource, provider)
+            this(workspace, diagnosticService, errorSource, provider)
         {
             ConnectWorkspaceEvents();
 
@@ -57,20 +59,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(null, workspace, diagnosticService, null, provider)
+            this(workspace, diagnosticService, errorSource: null, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
         }
 
+        /// this is for test only
+        internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
+            this(workspace, diagnosticService: null, errorSource, provider)
+        {
+            AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
+        }
+
         private VisualStudioDiagnosticListTable(
-            SVsServiceProvider serviceProvider,
             Workspace workspace,
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
             ITableManagerProvider provider) :
-            base(serviceProvider, workspace, diagnosticService, provider)
+            base(workspace, diagnosticService, provider)
         {
-            _liveTableSource = new LiveTableDataSource(serviceProvider, workspace, diagnosticService, IdentifierString);
+            _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             _buildTableSource = new BuildTableDataSource(workspace, errorSource);
         }
 

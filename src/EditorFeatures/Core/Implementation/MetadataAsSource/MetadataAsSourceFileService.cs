@@ -1,17 +1,26 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.CSharp.Transforms;
+using ICSharpCode.Decompiler.TypeSystem;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Mono.Cecil;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -66,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool allowDecompilation, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -80,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                throw new ArgumentException(EditorFeaturesResources.SymbolCannotBeNamespace, "symbol");
+                throw new ArgumentException(EditorFeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
             }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
@@ -88,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
-            var symbolId = SymbolKey.Create(symbol, await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -107,8 +116,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
                                                                      .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
-                    var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    var useDecompiler = allowDecompilation;
+                    if (useDecompiler)
+                    {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                            && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+                    }
+
+                    if (useDecompiler)
+                    {
+                        try
+                        {
+                            temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        {
+                            useDecompiler = false;
+                        }
+                    }
+
+                    if (!useDecompiler)
+                    {
+                        var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
+                        temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    }
 
                     // We have the content, so write it out to disk
                     var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -152,20 +183,137 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentName = string.Format(
                 "{0} [{1}]",
                 topLevelNamedType.Name,
-                EditorFeaturesResources.FromMetadata);
+                EditorFeaturesResources.from_metadata);
 
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
         }
 
+        private async Task<Document> DecompileSymbolAsync(Document temporaryDocument, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            // Get the name of the type the symbol is in
+            var containingOrThis = symbol.GetContainingTypeOrThis();
+            var fullName = GetFullReflectionName(containingOrThis);
+
+            var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            string assemblyLocation = null;
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
+                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
+            if (isReferenceAssembly)
+            {
+                try
+                {
+                    var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
+                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            }
+
+            if (assemblyLocation == null)
+            {
+                var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
+                if (assemblyLocation == null)
+                {
+                    throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                }
+            }
+
+            // Load the assembly.
+            var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
+
+            // Initialize a decompiler with default settings.
+            var decompiler = new CSharpDecompiler(assemblyDefinition.MainModule, new DecompilerSettings());
+            // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
+            // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
+            decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
+
+            var fullTypeName = new FullTypeName(fullName);
+
+            var decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
+
+            // Add header to match output of metadata-only view.
+            // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
+            var header = $"#region {FeaturesResources.Assembly} {assemblyDefinition.FullName}" + Environment.NewLine
+                + $"// {assemblyDefinition.MainModule.FileName}" + Environment.NewLine
+                + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
+                + "#endregion" + Environment.NewLine;
+
+            // Try to decompile; if an exception is thrown the caller will handle it
+            var text = decompiler.DecompileTypeAsString(fullTypeName);
+            return temporaryDocument.WithText(SourceText.From(header + text));
+        }
+
+        private class RoslynAssemblyResolver : IAssemblyResolver
+        {
+            private readonly Compilation parentCompilation;
+
+            public RoslynAssemblyResolver(Compilation parentCompilation)
+            {
+                this.parentCompilation = parentCompilation;
+            }
+
+            public AssemblyDefinition Resolve(AssemblyNameReference name)
+            {
+                return Resolve(name, new ReaderParameters());
+            }
+
+            public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+            {
+                foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
+                {
+                    if (assembly.Identity.Name != name.Name
+                        || !assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
+                    {
+                        continue;
+                    }
+
+                    if (assembly.Identity.Version != name.Version
+                        && !string.Equals("mscorlib", assembly.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // MSBuild treats mscorlib special for the purpose of assembly resolution/unification, where all
+                        // versions of the assembly are considered equal. The same policy is adopted here.
+                        continue;
+                    }
+
+                    // reference assemblies should be fine here...
+                    var reference = parentCompilation.GetMetadataReference(assembly);
+                    return AssemblyDefinition.ReadAssembly(reference.Display);
+                }
+
+                // not found
+                return null;
+            }
+
+            public void Dispose()
+            {
+            }
+        }
+
+        private string GetFullReflectionName(INamedTypeSymbol containingType)
+        {
+            var stack = new Stack<string>();
+            stack.Push(containingType.MetadataName);
+            var ns = containingType.ContainingNamespace;
+            do
+            {
+                stack.Push(ns.Name);
+                ns = ns.ContainingNamespace;
+            }
+            while (ns != null && !ns.IsGlobalNamespace);
+
+            return string.Join(".", stack);
+        }
+
         private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
         {
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
-
-            DocumentId openDocumentId;
-            if (_openedDocumentIds.TryGetValue(fileInfo, out openDocumentId))
+            if (_openedDocumentIds.TryGetValue(fileInfo, out var openDocumentId))
             {
                 // Awesome, it's already open. Let's try to grab a document for it
                 var document = _workspace.CurrentSolution.GetDocument(openDocumentId);
@@ -185,9 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                MetadataAsSourceGeneratedFileInfo fileInfo;
-
-                if (_generatedFilenameToInformation.TryGetValue(filePath, out fileInfo))
+                if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
                     Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
@@ -210,9 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                MetadataAsSourceGeneratedFileInfo fileInfo;
-
-                if (_generatedFilenameToInformation.TryGetValue(filePath, out fileInfo))
+                if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
                     if (_openedDocumentIds.ContainsKey(fileInfo))
                     {
@@ -244,11 +388,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (peMetadataReference.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, compilation, cancellationToken));
+                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken));
             }
             else
             {
-                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, compilation, cancellationToken));
+                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken));
             }
         }
 
@@ -321,15 +465,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 {
                     if (Directory.Exists(_rootTemporaryPath))
                     {
-                        bool deletedEverything = true;
+                        var deletedEverything = true;
 
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
                         {
-                            Mutex acquiredMutex;
 
                             // Is there a mutex for this one?
-                            if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out acquiredMutex))
+                            if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
                             {
                                 acquiredMutex.Dispose();
                                 deletedEverything = false;

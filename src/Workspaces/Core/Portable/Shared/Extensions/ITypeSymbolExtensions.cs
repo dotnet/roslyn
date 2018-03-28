@@ -4,14 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -21,11 +19,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
+        public static bool CanAddNullCheck(this ITypeSymbol type)
+            => type != null && (type.IsReferenceType || type.IsNullable());
+
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
             var allInterfaces = type.AllInterfaces;
-            var namedType = type as INamedTypeSymbol;
-            if (namedType != null && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
+            if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
                 var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
                 result.Add(namedType);
@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsNullable(this ITypeSymbol symbol)
-        {
-            return symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
-        }
+            => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
         public static bool IsErrorType(this ITypeSymbol symbol)
         {
@@ -69,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsDelegateType(this ITypeSymbol symbol)
         {
             return symbol?.TypeKind == TypeKind.Delegate;
+        }
+
+        public static bool IsStructType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Struct;
         }
 
         public static bool IsAnonymousType(this INamedTypeSymbol symbol)
@@ -93,24 +96,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static IEnumerable<ISymbol> FindImplementationsForInterfaceMember(
-            this ITypeSymbol typeSymbol,
+        public static IEnumerable<SymbolAndProjectId> FindImplementationsForInterfaceMember(
+            this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
             ISymbol interfaceMember,
             Workspace workspace,
             CancellationToken cancellationToken)
         {
             // This method can return multiple results.  Consider the case of:
             // 
-            // interface IFoo<X> { void Foo(X x); }
+            // interface IGoo<X> { void Goo(X x); }
             //
-            // class C : IFoo<int>, IFoo<string> { void Foo(int x); void Foo(string x); }
+            // class C : IGoo<int>, IGoo<string> { void Goo(int x); void Goo(string x); }
             //
-            // If you're looking for the implementations of IFoo<X>.Foo then you want to find both
+            // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
-
+            var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
                 yield break;
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // this type.  However, this type may not actually say that it implements it.  For
             // example:
             //
-            // interface I { void Foo(); }
+            // interface I { void Goo(); }
             //
             // class B { } 
             //
@@ -138,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             // class D : C { }
             //
-            // D does implement I transitively through C.  However, even if D has a "Foo" method, it
-            // won't be an implementation of I.Foo.  The implementation of I.Foo must be from a type
+            // D does implement I transitively through C.  However, even if D has a "Goo" method, it
+            // won't be an implementation of I.Goo.  The implementation of I.Goo must be from a type
             // that actually has I in it's direct interface chain, or a type that's a base type of
             // that.  in this case, that means only classes C or B.
             var interfaceType = interfaceMember.ContainingType;
@@ -179,19 +182,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = constructedInterfaceMember.TypeSwitch(
-                            (IEventSymbol eventSymbol) => FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations),
-                            (IMethodSymbol methodSymbol) => FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations),
-                            (IPropertySymbol propertySymbol) => FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations));
+                        var result = FindImplementations(workspace, constructedInterfaceMember, currentType);
 
                         if (result != null)
                         {
-                            yield return result;
+                            yield return typeSymbolAndProjectId.WithSymbol(result);
                             break;
                         }
                     }
                 }
             }
+        }
+
+        private static ISymbol FindImplementations(Workspace workspace, ISymbol constructedInterfaceMember, ITypeSymbol currentType)
+        {
+            switch (constructedInterfaceMember)
+            {
+                case IEventSymbol eventSymbol: return FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations);
+                case IMethodSymbol methodSymbol: return FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations);
+                case IPropertySymbol propertySymbol: return FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations);
+            }
+
+            return null;
         }
 
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
@@ -523,11 +535,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType(this ITypeSymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IArrayTypeSymbol a) => ContainsAnonymousType(a.ElementType),
-                (IPointerTypeSymbol p) => ContainsAnonymousType(p.PointedAtType),
-                (INamedTypeSymbol n) => ContainsAnonymousType(n),
-                _ => false);
+            switch (symbol)
+            {
+                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
+                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
+                case INamedTypeSymbol n: return ContainsAnonymousType(n);
+                default: return false;
+            }
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
@@ -552,18 +566,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             while (true)
             {
-                var arrayType = type as IArrayTypeSymbol;
-                if (arrayType != null)
+                switch (type)
                 {
-                    type = arrayType.ElementType;
-                    continue;
-                }
-
-                var pointerType = type as IPointerTypeSymbol;
-                if (pointerType != null)
-                {
-                    type = pointerType.PointedAtType;
-                    continue;
+                    case IArrayTypeSymbol arrayType:
+                        type = arrayType.ElementType;
+                        continue;
+                    case IPointerTypeSymbol pointerType:
+                        type = pointerType.PointedAtType;
+                        continue;
                 }
 
                 break;
@@ -575,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static string GetParameterName(ITypeSymbol type)
         {
-            if (type == null || type.IsAnonymousType())
+            if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
             }
@@ -624,7 +634,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-                typeSymbol.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(within ?? typeSymbol).Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
+                typeSymbol.GetBaseTypesAndThis()
+                    .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
+                    .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }
@@ -660,15 +672,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
-        public static IEnumerable<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol containingType, ISymbol within) where T : class, ISymbol
+        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol containingType, ISymbol within) where T : class, ISymbol
         {
             if (containingType == null)
             {
-                return SpecializedCollections.EmptyEnumerable<T>();
+                return ImmutableArray<T>.Empty;
             }
 
-            var types = containingType.GetBaseTypesAndThis();
-            return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
         }
 
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -704,6 +715,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return result;
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
         private static bool? IsMoreSpecificThan(this ITypeSymbol t1, ITypeSymbol t2)

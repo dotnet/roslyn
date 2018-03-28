@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -149,14 +151,14 @@ namespace Microsoft.CodeAnalysis.Emit
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap,
             out int awaiterSlotCount);
 
-        protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
+        protected abstract ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo);
         protected abstract ITypeSymbol TryGetStateMachineType(EntityHandle methodHandle);
 
-        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method, IMethodSymbol topLevelMethod)
+        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             // Top-level methods are always included in the semantic edit list. Lambda methods are not.
             MappedMethod mappedMethod;
-            if (!this.mappedMethods.TryGetValue(topLevelMethod, out mappedMethod))
+            if (!mappedMethods.TryGetValue(topLevelMethod, out mappedMethod))
             {
                 return null;
             }
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // Handle cases when the previous method doesn't exist.
 
             MethodDefinitionHandle previousHandle;
-            if (!this.TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
+            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
@@ -224,7 +226,25 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var debugInfo = baseline.DebugInformationProvider(previousHandle);
+                EditAndContinueMethodDebugInformation debugInfo;
+                StandaloneSignatureHandle localSignature;
+                try
+                {
+                    debugInfo = baseline.DebugInformationProvider(previousHandle);
+                    localSignature = baseline.LocalSignatureProvider(previousHandle);
+                }
+                catch (Exception e) when (e is InvalidDataException || e is IOException)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(
+                        MessageProvider.ERR_InvalidDebugInfo,
+                        method.Locations.First(),
+                        method,
+                        MetadataTokens.GetToken(previousHandle),
+                        method.ContainingAssembly
+                    ));
+
+                    return null;
+                }
 
                 methodId = new DebugId(debugInfo.MethodOrdinal, 0);
 
@@ -249,10 +269,46 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 else
                 {
-                    previousLocals = TryGetLocalSlotMapFromMetadata(previousHandle, debugInfo);
-                    if (previousLocals.IsDefault)
+                    // If the current method is async/iterator then either the previous method wasn't declared as async/iterator and it's updated to be one,
+                    // or it was but is not marked by the corresponding state machine attribute because it was missing in the compilation. 
+                    // In the later case we need to report an error since we don't known how to map to the previous state machine.
+
+                    // The IDE already checked that the attribute type is present in the base compilation, but didn't validate that it is well-formed.
+                    // We don't have the base compilation to directly query for the attribute, only the source compilation. 
+                    // But since constructor signatures can't be updated during EnC we can just check the current compilation.
+
+                    if (method.IsAsync)
                     {
-                        // TODO: Report error that metadata is not supported.
+                        if (compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor) == null)
+                        {
+                            ReportMissingStateMachineAttribute(diagnostics, method, AttributeDescription.AsyncStateMachineAttribute.FullName);
+                            return null;
+                        }
+                    }
+                    else if (method.IsIterator)
+                    {
+                        if (compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor) == null)
+                        {
+                            ReportMissingStateMachineAttribute(diagnostics, method, AttributeDescription.IteratorStateMachineAttribute.FullName);
+                            return null;
+                        }
+                    }
+
+                    try
+                    {
+                        previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty : 
+                            GetLocalSlotMapFromMetadata(localSignature, debugInfo);
+                    }
+                    catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
+                    {
+                        diagnostics.Add(MessageProvider.CreateDiagnostic(
+                            MessageProvider.ERR_InvalidDebugInfo,
+                            method.Locations.First(),
+                            method,
+                            MetadataTokens.GetToken(localSignature),
+                            method.ContainingAssembly
+                        ));
+
                         return null;
                     }
                 }
@@ -261,7 +317,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EncVariableSlotAllocator(
-                MessageProvider,
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,
@@ -273,7 +328,19 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalSlotCount,
                 hoistedLocalMap,
                 awaiterSlotCount,
-                awaiterMap);
+                awaiterMap,
+                GetLambdaSyntaxFacts());
+        }
+
+        protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
+
+        private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
+        {
+            diagnostics.Add(MessageProvider.CreateDiagnostic(
+                MessageProvider.ERR_EncUpdateFailedMissingAttribute,
+                method.Locations.First(), 
+                MessageProvider.GetErrorDisplayString(method),
+                stateMachineAttributeFullName));
         }
 
         private static void MakeLambdaAndClosureMaps(

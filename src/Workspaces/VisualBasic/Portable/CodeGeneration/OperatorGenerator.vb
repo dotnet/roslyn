@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim declaration = GenerateOperatorDeclarationWorker(method, destination, options)
 
             Return AddAnnotationsTo(method,
-                AddCleanupAnnotationsTo(
+                AddFormatterAndCodeGeneratorAnnotationsTo(
                     ConditionallyAddDocumentationCommentTo(declaration, method, options)))
         End Function
 
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                                 options As CodeGenerationOptions) As StatementSyntax
             Dim operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName)
             If operatorSyntaxKind = SyntaxKind.None Then
-                Throw New ArgumentException(String.Format(WorkspacesResources.CannotCodeGenUnsupportedOperator, method.Name), NameOf(method))
+                Throw New ArgumentException(String.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), NameOf(method))
             End If
 
             Dim begin = SyntaxFactory.OperatorStatement(

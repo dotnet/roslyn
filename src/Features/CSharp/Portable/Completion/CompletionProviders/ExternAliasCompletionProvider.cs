@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -12,53 +14,60 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class ExternAliasCompletionProvider : CompletionListProvider
+    internal class ExternAliasCompletionProvider : CommonCompletionProvider
     {
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            if (tree.IsInNonUserCode(position, cancellationToken))
+            try
             {
-                return;
-            }
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
 
-            var targetToken = tree
-                .FindTokenOnLeftOfPosition(position, cancellationToken)
-                .GetPreviousTokenIfTouchingWord(position);
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            if (targetToken.IsKind(SyntaxKind.AliasKeyword) && targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective))
-            {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
-
-                if (aliases.Any())
+                if (tree.IsInNonUserCode(position, cancellationToken))
                 {
-                    var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    var usedAliases = root.ChildNodes().OfType<ExternAliasDirectiveSyntax>()
-                        .Where(e => !e.Identifier.IsMissing)
-                        .Select(e => e.Identifier.ValueText);
+                    return;
+                }
 
-                    aliases.RemoveRange(usedAliases);
-                    aliases.Remove(MetadataReferenceProperties.GlobalAlias);
+                var targetToken = tree
+                    .FindTokenOnLeftOfPosition(position, cancellationToken)
+                    .GetPreviousTokenIfTouchingWord(position);
 
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var filterSpan = CompletionUtilities.GetTextChangeSpan(text, position);
+                if (targetToken.IsKind(SyntaxKind.AliasKeyword) && targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective))
+                {
+                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
 
-                    foreach (var alias in aliases)
+                    if (aliases.Any())
                     {
-                        context.AddItem(new CompletionItem(this, alias, filterSpan, glyph: Glyph.Namespace));
+                        var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                        var usedAliases = root.ChildNodes().OfType<ExternAliasDirectiveSyntax>()
+                            .Where(e => !e.Identifier.IsMissing)
+                            .Select(e => e.Identifier.ValueText);
+
+                        aliases.RemoveRange(usedAliases);
+                        aliases.Remove(MetadataReferenceProperties.GlobalAlias);
+
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                        foreach (var alias in aliases)
+                        {
+                            context.AddItem(CommonCompletionItem.Create(
+                                alias, CompletionItemRules.Default, glyph: Glyph.Namespace));
+                        }
                     }
                 }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
     }

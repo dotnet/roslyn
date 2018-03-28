@@ -121,7 +121,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(code)
+            Dim comp = CreateCompilationWithMscorlib40(code)
 
             Dim globalNS = comp.GlobalNamespace
             Dim clsBase = DirectCast(globalNS.GetMembers("Base").Single(), NamedTypeSymbol)
@@ -194,14 +194,14 @@ Derived.N2.Get]]>)
 
         <Fact>
         Public Sub UnimplementedMustOverride()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnimplementedMustOverride">
     <file name="a.vb">
 Option Strict On
 
 Namespace X
     Public MustInherit Class A
-        Public MustOverride Sub foo(x As Integer)
+        Public MustOverride Sub goo(x As Integer)
         Public MustOverride Sub bar()
         Public MustOverride Sub quux()
         Protected MustOverride Function zing() As String
@@ -253,7 +253,7 @@ Namespace X
 BC30610: Class 'D' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
     C: Protected MustOverride Overrides Function zing() As String
     B: Protected MustOverride Function baz() As String
-    A: Public MustOverride Sub foo(x As Integer)
+    A: Public MustOverride Sub goo(x As Integer)
     A: Public MustOverride ReadOnly Property bang As Integer.
     Class D
           ~
@@ -262,16 +262,16 @@ BC30610: Class 'D' must either be declared 'MustInherit' or override the followi
 
         <Fact>
         Public Sub HidingMembersInClass()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingMembersInClass">
     <file name="a.vb">
 Option Strict On
 
 Namespace N
     Class A
-        Public Sub foo()
+        Public Sub goo()
         End Sub
-        Public Sub foo(x As Integer)
+        Public Sub goo(x As Integer)
         End Sub
         Public Sub bar()
         End Sub
@@ -285,13 +285,13 @@ Namespace N
 
     Class B
         Inherits A
-        Public Shadows Sub foo(x As String)
+        Public Shadows Sub goo(x As String)
         End Sub
     End Class
 
     Class C
         Inherits B
-        Public foo As String
+        Public goo As String
         Public bing As Integer
         Public Shadows baz As Integer
         Public baz2 As Integer
@@ -306,8 +306,8 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected>
-BC40004: variable 'foo' conflicts with sub 'foo' in the base class 'B' and should be declared 'Shadows'.
-        Public foo As String
+BC40004: variable 'goo' conflicts with sub 'goo' in the base class 'B' and should be declared 'Shadows'.
+        Public goo As String
                ~~~
 BC40004: variable 'baz2' conflicts with variable 'baz2' in the base class 'A' and should be declared 'Shadows'.
         Public baz2 As Integer
@@ -321,7 +321,7 @@ BC40004: enum 'bar' conflicts with sub 'bar' in the base class 'A' and should be
         <WorkItem(540791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
         <Fact>
         Public Sub HidingMembersInClass_01()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingMembersInClass">
     <file name="a.vb">
 Class C1
@@ -333,7 +333,7 @@ Class C1
     End Class
 
     ' warning
-    Sub foo(Of T)()
+    Sub goo(Of T)()
 
     End Sub
 End Class
@@ -343,7 +343,7 @@ Class C2
 
     End Class
 
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -354,23 +354,23 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected>
-BC40003: sub 'foo' shadows an overloadable member declared in the base class 'C2'.  If you want to overload the base method, this method must be declared 'Overloads'.
-    Sub foo(Of T)()
+BC40003: sub 'goo' shadows an overloadable member declared in the base class 'C2'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Sub goo(Of T)()
         ~~~
 </expected>)
         End Sub
 
         <Fact>
         Public Sub HidingMembersInInterface()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingMembersInInterface">
     <file name="a.vb">
 Option Strict On
 
 Namespace N
     Interface A
-        Sub foo()
-        Sub foo(x As Integer)
+        Sub goo()
+        Sub goo(x As Integer)
         Enum e
             Red
         End Enum
@@ -394,7 +394,7 @@ Namespace N
             Red
         End Enum
 
-        Enum foo
+        Enum goo
             Red
         End Enum
 
@@ -411,15 +411,15 @@ End Namespace
 BC40004: enum 'bar' conflicts with sub 'bar' in the base interface 'B' and should be declared 'Shadows'.
         Enum bar
              ~~~
-BC40004: enum 'foo' conflicts with sub 'foo' in the base interface 'A' and should be declared 'Shadows'.
-        Enum foo
+BC40004: enum 'goo' conflicts with sub 'goo' in the base interface 'A' and should be declared 'Shadows'.
+        Enum goo
              ~~~
 </expected>)
         End Sub
 
         <Fact>
         Public Sub AccessorHidingNonAccessor()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AccessorHidingNonAccessor">
     <file name="a.vb">
 Namespace N
@@ -451,7 +451,7 @@ BC40014: sub 'get_Z' conflicts with a member implicitly declared for property 'Z
 
         <Fact>
         Public Sub NonAccessorHidingAccessor()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NonAccessorHidingAccessor">
     <file name="a.vb">
 Namespace N
@@ -503,12 +503,12 @@ BC40012: property 'Z' implicitly declares 'set_Z', which conflicts with a member
 
         <Fact>
         Public Sub HidingShouldHaveOverloadsOrOverrides()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AccessorHidingNonAccessor">
     <file name="a.vb">
 Namespace N
     Public Class A
-        Public Sub foo()
+        Public Sub goo()
 
         End Sub
 
@@ -519,7 +519,7 @@ Namespace N
     Public Class B
         Inherits A
 
-        Public Sub foo(a As Integer)
+        Public Sub goo(a As Integer)
         End Sub
 
         Public Property bar As String
@@ -530,8 +530,8 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected>
-BC40003: sub 'foo' shadows an overloadable member declared in the base class 'A'.  If you want to overload the base method, this method must be declared 'Overloads'.
-        Public Sub foo(a As Integer)
+BC40003: sub 'goo' shadows an overloadable member declared in the base class 'A'.  If you want to overload the base method, this method must be declared 'Overloads'.
+        Public Sub goo(a As Integer)
                    ~~~
 BC40005: property 'bar' shadows an overridable method in the base class 'A'. To override the base method, this method must be declared 'Overrides'.
         Public Property bar As String
@@ -541,7 +541,7 @@ BC40005: property 'bar' shadows an overridable method in the base class 'A'. To 
 
         <Fact>
         Public Sub HiddenMustOverride()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HiddenMustOverride">
     <file name="a.vb">
 Option Strict On
@@ -606,7 +606,7 @@ BC31404: 'Public Overloads Function j(a As String) As String' cannot shadow a me
 
         <Fact>
         Public Sub AccessorHideMustOverride()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AccessorHideMustOverride">
     <file name="a.vb">
 Namespace N
@@ -639,7 +639,7 @@ BC31413: 'Public Property Set Y(AutoPropertyValue As Integer)', implicitly decla
 
         <Fact>
         Public Sub NoOverride()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoOverride">
     <file name="a.vb">
 Option Strict On
@@ -702,18 +702,18 @@ BC30284: function 'f' cannot be declared 'Overrides' because it does not overrid
 
         <Fact>
         Public Sub AmbiguousOverride()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AmbiguousOverride">
     <file name="a.vb">
 Namespace N
     Class A(Of T, U)
-        Public Overridable Sub foo(a As T)
+        Public Overridable Sub goo(a As T)
         End Sub
 
-        Public Overridable Sub foo(a As U)
+        Public Overridable Sub goo(a As U)
         End Sub
 
-        Public Overridable Sub foo(a As String)
+        Public Overridable Sub goo(a As String)
         End Sub
 
         Public Overridable Property bar As Integer
@@ -740,7 +740,7 @@ Namespace N
     Class B
         Inherits A(Of String, String)
 
-        Public Overrides Sub foo(a As String)
+        Public Overrides Sub goo(a As String)
         End Sub
 
         Public Overrides ReadOnly Property bar(a As String) As Integer
@@ -755,11 +755,11 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(comp,
 <expected>
-BC30935: Member 'Public Overridable Sub foo(a As String)' that matches this signature cannot be overridden because the class 'A' contains multiple members with this same name and signature: 
-   'Public Overridable Sub foo(a As T)'
-   'Public Overridable Sub foo(a As U)'
-   'Public Overridable Sub foo(a As String)'
-        Public Overrides Sub foo(a As String)
+BC30935: Member 'Public Overridable Sub goo(a As String)' that matches this signature cannot be overridden because the class 'A' contains multiple members with this same name and signature: 
+   'Public Overridable Sub goo(a As T)'
+   'Public Overridable Sub goo(a As U)'
+   'Public Overridable Sub goo(a As String)'
+        Public Overrides Sub goo(a As String)
                              ~~~
 BC30935: Member 'Public Overridable ReadOnly Property bar(a As String) As Integer' that matches this signature cannot be overridden because the class 'A' contains multiple members with this same name and signature: 
    'Public Overridable ReadOnly Property bar(a As T) As Integer'
@@ -772,7 +772,7 @@ BC30935: Member 'Public Overridable ReadOnly Property bar(a As String) As Intege
 
         <Fact>
         Public Sub OverrideNotOverridable()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="OverrideNotOverridable">
     <file name="a.vb">
 Option Strict On
@@ -837,7 +837,7 @@ BC30267: 'Public NotOverridable Overrides Property p As Integer' cannot override
 
         <Fact>
         Public Sub MustBeOverridable()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MustBeOverridable">
     <file name="a.vb">
 Option Strict On
@@ -880,7 +880,7 @@ BC31086: 'Public Overrides Property p As Integer' cannot override 'Public Proper
 
         <Fact>
         Public Sub ByRefMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ByRefMismatch">
     <file name="a.vb">
 Namespace N
@@ -908,7 +908,7 @@ BC30398: 'Public Overrides Sub f(q As String, a As Integer)' cannot override 'Pu
 
         <Fact>
         Public Sub OptionalMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="OptionalMismatch">
     <file name="a.vb">
 Namespace N
@@ -977,7 +977,7 @@ BC30308: 'Public Overrides Property p2(q As String, [a As Integer = 5]) As Integ
 
         <Fact>
         Public Sub ReturnTypeMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ReturnTypeMismatch">
     <file name="a.vb">
 Namespace N
@@ -1045,7 +1045,7 @@ BC30437: 'Public Overrides Property p As String' cannot override 'Public Overrid
 
         <Fact>
         Public Sub PropertyTypeMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="PropertyTypeMismatch">
         <file name="a.vb">
 Namespace N
@@ -1113,7 +1113,7 @@ BC30362: 'Public Overrides Property r As Integer' cannot override 'Public Overri
         <WorkItem(540791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
         <Fact>
         Public Sub PropertyAccessibilityMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="PropertyAccessibilityMismatch">
         <file name="a.vb">
 Public Class Base
@@ -1149,7 +1149,7 @@ End Class
 
         <Fact>
         Public Sub PropertyAccessibilityMismatch2()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="PropertyAccessibilityMismatch">
         <file name="a.vb">
 Public Class Base
@@ -1230,7 +1230,7 @@ public class C : A
             csharpComp.VerifyDiagnostics()
             Dim csharpRef = csharpComp.EmitToImageReference()
 
-            Dim vbComp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim vbComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="PropertyOverrideAccessibility">
         <file name="a.vb">
 Public Class D1
@@ -1305,7 +1305,7 @@ A.P.set
 D3.P.get
 ]]>)
 
-            Dim errorComp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim errorComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="PropertyOverrideAccessibility">
         <file name="a.vb">
 ' Set is protected friend, but should be protected
@@ -1425,7 +1425,7 @@ public class C : A
 
             ' Unlike in C#, internals-visible-to does not affect the way protected friend
             ' members are overridden (i.e. still must be protected).
-            Dim vbComp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim vbComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="PropertyOverrideAccessibilityInternalsVisibleTo">
         <file name="a.vb">
 Public Class D1
@@ -1502,7 +1502,7 @@ A.P.set
 D3.P.get
 ]]>)
 
-            Dim errorComp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim errorComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="PropertyOverrideAccessibility">
         <file name="a.vb">
 ' Set is protected friend, but should be protected
@@ -1571,7 +1571,7 @@ End Class
 
         <Fact()>
         Public Sub OptionalValueMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="OptionalValueMismatch">
         <file name="a.vb">
 Namespace N
@@ -1584,7 +1584,7 @@ Namespace N
             End Set
         End Property
 
-        Public Overridable Sub f(Optional k As String = "foo")
+        Public Overridable Sub f(Optional k As String = "goo")
         End Sub
     End Class
 
@@ -1611,7 +1611,7 @@ End Namespace
 BC30307: 'Public Overrides Property p([k As Integer = 7]) As Integer' cannot override 'Public Overridable Property p([k As Integer = 4]) As Integer' because they differ by the default values of optional parameters.
         Public Overrides Property p(Optional k As Integer = 7) As Integer
                                   ~
-BC30307: 'Public Overrides Sub f([k As String = "hi"])' cannot override 'Public Overridable Sub f([k As String = "foo"])' because they differ by the default values of optional parameters.
+BC30307: 'Public Overrides Sub f([k As String = "hi"])' cannot override 'Public Overridable Sub f([k As String = "goo"])' because they differ by the default values of optional parameters.
         Public Overrides Sub f(Optional k As String = "hi")
                              ~
     </expected>)
@@ -1619,7 +1619,7 @@ BC30307: 'Public Overrides Sub f([k As String = "hi"])' cannot override 'Public 
 
         <Fact>
         Public Sub ParamArrayMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="ParamArrayMismatch">
         <file name="a.vb">
 Namespace N
@@ -1669,7 +1669,7 @@ BC30906: 'Public Overrides Sub f(x As String())' cannot override 'Public Overrid
         <WorkItem(529018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529018")>
         <Fact()>
         Public Sub OptionalTypeMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="OptionalTypeMismatch">
         <file name="a.vb">
 Namespace N
@@ -1717,7 +1717,7 @@ BC30697: 'Public Overrides Sub f([x As Integer = 0])' cannot override 'Public Ov
 
         <Fact()>
         Public Sub ConstraintMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="ConstraintMismatch">
         <file name="a.vb">
 Imports System
@@ -1748,7 +1748,7 @@ BC32077: 'Public Overrides Sub f(Of U)(x As U)' cannot override 'Public Overrida
 
         <Fact>
         Public Sub AccessMismatch()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="AccessMismatch">
         <file name="a.vb">
 Namespace N
@@ -1796,7 +1796,7 @@ BC30266: 'Protected Friend Overrides Sub h()' cannot override 'Friend Overridabl
 
         <Fact>
         Public Sub PropertyShadows()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Interface IA
@@ -1848,7 +1848,7 @@ BC30455: Argument not specified for parameter 'y' of 'Property Q(x As Integer, y
 
         <Fact>
         Public Sub ShadowsNotOverloads()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class A
@@ -1908,11 +1908,11 @@ BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P
 
         <Fact>
         Public Sub OverridingBlockedByShadowing()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A
-    Overridable Sub Foo()
+    Overridable Sub Goo()
     End Sub
     Overridable Sub Bar()
     End Sub
@@ -1922,7 +1922,7 @@ End Class
 
 Class B
     Inherits A
-    Shadows Sub Foo(x As Integer)
+    Shadows Sub Goo(x As Integer)
     End Sub
     Overloads Property Bar(x As Integer)
         Get
@@ -1936,7 +1936,7 @@ End Class
 
 Class C
     Inherits B
-    Overrides Sub Foo()
+    Overrides Sub Goo()
     End Sub
     Overrides Sub Bar()
     End Sub
@@ -1949,8 +1949,8 @@ End Class        </file>
 BC40004: property 'Bar' conflicts with sub 'Bar' in the base class 'A' and should be declared 'Shadows'.
     Overloads Property Bar(x As Integer)
                        ~~~
-BC30284: sub 'Foo' cannot be declared 'Overrides' because it does not override a sub in a base class.
-    Overrides Sub Foo()
+BC30284: sub 'Goo' cannot be declared 'Overrides' because it does not override a sub in a base class.
+    Overrides Sub Goo()
                   ~~~
 BC30284: sub 'Bar' cannot be declared 'Overrides' because it does not override a sub in a base class.
     Overrides Sub Bar()
@@ -1970,32 +1970,32 @@ BC40004: sub 'Quux' conflicts with variable 'Quux' in the base class 'B' and sho
         <WorkItem(541752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541752")>
         <Fact>
         Public Sub Bug8634()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class A
-    Overridable Sub Foo()
+    Overridable Sub Goo()
     End Sub
 End Class
 
 Class B
     Inherits A
-    Shadows Property Foo() As Integer
+    Shadows Property Goo() As Integer
 End Class
 
 Class C
     Inherits B
-    Overrides Sub Foo()
+    Overrides Sub Goo()
     End Sub
 End Class    </file>
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30284: sub 'Foo' cannot be declared 'Overrides' because it does not override a sub in a base class.
-    Overrides Sub Foo()
+BC30284: sub 'Goo' cannot be declared 'Overrides' because it does not override a sub in a base class.
+    Overrides Sub Goo()
                   ~~~
-BC40004: sub 'Foo' conflicts with property 'Foo' in the base class 'B' and should be declared 'Shadows'.
-    Overrides Sub Foo()
+BC40004: sub 'Goo' conflicts with property 'Goo' in the base class 'B' and should be declared 'Shadows'.
+    Overrides Sub Goo()
                   ~~~
     </expected>)
         End Sub
@@ -2199,14 +2199,14 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(code)
+            Dim comp = CreateCompilationWithMscorlib40(code)
 
             CompileAndVerify(code).VerifyDiagnostics()
         End Sub
 
         <Fact, WorkItem(543948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543948")>
         Public Sub OverrideMemberOfConstructedProtectedInnerClass()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Public Class Outer1(Of T)
@@ -2223,7 +2223,7 @@ End Class
     </file>
     </compilation>)
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation>
         <file name="a.vb">
 Friend Class Outer2
@@ -2241,13 +2241,13 @@ End Class
 
         <Fact, WorkItem(545484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
         Public Sub MetadataOverridesOfAccessors()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Strict On
 
 Public Class X1
-    Public Overridable Property Foo As Integer
+    Public Overridable Property Goo As Integer
         Get
             Return 1
         End Get
@@ -2262,9 +2262,9 @@ End Class
             <![CDATA[
 using System;
 public class X2: X1 {
-     public override int Foo {
-         get { return base.Foo; }
-         set { base.Foo = value; }
+     public override int Goo {
+         get { return base.Goo; }
+         set { base.Goo = value; }
      }
 
      public virtual event Action Bar { add{} remove{}}
@@ -2278,43 +2278,43 @@ public class X3: X2 {
 
             Dim compilation2Bytes = compilation2.EmitToArray()
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation>
         <file name="a.vb">
 Option Strict On
 Class Dummy
 End Class
 </file>
-    </compilation>, additionalRefs:={New VisualBasicCompilationReference(compilation1), MetadataReference.CreateFromImage(compilation2Bytes)})
+    </compilation>, references:={New VisualBasicCompilationReference(compilation1), MetadataReference.CreateFromImage(compilation2Bytes)})
 
             Dim globalNS = compilation3.GlobalNamespace
             Dim classX1 = DirectCast(globalNS.GetMembers("X1").First(), NamedTypeSymbol)
-            Dim propX1Foo = DirectCast(classX1.GetMembers("Foo").First(), PropertySymbol)
-            Dim accessorX1GetFoo = DirectCast(classX1.GetMembers("get_Foo").First(), MethodSymbol)
-            Dim accessorX1SetFoo = DirectCast(classX1.GetMembers("set_Foo").First(), MethodSymbol)
+            Dim propX1Goo = DirectCast(classX1.GetMembers("Goo").First(), PropertySymbol)
+            Dim accessorX1GetGoo = DirectCast(classX1.GetMembers("get_Goo").First(), MethodSymbol)
+            Dim accessorX1SetGoo = DirectCast(classX1.GetMembers("set_Goo").First(), MethodSymbol)
             Dim classX2 = DirectCast(globalNS.GetMembers("X2").First(), NamedTypeSymbol)
-            Dim propX2Foo = DirectCast(classX2.GetMembers("Foo").First(), PropertySymbol)
-            Dim accessorX2GetFoo = DirectCast(classX2.GetMembers("get_Foo").First(), MethodSymbol)
-            Dim accessorX2SetFoo = DirectCast(classX2.GetMembers("set_Foo").First(), MethodSymbol)
+            Dim propX2Goo = DirectCast(classX2.GetMembers("Goo").First(), PropertySymbol)
+            Dim accessorX2GetGoo = DirectCast(classX2.GetMembers("get_Goo").First(), MethodSymbol)
+            Dim accessorX2SetGoo = DirectCast(classX2.GetMembers("set_Goo").First(), MethodSymbol)
             Dim classX3 = DirectCast(globalNS.GetMembers("X3").First(), NamedTypeSymbol)
 
-            Dim overriddenPropX1Foo = propX1Foo.OverriddenProperty
-            Assert.Null(overriddenPropX1Foo)
-            Dim overriddenPropX2Foo = propX2Foo.OverriddenProperty
-            Assert.NotNull(overriddenPropX2Foo)
-            Assert.Equal(propX1Foo, overriddenPropX2Foo)
+            Dim overriddenPropX1Goo = propX1Goo.OverriddenProperty
+            Assert.Null(overriddenPropX1Goo)
+            Dim overriddenPropX2Goo = propX2Goo.OverriddenProperty
+            Assert.NotNull(overriddenPropX2Goo)
+            Assert.Equal(propX1Goo, overriddenPropX2Goo)
 
-            Dim overriddenAccessorX1GetFoo = accessorX1GetFoo.OverriddenMethod
-            Assert.Null(overriddenAccessorX1GetFoo)
-            Dim overriddenAccessorX2GetFoo = accessorX2GetFoo.OverriddenMethod
-            Assert.NotNull(overriddenAccessorX2GetFoo)
-            Assert.Equal(accessorX1GetFoo, overriddenAccessorX2GetFoo)
+            Dim overriddenAccessorX1GetGoo = accessorX1GetGoo.OverriddenMethod
+            Assert.Null(overriddenAccessorX1GetGoo)
+            Dim overriddenAccessorX2GetGoo = accessorX2GetGoo.OverriddenMethod
+            Assert.NotNull(overriddenAccessorX2GetGoo)
+            Assert.Equal(accessorX1GetGoo, overriddenAccessorX2GetGoo)
 
-            Dim overriddenAccessorX1SetFoo = accessorX1SetFoo.OverriddenMethod
-            Assert.Null(overriddenAccessorX1SetFoo)
-            Dim overriddenAccessorX2SetFoo = accessorX2SetFoo.OverriddenMethod
-            Assert.NotNull(overriddenAccessorX2SetFoo)
-            Assert.Equal(accessorX1SetFoo, overriddenAccessorX2SetFoo)
+            Dim overriddenAccessorX1SetGoo = accessorX1SetGoo.OverriddenMethod
+            Assert.Null(overriddenAccessorX1SetGoo)
+            Dim overriddenAccessorX2SetGoo = accessorX2SetGoo.OverriddenMethod
+            Assert.NotNull(overriddenAccessorX2SetGoo)
+            Assert.Equal(accessorX1SetGoo, overriddenAccessorX2SetGoo)
 
             Dim eventX2Bar = DirectCast(classX2.GetMembers("Bar").First(), EventSymbol)
             Dim accessorX2AddBar = DirectCast(classX2.GetMembers("add_Bar").First(), MethodSymbol)
@@ -2345,13 +2345,13 @@ End Class
 
         <Fact, WorkItem(545484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
         Public Sub OverridesOfConstructedMethods()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Strict On
 
 Public Class X1
-    Public Overridable Function Foo(Of T)(x as T) As Integer
+    Public Overridable Function Goo(Of T)(x as T) As Integer
             Return 1
     End Function
 End Class
@@ -2362,44 +2362,44 @@ End Class
             <![CDATA[
 using System;
 public class X2: X1 {
-     public override int Foo<T>(T x)
+     public override int Goo<T>(T x)
      {
-         return base.Foo(x);
+         return base.Goo(x);
      }
 }
 ]]>.Value, referencedCompilations:={compilation1})
 
             Dim compilation2Bytes = compilation2.EmitToArray()
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation>
         <file name="a.vb">
 Option Strict On
 Class Dummy
 End Class
 </file>
-    </compilation>, additionalRefs:={New VisualBasicCompilationReference(compilation1), MetadataReference.CreateFromImage(compilation2Bytes)})
+    </compilation>, references:={New VisualBasicCompilationReference(compilation1), MetadataReference.CreateFromImage(compilation2Bytes)})
 
             Dim globalNS = compilation3.GlobalNamespace
             Dim classX1 = DirectCast(globalNS.GetMembers("X1").First(), NamedTypeSymbol)
-            Dim methodX1Foo = DirectCast(classX1.GetMembers("Foo").First(), MethodSymbol)
+            Dim methodX1Goo = DirectCast(classX1.GetMembers("Goo").First(), MethodSymbol)
             Dim classX2 = DirectCast(globalNS.GetMembers("X2").First(), NamedTypeSymbol)
-            Dim methodX2Foo = DirectCast(classX2.GetMembers("Foo").First(), MethodSymbol)
+            Dim methodX2Goo = DirectCast(classX2.GetMembers("Goo").First(), MethodSymbol)
 
-            Dim overriddenMethX1Foo = methodX1Foo.OverriddenMethod
-            Assert.Null(overriddenMethX1Foo)
-            Dim overriddenMethX2Foo = methodX2Foo.OverriddenMethod
-            Assert.NotNull(overriddenMethX2Foo)
-            Assert.Equal(methodX1Foo, overriddenMethX2Foo)
+            Dim overriddenMethX1Goo = methodX1Goo.OverriddenMethod
+            Assert.Null(overriddenMethX1Goo)
+            Dim overriddenMethX2Goo = methodX2Goo.OverriddenMethod
+            Assert.NotNull(overriddenMethX2Goo)
+            Assert.Equal(methodX1Goo, overriddenMethX2Goo)
 
             ' Constructed methods should never override.
-            Dim constructedMethodX1Foo = methodX1Foo.Construct(compilation3.GetWellKnownType(WellKnownType.System_Exception))
-            Dim constructedMethodX2Foo = methodX2Foo.Construct(compilation3.GetWellKnownType(WellKnownType.System_Exception))
+            Dim constructedMethodX1Goo = methodX1Goo.Construct(compilation3.GetWellKnownType(WellKnownType.System_Exception))
+            Dim constructedMethodX2Goo = methodX2Goo.Construct(compilation3.GetWellKnownType(WellKnownType.System_Exception))
 
-            Dim overriddenConstructedMethX1Foo = constructedMethodX1Foo.OverriddenMethod
-            Assert.Null(overriddenConstructedMethX1Foo)
-            Dim overriddenConstructedMethX2Foo = constructedMethodX2Foo.OverriddenMethod
-            Assert.Null(overriddenConstructedMethX2Foo)
+            Dim overriddenConstructedMethX1Goo = constructedMethodX1Goo.OverriddenMethod
+            Assert.Null(overriddenConstructedMethX1Goo)
+            Dim overriddenConstructedMethX2Goo = constructedMethodX2Goo.OverriddenMethod
+            Assert.Null(overriddenConstructedMethX2Goo)
         End Sub
 
         <Fact, WorkItem(539893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539893")>
@@ -2417,7 +2417,7 @@ public class CSharpBase
 
             Dim compilation1Bytes = compilation1.EmitToArray()
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation>
         <file name="a.vb">
 Option Strict On
@@ -2475,7 +2475,7 @@ Class X2
 
 End Class
 </file>
-    </compilation>, additionalRefs:={MetadataReference.CreateFromImage(compilation1Bytes)})
+    </compilation>, references:={MetadataReference.CreateFromImage(compilation1Bytes)})
 
             Dim globalNS = compilation2.GlobalNamespace
             Dim classX1 = DirectCast(globalNS.GetMembers("X1").First(), NamedTypeSymbol)
@@ -2538,7 +2538,7 @@ End Class
 
         <Fact(), WorkItem(546816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")>
         Public Sub Bug16887()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
  <compilation name="E">
      <file name="a.vb"><![CDATA[
 Class SelfDestruct
@@ -2637,7 +2637,7 @@ End Class
 
         <Fact(), WorkItem(528549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528549")>
         Public Sub Bug528549()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
  <compilation>
      <file name="a.vb"><![CDATA[
 Module CORError033mod
@@ -2755,7 +2755,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -3083,7 +3083,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -3185,7 +3185,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -3448,7 +3448,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3562,7 +3562,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3672,7 +3672,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3781,7 +3781,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Long' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -3893,7 +3893,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that matches this signature cannot be overridden because the class 'Base' contains multiple members with this same name and signature: 
    'Public Overridable Function M1(x As Integer) As Integer'
@@ -4003,7 +4003,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Integer()' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -4111,7 +4111,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override 'Public Overridable Function M1(x As Integer) As Integer()' because they differ by their return types.
     Public Overrides Function M1(x As Integer) As Integer
@@ -4782,7 +4782,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5004,7 +5004,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5165,7 +5165,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5433,7 +5433,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base2.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -5970,7 +5970,7 @@ End Class
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
-            Dim compilation = CreateCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
 BC30643: Property 'Base1.P2(x As Integer())' is of an unsupported type.
     Public Overrides Property P2(x As Integer()) As Integer
@@ -6739,7 +6739,7 @@ End Class
                             For i As Integer = 0 To thisProperty.ParameterCount - 1
                                 Assert.True(overriddenProperty.Parameters(i).CustomModifiers.SequenceEqual(thisProperty.Parameters(i).CustomModifiers))
                                 Assert.Equal(overriddenProperty.Parameters(i).Type, thisProperty.Parameters(i).Type)
-                                Assert.Equal(overriddenProperty.Parameters(i).CountOfCustomModifiersPrecedingByRef, thisProperty.Parameters(i).CountOfCustomModifiersPrecedingByRef)
+                                Assert.True(overriddenProperty.Parameters(i).RefCustomModifiers.SequenceEqual(thisProperty.Parameters(i).RefCustomModifiers))
                             Next
                         End If
                     Next
@@ -6767,7 +6767,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(code, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseDll)
 
             CompileAndVerify(comp).VerifyDiagnostics()
         End Sub
@@ -6789,7 +6789,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(code1, TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40(code1, TestOptions.ReleaseDll)
 
             CompileAndVerify(comp1).VerifyDiagnostics()
 
@@ -6809,7 +6809,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(code2, {New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(code2, {New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
 
             Dim expected = <expected>
 BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Friend Overridable Property Set r(Value As Object)' because it is not accessible in this context.
@@ -6819,7 +6819,7 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
             AssertTheseDeclarationDiagnostics(comp2, expected)
 
-            Dim comp3 = CreateCompilationWithMscorlibAndReferences(code2, {comp1.EmitToImageReference()}, TestOptions.ReleaseDll)
+            Dim comp3 = CreateCompilationWithMscorlib40AndReferences(code2, {comp1.EmitToImageReference()}, TestOptions.ReleaseDll)
             AssertTheseDeclarationDiagnostics(comp3, expected)
 
         End Sub
@@ -6954,19 +6954,19 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
-            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+            Assert.Equal(1, doValidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateT.OverriddenMethod.ToTestDisplayString())
 
             Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
-            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+            Assert.Equal(2, doValidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
@@ -7023,7 +7023,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
 
             compilation.AssertTheseDiagnostics(
                 <expected>
@@ -7083,7 +7083,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
@@ -7137,7 +7137,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="void ValidatorBase<T>.DoValidate(object objectToValidate)
 void Validator<T>.DoValidate(T objectToValidate)")
@@ -7193,19 +7193,19 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
-            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+            Assert.Equal(1, doValidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateT.OverriddenMethod.ToTestDisplayString())
 
             Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
-            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+            Dim doValidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
 
-            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
-            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+            Assert.Equal(2, doValidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             // Next, check to see if we're typing in an interpolated string
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var token = tree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var token = root.FindTokenOnLeftOfPosition(position);
 
             if (!token.Span.IntersectsWith(position))
             {

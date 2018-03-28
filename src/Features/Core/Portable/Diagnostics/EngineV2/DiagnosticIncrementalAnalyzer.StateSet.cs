@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -73,13 +75,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                ProjectState projectState;
-                if (!_projectStates.TryGetValue(projectId, out projectState))
+                if (!_projectStates.TryGetValue(projectId, out var projectState))
                 {
                     return false;
                 }
 
                 return !projectState.IsEmpty();
+            }
+
+            public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
+            {
+                // quick bail out
+                if (_activeFileStates.IsEmpty && _projectStates.IsEmpty)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ProjectId>();
+                }
+
+                if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
+                {
+                    // see whether we actually have diagnostics
+                    var kv = _activeFileStates.First();
+                    if (kv.Value.IsEmpty)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<ProjectId>();
+                    }
+
+                    // we do have diagnostics
+                    return SpecializedCollections.SingletonEnumerable(kv.Key.ProjectId);
+                }
+
+                return new HashSet<ProjectId>(
+                    _activeFileStates.Where(kv => !kv.Value.IsEmpty)
+                                     .Select(kv => kv.Key.ProjectId)
+                                     .Concat(_projectStates.Where(kv => !kv.Value.IsEmpty())
+                                                           .Select(kv => kv.Key)));
             }
 
             public IEnumerable<DocumentId> GetDocumentsWithDiagnostics(ProjectId projectId)
@@ -91,8 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     set.Add(state.DocumentId);
                 }
 
-                ProjectState projectState;
-                if (!_projectStates.TryGetValue(projectId, out projectState) || projectState.IsEmpty())
+                if (!_projectStates.TryGetValue(projectId, out var projectState) || projectState.IsEmpty())
                 {
                     return set ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
@@ -111,6 +139,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool IsActiveFile(DocumentId documentId)
             {
                 return _activeFileStates.ContainsKey(documentId);
+            }
+
+            public bool FromBuild(ProjectId projectId)
+            {
+                if (!_projectStates.TryGetValue(projectId, out var projectState))
+                {
+                    return false;
+                }
+
+                return projectState.FromBuild;
             }
 
             public bool TryGetActiveFileState(DocumentId documentId, out ActiveFileState state)
@@ -133,42 +171,74 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
             }
 
-            public Task<bool> OnDocumentClosedAsync(Document document)
+            public async Task<bool> OnDocumentOpenedAsync(Document document)
             {
                 // can not be cancelled
-                return OnDocumentResetAsync(document);
-            }
-
-            public async Task<bool> OnDocumentResetAsync(Document document)
-            {
-                // can not be cancelled
-                // remove active file state and put it in project state
-                ActiveFileState activeFileState;
-                if (!_activeFileStates.TryRemove(document.Id, out activeFileState))
+                if (!TryGetProjectState(document.Project.Id, out var projectState) ||
+                    projectState.IsEmpty(document.Id))
                 {
-                    // no active file state
+                    // nothing to do
                     return false;
                 }
 
-                var projectState = GetProjectState(document.Project.Id);
-                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+                // always load data
+                var avoidLoadingData = false;
+                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
+
+                // put project state to active file state
+                var activeFileState = GetActiveFileState(document.Id);
+
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SyntaxLocals, document.Id)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SemanticLocals, document.Id)));
 
                 return true;
+            }
+
+            public async Task<bool> OnDocumentClosedAsync(Document document)
+            {
+                // can not be cancelled
+                // remove active file state and put it in project state
+                if (!_activeFileStates.TryRemove(document.Id, out var activeFileState))
+                {
+                    return false;
+                }
+
+                // active file exist, put it in the project state
+                var projectState = GetProjectState(document.Project.Id);
+                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+                return true;
+            }
+
+            public bool OnDocumentReset(Document document)
+            {
+                var changed = false;
+                // can not be cancelled
+                // remove active file state and put it in project state
+                if (TryGetActiveFileState(document.Id, out var activeFileState))
+                {
+                    activeFileState.ResetVersion();
+                    changed |= true;
+                }
+
+                if (TryGetProjectState(document.Project.Id, out var projectState))
+                {
+                    projectState.ResetVersion();
+                    changed |= true;
+                }
+
+                return changed;
             }
 
             public bool OnDocumentRemoved(DocumentId id)
             {
                 // remove active file state for removed document
                 var removed = false;
-                ActiveFileState activeFileState;
-                if (_activeFileStates.TryRemove(id, out activeFileState))
+                if (_activeFileStates.TryRemove(id, out var activeFileState))
                 {
                     removed = true;
                 }
-
                 // remove state for the file that got removed.
-                ProjectState state;
-                if (_projectStates.TryGetValue(id.ProjectId, out state))
+                if (_projectStates.TryGetValue(id.ProjectId, out var state))
                 {
                     removed |= state.OnDocumentRemoved(id);
                 }
@@ -179,8 +249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool OnProjectRemoved(ProjectId id)
             {
                 // remove state for project that got removed.
-                ProjectState state;
-                if (_projectStates.TryRemove(id, out state))
+                if (_projectStates.TryRemove(id, out var state))
                 {
                     return state.OnProjectRemoved(id);
                 }

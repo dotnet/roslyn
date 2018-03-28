@@ -8,8 +8,12 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
+#If DEBUG Then
+#Const REFERENCE_STATE = True
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class DataFlowPass
+    Partial Friend Class DataFlowPass
         Inherits AbstractFlowPass(Of LocalState)
 
         Protected Overrides Function IntersectWith(ByRef self As LocalState, ByRef other As LocalState) As Boolean
@@ -102,7 +106,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
+#If REFERENCE_STATE Then
+        Friend Class LocalState
+#Else
         Friend Structure LocalState
+#End If
             Implements AbstractLocalState
 
             Friend Assigned As BitVector
@@ -150,7 +158,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+#If REFERENCE_STATE Then
+        End Class
+#Else
         End Structure
+#End If
 
     End Class
 

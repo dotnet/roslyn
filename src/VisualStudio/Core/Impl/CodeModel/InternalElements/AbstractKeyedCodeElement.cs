@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -66,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         internal void ReacquireNodeKey(SyntaxPath syntaxPath, CancellationToken cancellationToken)
         {
             Debug.Assert(syntaxPath != null);
-
-            SyntaxNode node;
-            if (!syntaxPath.TryResolve(GetSyntaxTree(), cancellationToken, out node))
+            if (!syntaxPath.TryResolve(GetSyntaxTree(), cancellationToken, out SyntaxNode node))
             {
                 throw Exceptions.ThrowEFail();
             }

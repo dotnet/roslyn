@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -7,7 +8,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
             CSharpSyntaxNode node,
             SyntaxList<MemberDeclarationSyntax> members,
-            Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
             Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
@@ -88,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: container,
                 nameLocation: new SourceLocation(container),
                 memberNames: memberNames,
-                children: ImmutableArray<SingleTypeDeclaration>.Empty);
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
         /// <summary>
@@ -179,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxReference: parentReference,
                 nameLocation: new SourceLocation(parentReference),
                 memberNames: memberNames,
-                children: children);
+                children: children,
+                diagnostics: ImmutableArray<Diagnostic>.Empty);
 
             for (int i = fullName.Length - 2; i >= 0; i--)
             {
@@ -189,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExternAliases: false,
                     syntaxReference: parentReference,
                     nameLocation: new SourceLocation(parentReference),
-                    children: ImmutableArray.Create<SingleNamespaceOrTypeDeclaration>(decl));
+                    children: ImmutableArray.Create(decl),
+                    diagnostics: ImmutableArray<Diagnostic>.Empty);
             }
 
             return decl;
@@ -221,22 +227,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExterns = node.Externs.Any();
             NameSyntax name = node.Name;
             CSharpSyntaxNode currentNode = node;
-            while (name is QualifiedNameSyntax)
+            QualifiedNameSyntax dotted;
+            while ((dotted = name as QualifiedNameSyntax) != null)
             {
-                var dotted = name as QualifiedNameSyntax;
                 var ns = SingleNamespaceDeclaration.Create(
                     name: dotted.Right.Identifier.ValueText,
                     hasUsings: hasUsings,
                     hasExternAliases: hasExterns,
                     syntaxReference: _syntaxTree.GetReference(currentNode),
                     nameLocation: new SourceLocation(dotted.Right),
-                    children: children);
+                    children: children,
+                    diagnostics: ImmutableArray<Diagnostic>.Empty);
 
                 var nsDeclaration = new[] { ns };
                 children = nsDeclaration.AsImmutableOrNull<SingleNamespaceOrTypeDeclaration>();
                 currentNode = name = dotted.Left;
                 hasUsings = false;
                 hasExterns = false;
+            }
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (ContainsGeneric(node.Name))
+            {
+                // We're not allowed to have generics.
+                diagnostics.Add(ErrorCode.ERR_UnexpectedGenericName, node.Name.GetLocation());
+            }
+
+            if (ContainsAlias(node.Name))
+            {
+                diagnostics.Add(ErrorCode.ERR_UnexpectedAliasedName, node.Name.GetLocation());
             }
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
@@ -248,7 +267,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasExternAliases: hasExterns,
                 syntaxReference: _syntaxTree.GetReference(currentNode),
                 nameLocation: new SourceLocation(name),
-                children: children);
+                children: children,
+                diagnostics: diagnostics.ToReadOnlyAndFree());
+        }
+
+        private static bool ContainsAlias(NameSyntax name)
+        {
+            switch (name.Kind())
+            {
+                case SyntaxKind.GenericName:
+                    return false;
+                case SyntaxKind.AliasQualifiedName:
+                    return true;
+                case SyntaxKind.QualifiedName:
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsAlias(qualifiedName.Left);
+            }
+
+            return false;
+        }
+
+        private static bool ContainsGeneric(NameSyntax name)
+        {
+            switch (name.Kind())
+            {
+                case SyntaxKind.GenericName:
+                    return true;
+                case SyntaxKind.AliasQualifiedName:
+                    return ContainsGeneric(((AliasQualifiedNameSyntax)name).Name);
+                case SyntaxKind.QualifiedName:
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsGeneric(qualifiedName.Left) || ContainsGeneric(qualifiedName.Right);
+            }
+
+            return false;
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitClassDeclaration(ClassDeclarationSyntax node)
@@ -277,19 +329,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (node.Arity == 0)
+            {
+                Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
+            }
+
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
+
+            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
             return new SingleTypeDeclaration(
                 kind: kind,
                 name: node.Identifier.ValueText,
-                modifiers: node.Modifiers.ToDeclarationModifiers(),
+                modifiers: modifiers,
                 arity: node.Arity,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
-                children: VisitTypeChildren(node));
+                children: VisitTypeChildren(node),
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         private ImmutableArray<SingleTypeDeclaration> VisitTypeChildren(TypeDeclarationSyntax node)
@@ -314,22 +375,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
-                    SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
-                    SingleTypeDeclaration.TypeDeclarationFlags.None;
+            var declFlags = node.AttributeLists.Any()
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes 
+                : SingleTypeDeclaration.TypeDeclarationFlags.None;
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            if (node.Arity == 0)
+            {
+                Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
+            }
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+
+            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Delegate,
                 name: node.Identifier.ValueText,
-                modifiers: node.Modifiers.ToDeclarationModifiers(),
+                modifiers: modifiers,
                 declFlags: declFlags,
                 arity: node.Arity,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: SpecializedCollections.EmptyCollection<string>(),
-                children: ImmutableArray<SingleTypeDeclaration>.Empty);
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -347,16 +417,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string[] memberNames = GetEnumMemberNames(members, ref declFlags);
 
+            var diagnostics = DiagnosticBag.GetInstance();
+            var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,
                 name: node.Identifier.ValueText,
                 arity: 0,
-                modifiers: node.Modifiers.ToDeclarationModifiers(),
+                modifiers: modifiers,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
-                children: ImmutableArray<SingleTypeDeclaration>.Empty);
+                children: ImmutableArray<SingleTypeDeclaration>.Empty,
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         private static string[] GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
@@ -388,7 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberNames;
         }
 
-        private static string[] GetNonTypeMemberNames(Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static string[] GetNonTypeMemberNames(
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
@@ -434,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] result;
             if (set.Count == 0)
             {
-                result = SpecializedCollections.EmptyArray<string>();
+                result = Array.Empty<string>();
             }
             else
             {
@@ -526,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.FieldDeclaration:
                     anyNonTypeMembers = true;
-                    Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
+                    CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
                         ((Syntax.InternalSyntax.FieldDeclarationSyntax)member).Declaration.Variables;
                     int numFieldDeclarators = fieldDeclarators.Count;
                     for (int i = 0; i < numFieldDeclarators; i++)
@@ -537,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.EventFieldDeclaration:
                     anyNonTypeMembers = true;
-                    Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
+                    CoreInternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)
@@ -581,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ConstructorDeclaration:
                     anyNonTypeMembers = true;
-                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any(SyntaxKind.StaticKeyword)
+                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
                         ? WellKnownMemberNames.StaticConstructorName
                         : WellKnownMemberNames.InstanceConstructorName);
                     break;

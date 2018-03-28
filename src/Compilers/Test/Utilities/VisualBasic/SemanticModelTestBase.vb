@@ -1,5 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -150,5 +153,4 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
             binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
             ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
     End Function
-
 End Class

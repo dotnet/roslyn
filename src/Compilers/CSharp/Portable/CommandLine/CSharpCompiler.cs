@@ -6,12 +6,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,11 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const string ResponseFileName = "csc.rsp";
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
+        private readonly string _tempDirectory;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, analyzerLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)
         {
-            _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
+            _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
+            _tempDirectory = buildPaths.TempDirectory;
         }
 
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
@@ -42,14 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree[sourceFiles.Length];
-            var normalizedFilePaths = new String[sourceFiles.Length];
+            var normalizedFilePaths = new string[sourceFiles.Length];
+            var diagnosticBag = DiagnosticBag.GetInstance();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], errorLogger, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
                 }));
             }
             else
@@ -57,14 +61,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < sourceFiles.Length; i++)
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], errorLogger, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
                 }
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
             if (hadErrors)
             {
+                Debug.Assert(diagnosticBag.HasAnyErrors());
+                ReportErrors(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger);
                 return null;
+            }
+            else
+            {
+                Debug.Assert(diagnosticBag.IsEmptyWithoutResolution);
+                diagnosticBag.Free();
             }
 
             var diagnostics = new List<DiagnosticInfo>();
@@ -100,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    using (var appConfigStream = PortableShim.FileStream.Create(appConfigPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read))
+                    using (var appConfigStream = new FileStream(appConfigPath, FileMode.Open, FileAccess.Read))
                     {
                         assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                     }
@@ -126,43 +137,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var strongNameProvider = new LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger);
+            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger);
 
-            var compilation = CSharpCompilation.Create(
+            return CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
                 resolvedReferences,
                 Arguments.CompilationOptions.
                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                    WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).
+                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
                     WithSourceReferenceResolver(sourceFileResolver));
-
-            return compilation;
         }
 
         private SyntaxTree ParseFile(
-            TextWriter consoleOutput,
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
-            ref bool hadErrors,
+            ref bool addedDiagnostics,
             CommandLineSourceFile file,
-            ErrorLogger errorLogger,
+            DiagnosticBag diagnostics,
             out string normalizedFilePath)
         {
-            var fileReadDiagnostics = new List<DiagnosticInfo>();
-            var content = ReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
+            var fileDiagnostics = new List<DiagnosticInfo>();
+            var content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
 
             if (content == null)
             {
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger);
-                fileReadDiagnostics.Clear();
-                hadErrors = true;
+                foreach (var info in fileDiagnostics)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(info));
+                }
+                fileDiagnostics.Clear();
+                addedDiagnostics = true;
                 return null;
             }
             else
             {
+                Debug.Assert(fileDiagnostics.Count == 0);
                 return ParseFile(parseOptions, scriptParseOptions, content, file);
             }
         }
@@ -192,12 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   1) The name with which the assembly should be output.
         ///   2) The path of the assembly/module file.
         ///   3) The path of the pdb file.
-        /// 
+        ///
         /// When csc produces an executable, but the name of the resulting assembly
         /// is not specified using the "/out" switch, the name is taken from the name
         /// of the file (note: file, not class) containing the assembly entrypoint
         /// (as determined by binding and the "/main" switch).
-        /// 
+        ///
         /// For example, if the command is "csc /target:exe a.cs b.cs" and b.cs contains the
         /// entrypoint, then csc will produce "b.exe" and "b.pdb" in the output directory,
         /// with assembly name "b" and module name "b.exe" embedded in the file.
@@ -253,6 +265,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine();
         }
 
+        public override void PrintLangVersions(TextWriter consoleOutput)
+        {
+            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LangVersions, Culture));
+            var defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
+            var latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
+            foreach (LanguageVersion v in Enum.GetValues(typeof(LanguageVersion)))
+            {
+                if (v == defaultVersion)
+                {
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (default)");
+                }
+                else if (v == latestVersion)
+                {
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)");
+                }
+                else
+                {
+                    consoleOutput.WriteLine(v.ToDisplayString());
+                }
+            }
+            consoleOutput.WriteLine();
+        }
+
+        internal override Type Type
+        {
+            get
+            {
+                // We do not use this.GetType() so that we don't break mock subtypes
+                return typeof(CSharpCompiler);
+            }
+        }
+
         internal override string GetToolName()
         {
             return ErrorFacts.GetMessage(MessageID.IDS_ToolName, Culture);
@@ -272,9 +316,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
         }
 
-        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+            List<DiagnosticInfo> diagnostics,
+            CommonMessageProvider messageProvider)
         {
-            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles, AnalyzerLoader);
+            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader);
+        }
+
+        protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
+            SyntaxTree tree,
+            SourceReferenceResolver resolver,
+            OrderedSet<string> embeddedFiles,
+            DiagnosticBag diagnostics)
+        {
+            foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
+                d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))
+            {
+                string path = (string)directive.File.Value;
+                if (path == null)
+                {
+                    continue;
+                }
+
+                string resolvedPath = resolver.ResolveReference(path, tree.FilePath);
+                if (resolvedPath == null)
+                {
+                    diagnostics.Add(
+                        MessageProvider.CreateDiagnostic(
+                            (int)ErrorCode.ERR_NoSourceFile,
+                            directive.File.GetLocation(),
+                            path,
+                            CSharpResources.CouldNotFindFile));
+
+                    continue;
+                }
+
+                embeddedFiles.Add(resolvedPath);
+            }
         }
     }
 }

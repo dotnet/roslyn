@@ -37,14 +37,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             _analyzerInfoMap = ImmutableDictionary<Type, AnalyzerInfo>.Empty;
         }
 
-        public IEnumerable<KeyValuePair<Type, AnalyzerInfo>> AnalyzerInfoMap
-        {
-            get { return _analyzerInfoMap; }
-        }
+        public IEnumerable<KeyValuePair<Type, AnalyzerInfo>> AnalyzerInfoMap => _analyzerInfoMap;
 
         public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, Project projectOpt)
         {
-            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(_owner, analyzer, projectOpt?.Id);
+            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, _owner);
 
             ImmutableInterlocked.AddOrUpdate(
                 ref _analyzerInfoMap,

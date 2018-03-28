@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As SyntaxNode) As Binder
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -61,6 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsInQuery As Boolean
             Get
                 ' we should stop at the method or type binder.
@@ -79,13 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw ExceptionUtilities.Unreachable
             End Get
         End Property
-
-        Public Overrides Function GetErrorSymbol(name As String,
-                                                 errorInfo As DiagnosticInfo,
-                                                 candidateSymbols As ImmutableArray(Of Symbol),
-                                                 resultKind As LookupResultKind) As ErrorTypeSymbol
-            Throw ExceptionUtilities.Unreachable
-        End Function
 
         Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
             Throw ExceptionUtilities.Unreachable

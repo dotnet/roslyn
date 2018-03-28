@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -39,12 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As Cci.INamedTypeReference Implements Cci.IGenericTypeInstanceReference.GenericType
-            Get
-                Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
-                Return m_UnderlyingNamedType.OriginalDefinition
-            End Get
-        End Property
+        Private Function IGenericTypeInstanceReferenceGetGenericType(context As EmitContext) As Cci.INamedTypeReference Implements Cci.IGenericTypeInstanceReference.GetGenericType
+            Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
+            Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
+            Return moduleBeingBuilt.Translate(m_UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                              diagnostics:=context.Diagnostics, needDeclaration:=True)
+        End Function
 
         Public Overrides ReadOnly Property AsGenericTypeInstanceReference As Cci.IGenericTypeInstanceReference
             Get

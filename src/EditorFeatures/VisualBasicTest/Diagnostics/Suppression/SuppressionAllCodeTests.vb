@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
     Public Class VisualBasicSuppressionAllCodeTests
         Inherits AbstractSuppressionAllCodeTests
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions))
+        Protected Overrides Function CreateWorkspaceFromFile(definition As String, parseOptions As ParseOptions) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(definition, DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, ISuppressionFixProvider)
@@ -26,13 +26,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Async Function TestSuppressionWithAttributeOnEveryNodes() As Threading.Tasks.Task
-            Dim facts = New VisualBasicSyntaxFactsService()
-
             Await TestSuppressionWithAttributeAsync(
                 TestResource.AllInOneVisualBasicCode,
                 VisualBasicParseOptions.Default,
                 digInto:=Function(n)
-                             Dim member = facts.GetContainingMemberDeclaration(n, n.Span.Start)
+                             Dim member = VisualBasicSyntaxFactsService.Instance.GetContainingMemberDeclaration(n, n.Span.Start)
                              If member Is Nothing OrElse member Is n Then
                                  Return True
                              End If

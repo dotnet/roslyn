@@ -10,7 +10,35 @@
     mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel>
+        <!-- We have a Margin here, to get some distance to the Scrollbar See: https://github.com/dotnet/roslyn/issues/14979-->
+        <StackPanel Margin="0,0,3,0">
+
+            <GroupBox x:Uid="AnalysisGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
+                <StackPanel>
+                    <CheckBox x:Name="Enable_full_solution_analysis"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
+                    <CheckBox x:Name="Perform_editor_feature_analysis_in_external_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Perform_editor_feature_analysis_in_external_process}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="ImportDirectivesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">
+                <StackPanel>
+                    <CheckBox x:Name="PlaceSystemNamespaceFirst"
+                              x:Uid="SortImports_PlaceSystemFirst"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
+                    <CheckBox x:Name="SeparateImportGroups"
+                              x:Uid="SeparateImportGroups"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_SeparateImportGroups}" />
+                    <CheckBox x:Name="SuggestForTypesInReferenceAssemblies"
+                              x:Uid="AddImport_SuggestForTypesInReferenceAssemblies"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_reference_assemblies}" />
+                    <CheckBox x:Name="SuggestForTypesInNuGetPackages"
+                              x:Uid="AddImport_SuggestForTypesInNuGetPackages"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_NuGet_packages}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -27,6 +55,30 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableOutlining}" />
                     <CheckBox x:Name="DisplayLineSeparators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DisplayLineSeparators}" />
+                    <CheckBox x:Name="Show_outlining_for_declaration_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_declaration_level_constructs}" />
+                    <CheckBox x:Name="Show_outlining_for_code_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_outlining_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_comments_and_preprocessor_regions}" />
+                    <CheckBox x:Name="Collapse_regions_when_collapsing_to_definitions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="FadingGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
+                <StackPanel>
+                    <CheckBox x:Name="Fade_out_unused_imports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_imports}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="BlockStructureGuidesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
+                <StackPanel>
+                    <CheckBox x:Name="Show_guides_for_declaration_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_code_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="EditorHelpGroupBox"
@@ -40,10 +92,10 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
-                    <CheckBox x:Name="ClosedFileDiagnostics"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="GoToDefinitionGroupBox"
@@ -63,6 +115,33 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
                 </StackPanel>
             </GroupBox>
+
+            <GroupBox x:Uid="Implement_Interface_or_Abstract_Class_GroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}">
+
+                <StackPanel Margin="0, -5, 0, 5">
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_inserting_properties_events_and_methods_place_them}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Insertion_behavior"
+                                              x:Name="with_other_members_of_the_same_kind"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_with_other_members_of_the_same_kind}"/>
+                        <RadioButton  GroupName="Insertion_behavior"
+                                              x:Name="at_the_end"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end}"/>
+                    </StackPanel>
+
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_generating_properties}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Property_generation_behavior"
+                                              x:Name="prefer_throwing_properties"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_prefer_throwing_properties}"/>
+                        <RadioButton  GroupName="Property_generation_behavior"
+                                              x:Name="prefer_auto_properties"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_prefer_auto_properties}"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

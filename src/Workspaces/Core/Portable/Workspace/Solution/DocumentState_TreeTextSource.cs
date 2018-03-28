@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis
                 _filePath = filePath;
             }
 
-            public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
             {
                 var text = await _lazyText.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, _version, _filePath);
             }
 
-            public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
+            public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
             {
                 var text = _lazyText.GetValue(cancellationToken);
                 return TextAndVersion.Create(text, _version, _filePath);
@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool TryGetValue(out TextAndVersion value)
             {
-                SourceText text;
-                if (_lazyText.TryGetValue(out text))
+                if (_lazyText.TryGetValue(out var text))
                 {
                     value = TextAndVersion.Create(text, _version, _filePath);
                     return true;
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetTextVersion(out VersionStamp version)
             {
                 version = _version;
-                return version != default(VersionStamp);
+                return version != default;
             }
         }
     }

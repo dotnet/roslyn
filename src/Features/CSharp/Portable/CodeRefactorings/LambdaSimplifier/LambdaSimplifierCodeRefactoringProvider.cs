@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -51,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.SimplifyLambdaExpression,
-                    (c) => SimplifyLambdaAsync(document, lambda, c)));
+                    CSharpFeaturesResources.Simplify_lambda_expression,
+                    c => SimplifyLambdaAsync(document, lambda, c)));
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.SimplifyAllOccurrences,
-                    (c) => SimplifyAllLambdasAsync(document, c)));
+                    CSharpFeaturesResources.Simplify_all_occurrences,
+                    c => SimplifyAllLambdasAsync(document, c)));
         }
 
         private async Task<Document> SimplifyLambdaAsync(
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, (n) => n == lambda, cancellationToken);
+            var rewriter = new Rewriter(this, semanticDocument, n => n == lambda, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, (n) => true, cancellationToken);
+            var rewriter = new Rewriter(this, semanticDocument, n => true, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -221,12 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         // Ensure that if we replace the invocation with its expression that its expression will
         // bind unambiguously.  This can happen with awesome cases like:
 #if false
-    static void Foo<T>(T x) where T : class { }
+    static void Goo<T>(T x) where T : class { }
     static void Bar(Action<int> x) { }
     static void Bar(Action<string> x) { }
     static void Main()
     {
-        Bar(x => Foo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
+        Bar(x => Goo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
     }
 #endif
         private static bool WouldCauseAmbiguity(
@@ -260,23 +259,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         private static InvocationExpressionSyntax TryGetInvocationExpression(
             SyntaxNode lambdaBody)
         {
-            if (lambdaBody is ExpressionSyntax)
+            if (lambdaBody is ExpressionSyntax exprBody)
             {
-                return ((ExpressionSyntax)lambdaBody).WalkDownParentheses() as InvocationExpressionSyntax;
+                return exprBody.WalkDownParentheses() as InvocationExpressionSyntax;
             }
-            else if (lambdaBody is BlockSyntax)
+            else if (lambdaBody is BlockSyntax block)
             {
-                var block = (BlockSyntax)lambdaBody;
                 if (block.Statements.Count == 1)
                 {
                     var statement = block.Statements.First();
-                    if (statement is ReturnStatementSyntax)
+                    if (statement is ReturnStatementSyntax returnStatement)
                     {
-                        return ((ReturnStatementSyntax)statement).Expression.WalkDownParentheses() as InvocationExpressionSyntax;
+                        return returnStatement.Expression.WalkDownParentheses() as InvocationExpressionSyntax;
                     }
-                    else if (statement is ExpressionStatementSyntax)
+                    else if (statement is ExpressionStatementSyntax exprStatement)
                     {
-                        return ((ExpressionStatementSyntax)statement).Expression.WalkDownParentheses() as InvocationExpressionSyntax;
+                        return exprStatement.Expression.WalkDownParentheses() as InvocationExpressionSyntax;
                     }
                 }
             }

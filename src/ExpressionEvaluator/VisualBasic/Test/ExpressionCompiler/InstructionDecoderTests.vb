@@ -2,6 +2,7 @@
 
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -498,7 +499,7 @@ End Class"
         End Function
 
         Private Function GetConstructedMethod(source As String, methodName As String, serializedTypeArgumentNames() As String, instructionDecoder As VisualBasicInstructionDecoder) As MethodSymbol
-            Dim compilation = CreateCompilationWithReferences(
+            Dim compilation = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 references:={MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
                 options:=TestOptions.DebugDll,
@@ -514,12 +515,11 @@ End Class"
             ' async/ iterator "MoveNext" methods to the original source method.
             Dim method As MethodSymbol = compilation.GetSourceMethod(
                 DirectCast(frame.ContainingModule, PEModuleSymbol).Module.GetModuleVersionIdOrThrow(),
-                MetadataTokens.GetToken(frame.Handle))
+                frame.Handle)
             If serializedTypeArgumentNames IsNot Nothing Then
                 Assert.NotEmpty(serializedTypeArgumentNames)
                 Dim typeParameters = instructionDecoder.GetAllTypeParameters(method)
                 Assert.NotEmpty(typeParameters)
-                Dim typeNameDecoder = New EETypeNameDecoder(compilation, DirectCast(method.ContainingModule, PEModuleSymbol))
                 ' Use the same helper method as the FrameDecoder to get the TypeSymbols for the
                 ' generic type arguments (rather than using EETypeNameDecoder directly).
                 Dim typeArgumentSymbols = instructionDecoder.GetTypeSymbols(compilation, method, serializedTypeArgumentNames)

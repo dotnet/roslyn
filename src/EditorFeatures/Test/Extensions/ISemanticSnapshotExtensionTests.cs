@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public async Task TryGetSymbolTouchingPositionOnLeadingTrivia()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(
+            using (var workspace = TestWorkspace.CreateCSharp(
                 @"using System;
                 class Program
                 {
                     static void Main()
                     {
                         $$#pragma warning disable 612
-                        Foo();
+                        Goo();
                         #pragma warning restore 612
                     }
                 }"))

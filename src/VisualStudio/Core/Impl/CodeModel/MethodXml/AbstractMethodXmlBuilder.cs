@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
@@ -521,14 +521,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         {
             using (NumberTag(GetTypeName(type)))
             {
-                if (value is double)
+                if (value is double d)
                 {
                     // Note: use G17 for doubles to ensure that we roundtrip properly on 64-bit
-                    EncodedText(((double)value).ToString("G17", CultureInfo.InvariantCulture));
+                    EncodedText(d.ToString("G17", CultureInfo.InvariantCulture));
                 }
-                else if (value is float)
+                else if (value is float f)
                 {
-                    EncodedText(((float)value).ToString("R", CultureInfo.InvariantCulture));
+                    EncodedText(f.ToString("R", CultureInfo.InvariantCulture));
                 }
                 else
                 {

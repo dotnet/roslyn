@@ -42,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             lock (_gate)
             {
                 var version = _lastVersion;
-
-                ITableEntriesSnapshot lastSnapshot;
-                if (TryGetLastSnapshot(version, out lastSnapshot))
+                if (TryGetLastSnapshot(version, out var lastSnapshot))
                 {
                     return lastSnapshot;
                 }
@@ -58,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             lock (_gate)
             {
-                ITableEntriesSnapshot lastSnapshot;
-                if (TryGetLastSnapshot(versionNumber, out lastSnapshot))
+                if (TryGetLastSnapshot(versionNumber, out var lastSnapshot))
                 {
                     return lastSnapshot;
                 }

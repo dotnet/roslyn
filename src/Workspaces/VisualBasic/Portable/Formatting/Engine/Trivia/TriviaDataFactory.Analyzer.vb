@@ -55,6 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                         AnalyzeLineContinuation(trivia, result)
                     ElseIf trivia.Kind = SyntaxKind.ColonTrivia Then
                         result.HasColonTrivia = True
+                    ElseIf trivia.Kind = SyntaxKind.ConflictMarkerTrivia Then
+                        result.HasConflictMarker = True
                     Else
                         Contract.ThrowIfFalse(SyntaxFacts.IsPreprocessorDirective(trivia.Kind))
 
@@ -133,6 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Friend Property HasComments() As Boolean
                 Friend Property HasPreprocessor() As Boolean
+                Friend Property HasConflictMarker() As Boolean
 
                 Friend Property HasOnlyOneSpaceBeforeLineContinuation() As Boolean
                 Friend Property HasLineContinuation() As Boolean

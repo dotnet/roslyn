@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);
 
-            this.BaseToken = default(SyntaxToken);
+            this.BaseToken = default;
             this.TextSpan = textSpan;
 
             this.Option = option;

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
         protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
         protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
 
-        public async Task<IEnumerable<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
             {
@@ -30,16 +31,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
-                    return SpecializedCollections.EmptyEnumerable<CodeAction>();
+                    return ImmutableArray<CodeAction>.Empty;
                 }
 
                 return GetActions(document, state);
             }
         }
 
-        private IEnumerable<CodeAction> GetActions(Document document, State state)
+        private ImmutableArray<CodeAction> GetActions(Document document, State state)
         {
-            yield return new GenerateEnumMemberCodeAction((TService)this, document, state);
+            return ImmutableArray.Create<CodeAction>(
+                new GenerateEnumMemberCodeAction((TService)this, document, state));
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     case MemberTypes.Field:
                     case MemberTypes.Property:
-                        return _member.GetCustomAttributesData().GetDynamicFlags().GetCustomTypeInfo();
+                        return _member.GetCustomAttributesData().GetCustomTypeInfo();
                     default:
                         // If we ever see a method, we'll have to use ReturnTypeCustomAttributes.
                         throw ExceptionUtilities.UnexpectedValue(_member.MemberType);

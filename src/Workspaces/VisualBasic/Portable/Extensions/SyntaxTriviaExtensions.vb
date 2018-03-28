@@ -17,10 +17,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                    trivia.Kind = kind3
         End Function
 
-        <Extension()>
+        <Extension>
+        Public Function IsWhitespaceOrEndOfLine(trivia As SyntaxTrivia) As Boolean
+            Return trivia.IsWhitespace() OrElse trivia.IsEndOfLine()
+        End Function
+
+        <Extension>
         Public Function IsWhitespace(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.WhitespaceTrivia OrElse
-                   trivia.Kind = SyntaxKind.EndOfLineTrivia
+            Return trivia.Kind = SyntaxKind.WhitespaceTrivia
+        End Function
+
+        <Extension>
+        Public Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.EndOfLineTrivia
+        End Function
+
+        <Extension>
+        Public Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia
         End Function
     End Module
 End Namespace

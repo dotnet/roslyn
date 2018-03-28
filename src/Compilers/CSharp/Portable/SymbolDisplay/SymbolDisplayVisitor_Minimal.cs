@@ -5,9 +5,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
             var startNode = token.Parent;
 
-            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax);
+            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword) || this.inNamespaceOrType;
         }
 
         private void MinimallyQualify(INamespaceSymbol symbol)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO(cyrusn): This code needs to see if type is an attribute and if it can be shown 
             // in simplified form here.
 
-            if (!symbol.IsAnonymousType)
+            if (!(symbol.IsAnonymousType || symbol.IsTupleType))
             {
                 if (!NameBoundSuccessfullyToSameSymbol(symbol))
                 {
@@ -166,7 +166,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyDictionary<INamespaceOrTypeSymbol, IAliasSymbol>();
             }
 
-            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            // Walk up the ancestors from the current position. If this is a speculative
+            // model, walk up the corresponding ancestors in the parent model.
+            SemanticModel semanticModel;
+            int position;
+            if (semanticModelOpt.IsSpeculativeSemanticModel)
+            {
+                semanticModel = semanticModelOpt.ParentModel;
+                position = semanticModelOpt.OriginalPositionForSpeculation;
+            }
+            else
+            {
+                semanticModel = semanticModelOpt;
+                position = positionOpt;
+            }
+ 
+            var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
             var startNode = token.Parent;
 
             // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
@@ -182,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
-                .Select(u => semanticModelOpt.GetDeclaredSymbol(u) as IAliasSymbol)
+                .Select(u => semanticModel.GetDeclaredSymbol(u) as IAliasSymbol)
                 .Where(u => u != null);
 
             var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();

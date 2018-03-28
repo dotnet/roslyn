@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 case BraceCompletionSessionProvider.Parenthesis.OpenCharacter: return new ParenthesisCompletionSession(syntaxFactsService);
                 case BraceCompletionSessionProvider.SingleQuote.OpenCharacter: return new CharLiteralCompletionSession(syntaxFactsService);
                 case BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter: return new LessAndGreaterThanCompletionSession(syntaxFactsService);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(openingBrace);
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
     }
 }

@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -585,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Find the first field or property with a Set method in the result.
-        Private Function GetBestAttributeFieldOrProperty(result As LookupResult) As Symbol
+        Private Shared Function GetBestAttributeFieldOrProperty(result As LookupResult) As Symbol
 
             If result.HasSingleSymbol Then
                 Return result.SingleSymbol
@@ -858,7 +859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return CreateTypedConstant(type, values)
             End Function
 
-            Private Function CreateTypedConstant(type As ArrayTypeSymbol, array As ImmutableArray(Of TypedConstant)) As TypedConstant
+            Private Shared Function CreateTypedConstant(type As ArrayTypeSymbol, array As ImmutableArray(Of TypedConstant)) As TypedConstant
                 Return New TypedConstant(type, array)
             End Function
 

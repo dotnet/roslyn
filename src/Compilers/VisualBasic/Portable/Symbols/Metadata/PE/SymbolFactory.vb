@@ -28,10 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             rank, sizes, lowerBounds, moduleSymbol.ContainingAssembly)
         End Function
 
-        Friend Overrides Function GetByRefReturnTypeSymbol(moduleSymbol As PEModuleSymbol, referencedType As TypeSymbol, countOfCustomModifiersPrecedingByRef As UShort) As TypeSymbol
-            Return GetUnsupportedMetadataTypeSymbol(moduleSymbol, Nothing) ' No special support for this scenario in VB.
-        End Function
-
         Friend Overrides Function GetSpecialType(moduleSymbol As PEModuleSymbol, specialType As SpecialType) As TypeSymbol
             Return moduleSymbol.ContainingAssembly.GetSpecialType(specialType)
         End Function
@@ -48,8 +44,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return type.PrimitiveTypeCode
         End Function
 
-        Friend Overrides Function IsVolatileModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
+        Friend Overrides Function IsAcceptedVolatileModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
             ' VB doesn't deal with Volatile fields.
+            Return False
+        End Function
+
+        Friend Overrides Function IsAcceptedInAttributeModifierType(type As TypeSymbol) As Boolean
+            ' VB doesn't deal with ref-readonly parameters or return-types.
+            Return False
+        End Function
+
+        Friend Overrides Function IsAcceptedUnmanagedTypeModifierType(type As TypeSymbol) As Boolean
+            ' VB doesn't deal with unmanaged generic type constraints
             Return False
         End Function
 

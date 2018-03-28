@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct ProcessedFieldInitializers
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
-            internal BoundStatementList LoweredInitializers { get; set; }
+            internal BoundStatement LoweredInitializers { get; set; }
             internal bool HasErrors { get; set; }
             internal ImportChain FirstImportChain { get; set; }
         }
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.FieldInitializer, fieldSymbol);
 
-                        BoundFieldInitializer boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
+                        BoundFieldEqualsValue boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
                         boundInitializers.Add(boundInitializer);
                     }
                 }
@@ -245,14 +246,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundGlobalStatementInitializer(statementNode, statement);
         }
 
-        private static BoundFieldInitializer BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
+        private static BoundFieldEqualsValue BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(!fieldSymbol.IsMetadataConstant);
 
             var fieldsBeingBound = binder.FieldsBeingBound;
 
-            var sourceField = fieldSymbol as SourceMemberFieldSymbol;
+            var sourceField = fieldSymbol as SourceMemberFieldSymbolFromDeclarator;
             bool isImplicitlyTypedField = (object)sourceField != null && sourceField.FieldTypeInferred(fieldsBeingBound);
 
             // If the type is implicitly typed, the initializer diagnostics have already been reported, so ignore them here:
@@ -268,17 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new ExecutableCodeBinder(equalsValueClauseNode, fieldSymbol, new LocalScopeBinder(binder));
-            var boundInitValue = binder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, RefKind.None, fieldSymbol.GetFieldType(fieldsBeingBound), initializerDiagnostics);
+            BoundFieldEqualsValue boundInitValue = binder.BindFieldInitializer(fieldSymbol, equalsValueClauseNode, initializerDiagnostics);
 
             if (isImplicitlyTypedField)
             {
                 initializerDiagnostics.Free();
             }
 
-            return new BoundFieldInitializer(
-                equalsValueClauseNode.Value, //we want the attached sequence point to indicate the value node
-                fieldSymbol,
-                boundInitValue);
+            return boundInitValue;
         }
     }
 }

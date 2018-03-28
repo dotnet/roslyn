@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    return this.VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                    return VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                 }
 
                 var member = def as Cci.ITypeDefinitionMember;
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var field = def as Cci.IFieldDefinition;
                     if (field != null)
                     {
-                        return this.VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                        return VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                     }
                 }
 
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _lazyTopLevelTypes;
             }
 
-            private T VisitTypeMembers<T>(
+            private static T VisitTypeMembers<T>(
                 Cci.ITypeDefinition otherContainer,
                 T member,
                 Func<Cci.ITypeDefinition, IEnumerable<T>> getMembers,
@@ -387,29 +388,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            public override Symbol VisitAssembly(AssemblySymbol symbol)
+            public override Symbol VisitAssembly(AssemblySymbol assembly)
             {
-                if (symbol.IsLinked)
+                if (assembly.IsLinked)
                 {
-                    return symbol;
+                    return assembly;
                 }
 
-                // the current source assembly:
-                if (symbol.Identity.Equals(_sourceAssembly.Identity))
+                // When we map synthesized symbols from previous generations to the latest compilation 
+                // we might encounter a symbol that is defined in arbitrary preceding generation, 
+                // not just the immediately preceding generation. If the source assembly uses time-based 
+                // versioning assemblies of preceding generations might differ in their version number.
+                if (IdentityEqualIgnoringVersionWildcard(assembly, _sourceAssembly))
                 {
                     return _otherAssembly;
                 }
 
-                // find a referenced assembly with the exactly same identity:
+                // find a referenced assembly with the same source identity (modulo assembly version patterns):
                 foreach (var otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
                 {
-                    if (symbol.Identity.Equals(otherReferencedAssembly.Identity))
+                    if (IdentityEqualIgnoringVersionWildcard(assembly, otherReferencedAssembly))
                     {
                         return otherReferencedAssembly;
                     }
                 }
 
                 return null;
+            }
+
+            private static bool IdentityEqualIgnoringVersionWildcard(AssemblySymbol left, AssemblySymbol right)
+            {
+                var leftIdentity = left.Identity;
+                var rightIdentity = right.Identity;
+
+                return AssemblyIdentityComparer.SimpleNameComparer.Equals(leftIdentity.Name, rightIdentity.Name) &&
+                       (left.AssemblyVersionPattern ?? leftIdentity.Version).Equals(right.AssemblyVersionPattern ?? rightIdentity.Version) &&
+                       AssemblyIdentity.EqualIgnoringNameAndVersion(leftIdentity, rightIdentity);
             }
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)
@@ -476,6 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // TODO: LambdaFrame has alpha renamed type parameters, should we rather fix that?
                     var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
                     return typeMap.SubstituteNamedType(otherDef);
+                }
+                else if (sourceType.IsTupleType)
+                {
+                    var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
+                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypes.Length))
+                    {
+                        return null;
+                    }
+
+                    return otherDef;
                 }
 
                 Debug.Assert(sourceType.IsDefinition);
@@ -628,12 +652,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private T FindMatchingNamedTypeMember<T>(NamedTypeSymbol otherType, T sourceMember, Func<T, T, bool> predicate)
                 where T : Symbol
             {
-                Debug.Assert(!string.IsNullOrEmpty(sourceMember.Name));
+                Debug.Assert(!string.IsNullOrEmpty(sourceMember.MetadataName));
 
                 var otherMembersByName = _otherTypeMembers.GetOrAdd(otherType, GetOtherTypeMembers);
 
                 ImmutableArray<Cci.ITypeDefinitionMember> otherMembers;
-                if (otherMembersByName.TryGetValue(sourceMember.Name, out otherMembers))
+                if (otherMembersByName.TryGetValue(sourceMember.MetadataName, out otherMembers))
                 {
                     foreach (var otherMember in otherMembers)
                     {
@@ -681,8 +705,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 other = SubstituteTypeParameters(other);
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
+                    method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
-                    method.TypeArguments.SequenceEqual(other.TypeArguments, AreTypesEqual);
+                    method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
             }
 
             private static MethodSymbol SubstituteTypeParameters(MethodSymbol method)
@@ -705,13 +730,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
                 Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
+
+                // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
+                Debug.Assert(!type.IsTupleType);
+                Debug.Assert(!other.IsTupleType);
+
                 return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
             }
 
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return StringOrdinalComparer.Equals(parameter.Name, other.Name) &&
+                return StringOrdinalComparer.Equals(parameter.MetadataName, other.MetadataName) &&
                     (parameter.RefKind == other.RefKind) &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
@@ -727,12 +757,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
-                Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(property.MetadataName, other.MetadataName));
                 return _comparer.Equals(property.Type, other.Type) &&
+                    property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
 
-            private bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
+            private static bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
             {
                 Debug.Assert(type.Ordinal == other.Ordinal);
                 Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
@@ -741,6 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // edit. Furthermore, comparing constraint types might lead to a cycle.
                 Debug.Assert(type.HasConstructorConstraint == other.HasConstructorConstraint);
                 Debug.Assert(type.HasValueTypeConstraint == other.HasValueTypeConstraint);
+                Debug.Assert(type.HasUnmanagedTypeConstraint == other.HasUnmanagedTypeConstraint);
                 Debug.Assert(type.HasReferenceTypeConstraint == other.HasReferenceTypeConstraint);
                 Debug.Assert(type.ConstraintTypesNoUseSiteDiagnostics.Length == other.ConstraintTypesNoUseSiteDiagnostics.Length);
                 return true;
@@ -789,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     members.AddRange(synthesizedMembers);
                 }
 
-                var result = members.ToDictionary(s => ((Symbol)s).Name, StringOrdinalComparer.Instance);
+                var result = members.ToDictionary(s => ((Symbol)s).MetadataName, StringOrdinalComparer.Instance);
                 members.Free();
                 return result;
             }
@@ -811,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var visitedSource = (TypeSymbol)_matcher.Visit(source);
                     var visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
 
-                    return visitedSource?.Equals(visitedOther, ignoreDynamic: true) == true;
+                    return visitedSource?.Equals(visitedOther, TypeCompareKind.IgnoreDynamicAndTupleNames) == true;
                 }
             }
         }
@@ -858,6 +890,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamedType(NamedTypeSymbol type)
             {
+                if (type.IsTupleType)
+                {
+                    type = type.TupleUnderlyingType;
+                    Debug.Assert(!type.IsTupleType);
+                }
+
                 var originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {

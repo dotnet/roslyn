@@ -282,6 +282,19 @@ namespace Microsoft.CodeAnalysis
             return _list.Any();
         }
 
+        internal bool Any(Func<TNode, bool> predicate)
+        {
+            for (int i = 0; i < this.Count; i++)
+            {
+                if (predicate(this[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public SyntaxNodeOrTokenList GetWithSeparators()
         {
             return _list;
@@ -572,6 +585,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return SpecializedCollections.EmptyEnumerator<TNode>();
+        }
+
+        public static implicit operator SeparatedSyntaxList<SyntaxNode>(SeparatedSyntaxList<TNode> nodes)
+        {
+            return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
+        }
+
+        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+        {
+            return new SeparatedSyntaxList<TNode>(nodes._list);
         }
     }
 }

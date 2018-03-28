@@ -6,28 +6,24 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    internal sealed class MetadataConstant : Cci.IMetadataConstant
+    internal sealed class MetadataConstant : Cci.IMetadataExpression
     {
-        private readonly Cci.ITypeReference _type;
-        private readonly object _value;
+        public Cci.ITypeReference Type { get; }
+        public object Value { get; }
 
         public MetadataConstant(Cci.ITypeReference type, object value)
         {
             Debug.Assert(type != null);
             AssertValidConstant(value);
 
-            _type = type;
-            _value = value;
+            Type = type;
+            Value = value;
         }
-
-        object Cci.IMetadataConstant.Value => _value;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        Cci.ITypeReference Cci.IMetadataExpression.Type => _type;
 
         [Conditional("DEBUG")]
         internal static void AssertValidConstant(object value)

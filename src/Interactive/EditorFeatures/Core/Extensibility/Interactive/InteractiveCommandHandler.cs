@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             var window = OpenInteractiveWindow(focus: false);
             _waitIndicator.Wait(
-                InteractiveEditorFeaturesResources.ExecuteInInteractiveDescription,
+                InteractiveEditorFeaturesResources.Executing_selection_in_Interactive_Window,
                 allowCancel: true,
                 action: context =>
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             using (var edit = buffer.CreateEdit())
             {
                 _waitIndicator.Wait(
-                    InteractiveEditorFeaturesResources.CopyToInteractiveDescription,
+                    InteractiveEditorFeaturesResources.Copying_selection_to_Interactive_Window,
                     allowCancel: true,
                     action: context =>
                     {

@@ -124,9 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             referencedAssemblyIndex As Integer,
             ByRef emittedName As MetadataTypeName
         ) As TypeSymbol
-            Try
-                Dim assembly As AssemblySymbol = moduleSymbol.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
+            Dim assembly As AssemblySymbol = ModuleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex)
+            If assembly Is Nothing Then
+                Return New UnsupportedMetadataTypeSymbol()
+            End If
 
+            Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
             Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
@@ -204,6 +207,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     End If
 
                     Do
+                        If symbol.IsTupleType Then
+                            Return IsOrClosedOverATypeFromAssemblies(symbol.TupleUnderlyingType, assemblies)
+                        End If
+
                         For Each typeArgument In symbol.TypeArgumentsNoUseSiteDiagnostics
                             If IsOrClosedOverATypeFromAssemblies(typeArgument, assemblies) Then
                                 Return True
@@ -352,7 +359,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         ' Let's use a trick. To make sure the kind is the same, make sure
                         ' base type is the same.
-                        If baseType IsNot candidate.BaseTypeNoUseSiteDiagnostics Then
+                        Dim baseSpecialType As SpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault()
+                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> (baseType?.SpecialType).GetValueOrDefault() Then
                             Continue For
                         End If
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -110,13 +110,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
 
         private static ITypeSymbol GetType(ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IEventSymbol f) => f.Type,
-                (IFieldSymbol f) => f.ContainingType.TypeKind == TypeKind.Enum ? null : f.Type,
-                (IMethodSymbol m) => IncludeReturnType(m) ? m.ReturnType : null,
-                (IPropertySymbol p) => p.Type,
-                (INamedTypeSymbol n) => n.IsDelegateType() ? n.DelegateInvokeMethod.ReturnType : null,
-                _ => null);
+            switch (symbol)
+            {
+                case IEventSymbol f: return f.Type;
+                case IFieldSymbol f: return f.ContainingType.TypeKind == TypeKind.Enum ? null : f.Type;
+                case IMethodSymbol m: return IncludeReturnType(m) ? m.ReturnType : null;
+                case IPropertySymbol p: return p.Type;
+                case INamedTypeSymbol n: return n.IsDelegateType() ? n.DelegateInvokeMethod.ReturnType : null;
+                default: return null;
+            }
         }
 
         private static bool IncludeReturnType(IMethodSymbol f)

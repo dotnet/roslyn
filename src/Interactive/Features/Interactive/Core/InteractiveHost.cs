@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal Service TryGetService()
         {
-            var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
+            var initializedService = TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).Result;
             return initializedService.ServiceOpt?.Service;
         }
 
@@ -87,11 +87,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal IpcServerChannel _ServerChannel
         {
             get { return _serverChannel; }
-        }
-
-        internal void Dispose(bool joinThreads)
-        {
-            Dispose(joinThreads, disposing: true);
         }
 
         #endregion
@@ -172,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return null;
                     }
 
-                    _output.WriteLine(FeaturesResources.AttemptToConnectToProcess, newProcessId);
+                    _output.WriteLine(FeaturesResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
@@ -217,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             bool alive = process.IsAlive();
             if (!alive)
             {
-                _errorOutput.WriteLine(FeaturesResources.FailedToLaunchProcess, _hostPath, process.ExitCode);
+                _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, _hostPath, process.ExitCode);
                 _errorOutput.WriteLine(process.StandardError.ReadToEnd());
             }
 
@@ -226,25 +221,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         ~InteractiveHost()
         {
-            Dispose(joinThreads: false, disposing: false);
+            DisposeRemoteService(disposing: false);
         }
 
         public void Dispose()
         {
-            Dispose(joinThreads: false, disposing: true);
+            DisposeChannel();
+            DisposeRemoteService(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool joinThreads, bool disposing)
+        private void DisposeRemoteService(bool disposing)
         {
-            if (disposing)
-            {
-                GC.SuppressFinalize(this);
-                DisposeChannel();
-            }
-
             if (_lazyRemoteService != null)
             {
-                _lazyRemoteService.Dispose(joinThreads);
+                _lazyRemoteService.Dispose(disposing);
                 _lazyRemoteService = null;
             }
         }
@@ -312,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private Task OnProcessExited(Process process)
         {
             ReportProcessExited(process);
-            return TryGetOrCreateRemoteServiceAsync();
+            return TryGetOrCreateRemoteServiceAsync(processPendingOutput: true);
         }
 
         private void ReportProcessExited(Process process)
@@ -329,11 +320,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                _errorOutput.WriteLine(FeaturesResources.HostingProcessExitedWithExitCode, exitCode.Value);
+                _errorOutput.WriteLine(FeaturesResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
             }
         }
 
-        private async Task<InitializedRemoteService> TryGetOrCreateRemoteServiceAsync()
+        private async Task<InitializedRemoteService> TryGetOrCreateRemoteServiceAsync(bool processPendingOutput)
         {
             try
             {
@@ -357,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (previousService == currentRemoteService)
                     {
                         // we replaced the service whose process we know is dead:
-                        currentRemoteService.Dispose(joinThreads: false);
+                        currentRemoteService.Dispose(processPendingOutput);
                         currentRemoteService = newService;
                     }
                     else
@@ -368,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                _errorOutput.WriteLine(FeaturesResources.UnableToCreateHostingProcess);
+                _errorOutput.WriteLine(FeaturesResources.Unable_to_create_hosting_process);
             }
             catch (OperationCanceledException)
             {
@@ -387,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
-                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+                var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
                     return default(TResult);
@@ -434,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     oldService.Dispose(joinThreads: false);
                 }
 
-                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+                var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
                     return default(RemoteExecutionResult);

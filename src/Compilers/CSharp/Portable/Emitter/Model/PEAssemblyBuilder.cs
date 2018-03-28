@@ -7,15 +7,21 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssembly
+    internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssemblyReference
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
+
+        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -54,18 +60,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
 
-        public override void Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit((Cci.IAssembly)this);
-        }
+        public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
-
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
             return _additionalTypes;
         }
 
-        IEnumerable<Cci.IFileReference> Cci.IAssembly.GetFiles(EmitContext context)
+        internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+            CreateEmbeddedAttributesIfNeeded(diagnostics);
+            if ((object)_lazyEmbeddedAttribute != null)
+            {
+                builder.Add(_lazyEmbeddedAttribute);
+            }
+
+            if ((object)_lazyIsReadOnlyAttribute != null)
+            {
+                builder.Add(_lazyIsReadOnlyAttribute);
+            }
+
+            if ((object)_lazyIsUnmanagedAttribute != null)
+            {
+                builder.Add(_lazyIsUnmanagedAttribute);
+            }
+
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                builder.Add(_lazyIsByRefLikeAttribute);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
         {
             if (_lazyFiles.IsDefault)
             {
@@ -89,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyFiles, builder.ToImmutable()) && _lazyFiles.Length > 0)
                     {
-                        if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.AssemblyHashAlgorithm))
+                        if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.HashAlgorithm))
                         {
                             context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CryptoHashFailed), NoLocation.Singleton));
                         }
@@ -102,35 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return _lazyFiles;
-        }
-
-        uint Cci.IAssembly.Flags
-        {
-            get
-            {
-                AssemblyNameFlags result = _sourceAssembly.Flags & ~AssemblyNameFlags.PublicKey;
-
-                if (!_sourceAssembly.PublicKey.IsDefaultOrEmpty)
-                    result |= AssemblyNameFlags.PublicKey;
-
-                return (uint)result;
-            }
-        }
-
-        string Cci.IAssembly.SignatureKey
-        {
-            get
-            {
-                return _sourceAssembly.SignatureKey;
-            }
-        }
-
-        ImmutableArray<byte> Cci.IAssembly.PublicKey
-        {
-            get
-            {
-                return _sourceAssembly.Identity.PublicKey;
-            }
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
@@ -161,18 +162,113 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        AssemblyIdentity Cci.IAssemblyReference.Identity => _sourceAssembly.Identity;
+        public override string Name => _metadataName;
+        public AssemblyIdentity Identity => _sourceAssembly.Identity;
+        public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
 
-        internal override string Name
+        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
-            get { return _metadataName; }
+            // _lazyEmbeddedAttribute should have been created before calling this method.
+            return new SynthesizedAttributeData(
+                _lazyEmbeddedAttribute.Constructor,
+                ImmutableArray<TypedConstant>.Empty,
+                ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }
 
-        AssemblyHashAlgorithm Cci.IAssembly.HashAlgorithm
+        protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
-            get
+            if ((object)_lazyIsReadOnlyAttribute != null)
             {
-                return _sourceAssembly.AssemblyHashAlgorithm;
+                return new SynthesizedAttributeData(
+                    _lazyIsReadOnlyAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            if ((object)_lazyIsUnmanagedAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsUnmanagedAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsUnmanagedAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsByRefLikeAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsByRefLikeAttribute();
+        }
+
+        private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
+        {
+            if (this.NeedsGeneratedIsReadOnlyAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsReadOnlyAttribute,
+                    diagnostics,
+                    AttributeDescription.IsReadOnlyAttribute);
+            }
+
+            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsByRefLikeAttribute,
+                    diagnostics,
+                    AttributeDescription.IsByRefLikeAttribute);
+            }
+
+            if (this.NeedsGeneratedIsUnmanagedAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsUnmanagedAttribute,
+                    diagnostics,
+                    AttributeDescription.IsUnmanagedAttribute);
+            }
+        }
+
+        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
+        {
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
+        }
+
+        private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
+        {
+            if ((object)symbol == null)
+            {
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+                {
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                }
+
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
             }
         }
     }

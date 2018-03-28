@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     public class NoPiaInstantiationOfGenericClassAndStruct : CSharpTestBase
     {
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForClassThatInheritsGeneric()
+        public void NoPiaIllegalGenericInstantiationSymbolForClassThatInheritsGeneric()
         {
             //Test class that inherits Generic<NoPIAType>
 
@@ -28,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             NamedTypeSymbol classLocalType1 = localConsumer1.SourceModule.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType1.GetMembers("field").OfType<FieldSymbol>().Single();
 
-            Assert.Equal(SymbolKind.ErrorType, localField.Type.BaseType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.BaseType);
+            Assert.Equal(SymbolKind.ErrorType, localField.Type.BaseType().Kind);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.BaseType());
         }
 
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForGenericType()
+        public void NoPiaIllegalGenericInstantiationSymbolForGenericType()
         {
             //Test field with Generic(Of NoPIAType())
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForFieldWithNestedGenericType()
+        public void NoPiaIllegalGenericInstantiationSymbolForFieldWithNestedGenericType()
         {
             //Test field with Generic(Of IGeneric(Of NoPIAType))
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         }
 
         [Fact]
-        public void NoPiaIllegalGenericInstantiationSymboleForFieldWithTwoNestedGenericType()
+        public void NoPiaIllegalGenericInstantiationSymbolForFieldWithTwoNestedGenericType()
         {
             //Test field with IGeneric(Of IGeneric(Of Generic(Of NoPIAType)))
 
@@ -89,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.NamedType, importedField.Type.Kind);
 
-            var outer = ((NamedTypeSymbol)importedField.Type).TypeArguments.Single();
+            var outer = ((NamedTypeSymbol)importedField.Type).TypeArguments().Single();
             Assert.Equal(SymbolKind.NamedType, outer.Kind);
 
-            var inner = ((NamedTypeSymbol)outer).TypeArguments.Single();
+            var inner = ((NamedTypeSymbol)outer).TypeArguments().Single();
             Assert.Equal(SymbolKind.ErrorType, inner.Kind);
         }
 
@@ -132,13 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 if (m.Parameters.Length > 0)
                 {
-                    Assert.Equal(SymbolKind.ErrorType, m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.BaseType.Kind);
-                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.BaseType);
+                    Assert.Equal(SymbolKind.ErrorType, m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.BaseType().Kind);
+                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.BaseType());
                 }
                 if (m.ReturnType.TypeKind != TypeKind.Struct)
                 {
-                    Assert.Equal(SymbolKind.ErrorType, m.ReturnType.BaseType.Kind);
-                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.ReturnType.BaseType);
+                    Assert.Equal(SymbolKind.ErrorType, m.ReturnType.BaseType().Kind);
+                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.ReturnType.BaseType());
                 }
             }
         }
@@ -385,8 +386,8 @@ public class NoPIAGenerics
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType.GetMembers("myclass").OfType<FieldSymbol>().Single();
 
-            Assert.Equal(SymbolKind.ErrorType, localField.Type.BaseType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.BaseType);
+            Assert.Equal(SymbolKind.ErrorType, localField.Type.BaseType().Kind);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.BaseType());
         }
 
         [Fact]
@@ -472,7 +473,7 @@ public class DrivedClass
         {
             //Test class that inherits Generic(Of NoPIAType)
 
-            var localConsumer = CreateCompilationWithMscorlib(assemblyName: "Dummy", sources: null,
+            var localConsumer = CreateCompilationWithMscorlib40(assemblyName: "Dummy", source: (string[])null,
                 references: new[]
                 {
                     TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1,
@@ -487,7 +488,7 @@ public class DrivedClass
             Assert.Equal(SymbolKind.ErrorType, ((ArrayTypeSymbol)localField.Type).ElementType.Kind);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NoPIAGenericsAssemblyRefsWithClassThatInheritsGenericOfNoPiaType()
         {
             //Test class that inherits Generic(Of NoPIAType)
@@ -503,7 +504,7 @@ public class DrivedClass
             Assert.True(localField.Type is ArrayTypeSymbol);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NoPIAGenericsAssemblyRefs3()
         {
             //Test a static method that returns Generic(Of NoPIAType)
@@ -548,10 +549,10 @@ public class TypeRefs1
     }
 }";
 
-            var localType = CreateCompilationWithMscorlib(assemblyName: "Dummy", text: localTypeSource,
+            var localType = CreateCompilation(assemblyName: "Dummy", source: localTypeSource,
                 references: new[] { TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true) });
 
-            var localConsumer = CreateCompilationWithMscorlib(assemblyName: "Dummy", sources: null,
+            var localConsumer = CreateCompilation(assemblyName: "Dummy", source: (string[])null,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,
@@ -572,9 +573,9 @@ public class TypeRefs1
 
         public CSharpCompilation CreateCompilation(string source)
         {
-            return CreateCompilationWithMscorlib(
+            return CreateCompilationWithMscorlib46(
                 assemblyName: "Dummy",
-                sources: (null == source) ? null : new string[] { source },
+                source: (null == source) ? null : new string[] { source },
                 references: new[]
                 {
                     TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1,

@@ -5,13 +5,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
@@ -24,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly ITaggerEventSource _eventSource;
 
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
-            private ITextSnapshot _cachedSnapshot_doNotAccessDirectly;
-
-            private IEditorClassificationService _classificationService;
+            private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
             public Tagger(SemanticClassificationBufferTaggerProvider owner, ITextBuffer subjectBuffer)
             {
@@ -62,18 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private ITextSnapshot CachedSnapshot
+            private SnapshotSpan? CachedTaggedSpan
             {
                 get
                 {
                     this.AssertIsForeground();
-                    return _cachedSnapshot_doNotAccessDirectly;
+                    return _cachedTaggedSpan_doNotAccessDirectly;
                 }
 
                 set
                 {
                     this.AssertIsForeground();
-                    _cachedSnapshot_doNotAccessDirectly = value;
+                    _cachedTaggedSpan_doNotAccessDirectly = value;
                 }
             }
 
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // When something changes, clear the cached data we have.
                 this.CachedTags = null;
-                this.CachedSnapshot = null;
+                this.CachedTaggedSpan = null;
 
                 // And notify any concerned parties that we have new tags.
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
@@ -122,9 +125,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var snapshot = firstSpan.Snapshot;
                 Debug.Assert(snapshot.TextBuffer == _subjectBuffer);
 
-                var cachedSnapshot = this.CachedSnapshot;
+                // We want to classify from the start of the first requested span to the end of the 
+                // last requested span.
+                var spanToTag = new SnapshotSpan(snapshot,
+                    Span.FromBounds(spans.First().Start, spans.Last().End));
 
-                if (snapshot != cachedSnapshot)
+                // We don't need to actually classify if what we're being asked for is a subspan
+                // of the last classification we performed.
+                var cachedTaggedSpan = this.CachedTaggedSpan;
+                var canReuseCache =
+                    cachedTaggedSpan?.Snapshot == snapshot &&
+                    cachedTaggedSpan.Value.Contains(spanToTag);
+
+                if (!canReuseCache)
                 {
                     // Our cache is not there, or is out of date.  We need to compute the up to date 
                     // results.
@@ -135,14 +148,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return Array.Empty<ITagSpan<IClassificationTag>>();
                     }
 
-                    _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
-
                     var context = new TaggerContext<IClassificationTag>(document, snapshot, cancellationToken: cancellationToken);
-                    var spanToTag = new DocumentSnapshotSpan(document, snapshot.GetFullSpan());
-                    var task = SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _owner._typeMap);
+                    var task = ProduceTagsAsync(
+                        context, new DocumentSnapshotSpan(document, spanToTag), _owner._typeMap);
+
                     task.Wait(cancellationToken);
 
-                    CachedSnapshot = snapshot;
+                    CachedTaggedSpan = spanToTag;
                     CachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, context.tagSpans);
                 }
 
@@ -152,6 +164,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
 
                 return this.CachedTags.GetIntersectingTagSpans(spans);
+            }
+
+            private Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan documentSpan, ClassificationTypeMap typeMap)
+            {
+                return Task.WhenAll(
+                    ProduceTagsAsync(context, documentSpan, typeMap, WorkspaceClassificationDelegationService.Instance),
+                    ProduceTagsAsync(context, documentSpan, typeMap, EditorClassificationDelegationService.Instance));
+            }
+
+            private Task ProduceTagsAsync<TClassificationService>(
+                TaggerContext<IClassificationTag> context,
+                DocumentSnapshotSpan documentSpan, 
+                ClassificationTypeMap typeMap,
+                IClassificationDelegationService<TClassificationService> delegationService) where TClassificationService : class, ILanguageService
+            {
+                var document = documentSpan.Document;
+
+                var classificationService = document.GetLanguageService<TClassificationService>();
+                if (classificationService != null)
+                {
+                    return SemanticClassificationUtilities.ProduceTagsAsync(
+                        context, documentSpan, delegationService, classificationService, typeMap);
+                }
+
+                return SpecializedTasks.EmptyTask;
             }
         }
     }

@@ -1,17 +1,13 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     <ExportLanguageService(GetType(IGenerateConversionService), LanguageNames.VisualBasic), [Shared]>
@@ -142,29 +138,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 typeToGenerateIn = typeToGenerateIn.ConstructUnboundGenericType.ConstructedFrom
             End If
             Return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes:=SpecializedCollections.EmptyList(Of AttributeData),
-                            accessibility:=Nothing,
-                            modifiers:=Nothing,
-                            returnType:=typeToGenerateIn,
-                            explicitInterfaceSymbol:=Nothing,
-                            name:=Nothing,
-                            typeParameters:=SpecializedCollections.EmptyList(Of ITypeParameterSymbol),
-                            parameters:={CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")},
-                            statements:=Nothing,
-                            handlesExpressions:=Nothing,
-                            returnTypeAttributes:=Nothing,
-                            methodKind:=MethodKind.Conversion)
+                attributes:=ImmutableArray(Of AttributeData).Empty,
+                accessibility:=Nothing,
+                modifiers:=Nothing,
+                returnType:=typeToGenerateIn,
+                refKind:=RefKind.None,
+                explicitInterfaceImplementations:=Nothing,
+                name:=Nothing,
+                typeParameters:=ImmutableArray(Of ITypeParameterSymbol).Empty,
+                parameters:=ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),
+                statements:=Nothing,
+                handlesExpressions:=Nothing,
+                returnTypeAttributes:=Nothing,
+                methodKind:=MethodKind.Conversion)
         End Function
 
         Protected Overrides Function GetExplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
-            Return String.Format(VBFeaturesResources.ExplicitConversionDisplayText, state.TypeToGenerateIn.Name)
+            Return String.Format(VBFeaturesResources.Generate_narrowing_conversion_in_0, state.TypeToGenerateIn.Name)
         End Function
 
         Protected Overrides Function GetImplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
-            Return String.Format(VBFeaturesResources.ImplicitConversionDisplayText, state.TypeToGenerateIn.Name)
+            Return String.Format(VBFeaturesResources.Generate_widening_conversion_in_0, state.TypeToGenerateIn.Name)
         End Function
     End Class
 End Namespace
-
-
-

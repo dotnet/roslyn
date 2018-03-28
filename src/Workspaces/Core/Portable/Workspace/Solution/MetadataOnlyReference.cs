@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis
             _ => new ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>();
 
         internal static MetadataReference GetOrBuildReference(
-            Solution solution,
+            SolutionState solution,
             ProjectReference projectReference,
             Compilation finalCompilation,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
             solution.Workspace.LogTestMessage($"Looking to see if we already have a skeleton assembly for {projectReference.ProjectId} before we build one...");
-            MetadataReference reference;
-            if (TryGetReference(solution, projectReference, finalCompilation, version, out reference))
+            if (TryGetReference(solution, projectReference, finalCompilation, version, out var reference))
             {
                 solution.Workspace.LogTestMessage($"A reference was found {projectReference.ProjectId} so we're skipping the build.");
                 return reference;
@@ -90,11 +89,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static bool TryGetReference(
-            Solution solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
+            SolutionState solution, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
             // if we have one from snapshot cache, use it. it will make sure same compilation will get same metadata reference always.
-            MetadataOnlyReferenceSet referenceSet;
-            if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out referenceSet))
+            if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out var referenceSet))
             {
                 solution.Workspace.LogTestMessage($"Found already cached metadata in {nameof(s_snapshotCache)} for the exact compilation");
                 reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
@@ -129,10 +127,8 @@ namespace Microsoft.CodeAnalysis
         {
             // get map for the branch
             var mapFromBranch = s_cache.GetValue(branchId, s_createReferenceSetMap);
-
             // if we have one, return it
-            MetadataOnlyReferenceSet referenceSet;
-            if (mapFromBranch.TryGetValue(projectReference.ProjectId, out referenceSet) &&
+            if (mapFromBranch.TryGetValue(projectReference.ProjectId, out var referenceSet) &&
                (version == VersionStamp.Default || referenceSet.Version == version))
             {
                 // record it to snapshot based cache.
@@ -167,13 +163,7 @@ namespace Microsoft.CodeAnalysis
                 _image = image;
             }
 
-            public VersionStamp Version
-            {
-                get
-                {
-                    return _version;
-                }
-            }
+            public VersionStamp Version => _version;
 
             public MetadataReference GetMetadataReference(Compilation compilation, ImmutableArray<string> aliases, bool embedInteropTypes)
             {
@@ -181,9 +171,7 @@ namespace Microsoft.CodeAnalysis
 
                 using (_gate.DisposableWait())
                 {
-                    WeakReference<MetadataReference> weakMetadata;
-                    MetadataReference metadataReference;
-                    if (!_metadataReferences.TryGetValue(key, out weakMetadata) || !weakMetadata.TryGetTarget(out metadataReference))
+                    if (!_metadataReferences.TryGetValue(key, out var weakMetadata) || !weakMetadata.TryGetTarget(out var metadataReference))
                     {
                         // here we give out strong reference to compilation. so there is possibility that we end up making 2 compilations for same project alive.
                         // one for final compilation and one for declaration only compilation. but the final compilation will be eventually kicked out from compilation cache

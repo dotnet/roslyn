@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!boundInitializers.IsDefault);
             Debug.Assert((method.MethodKind == MethodKind.Constructor) || (method.MethodKind == MethodKind.StaticConstructor));
 
-            var sourceMethod = method as SourceMethodSymbol;
+            var sourceMethod = method as SourceMemberMethodSymbol;
             var syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
             return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
         }
@@ -81,13 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null;
         }
 
-        private static BoundStatement RewriteFieldInitializer(BoundFieldInitializer fieldInit)
+        private static BoundStatement RewriteFieldInitializer(BoundFieldEqualsValue fieldInit)
         {
-            var syntax = fieldInit.Syntax;
+            SyntaxNode syntax = fieldInit.Syntax;
+            syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
             var boundReceiver = fieldInit.Field.IsStatic ? null :
                                         new BoundThisReference(syntax, fieldInit.Field.ContainingType);
 
-            // Mark this as CompilerGenerated so that the local rewriter doesn't add a sequence point.
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,
                     new BoundAssignmentOperator(syntax,
@@ -95,29 +96,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundReceiver,
                             fieldInit.Field,
                             constantValueOpt: null),
-                        fieldInit.InitialValue,
+                            fieldInit.Value,
                         fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
-                { WasCompilerGenerated = true };
+                { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
 
-            Debug.Assert(syntax is ExpressionSyntax); // Should be the initial value.
-            Debug.Assert(syntax.Parent.Kind() == SyntaxKind.EqualsValueClause);
-            switch (syntax.Parent.Parent.Kind())
+            if (!fieldInit.Locals.IsEmpty)
             {
-                case SyntaxKind.VariableDeclarator:
-                    var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
-                    boundStatement = LocalRewriter.AddSequencePoint(declaratorSyntax, boundStatement);
-                    break;
-
-                case SyntaxKind.PropertyDeclaration:
-                    var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
-                    boundStatement = LocalRewriter.AddSequencePoint(declaration, boundStatement);
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind());
+                boundStatement = new BoundBlock(syntax, fieldInit.Locals, ImmutableArray.Create(boundStatement)) { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
             }
 
+            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
             return boundStatement;
         }
 
@@ -125,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (initializer.Kind)
             {
-                case BoundKind.FieldInitializer:
-                    return RewriteFieldInitializer((BoundFieldInitializer)initializer);
+                case BoundKind.FieldEqualsValue:
+                    return RewriteFieldInitializer((BoundFieldEqualsValue)initializer);
                 case BoundKind.GlobalStatementInitializer:
                     return ((BoundGlobalStatementInitializer)initializer).Statement;
                 default:

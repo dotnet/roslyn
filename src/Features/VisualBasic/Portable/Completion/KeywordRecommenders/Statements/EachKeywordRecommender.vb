@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             If targetToken.IsKind(SyntaxKind.ForKeyword) AndAlso targetToken.Parent.IsKind(SyntaxKind.ForStatement) Then
                 Dim forStatement = DirectCast(targetToken.Parent, ForStatementSyntax)
                 If forStatement.EqualsToken = Nothing OrElse forStatement.EqualsToken.IsMissing Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Each", VBFeaturesResources.ForEachKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Each", VBFeaturesResources.Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection))
                 End If
             End If
 

@@ -1,10 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
@@ -21,16 +17,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Dim src1 = <compilation name="C2CTypeSymbolUnchanged01">
                            <file name="a.vb">
 Imports System
-Public Delegate Sub DFoo(p1 As Integer, p2 As String)
+Public Delegate Sub DGoo(p1 As Integer, p2 As String)
 Namespace N1.N2
 
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 
     Namespace N3
-        Public Class CFoo
-            Public Structure SFoo
-                Public Enum EFoo
+        Public Class CGoo
+            Public Structure SGoo
+                Public Enum EGoo
                     Zero
                     One
                 End Enum
@@ -43,18 +39,18 @@ End Namespace
 
             Dim src2 = <compilation name="C2CTypeSymbolUnchanged01">
                            <file name="b.vb">
-Public Delegate Sub DFoo(p1 As Integer, p2 As String)
+Public Delegate Sub DGoo(p1 As Integer, p2 As String)
 Namespace N1.N2
 
-    Public Interface IFoo
-        Function GetClass() As N3.CFoo
+    Public Interface IGoo
+        Function GetClass() As N3.CGoo
     End Interface
 
     Namespace N3
-        Public Class CFoo
-            Public Structure SFoo
+        Public Class CGoo
+            Public Structure SGoo
                 ' Update member
-                Public Enum EFoo
+                Public Enum EGoo
                     Zero
                     One
                     Two
@@ -70,8 +66,8 @@ End Namespace
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
@@ -85,9 +81,9 @@ End Namespace
             Dim src1 = <compilation name="C2CTypeSymbolCaseChangeOnly">
                            <file name="a.vb">
 Imports System
-Namespace NFOO
-    Public Interface IFOO
-        Delegate Sub DFOO(p As Integer)
+Namespace NGOO
+    Public Interface IGOO
+        Delegate Sub DGOO(p As Integer)
     End Interface
 End Namespace
                          </file>
@@ -96,16 +92,16 @@ End Namespace
             Dim src2 = <compilation name="C2CTypeSymbolCaseChangeOnly">
                            <file name="b.vb">
 Imports System
-Namespace nFOO
-    Public Interface IFoo ' case
-        Delegate Sub DfOO(p As Integer)
+Namespace nGOO
+    Public Interface IGoo ' case
+        Delegate Sub DgOO(p As Integer)
     End Interface
 End Namespace
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType Or SymbolCategory.DeclaredNamespace)
@@ -119,8 +115,8 @@ End Namespace
                 Dim sym1 = origlist(i)
                 Dim sym2 = newlist(i)
 
-                AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseSensitive, expectEqual:=False)
-                Dim resolvedSymbol = ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseSensitive) ' ignored
+                AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.None, expectEqual:=False)
+                Dim resolvedSymbol = ResolveSymbol(sym2, comp1, SymbolIdComparison.None) ' ignored
                 Assert.NotNull(resolvedSymbol)
                 Assert.Equal(sym1, resolvedSymbol)
             Next
@@ -137,20 +133,20 @@ End Namespace
             Dim src1 = <compilation name="C2CTypeSymbolChanged01">
                            <file name="a.vb">
 Imports System
-Public Delegate Sub DFoo(p As Integer)
+Public Delegate Sub DGoo(p As Integer)
 
 Namespace N1.N2
 
     Public Interface IBase
     End Interface
 
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 
     Namespace N3
-        Public Class CFoo
-            Public Structure SFoo
-                Public Enum EFoo
+        Public Class CGoo
+            Public Structure SGoo
+                Public Enum EGoo
                     Zero
                     One
                 End Enum
@@ -163,24 +159,24 @@ End Namespace
 
             Dim src2 = <compilation name="C2CTypeSymbolChanged01">
                            <file name="a.vb">
-Public Delegate Sub DFoo(p1 As Integer, p2 As String) ' One more param
+Public Delegate Sub DGoo(p1 As Integer, p2 As String) ' One more param
 
 Namespace N1.N2
 
     Public Interface IBase
     End Interface
 
-    Public Interface IFoo
+    Public Interface IGoo
         Inherits IBase ' base
     End Interface
 
     Namespace N3
-        Public Class cFoo
-            Implements Ifoo ' impl
+        Public Class cGoo
+            Implements Igoo ' impl
 
-            Private Structure SFOO ' modifier
+            Private Structure SGOO ' modifier
 
-                Public Enum efoo As Long ' change base, case
+                Public Enum egoo As Long ' change base, case
                     Zero
                     ONE
                 End Enum
@@ -192,8 +188,8 @@ End Namespace
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType)
@@ -222,16 +218,16 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim sym1 = comp1.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
             Dim sym2 = comp2.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive, expectEqual:=False)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, expectEqual:=False)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
             ' ignore asm id 
-            ResolveAndVerifySymbol(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive Or SymbolIdComparison.IgnoreAssemblyIds)
+            ResolveAndVerifySymbol(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase Or SymbolIdComparison.IgnoreAssemblyIds)
         End Sub
 
         <Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")>
@@ -255,30 +251,30 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
-            Dim comp2 = CreateCompilationWithMscorlib(src2)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
+            Dim comp2 = CreateCompilationWithMscorlib40(src2)
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType)
             Dim newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType)
             Dim sym1 As ISymbol = comp1.Assembly
             Dim sym2 As ISymbol = comp2.Assembly
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive, False)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, False)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
             ' ignore asm id 
             ' Same ID
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
             ' but can NOT resolve
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive Or SymbolIdComparison.IgnoreAssemblyIds))
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase Or SymbolIdComparison.IgnoreAssemblyIds))
 
             sym1 = comp1.Assembly.Modules(0)
             sym2 = comp2.Assembly.Modules(0)
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive, False)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, False)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.IgnoreAssemblyIds))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreAssemblyIds))
         End Sub
 
 #End Region

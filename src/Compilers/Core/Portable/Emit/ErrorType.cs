@@ -72,9 +72,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
         {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
+            get
+            {
+                return Cci.PrimitiveTypeCode.NotPrimitive;
+            }
         }
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef
@@ -191,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 contentType: AssemblyContentType.Default);
 
             AssemblyIdentity Cci.IAssemblyReference.Identity => s_identity;
+            Version Cci.IAssemblyReference.AssemblyVersionPattern => null;
 
             Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
             {

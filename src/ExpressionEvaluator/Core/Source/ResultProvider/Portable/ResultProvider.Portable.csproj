@@ -1,29 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FA0E905D-EC46-466D-B7B2-3B5557F9428C}</ProjectGuid>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
       <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
@@ -41,7 +33,7 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\SharedCollections\ObjectPool`1.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">
@@ -62,36 +54,27 @@
     <Compile Include="..\..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>Helpers\DateTimeUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\ExpressionCompiler\CustomTypeInfo.cs">
+      <Link>ExpressionCompiler\CustomTypeInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs">
       <Link>ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="Helpers\Placeholders.cs" />
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
-  </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
@@ -100,8 +83,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
+  </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
 </Project>

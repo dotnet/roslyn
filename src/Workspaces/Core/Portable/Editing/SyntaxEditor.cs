@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -15,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Editing
     public class SyntaxEditor
     {
         private readonly SyntaxGenerator _generator;
-        private readonly SyntaxNode _root;
         private readonly List<Change> _changes;
 
         /// <summary>
@@ -23,36 +19,32 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _root = root;
+            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
             _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
+            _changes = new List<Change>();
+        }
+
+        internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
+        {
+            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
+            _generator = generator;
             _changes = new List<Change>();
         }
 
         /// <summary>
         /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>
-        public SyntaxNode OriginalRoot
-        {
-            get { return _root; }
-        }
+        public SyntaxNode OriginalRoot { get; }
 
         /// <summary>
         /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
         /// </summary>
-        public SyntaxGenerator Generator
-        {
-            get { return _generator; }
-        }
+        public SyntaxGenerator Generator => _generator;
 
         /// <summary>
         /// Returns the changed root node.
@@ -60,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode GetChangedRoot()
         {
             var nodes = Enumerable.Distinct(_changes.Select(c => c.Node));
-            var newRoot = _root.TrackNodes(nodes);
+            var newRoot = OriginalRoot.TrackNodes(nodes);
 
             foreach (var change in _changes)
             {
@@ -109,6 +101,12 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             CheckNodeInTree(node);
             _changes.Add(new ReplaceChange(node, computeReplacement));
+        }
+
+        internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
+        {
+            CheckNodeInTree(node);
+            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument));
         }
 
         /// <summary>
@@ -173,9 +171,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private void CheckNodeInTree(SyntaxNode node)
         {
-            if (!_root.Contains(node))
+            if (!OriginalRoot.Contains(node))
             {
-                throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.TheNodeIsNotPartOfTheTree, nameof(node));
+                throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.The_node_is_not_part_of_the_tree, nameof(node));
             }
         }
 
@@ -234,6 +232,29 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator);
+                return generator.ReplaceNode(root, current, newNode);
+            }
+        }
+
+        private class ReplaceChange<TArgument> : Change
+        {
+            private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
+            private readonly TArgument _argument;
+
+            public ReplaceChange(
+                SyntaxNode node,
+                Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
+                TArgument argument)
+                : base(node)
+            {
+                _modifier = modifier;
+                _argument = argument;
+            }
+
+            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            {
+                var current = root.GetCurrentNode(this.Node);
+                var newNode = _modifier(current, generator, _argument);
                 return generator.ReplaceNode(root, current, newNode);
             }
         }

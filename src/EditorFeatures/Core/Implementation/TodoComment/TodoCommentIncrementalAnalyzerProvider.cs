@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,14 +7,15 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
-    [Export(typeof(ITodoListProvider))]
     [Shared]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.MiscellaneousFiles)]
+    [Export(typeof(ITodoListProvider))]
+    [ExportIncrementalAnalyzerProvider(
+        name: nameof(TodoCommentIncrementalAnalyzerProvider),
+        workspaceKinds: new[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.MiscellaneousFiles })]
     internal class TodoCommentIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, ITodoListProvider
     {
         private static readonly ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer> s_analyzers = new ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer>();
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             return s_analyzers.GetValue(workspace, w =>
-               new TodoCommentIncrementalAnalyzer(w, w.Services.GetService<IOptionService>(), this, _todoCommentTokens));
+               new TodoCommentIncrementalAnalyzer(w, this, _todoCommentTokens));
         }
 
         internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
@@ -69,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)
         {
-            TodoCommentIncrementalAnalyzer analyzer;
-            if (s_analyzers.TryGetValue(workspace, out analyzer))
+            if (s_analyzers.TryGetValue(workspace, out var analyzer))
             {
                 return analyzer;
             }

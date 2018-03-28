@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -25,21 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                 </Workspace>";
 
         protected override string GetLanguage()
-        {
-            return LanguageNames.CSharp;
-        }
+            => LanguageNames.CSharp;
 
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new CodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new TestCodeRefactoringProvider();
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20370")]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
+            using (var workspace = TestWorkspace.Create(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
 
                 var expectedCode = "private class D { }";
 
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     workspace,
                     expectedText: expectedCode,
                     index: 0,
-                    actions: codeIssueOrRefactoring.Actions.ToList(),
+                    actions: codeIssueOrRefactoring.Actions,
                     expectedPreviewContents: expectedCode);
             }
         }
@@ -55,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [Fact]
         public async Task TestWorkspaceTryApplyChangesDirectCall()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXml))
+            using (var workspace = TestWorkspace.Create(WorkspaceXml))
             {
                 var solution = workspace.CurrentSolution;
 
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
         {
             throw new NotSupportedException();
         }
@@ -87,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             throw new NotSupportedException();
         }
 
-        private class CodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
+        private class TestCodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
         {
             public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {

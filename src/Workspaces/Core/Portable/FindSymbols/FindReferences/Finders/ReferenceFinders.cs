@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal static class ReferenceFinders
     {
-        public static readonly IReferenceFinder Constructor = new ConstructorSymbolReferenceFinder();
+        public static readonly IReferenceFinder Constructor = ConstructorSymbolReferenceFinder.Instance;
         public static readonly IReferenceFinder ConstructorInitializer = new ConstructorInitializerSymbolReferenceFinder();
         public static readonly IReferenceFinder Destructor = new DestructorSymbolReferenceFinder();
         public static readonly IReferenceFinder ExplicitInterfaceMethod = new ExplicitInterfaceMethodReferenceFinder();

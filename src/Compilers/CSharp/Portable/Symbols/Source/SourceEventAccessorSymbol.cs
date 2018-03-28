@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Base class for event accessors - synthesized and user defined.
     /// </summary>
-    internal abstract class SourceEventAccessorSymbol : SourceMethodSymbol
+    internal abstract class SourceEventAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourceEventSymbol _event;
 
@@ -22,9 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            SyntaxReference blockSyntaxReference,
             ImmutableArray<Location> locations)
-            : base(@event.containingType, syntaxReference, blockSyntaxReference, locations)
+            : base(@event.containingType, syntaxReference, locations)
         {
             _event = @event;
         }
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }
@@ -127,6 +126,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<CustomModifier>.Empty; // Same as base, but this is clear and explicit.
+            }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
@@ -153,6 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
+
+        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal Location Location
         {

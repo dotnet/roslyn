@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Utilities
@@ -17,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         StaUnitTest,
         JoinableTask,
         ForcedByPackageInitialize,
+        MonoDevelopGtk,
         Unknown
     }
 
@@ -47,6 +43,10 @@ namespace Microsoft.CodeAnalysis.Utilities
                 case "System.Windows.Forms.WindowsFormsSynchronizationContext":
 
                     return WinForms;
+
+                case "MonoDevelop.Ide.DispatchService+GtkSynchronizationContext":
+
+                    return MonoDevelopGtk;
 
                 default:
 

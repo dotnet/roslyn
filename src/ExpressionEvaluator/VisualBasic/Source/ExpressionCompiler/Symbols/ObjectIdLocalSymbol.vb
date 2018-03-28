@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overloads Shared Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Overloads Shared Function RewriteLocalInternal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name)
             End Function
 
-            Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As VisualBasicSyntaxNode, name As String) As BoundExpression
+            Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As SyntaxNode, name As String) As BoundExpression
                 Dim argument As New BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

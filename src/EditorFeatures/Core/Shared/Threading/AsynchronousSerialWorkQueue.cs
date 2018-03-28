@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -52,13 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
             _currentBackgroundTask = SpecializedTasks.EmptyTask;
         }
 
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                return _cancellationTokenSource.Token;
-            }
-        }
+        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void CancelCurrentWork()
         {
@@ -135,7 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
                 else
                 {
                     _currentBackgroundTask = _currentBackgroundTask.ContinueWithAfterDelayFromAsync(
-                        _ => taskGeneratingFunctionAsync(cancellationToken), cancellationToken, afterDelay, TaskContinuationOptions.None, TaskScheduler.Default);
+                        _ => taskGeneratingFunctionAsync(cancellationToken),
+                        cancellationToken,
+                        afterDelay,
+                        TaskContinuationOptions.None,
+                        TaskScheduler.Default);
                 }
 
                 _currentBackgroundTask.CompletesAsyncOperation(asyncToken);

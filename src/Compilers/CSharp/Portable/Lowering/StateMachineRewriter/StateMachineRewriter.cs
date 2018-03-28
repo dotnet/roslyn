@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(local.RefKind == RefKind.None);
                     StateMachineFieldSymbol field = null;
 
-                    if (!local.SynthesizedKind.IsSlotReusable(F.Compilation.Options.OptimizationLevel))
+                    if (ShouldPreallocateNonReusableProxy(local))
                     {
                         // variable needs to be hoisted
                         var fieldType = typeMap.SubstituteType(local.Type).Type;
@@ -173,10 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // map local id to the previous id, if available:
                             int previousSlotIndex;
                             if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
-                                declaratorSyntax, 
-                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics), 
-                                synthesizedKind, 
-                                id, 
+                                declaratorSyntax,
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics),
+                                synthesizedKind,
+                                id,
                                 diagnostics,
                                 out previousSlotIndex))
                             {
@@ -208,13 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsThis)
                     {
                         var containingType = method.ContainingType;
-                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true);
+                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true, isThis: true);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
                             var initialThis = containingType.IsStructType() ?
-                                F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true) : proxyField;
+                                F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true, isThis: true) : proxyField;
 
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(initialThis, isReusable: false));
                         }
@@ -236,6 +237,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             proxies = proxiesBuilder;
+        }
+
+        private bool ShouldPreallocateNonReusableProxy(LocalSymbol local)
+        {
+            var synthesizedKind = local.SynthesizedKind;
+            var optimizationLevel = F.Compilation.Options.OptimizationLevel;
+
+            // do not preallocate proxiy fields for user defined locals in release
+            // otherwise we will be allocating fields for all locals even when fields can be reused
+            // see https://github.com/dotnet/roslyn/issues/15290
+            if (optimizationLevel == OptimizationLevel.Release && synthesizedKind == SynthesizedLocalKind.UserDefined)
+            {
+                return false;
+            }
+
+            return !synthesizedKind.IsSlotReusable(optimizationLevel);
         }
 
         private BoundStatement GenerateKickoffMethodBody()

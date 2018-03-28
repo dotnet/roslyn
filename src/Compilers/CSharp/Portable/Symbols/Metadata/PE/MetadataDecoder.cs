@@ -125,9 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int referencedAssemblyIndex,
             ref MetadataTypeName emittedName)
         {
+            var assembly = moduleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+            if ((object)assembly == null)
+            {
+                return new UnsupportedMetadataTypeSymbol();
+            }
+
             try
             {
-                AssemblySymbol assembly = moduleSymbol.GetReferencedAssemblySymbols()[referencedAssemblyIndex];
                 return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
             }
             catch (Exception e) when (FatalError.Report(e)) // Trying to get more useful Watson dumps.
@@ -212,7 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.ErrorType:
                     goto case SymbolKind.NamedType;
                 case SymbolKind.NamedType:
-
                     var namedType = (NamedTypeSymbol)symbol;
                     AssemblySymbol containingAssembly = symbol.OriginalDefinition.ContainingAssembly;
                     int i;
@@ -230,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
+                        if (namedType.IsTupleType)
+                        {
+                            return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
+                        }
+
                         var arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 
@@ -398,7 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // Let's use a trick. To make sure the kind is the same, make sure
                         // base type is the same.
-                        if (!ReferenceEquals(baseType, candidate.BaseTypeNoUseSiteDiagnostics))
+                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault();
+                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType).GetValueOrDefault())
                         {
                             continue;
                         }
@@ -506,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (scope != targetTypeSymbol &&
                     !(targetTypeSymbol.IsInterfaceType()
                         ? scope.AllInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)targetTypeSymbol)
-                        : scope.IsDerivedFrom(targetTypeSymbol, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }

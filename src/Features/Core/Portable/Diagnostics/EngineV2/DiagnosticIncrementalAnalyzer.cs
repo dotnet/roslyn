@@ -6,8 +6,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -17,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private readonly int _correlationId;
 
@@ -31,8 +37,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Workspace workspace,
             HostAnalyzerManager hostAnalyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
+            Contract.ThrowIfNull(owner);
+
+            this.Owner = owner;
+            this.Workspace = workspace;
+            this.HostAnalyzerManager = hostAnalyzerManager;
+            this.HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            this.DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
+
             _correlationId = correlationId;
 
             _stateManager = new StateManager(hostAnalyzerManager);
@@ -42,7 +55,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _compilationManager = new CompilationManager(this);
         }
 
-        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        internal DiagnosticAnalyzerService Owner { get; }
+        internal Workspace Workspace { get; }
+        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal HostAnalyzerManager HostAnalyzerManager { get; }
+        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
+
+        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {
@@ -53,6 +72,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             return false;
+        }
+
+        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+        {
+            return e.Option.Feature == nameof(SimplificationOptions) ||
+                   e.Option.Feature == nameof(CodeStyleOptions) ||
+                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
+                   e.Option == RuntimeOptions.FullSolutionAnalysis;
         }
 
         private bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
@@ -93,6 +120,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             ClearAllDiagnostics(stateSets, project.Id);
+        }
+
+        public void Shutdown()
+        {
+            var stateSets = _stateManager.GetStateSets();
+
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                var handleActiveFile = true;
+                foreach (var stateSet in stateSets)
+                {
+                    var projectIds = stateSet.GetProjectsWithDiagnostics();
+                    foreach (var projectId in projectIds)
+                    {
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                    }
+                }
+            });
         }
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
@@ -187,18 +232,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return project.GetDependentVersionAsync(cancellationToken);
         }
 
-        private static AnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {
-            AnalysisResult result;
-            if (map.TryGetValue(analyzer, out result))
+            if (map.TryGetValue(analyzer, out var result))
             {
                 return result;
             }
 
-            return new AnalysisResult(projectId, version);
+            return new DiagnosticAnalysisResult(projectId, version);
         }
 
-        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
+        private static ImmutableArray<DiagnosticData> GetResult(DiagnosticAnalysisResult result, AnalysisKind kind, DocumentId id)
         {
             if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
             {
@@ -218,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override void LogAnalyzerCountSummary()
+        public void LogAnalyzerCountSummary()
         {
             DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
             DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
@@ -227,34 +271,50 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ResetDiagnosticLogAggregator();
         }
 
+        private void ResetDiagnosticLogAggregator()
+        {
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(Owner);
+        }
+
+        // internal for testing purposes.
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
+        {
+            return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
+        }
+
+        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
+        {
+            return _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
+        }
+
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
         {
-            return string.Format($"{title}: {document.FilePath ?? document.Name}, {analyzer.ToString()}");
+            return $"{title}: ({document.FilePath ?? document.Name}), ({analyzer.ToString()})";
         }
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
         {
-            return string.Format($"project: {project.FilePath ?? project.Name}, {string.Join(",", stateSets.Select(s => s.Analyzer.ToString()))}");
+            return $"project: ({project.FilePath ?? project.Name}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
         }
 
         private static string GetResetLogMessage(Document document)
         {
-            return string.Format($"document close/reset: {document.FilePath ?? document.Name}");
+            return $"document close/reset: ({document.FilePath ?? document.Name})";
         }
 
         private static string GetOpenLogMessage(Document document)
         {
-            return string.Format($"document open: {document.FilePath ?? document.Name}");
+            return $"document open: ({document.FilePath ?? document.Name})";
         }
 
         private static string GetRemoveLogMessage(DocumentId id)
         {
-            return string.Format($"document remove: {id.ToString()}");
+            return $"document remove: {id.ToString()}";
         }
 
         private static string GetRemoveLogMessage(ProjectId id)
         {
-            return string.Format($"project remove: {id.ToString()}");
+            return $"project remove: {id.ToString()}";
         }
     }
 }

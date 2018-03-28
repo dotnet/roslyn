@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
-<!-- This test measures typing responsiveness. It uses the same delay tracker as the DDRIT test. -->
+<!-- This test measures typing responsiveness with:                                              -->
+<!--   (a) Full solution analysis turned **OFF**.                                                -->
+<!--   (a) Built-in IDE analyzers.                                                               -->
+<!-- It uses the same delay tracker as the DDRIT test.                                           -->
 <!-- This test doesn't produce a regular Tao perf results file. Instead it produce a log and a   -->
 <!-- results file.                                                                               -->
 

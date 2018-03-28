@@ -1,8 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -10,13 +9,22 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
+Imports Microsoft.CodeAnalysis.Host
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
-    <ExportLanguageService(GetType(ICompletionService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicCompletionService
-        Inherits AbstractCompletionService
+    <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicCompletionServiceFactory
+        Implements ILanguageServiceFactory
 
-        Private ReadOnly _completionProviders As IEnumerable(Of CompletionListProvider) = New CompletionListProvider() {
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
+        End Function
+    End Class
+
+    Partial Friend Class VisualBasicCompletionService
+        Inherits CommonCompletionService
+
+        Private ReadOnly _completionProviders As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(
             New KeywordCompletionProvider(),
             New SymbolCompletionProvider(),
             New ObjectInitializerCompletionProvider(),
@@ -28,59 +36,119 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New HandlesClauseCompletionProvider(),
             New PartialTypeCompletionProvider(),
             New CrefCompletionProvider(),
-            New CompletionListTagCompletionProvider
-        }.ToImmutableArray()
+            New CompletionListTagCompletionProvider(),
+            New OverrideCompletionProvider(),
+            New XmlDocCommentCompletionProvider(),
+            New InternalsVisibleToCompletionProvider()
+        )
 
-        Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of CompletionListProvider)
+        Private ReadOnly _workspace As Workspace
+
+        Public Sub New(workspace As Workspace,
+                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider) ? = Nothing)
+            MyBase.New(workspace, exclusiveProviders)
+            _workspace = workspace
+        End Sub
+
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Private _latestRules As CompletionRules = CompletionRules.Create(
+            dismissIfEmpty:=True,
+            dismissIfLastCharacterDeleted:=True,
+            defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+            defaultEnterKeyRule:=EnterKeyRule.Always)
+
+        Public Overrides Function GetRules() As CompletionRules
+            Dim options = _workspace.Options
+
+            ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
+            ' In VB the default means Always to maintain previous behavior
+            Dim enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
+            Dim snippetsRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic)
+
+            If enterRule = EnterKeyRule.Default Then
+                enterRule = EnterKeyRule.Always
+            End If
+
+            If snippetsRule = SnippetsRule.Default Then
+                snippetsRule = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
+            End If
+
+            Dim newRules = _latestRules.WithDefaultEnterKeyRule(enterRule).
+                                        WithSnippetsRule(snippetsRule)
+
+            Interlocked.Exchange(_latestRules, newRules)
+
+            Return newRules
+        End Function
+
+
+        Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
             Return _completionProviders
         End Function
 
-        Public Overrides Function GetCompletionRules() As CompletionRules
-            Return New VisualBasicCompletionRules(Me)
-        End Function
-
-        ''' <summary>
-        ''' In Turkish Locale, both capital 'i's should be considered same. This behavior matches the compiler behavior.
-        ''' If lowered, both 'i's are lowered to small 'i' with dot
-        ''' </summary>
-        Public Overrides Function GetCultureSpecificQuirks(candidate As String) As String
-            If CultureInfo.CurrentCulture.Name = "tr-TR" Then
-                Return candidate.Replace("I"c, "İ"c)
+        Protected Overrides Function GetBetterItem(item As CompletionItem, existingItem As CompletionItem) As CompletionItem
+            ' If one Is a keyword, And the other Is some other item that inserts the same text as the keyword,
+            ' keep the keyword (VB only), unless the other item is preselected
+            If IsKeywordItem(existingItem) AndAlso existingItem.Rules.MatchPriority >= item.Rules.MatchPriority Then
+                Return existingItem
             End If
 
-            Return candidate
+            Return MyBase.GetBetterItem(item, existingItem)
         End Function
 
-        Public Overrides Async Function GetDefaultTrackingSpanAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of TextSpan)
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
+        Protected Overrides Function ItemsMatch(item As CompletionItem, existingItem As CompletionItem) As Boolean
+            If Not MyBase.ItemsMatch(item, existingItem) Then
+                Return False
+            End If
+
+            ' DevDiv 957450 Normally, we want to show items with the same display text And
+            ' different glyphs. That way, the we won't hide user - defined symbols that happen
+            ' to match a keyword (Like Select). However, we want to avoid showing the keyword
+            ' for an intrinsic right next to the item for the corresponding symbol. 
+            ' Therefore, if a keyword claims to represent an "intrinsic" item, we'll ignore
+            ' the glyph when matching.
+
+            Dim keywordCompletionItem = If(IsKeywordItem(existingItem), existingItem, If(IsKeywordItem(item), item, Nothing))
+            If keywordCompletionItem IsNot Nothing AndAlso keywordCompletionItem.Tags.Contains(CompletionTags.Intrinsic) Then
+                Dim otherItem = If(keywordCompletionItem Is item, existingItem, item)
+                Dim changeText = GetChangeText(otherItem)
+                If changeText = keywordCompletionItem.DisplayText Then
+                    Return True
+                Else
+                    Return False
+                End If
+            End If
+
+            Return item.Tags = existingItem.Tags OrElse Enumerable.SequenceEqual(item.Tags, existingItem.Tags)
         End Function
 
-        Protected Overrides Function TriggerOnBackspace(text As SourceText, position As Integer, triggerInfo As CompletionTriggerInfo, options As OptionSet) As Boolean
-            Dim triggerChar = triggerInfo.TriggerCharacter.GetValueOrDefault()
-            Return options.GetOption(CompletionOptions.TriggerOnTyping, GetLanguageName()) AndAlso (Char.IsLetterOrDigit(triggerChar) OrElse triggerChar = "."c)
+        Private Function GetChangeText(item As CompletionItem) As String
+            Dim provider = TryCast(GetProvider(item), CommonCompletionProvider)
+            If provider IsNot Nothing Then
+                ' TODO: Document Is Not available in this code path.. what about providers that need to reconstruct information before producing text?
+                Dim result = provider.GetTextChangeAsync(Nothing, item, Nothing, CancellationToken.None).Result
+                If result IsNot Nothing Then
+                    Return result.Value.NewText
+                End If
+            End If
+
+            Return item.DisplayText
         End Function
 
-        Public Overrides ReadOnly Property DismissIfEmpty As Boolean
-            Get
-                Return True
-            End Get
-        End Property
+        Public Overrides Function GetDefaultCompletionListSpan(text As SourceText, caretPosition As Integer) As TextSpan
+            Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
+        End Function
 
-        Public Overrides ReadOnly Property SupportSnippetCompletionListOnTab As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property DismissIfLastFilterCharacterDeleted As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
+        Friend Overrides Function SupportsTriggerOnDeletion(options As OptionSet) As Boolean
+            ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
+            ' Only if the option is false do we not want to trigger.
+            Dim opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Me.Language)
+            Return If(opt = False, False, True)
         End Function
     End Class
 End Namespace

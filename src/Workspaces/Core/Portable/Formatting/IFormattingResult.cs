@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal interface IFormattingResult
     {
-        IList<TextChange> GetTextChanges(CancellationToken cancellationToken = default(CancellationToken));
-        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken = default(CancellationToken));
+        IList<TextChange> GetTextChanges(CancellationToken cancellationToken = default);
+        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken = default);
     }
 }

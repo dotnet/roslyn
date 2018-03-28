@@ -8,6 +8,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -273,7 +274,7 @@ End Class
             Debug.Assert(Not preprocessorSymbols.IsDefault)
             Dim parseOpts = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
             Dim testSource As String = condDefs & s_commonTestSource_ConditionalAttrDefs & s_commonTestSource_ConditionalAttributesApplied
-            Dim compilation = CreateCompilationWithMscorlib({Parse(testSource, parseOpts)}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40({Parse(testSource, parseOpts)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 
@@ -301,11 +302,11 @@ Imports System.Diagnostics
             Dim parseOpts2 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbolsSrcFile2)
 
             ' Different source files, same compilation
-            Dim comp = CreateCompilationWithMscorlib({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
             CompileAndVerify(comp, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
 
             ' Different source files, different compilation
-            Dim comp1 = CreateCompilationWithMscorlib({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
             Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)})
             CompileAndVerify(comp2, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
@@ -545,7 +546,7 @@ End Class
     End Module
     ]]>.Value
 
-        Private Shared ReadOnly s_commonExpectedOutput_ConditionalMethodsTest As String =
+        Private Const s_commonExpectedOutput_ConditionalMethodsTest As String =
             "Z.PreservedCalls_AppliedConditional_Method" & vbCrLf &
             "Z.PreservedCalls_InheritedConditional_Method" & vbCrLf &
             "Z.PreservedCalls_MultipleConditional_Method" & vbCrLf &
@@ -753,7 +754,7 @@ End Module
 Imports System
 
 Class TestClass
-    WriteOnly Property foo() As String
+    WriteOnly Property goo() As String
         &lt;Diagnostics.Conditional("N")&gt;
         Set(ByVal Value As String)
             Console.WriteLine("Property Called")
@@ -764,7 +765,7 @@ End Class
 Module M1
     Sub Main()
         Dim t As New TestClass()
-        t.foo = "abds"
+        t.goo = "abds"
     End Sub
 End Module
 
@@ -797,8 +798,8 @@ Class C
 End Class
 "
             Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
-            Dim comp = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source, parseOptions)}, options:=TestOptions.ReleaseModule)
-            CompileAndVerify(comp, verify:=False).VerifyIL("C.M", "
+            Dim comp = CreateCompilationWithMscorlib40({VisualBasicSyntaxTree.ParseText(source, parseOptions)}, options:=TestOptions.ReleaseModule)
+            CompileAndVerify(comp, verify:=Verification.Fails).VerifyIL("C.M", "
 {
   // Code size        7 (0x7)
   .maxstack  1

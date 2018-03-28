@@ -19,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var generatedCodeService = workspaceServices.GetService<IGeneratedCodeRecognitionService>();
-            return new VisualStudioGenerateTypeOptionsService(generatedCodeService);
+            return new VisualStudioGenerateTypeOptionsService();
         }
 
         private class VisualStudioGenerateTypeOptionsService : IGenerateTypeOptionsService
@@ -28,13 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             private bool _isNewFile = false;
             private string _accessSelectString = "";
             private string _typeKindSelectString = "";
-
-            private IGeneratedCodeRecognitionService _generatedCodeService;
-
-            public VisualStudioGenerateTypeOptionsService(IGeneratedCodeRecognitionService generatedCodeService)
-            {
-                _generatedCodeService = generatedCodeService;
-            }
 
             public GenerateTypeOptionsResult GetGenerateTypeOptions(
                 string typeName,
@@ -49,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     notificationService,
                     projectManagementService,
                     syntaxFactsService,
-                    _generatedCodeService,
                     generateTypeDialogOptions,
                     typeName,
                     document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb",

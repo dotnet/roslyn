@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -63,14 +63,14 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterExtern()
         {
-            await VerifyAbsenceAsync(@"extern alias Foo;
+            await VerifyAbsenceAsync(@"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsing()
         {
-            await VerifyAbsenceAsync(@"using Foo;
+            await VerifyAbsenceAsync(@"using Goo;
 $$");
         }
 
@@ -91,7 +91,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegateDeclaration()
         {
-            await VerifyAbsenceAsync(@"delegate void Foo();
+            await VerifyAbsenceAsync(@"delegate void Goo();
 $$");
         }
 
@@ -100,7 +100,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -127,20 +127,20 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAssemblyAttribute()
         {
-            await VerifyAbsenceAsync(@"[assembly: foo]
+            await VerifyAbsenceAsync(@"[assembly: goo]
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(@"[foo]
+            await VerifyAbsenceAsync(@"[goo]
 $$");
         }
 
@@ -149,7 +149,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -306,7 +306,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo { $$");
+    int Goo { $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -314,7 +314,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo { get; $$");
+    int Goo { get; $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -322,7 +322,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo { get; protected $$");
+    int Goo { get; protected $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -330,7 +330,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo { get; internal $$");
+    int Goo { get; internal $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

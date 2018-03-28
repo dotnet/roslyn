@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         void ICommandHandler<CutCommandArgs>.ExecuteCommand(CutCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            EnsureCompletionSessionStopped();
+            DismissSessionIfActive();
             nextHandler();
         }
 
@@ -31,17 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         void ICommandHandler<PasteCommandArgs>.ExecuteCommand(PasteCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            EnsureCompletionSessionStopped();
+            DismissSessionIfActive();
             nextHandler();
-        }
-
-        private void EnsureCompletionSessionStopped()
-        {
-            AssertIsForeground();
-            if (this.sessionOpt != null)
-            {
-                StopModelComputation();
-            }
         }
     }
 }

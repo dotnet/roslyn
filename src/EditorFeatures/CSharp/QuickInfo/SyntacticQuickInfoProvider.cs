@@ -1,12 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -15,27 +15,12 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 {
     [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Syntactic, LanguageNames.CSharp)]
     internal class SyntacticQuickInfoProvider : AbstractQuickInfoProvider
     {
-        [ImportingConstructor]
-        public SyntacticQuickInfoProvider(
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(textBufferFactoryService, contentTypeRegistryService, projectionBufferFactoryService,
-                   editorOptionsFactoryService, textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
         protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
             Document document,
             SyntaxToken token,
@@ -87,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             }
 
             var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
-            return this.CreateElisionBufferDeferredContent(span);
+            return this.CreateProjectionBufferDeferredContent(span);
         }
 
         private static bool IsScopeBlock(SyntaxNode node)
@@ -101,10 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
         {
-            SyntaxTrivia nearbyComment;
-
             var searchListAbove = openBrace.LeadingTrivia.Reverse();
-            if (TryFindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
+            if (TryFindFurthestNearbyComment(ref searchListAbove, out var nearbyComment))
             {
                 spanStart = nearbyComment.SpanStart;
                 return;
@@ -126,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             foreach (var trivia in triviaSearchList)
             {
-                if (IsCommentTrivia(trivia))
+                if (trivia.IsSingleOrMultiLineComment())
                 {
                     nearbyTrivia = trivia;
                 }
@@ -136,12 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 }
             }
 
-            return IsCommentTrivia(nearbyTrivia);
-        }
-
-        private static bool IsCommentTrivia(SyntaxTrivia trivia)
-        {
-            return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            return nearbyTrivia.IsSingleOrMultiLineComment();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// An ErrorSymbol is used when the compiler cannot determine a symbol object to return because
-    /// of an error. For example, if a field is declared "Foo x;", and the type "Foo" cannot be
+    /// of an error. For example, if a field is declared "Goo x;", and the type "Goo" cannot be
     /// found, an ErrorSymbol is returned when asking the field "x" what it's type is.
     /// </summary>
     internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol, IErrorTypeSymbol
@@ -103,6 +103,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Collection of names of members declared within this type.
         /// </summary>
@@ -131,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// no members with this name, returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return ImmutableArray<Symbol>.Empty;
+            return GetMembers().WhereAsArray(m => m.Name == name);
         }
 
         internal sealed override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -285,12 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         /// <summary>
@@ -424,6 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -476,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return DefaultMarshallingCharSet; }
         }
 
-        internal sealed override bool IsSerializable
+        public sealed override bool IsSerializable
         {
             get { return false; }
         }
@@ -627,17 +642,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
+            if (_hasTypeArgumentsCustomModifiers)
             {
-                if (_hasTypeArgumentsCustomModifiers)
-                {
-                    return _map.GetTypeArgumentsCustomModifiersFor(_constructedFrom.OriginalDefinition);
-                }
-
-                return CreateEmptyTypeArgumentsCustomModifiers();
+                return _map.GetTypeArgumentsCustomModifiersFor(_constructedFrom.OriginalDefinition.TypeParameters[ordinal]);
             }
+
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -687,12 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override NamedTypeSymbol ConstructedFrom

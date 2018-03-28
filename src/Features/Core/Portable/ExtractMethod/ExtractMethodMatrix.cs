@@ -73,9 +73,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     key = new Key(dataFlowIn, /*dataFlowOut*/ true, alwaysAssigned, variableDeclared, readInside, writtenInside, readOutside, writtenOutside);
                 }
+
+                // interesting case in invalid code (bug #19136)
+                // variable is passed by reference, and another argument is an out variable with the same name
+                if (dataFlowIn && variableDeclared)
+                {
+                    key = new Key(/*dataFlowIn:*/ false, dataFlowOut, alwaysAssigned, variableDeclared, readInside, writtenInside, readOutside, writtenOutside);
+                }
             }
 
-            Contract.ThrowIfFalse(s_matrix.ContainsKey(key));
+            Contract.ThrowIfFalse(s_matrix.ContainsKey(key), $"Matrix does not contain Key '{key}'.");
 
             return s_matrix[key];
         }
@@ -107,6 +114,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitIn);
             s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
             s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.Ref);
             s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
             s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitIn);
             s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
@@ -201,9 +210,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public override bool Equals(object obj)
             {
-                if (obj is Key)
+                if (obj is Key key)
                 {
-                    return Equals((Key)obj);
+                    return Equals(key);
                 }
 
                 return false;
@@ -224,6 +233,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return hashCode;
             }
+
+            public override string ToString() => GetHashCode().ToString("X");
         }
     }
 }

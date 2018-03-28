@@ -2,51 +2,72 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer
     {
-        public override async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        public async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
-            if (!PreferBuildErrors(workspace))
+            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, (w, m) => LogSynchronizeWithBuild(w, m), workspace, map, CancellationToken.None))
             {
-                // prefer live errors over build errors
-                return;
-            }
+                DebugVerifyDiagnosticLocations(map);
 
-            var solution = workspace.CurrentSolution;
-            foreach (var projectEntry in map)
-            {
-                var project = solution.GetProject(projectEntry.Key);
-                if (project == null)
+                if (!PreferBuildErrors(workspace))
                 {
-                    continue;
+                    // prefer live errors over build errors
+                    return;
                 }
 
-                // REVIEW: is build diagnostic contains suppressed diagnostics?
-                var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
-                var result = await CreateProjectAnalysisDataAsync(project, stateSets, projectEntry.Value).ConfigureAwait(false);
-
-                foreach (var stateSet in stateSets)
+                var solution = workspace.CurrentSolution;
+                foreach (var projectEntry in map)
                 {
-                    var state = stateSet.GetProjectState(project.Id);
-                    await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    var project = solution.GetProject(projectEntry.Key);
+                    if (project == null)
+                    {
+                        continue;
+                    }
+
+                    // REVIEW: is build diagnostic contains suppressed diagnostics?
+                    var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
+                    var result = await CreateProjectAnalysisDataAsync(project, stateSets, projectEntry.Value).ConfigureAwait(false);
+
+                    foreach (var stateSet in stateSets)
+                    {
+                        var state = stateSet.GetProjectState(project.Id);
+                        await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    }
+
+                    // REVIEW: this won't handle active files. might need to tweak it later.
+                    RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
                 }
 
-                // REVIEW: this won't handle active files. might need to tweak it later.
-                RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
+                if (PreferLiveErrorsOnOpenedFiles(workspace))
+                {
+                    // enqueue re-analysis of open documents.
+                    this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+                }
             }
+        }
 
-            if (PreferLiveErrorsOnOpenedFiles(workspace))
+        [Conditional("DEBUG")]
+        private void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        {
+            foreach (var diagnostic in map.Values.SelectMany(v => v))
             {
-                // enqueue re-analysis of open documents.
-                this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+                // errors from build shouldn't have any span set.
+                // this is debug check since it gets data from us only not from third party unlike one in compiler
+                // that checks span for third party reported diagnostics
+                Contract.Requires(!diagnostic.HasTextSpan);
             }
         }
 
@@ -60,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return new ProjectAnalysisData(project.Id, VersionStamp.Default, oldAnalysisData.Result, newResult);
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> CreateAnalysisResults(
+        private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
             Project project, ImmutableArray<StateSet> stateSets, ProjectAnalysisData oldAnalysisData, ImmutableArray<DiagnosticData> diagnostics)
         {
             using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
@@ -70,21 +91,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = VersionStamp.Default;
                 var lookup = diagnostics.ToLookup(d => d.Id);
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
                     var group = liveDiagnostics.GroupBy(d => d.DocumentId);
-                    var result = new AnalysisResult(
+                    var result = new DiagnosticAnalysisResult(
                         project.Id,
                         version,
                         documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
                         syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
                         nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty());
+                        others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
+                        fromBuild: true);
 
                     builder.Add(stateSet.Analyzer, result);
                 }
@@ -93,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private ImmutableArray<DiagnosticData> GetDiagnostics(AnalysisResult result)
+        private ImmutableArray<DiagnosticData> GetDiagnostics(DiagnosticAnalysisResult result)
         {
             // PERF: don't allocation anything if not needed
             if (result.IsAggregatedForm || result.IsEmpty)
@@ -107,14 +129,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                    result.Others).ToImmutableArray();
         }
 
-        private bool PreferBuildErrors(Workspace workspace)
+        private static bool PreferBuildErrors(Workspace workspace)
         {
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) || workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
         }
 
-        private bool PreferLiveErrorsOnOpenedFiles(Workspace workspace)
+        private static bool PreferLiveErrorsOnOpenedFiles(Workspace workspace)
         {
-            return !workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) && workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
         }
 
         private ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)
@@ -189,6 +211,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 descriptor.HelpLinkUri,
                 isSuppressed: diagnostic.IsSuppressed);
+        }
+
+        private static string LogSynchronizeWithBuild(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        {
+            using (var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject())
+            {
+                var sb = pooledObject.Object;
+                sb.Append($"PreferBuildError:{PreferBuildErrors(workspace)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(workspace)}");
+
+                if (map.Count > 0)
+                {
+                    foreach (var kv in map)
+                    {
+                        sb.AppendLine($"{kv.Key}, Count: {kv.Value.Length}");
+
+                        foreach (var diagnostic in kv.Value)
+                        {
+                            sb.AppendLine($"    {diagnostic.ToString()}");
+                        }
+                    }
+                }
+
+                return sb.ToString();
+            }
         }
     }
 }

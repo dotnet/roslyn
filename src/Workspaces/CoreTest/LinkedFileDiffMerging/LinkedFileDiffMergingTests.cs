@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
     public partial class LinkedFileDiffMergingTests
     {
-        public void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)
+        private void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)
         {
             using (var workspace = new AdhocWorkspace())
             {

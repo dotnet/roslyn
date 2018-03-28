@@ -153,7 +153,7 @@ public class CheckTermsAnalyzer : DiagnosticAnalyzer
 Converting a File to a Stream
 -----------------------------
 
-In cases where an additional file contains structured data (e.g., XML or JSON) the line-by-line access provided by the `SourceText` may not be desirable. This sample demonstrates how to convert a `SourceText` to a `Stream` for consumption by other libraries. The terms file is assumed to have the following format:
+In cases where an additional file contains structured data (e.g., XML or JSON) the line-by-line access provided by the `SourceText` may not be desirable. One alternative is to convert a `SourceText` to a `string`, by calling `ToString()` on it. This sample demonstrates another alternative: converting a `SourceText` to a `Stream` for consumption by other libraries. The terms file is assumed to have the following format:
 
 ``` XML
 <Terms>
@@ -207,10 +207,12 @@ public class CheckTermsXMLAnalyzer : DiagnosticAnalyzer
                 SourceText fileText = termsFile.GetText(compilationStartContext.CancellationToken);
 
                 MemoryStream stream = new MemoryStream();
-                using (StreamWriter writer = new StreamWriter(stream))
+                using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8, 1024, true))
                 {
                     fileText.Write(writer);
                 }
+                
+                stream.Position = 0;
 
                 // Read all the <Term> elements to get the terms.
                 XDocument document = XDocument.Load(stream);

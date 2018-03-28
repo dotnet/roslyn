@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedProperty,
         TEmbeddedParameter,
         TEmbeddedTypeParameter> : CommonEmbeddedTypesManager
-        where TPEModuleBuilder : CommonPEModuleBuilder, Cci.IModule
+        where TPEModuleBuilder : CommonPEModuleBuilder
         where TModuleCompilationState : CommonModuleCompilationState
         where TEmbeddedTypesManager : EmbeddedTypesManager<TPEModuleBuilder, TModuleCompilationState, TEmbeddedTypesManager, TSyntaxNode, TAttributeData, TSymbol, TAssemblySymbol, TNamedTypeSymbol, TFieldSymbol, TMethodSymbol, TEventSymbol, TPropertySymbol, TParameterSymbol, TTypeParameterSymbol, TEmbeddedType, TEmbeddedField, TEmbeddedMethod, TEmbeddedEvent, TEmbeddedProperty, TEmbeddedParameter, TEmbeddedTypeParameter>
         where TSyntaxNode : SyntaxNode
@@ -155,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         protected abstract void OnGetTypesCompleted(ImmutableArray<TEmbeddedType> types, DiagnosticBag diagnostics);
         protected abstract void ReportNameCollisionBetweenEmbeddedTypes(TEmbeddedType typeA, TEmbeddedType typeB, DiagnosticBag diagnostics);
         protected abstract void ReportNameCollisionWithAlreadyDeclaredType(TEmbeddedType type, DiagnosticBag diagnostics);
+        protected abstract TAttributeData CreateCompilerGeneratedAttribute();
 
         private sealed class TypeComparer : IComparer<TEmbeddedType>
         {
@@ -188,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
         protected void EmbedReferences(Cci.ITypeDefinitionMember embeddedMember, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics));
+            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly: false, includePrivateMembers: true));
             noPiaIndexer.Visit(embeddedMember);
         }
 

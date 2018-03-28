@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1009,7 +1006,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size       37 (0x25)
@@ -1053,7 +1050,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size      355 (0x163)
@@ -1199,7 +1196,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1222,7 +1219,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#-1");
         }
 
         [Fact]
@@ -1246,7 +1243,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1270,7 +1267,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1294,7 +1291,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1512,7 +1509,7 @@ public class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       82 (0x52)
@@ -1630,7 +1627,7 @@ public static class C1
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"3
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"3
 1");
             comp.VerifyIL("C.Main", @"
 {
@@ -1960,7 +1957,7 @@ print2");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
@@ -2012,12 +2009,12 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
@@ -2069,7 +2066,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
@@ -2636,7 +2633,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -2695,7 +2692,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -3197,7 +3194,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       21 (0x15)
@@ -3243,7 +3240,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(ref T)", @"
 {
   // Code size       46 (0x2e)
@@ -3297,7 +3294,7 @@ class Test
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       27 (0x1b)
@@ -3368,7 +3365,7 @@ interface I1
 
 
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef });
             base.CompileAndVerify(comp);
         }
 
@@ -3417,7 +3414,7 @@ interface I1
     int CallAsync(int x);
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(comp, expectedOutput: "420");
         }
 
@@ -4096,7 +4093,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"   >
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"   >
 False
 False
 <
@@ -4248,12 +4245,12 @@ class Program
 {
     interface I1
     {
-        void Foo(I1 arg);
+        void Goo(I1 arg);
     }
 
     class C1 : I1
     {
-        public void Foo(I1 arg)
+        public void Goo(I1 arg)
         {
         }
     }
@@ -4267,13 +4264,13 @@ class Program
     static void Test1()
     {
         var c = new C1();
-        c?.Foo(c);
+        c?.Goo(c);
     }
 
     static void Test2<T>() where T : I1, new()
     {
         var c = new T();
-        c?.Foo(c);
+        c?.Goo(c);
     }
 }
 ";
@@ -4289,7 +4286,7 @@ class Program
   IL_0007:  brfalse.s  IL_0010
   IL_0009:  ldloc.0
   IL_000a:  ldloc.0
-  IL_000b:  call       ""void Program.C1.Foo(Program.I1)""
+  IL_000b:  call       ""void Program.C1.Goo(Program.I1)""
   IL_0010:  ret
 }
 ").VerifyIL("Program.Test2<T>()", @"
@@ -4306,7 +4303,7 @@ class Program
   IL_0010:  ldloc.0
   IL_0011:  box        ""T""
   IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""void Program.I1.Foo(Program.I1)""
+  IL_001c:  callvirt   ""void Program.I1.Goo(Program.I1)""
   IL_0021:  ret
 }
 ");
@@ -5089,13 +5086,13 @@ class C
     static void Main()
     {
         System.Console.WriteLine(""---"");
-        Foo<int>(new C<int>());
+        Goo<int>(new C<int>());
         System.Console.WriteLine(""---"");
-        Foo<int>(null);
+        Goo<int>(null);
         System.Console.WriteLine(""---"");
     }
 
-    static void Foo<T>(C<T> x)
+    static void Goo<T>(C<T> x)
     {
         x?.M();
     }
@@ -5114,7 +5111,7 @@ M
 ---
 ---");
 
-            verifier.VerifyIL("C.Foo<T>", @"
+            verifier.VerifyIL("C.Goo<T>", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -5137,13 +5134,13 @@ unsafe class C
     static void Main()
     {
         System.Console.WriteLine(""---"");
-        Foo(new C());
+        Goo(new C());
         System.Console.WriteLine(""---"");
-        Foo(null);
+        Goo(null);
         System.Console.WriteLine(""---"");
     }
 
-    static void Foo(C x)
+    static void Goo(C x)
     {
         x?.M();
     }
@@ -5155,12 +5152,12 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 M
 ---
 ---");
 
-            verifier.VerifyIL("C.Foo", @"
+            verifier.VerifyIL("C.Goo", @"
 {
   // Code size       14 (0xe)
   .maxstack  1
@@ -5170,6 +5167,56 @@ M
   IL_0004:  br.s       IL_000d
   IL_0006:  ldarg.0
   IL_0007:  call       ""int* C.M()""
+  IL_000c:  pop
+  IL_000d:  ret
+}");
+        }
+
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
+        [Fact]
+        public void ConditionalRefLike()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        Goo(new C());
+        System.Console.WriteLine(""---"");
+        Goo(null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static void Goo(C x)
+    {
+        x?.M();
+    }
+
+    public RefLike M()
+    {
+        System.Console.WriteLine(""M"");
+        return default;
+    }
+
+    public ref struct RefLike{}
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+M
+---
+---");
+
+            verifier.VerifyIL("C.Goo", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  br.s       IL_000d
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""C.RefLike C.M()""
   IL_000c:  pop
   IL_000d:  ret
 }");
@@ -5280,7 +5327,7 @@ class C
     void M() => System.Console.WriteLine(""M"");
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (16,32): error CS0029: Cannot implicitly convert type 'void' to 'object'
@@ -5410,7 +5457,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5466,7 +5513,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 F1
 ---
 F1
@@ -5539,7 +5586,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
     // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
@@ -5676,7 +5723,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5747,19 +5794,19 @@ M
 using System;
 using System.Threading.Tasks;
 
-class Foo<T>
+class Goo<T>
 {
     public T Method(int i)
     {
         Console.Write(i);
         return default(T); // returns value of unconstrained type parameter type
     }
-    public void M1(Foo<T> x) => x?.Method(4);
-    public async void M2(Foo<T> x) => x?.Method(5);
-    public async Task M3(Foo<T> x) => x?.Method(6);
+    public void M1(Goo<T> x) => x?.Method(4);
+    public async void M2(Goo<T> x) => x?.Method(5);
+    public async Task M3(Goo<T> x) => x?.Method(6);
     public async Task M4() {
-        Foo<T> a = new Foo<T>();
-        Foo<T> b = null;
+        Goo<T> a = new Goo<T>();
+        Goo<T> b = null;
 
         Action f1 = async () => a?.Method(1);
         f1();
@@ -5782,7 +5829,7 @@ class Program
     public static void Main()
     {
         // this will complete synchronously as there are no truly async ops.
-        new Foo<int>().M4();
+        new Goo<int>().M4();
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(
@@ -6099,10 +6146,10 @@ class C
 
         static async Task<bool> HasLength(string s, int len)
         {
-            return (s?.Foo(await Bar()) ?? await Bar() + await Bar()) + 1 == len;
+            return (s?.Goo(await Bar()) ?? await Bar() + await Bar()) + 1 == len;
         }
 
-        static int Foo(this string s, int arg)
+        static int Goo(this string s, int arg)
         {
             return s.Length;
         }
@@ -6136,10 +6183,10 @@ class C
 
         static async Task<bool> HasLength<T>(T s, int len)
         {
-            return (s?.Foo(await Bar()) ?? 2) + 1 == len;
+            return (s?.Goo(await Bar()) ?? 2) + 1 == len;
         }
 
-        static int Foo<T>(this T s, int arg)
+        static int Goo<T>(this T s, int arg)
         {
             return ((string)(object)s).Length;
         }
@@ -6173,10 +6220,10 @@ class C
 
         static async Task<bool> HasLength<T>(T s, int len)
         {
-            return (s?.Foo(await Bar(await Bar())) ?? 2) + 1 == len;
+            return (s?.Goo(await Bar(await Bar())) ?? 2) + 1 == len;
         }
 
-        static int Foo<T>(this T s, int arg)
+        static int Goo<T>(this T s, int arg)
         {
             return ((string)(object)s).Length;
         }
@@ -6217,11 +6264,11 @@ class C
 
         static async Task<bool> HasLength(string s, int len)
         {
-            System.Console.WriteLine(s?.Foo(await Bar())?.Foo(await Bar()) + ""#"");
-            return s?.Foo(await Bar())?.Foo(await Bar()).Length == len;
+            System.Console.WriteLine(s?.Goo(await Bar())?.Goo(await Bar()) + ""#"");
+            return s?.Goo(await Bar())?.Goo(await Bar()).Length == len;
         }
 
-        static string Foo(this string s, string arg)
+        static string Goo(this string s, string arg)
         {
             return s + arg;
         }
@@ -6255,10 +6302,10 @@ True");
 
         static async Task<bool> Test(string s)
         {
-            return (await Bar(s))?.Foo(await Bar())?.ToString()?.Length > 1;
+            return (await Bar(s))?.Goo(await Bar())?.ToString()?.Length > 1;
         }
 
-        static string Foo(this string s, string arg1)
+        static string Goo(this string s, string arg1)
         {
             return s + arg1;
         }
@@ -6340,7 +6387,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6357,12 +6404,12 @@ class C
 
     static bool TestEq(C1 c, S1 arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1 arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6384,7 +6431,7 @@ class C
   IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0019
   IL_000e:  ldarg.0
-  IL_000f:  call       ""C.S1 C.C1.Foo()""
+  IL_000f:  call       ""C.S1 C.C1.Goo()""
   IL_0014:  newobj     ""C.S1?..ctor(C.S1)""
   IL_0019:  ldarg.1
   IL_001a:  newobj     ""C.S1?..ctor(C.S1)""
@@ -6417,7 +6464,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6436,12 +6483,12 @@ class C
 
     static bool TestEq(C1 c, S1? arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1? arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6465,7 +6512,7 @@ class C
   IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0019
   IL_000e:  ldarg.0
-  IL_000f:  call       ""C.S1 C.C1.Foo()""
+  IL_000f:  call       ""C.S1 C.C1.Goo()""
   IL_0014:  newobj     ""C.S1?..ctor(C.S1)""
   IL_0019:  ldarg.1
   IL_001a:  call       ""bool C.S1.op_Inequality(C.S1?, C.S1?)""
@@ -6497,7 +6544,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6514,12 +6561,12 @@ class C
 
     static bool TestEq(C1 c, S1 arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1 arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6538,7 +6585,7 @@ True
   IL_0003:  ldc.i4.1
   IL_0004:  ret
   IL_0005:  ldarg.0
-  IL_0006:  call       ""C.S1 C.C1.Foo()""
+  IL_0006:  call       ""C.S1 C.C1.Goo()""
   IL_000b:  ldarg.1
   IL_000c:  call       ""bool C.S1.op_Inequality(C.S1, C.S1)""
   IL_0011:  ret
@@ -6569,7 +6616,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6588,12 +6635,12 @@ class C
 
     static bool TestEq(C1 c, S1? arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1? arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6617,7 +6664,7 @@ True");
   IL_0005:  call       ""bool C.S1?.HasValue.get""
   IL_000a:  ret
   IL_000b:  ldarg.0
-  IL_000c:  call       ""C.S1 C.C1.Foo()""
+  IL_000c:  call       ""C.S1 C.C1.Goo()""
   IL_0011:  stloc.0
   IL_0012:  ldarg.1
   IL_0013:  stloc.1
@@ -6891,6 +6938,554 @@ namespace ConsoleApplication9
   IL_000e:  call       ""T ConsoleApplication9.Program.A<T>.Value.get""
   IL_0013:  ret
 }");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfUnconstrainedDefault1()
+        {
+            var source = @"
+using System;
+
+public class Test<T>
+{
+    public string Run()
+    {
+        return default(T)?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0028
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  dup
+  IL_0017:  initobj    ""T""
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.1
+  IL_002c:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfUnconstrainedDefault2()
+        {
+            var source = @"
+using System;
+
+public class Test<T>
+{
+    public string Run()
+    {
+        var v = default(T);
+        return v?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (T V_0, //v
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0021
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0024
+  IL_0024:  ldloc.1
+  IL_0025:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfInterfaceConstrainedDefault1()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : IComparable
+{
+    public string Run()
+    {
+        return default(T)?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0028
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  dup
+  IL_0017:  initobj    ""T""
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""string object.ToString()""
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.1
+  IL_002c:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfInterfaceConstrainedDefault2()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : IComparable
+{
+    public string Run()
+    {
+        var v = default(T);
+        return v?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (T V_0, //v
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0021
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0024
+  IL_0024:  ldloc.1
+  IL_0025:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfClassConstrainedDefault1()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : class
+{
+    public string Run()
+    {
+        return default(T)?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfClassConstrainedDefault2()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : class
+{
+    public string Run()
+    {
+        var v = default(T);
+        return v?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (T V_0, //v
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_0016
+  IL_0012:  pop
+  IL_0013:  ldnull
+  IL_0014:  br.s       IL_001b
+  IL_0016:  callvirt   ""string object.ToString()""
+  IL_001b:  stloc.1
+  IL_001c:  br.s       IL_001e
+  IL_001e:  ldloc.1
+  IL_001f:  ret
+}");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void ConditionalAccessOffReadOnlyNullable1()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    private static readonly Guid? g = null;
+
+    static void Main()
+    {
+        Console.WriteLine(g?.ToString());
+    }
+}
+";
+            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", verify: Verification.Fails);
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.Guid V_0)
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""System.Guid? Program.g""
+  IL_0006:  dup
+  IL_0007:  call       ""bool System.Guid?.HasValue.get""
+  IL_000c:  brtrue.s   IL_0012
+  IL_000e:  pop
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_0025
+  IL_0012:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""System.Guid""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  nop
+  IL_002b:  ret
+}");
+
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
+
+            comp.VerifyIL("Program.Main", @"
+{
+	// Code size       47 (0x2f)
+	.maxstack  2
+	.locals init (System.Guid? V_0,
+	            System.Guid V_1)
+	IL_0000:  nop
+	IL_0001:  ldsfld     ""System.Guid? Program.g""
+	IL_0006:  stloc.0
+	IL_0007:  ldloca.s   V_0
+	IL_0009:  dup
+	IL_000a:  call       ""bool System.Guid?.HasValue.get""
+	IL_000f:  brtrue.s   IL_0015
+	IL_0011:  pop
+	IL_0012:  ldnull
+	IL_0013:  br.s       IL_0028
+	IL_0015:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+	IL_001a:  stloc.1
+	IL_001b:  ldloca.s   V_1
+	IL_001d:  constrained. ""System.Guid""
+	IL_0023:  callvirt   ""string object.ToString()""
+	IL_0028:  call       ""void System.Console.WriteLine(string)""
+	IL_002d:  nop
+	IL_002e:  ret
+}");
+        }
+
+        [Fact]
+        public void ConditionalAccessOffReadOnlyNullable2()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(default(Guid?)?.ToString());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"");
+
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Guid? V_0,
+                System.Guid V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  dup
+  IL_0004:  initobj    ""System.Guid?""
+  IL_000a:  call       ""bool System.Guid?.HasValue.get""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0030
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  dup
+  IL_0017:  initobj    ""System.Guid?""
+  IL_001d:  call       ""System.Guid System.Guid?.GetValueOrDefault()""
+  IL_0022:  stloc.1
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  constrained. ""System.Guid""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  nop
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
+        public void ConditionalAccessOffConstrainedTypeParameter_Property()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
+        var obj2 = new MyObject2<MyObject1>(obj1);
+
+        System.Console.WriteLine(obj1.MyDate.Ticks);
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks);
+        System.Console.WriteLine(new MyObject2<MyObject1>(null).CurrentDate.HasValue);
+    }
+}
+
+abstract class MyBaseObject1
+{
+    public DateTime MyDate { get; set; }
+}
+
+class MyObject1 : MyBaseObject1
+{ }
+
+class MyObject2<MyObjectType> where MyObjectType : MyBaseObject1, new()
+{
+    public MyObject2(MyObjectType obj)
+    {
+        m_CurrentObject1 = obj;
+    }
+
+    private MyObjectType m_CurrentObject1 = null;
+    public MyObjectType CurrentObject1 => m_CurrentObject1;
+    public DateTime? CurrentDate => CurrentObject1?.MyDate;
+}
+";
+
+            var expectedOutput =
+@"
+636461511000000000
+636461511000000000
+False
+";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(23351, "https://github.com/dotnet/roslyn/issues/23351")]
+        public void ConditionalAccessOffConstrainedTypeParameter_Field()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
+        var obj2 = new MyObject2<MyObject1>(obj1);
+
+        System.Console.WriteLine(obj1.MyDate.Ticks);
+        System.Console.WriteLine(obj2.CurrentDate.Value.Ticks);
+        System.Console.WriteLine(new MyObject2<MyObject1>(null).CurrentDate.HasValue);
+    }
+}
+
+abstract class MyBaseObject1
+{
+    public DateTime MyDate;
+}
+
+class MyObject1 : MyBaseObject1
+{ }
+
+class MyObject2<MyObjectType> where MyObjectType : MyBaseObject1, new()
+{
+    public MyObject2(MyObjectType obj)
+    {
+        m_CurrentObject1 = obj;
+    }
+
+    private MyObjectType m_CurrentObject1 = null;
+    public MyObjectType CurrentObject1 => m_CurrentObject1;
+    public DateTime? CurrentDate => CurrentObject1?.MyDate;
+}
+";
+
+            var expectedOutput =
+@"
+636461511000000000
+636461511000000000
+False
+";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
     }
 }

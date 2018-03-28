@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -422,7 +423,7 @@ lAgain:
             Return result.AsImmutableOrNull()
         End Function
 
-        Private Sub CreateGoodOrAmbiguousFromLookupResultAndFree(lookupResult As LookupResult, result As ArrayBuilder(Of Symbol), preserveAliases As Boolean)
+        Private Shared Sub CreateGoodOrAmbiguousFromLookupResultAndFree(lookupResult As LookupResult, result As ArrayBuilder(Of Symbol), preserveAliases As Boolean)
             Dim di As DiagnosticInfo = lookupResult.Diagnostic
 
             If TypeOf di Is AmbiguousSymbolDiagnostic Then

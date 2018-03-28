@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 17543 - 17543
         ' .Parser::ReportSyntaxError( [ unsigned Errid ] [ _In_ Token* Beg ] [ _In_ Token* End ] [ bool MarkErrorStatementBad ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Friend Shared Function ReportSyntaxError(Of T As VisualBasicSyntaxNode)(syntax As T, ErrorId As ERRID) As T
+        Friend Shared Function ReportSyntaxError(Of T As GreenNode)(syntax As T, ErrorId As ERRID) As T
             Return DirectCast(syntax.AddError(ErrorFactory.ErrorInfo(ErrorId)), T)
         End Function
 
@@ -59,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks></remarks>
         Private Function ReportUnrecognizedStatementError(
             ErrorId As ERRID,
-            attributes As SyntaxList(Of AttributeListSyntax),
-            modifiers As SyntaxList(Of KeywordSyntax),
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax),
             Optional createMissingIdentifier As Boolean = False,
             Optional forceErrorOnFirstToken As Boolean = False) As StatementSyntax
             ' // Create a statement with no operands. It will end up with its error flag set.
@@ -108,11 +109,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return badStmt
         End Function
 
-        Private Function ReportModifiersOnStatementError(attributes As SyntaxList(Of AttributeListSyntax), modifiers As SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Function ReportModifiersOnStatementError(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
             Return ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, attributes, modifiers, keyword)
         End Function
 
-        Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As SyntaxList(Of AttributeListSyntax), modifiers As SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
             If modifiers.Any Then
                 keyword = keyword.AddLeadingSyntax(modifiers.Node, errorId)
             End If

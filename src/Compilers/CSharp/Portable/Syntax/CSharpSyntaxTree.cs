@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
@@ -123,11 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
-        }
-
-        internal virtual bool SupportsLocations
-        {
-            get { return this.HasCompilationUnitRoot; }
         }
 
         #region Preprocessor Symbols
@@ -386,11 +382,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (text == null)
             {
                 throw new ArgumentNullException(nameof(text));
-            }
-
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
             }
 
             options = options ?? CSharpParseOptions.Default;

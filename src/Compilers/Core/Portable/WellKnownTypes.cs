@@ -246,8 +246,35 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_GCLatencyMode,
         System_IFormatProvider,
 
-        Available,
-        Last = Available - 1,
+        CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
+
+        System_ValueTuple_T1,
+        System_ValueTuple_T2,
+        System_ValueTuple_T3,
+        System_ValueTuple_T4,
+        System_ValueTuple_T5,
+        System_ValueTuple_T6,
+
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
+        System_ValueTuple_T7,
+        System_ValueTuple_TRest,
+
+        System_Runtime_CompilerServices_TupleElementNamesAttribute,
+
+        Microsoft_CodeAnalysis_Runtime_Instrumentation,
+        System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
+
+        System_Runtime_CompilerServices_IsReadOnlyAttribute,
+        System_Runtime_CompilerServices_IsByRefLikeAttribute,
+        System_Runtime_InteropServices_InAttribute,
+        System_ObsoleteAttribute,
+        System_Span_T,
+        System_ReadOnlySpan_T,
+        System_Runtime_InteropServices_UnmanagedType,
+        System_Runtime_CompilerServices_IsUnmanagedAttribute,
+
+        NextAvailable,
     }
 
     internal static class WellKnownTypes
@@ -255,7 +282,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Number of well known types in WellKnownType enum
         /// </summary>
-        internal const int Count = WellKnownType.Last - WellKnownType.First + 1;
+        internal const int Count = WellKnownType.NextAvailable - WellKnownType.First;
 
         /// <summary>
         /// Array of names for types.
@@ -485,7 +512,35 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
-            "System.IFormatProvider"
+
+            "System.IFormatProvider",
+
+            "System.ValueTuple`1",
+            "System.ValueTuple`2",
+            "System.ValueTuple`3",
+            "System.ValueTuple`4",
+            "System.ValueTuple`5",
+            "System.ValueTuple`6",
+
+            "", // extension marker
+
+            "System.ValueTuple`7",
+            "System.ValueTuple`8",
+
+            "System.Runtime.CompilerServices.TupleElementNamesAttribute",
+
+            "Microsoft.CodeAnalysis.Runtime.Instrumentation",
+
+            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
+
+            "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+            "System.Runtime.CompilerServices.IsByRefLikeAttribute",
+            "System.Runtime.InteropServices.InAttribute",
+            "System.ObsoleteAttribute",
+            "System.Span`1",
+            "System.ReadOnlySpan`1",
+            "System.Runtime.InteropServices.UnmanagedType",
+            "System.Runtime.CompilerServices.IsUnmanagedAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -511,23 +566,58 @@ namespace Microsoft.CodeAnalysis
                 var typeId = (WellKnownType)(i + WellKnownType.First);
 
                 string typeIdName;
-                if (typeId == WellKnownType.First)
+                switch (typeId)
                 {
-                    typeIdName = "System.Math";
-                }
-                else if (typeId == WellKnownType.Last)
-                {
-                    typeIdName = "System.IFormatProvider";
-                }
-                else
-                {
-                    typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
+                    case WellKnownType.First:
+                        typeIdName = "System.Math";
+                        break;
+                    case WellKnownType.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl:
+                        typeIdName = "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl";
+                        break;
+                    case WellKnownType.CSharp7Sentinel:
+                        typeIdName = "System.IFormatProvider";
+                        break;
+                    case WellKnownType.ExtSentinel:
+                        typeIdName = "";
+                        continue;
+                    case (WellKnownType.NextAvailable - 1):
+                        typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
+                        continue;
+                    default:
+                        typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
+                        break;
                 }
 
-                Debug.Assert(name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
-                          || name.IndexOf('`') > 0 // a generic type
-                          || name == typeIdName);
+                int separator = name.IndexOf('`');
+                if (separator >= 0)
+                {
+                    // Ignore type parameter qualifier for generic types.
+                    name = name.Substring(0, separator);
+                    typeIdName = typeIdName.Substring(0, separator);
+                }
+
+                Debug.Assert(name == typeIdName);
             }
+
+            Debug.Assert((int)WellKnownType.ExtSentinel == 255);
+            Debug.Assert((int)WellKnownType.NextAvailable <= 512);
+        }
+
+        public static bool IsWellKnownType(this WellKnownType typeId)
+        {
+            Debug.Assert(typeId != WellKnownType.ExtSentinel);
+            return typeId >= WellKnownType.First && typeId < WellKnownType.NextAvailable;
+        }
+
+        public static bool IsValueTupleType(this WellKnownType typeId)
+        {
+            Debug.Assert(typeId != WellKnownType.ExtSentinel);
+            return typeId >= WellKnownType.System_ValueTuple_T1 && typeId <= WellKnownType.System_ValueTuple_TRest;
+        }
+
+        public static bool IsValid(this WellKnownType typeId)
+        {
+            return typeId >= WellKnownType.First && typeId < WellKnownType.NextAvailable && typeId != WellKnownType.ExtSentinel;
         }
 
         public static string GetMetadataName(this WellKnownType id)

@@ -14,21 +14,21 @@ Public Class ParseMethods
     Public Sub ParseSub()
         ParseAndVerify(<![CDATA[
             class c1
-                public Sub Foo()
+                public Sub Goo()
                 end sub
             end class
             Module Module1
-                Sub Foo()
+                Sub Goo()
                 end sub
-                Sub Foo (i as integer)
+                Sub Goo (i as integer)
                 end sub
-                Sub Foo (byval i as Integer, byval s as string)
+                Sub Goo (byval i as Integer, byval s as string)
                 end sub
-                Sub Foo (byref i as long, optional j as integer = 0)
+                Sub Goo (byref i as long, optional j as integer = 0)
                 end sub
-                Sub Foo (s as string, paramarray t as integer())
+                Sub Goo (s as string, paramarray t as integer())
                 end sub
-                Sub Foo(of T1, T2, T3)(a as T1, b as T2, c as T3)
+                Sub Goo(of T1, T2, T3)(a as T1, b as T2, c as T3)
                 end sub
             End Module
         ]]>).
@@ -40,17 +40,17 @@ Public Class ParseMethods
     Public Sub ParseFunction()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                    Function Foo() as integer
+                    Function Goo() as integer
                     end function
-                    Function Foo (i as integer) as integer
+                    Function Goo (i as integer) as integer
                     end function
-                    Function Foo (byval i as Integer, byval s as string) as integer
+                    Function Goo (byval i as Integer, byval s as string) as integer
                     end function
-                    Function Foo (byref i as long, optional j as integer = 0) as integer
+                    Function Goo (byref i as long, optional j as integer = 0) as integer
                     end function
-                    Function Foo (s as string, paramarray t as integer()) as integer
+                    Function Goo (s as string, paramarray t as integer()) as integer
                     end function
-                    Function Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
+                    Function Goo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                     end function
                 End Module
         ]]>).
@@ -61,30 +61,30 @@ Public Class ParseMethods
     Public Sub ParseProperty()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Property Foo As Integer
+                Property Goo As Integer
                     Get 
                     End Get
                     Set(ByVal value As Integer)
                     End Set
                 End Property
-                Property Foo (i as integer) as integer
+                Property Goo (i as integer) as integer
                 End Property
-                Property Foo(ByVal i As Integer, ByVal s As String) As Integer
+                Property Goo(ByVal i As Integer, ByVal s As String) As Integer
                 End Property
-                Property Foo(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
+                Property Goo(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
                 End Property
-                Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
+                Property Goo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
                 End Property
             End Module
         ]]>)
 
-        'Property Foo (i as integer) as integer
+        'Property Goo (i as integer) as integer
         'End Property
-        'Property Foo(ByVal i As Integer, ByVal s As String) As Integer
+        'Property Goo(ByVal i As Integer, ByVal s As String) As Integer
         'End Property
-        'Property Foo(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
+        'Property Goo(ByRef i As Long, Optional ByVal j As Integer = 0) As Integer
         'End Property
-        'Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
+        'Property Goo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
         'End Property
     End Sub
 
@@ -92,7 +92,7 @@ Public Class ParseMethods
     Public Sub BC32065ERR_GenericParamsOnInvalidMember_Property()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Property Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
+                Property Goo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                 end Property
             End Module
         ]]>,
@@ -108,7 +108,7 @@ Public Class ParseMethods
                 Module Module1
                     Sub MySub(p2 as A(B,C))
                     End Sub
-                    Function Foo(
+                    Function Goo(
                     end function
                 End Module
             ]]>,
@@ -157,7 +157,7 @@ Public Class ParseMethods
     <Fact>
     Public Sub BC33005ERR_EndOperatorExpected_ParsePartialOperator()
         ParseAndVerify(<![CDATA[
-            Class foo
+            Class goo
                 sub main
                     Public Operator
                 End sub
@@ -331,7 +331,7 @@ Public Class ParseMethods
             End Class
             Class c2
                 Inherits c1
-                Sub Foo() Handles MyBase.E1 
+                Sub Goo() Handles MyBase.E1 
                 End Sub
             End Class
         ]]>)
@@ -367,7 +367,7 @@ Public Class ParseMethods
     Public Sub Bug863032()
         ParseAndVerify(<![CDATA[
             Class Class1
-                Public Shared Function Foo() As ULong? 
+                Public Shared Function Goo() As ULong? 
                 End Function
             End Class
         ]]>)
@@ -411,16 +411,16 @@ Public Class ParseMethods
     Public Sub Bug863543()
         ParseAndVerify(<![CDATA[
             Interface I1
-                Sub Foo()
+                Sub Goo()
             End Interface
             Interface I2
-                Sub Foo()
+                Sub Goo()
             End Interface
             Public Class Class1
                 Implements I1
                 Implements I2
          
-                Public Sub Foo() Implements I1.Foo, I2.Foo
+                Public Sub Goo() Implements I1.Goo, I2.Goo
                 End Sub
             End Class
         ]]>)
@@ -476,7 +476,7 @@ Public Class ParseMethods
     Public Sub BC30808ERR_ObsoletePropertyGetLetSet_Bug866572()
         ParseAndVerify(<![CDATA[
             Module Module1
-                 Property Let Foo()
+                 Property Let Goo()
                  End Property
             End Module
 
@@ -554,7 +554,7 @@ Public Class ParseMethods
     Public Sub BC30631ERR_MissingEndGet_PropertyGetTerminatedBySet()
         ParseAndVerify(<![CDATA[
             Class c1
-            Property foo As Integer
+            Property goo As Integer
                 Get
 
                 Set(value As Integer)
@@ -574,7 +574,7 @@ Public Class ParseMethods
         ParseAndVerify(<![CDATA[
                 Friend Module Basic001mod
                     Sub Basic001()
-                        Dim scen1_v1 As Foo(Of Vertebrates) = Function()
+                        Dim scen1_v1 As Goo(Of Vertebrates) = Function()
                             loc = "lambda"
                             Return New Vertebrates()
                             End Functio
@@ -628,7 +628,7 @@ Return
         ParseAndVerify(<![CDATA[
                 Namespace AutoPropInitializationLambda
                     Class HasAutoProps
-                    Public Sub Foo()
+                    Public Sub Goo()
                         Dim a = Function() If(True, New List(Of Integer) From 
             ]]>, <errors>
                      <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="17" end="55"/>
@@ -710,7 +710,7 @@ Return
         ParseAndVerify(<![CDATA[
                 Class SomeClass
     Private Class PrivateClass
-        Public Sub Foo()
+        Public Sub Goo()
             dim y = Function
             ]]>,
             <errors>
@@ -931,7 +931,7 @@ End Module
 Structure Scen31
 
 Shared Dim i = Function(a as Integer)
-Shadows Private Function Foo()
+Shadows Private Function Goo()
 End Structure
 ]]>,
 <errors>

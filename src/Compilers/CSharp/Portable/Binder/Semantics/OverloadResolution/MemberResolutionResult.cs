@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents the results of overload resolution for a single member.
     /// </summary>
-    [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
     internal struct MemberResolutionResult<TMember> where TMember : Symbol
     {
         private readonly TMember _member;
@@ -80,6 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Result.IsApplicable;
             }
+        }
+
+        internal MemberResolutionResult<TMember> Worse()
+        {
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worse());
+        }
+
+        internal MemberResolutionResult<TMember> Worst()
+        {
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worst());
         }
 
         internal bool HasUseSiteDiagnosticToReport

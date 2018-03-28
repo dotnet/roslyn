@@ -1,34 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
+    [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Default)]
+    [Shared]
     internal partial class WorkspaceTaskSchedulerFactory : IWorkspaceTaskSchedulerFactory
     {
-        public virtual IWorkspaceTaskScheduler CreateTaskScheduler(TaskScheduler taskScheduler = null)
+        public virtual IWorkspaceTaskScheduler CreateBackgroundTaskScheduler()
         {
-            if (taskScheduler == null)
-            {
-                taskScheduler = (SynchronizationContext.Current != null)
-                    ? TaskScheduler.FromCurrentSynchronizationContext()
-                    : TaskScheduler.Default;
-            }
-
-            return new WorkspaceTaskScheduler(this, taskScheduler);
+            return new WorkspaceTaskScheduler(this, TaskScheduler.Default);
         }
 
-        public virtual IWorkspaceTaskScheduler CreateTaskQueue(TaskScheduler taskScheduler = null)
+        public virtual IWorkspaceTaskScheduler CreateEventingTaskQueue()
         {
-            if (taskScheduler == null)
-            {
-                taskScheduler = (SynchronizationContext.Current != null)
-                    ? TaskScheduler.FromCurrentSynchronizationContext()
-                    : TaskScheduler.Default;
-            }
+            var taskScheduler = (SynchronizationContext.Current != null)
+                ? TaskScheduler.FromCurrentSynchronizationContext()
+                : TaskScheduler.Default;
 
             return new WorkspaceTaskQueue(this, taskScheduler);
         }
@@ -42,63 +34,6 @@ namespace Microsoft.CodeAnalysis.Host
         protected virtual void CompleteAsyncOperation(object asyncToken, Task task)
         {
             // do nothing ... overridden by services layer
-        }
-
-        private class WorkspaceTaskScheduler : IWorkspaceTaskScheduler
-        {
-            private readonly WorkspaceTaskSchedulerFactory _factory;
-            private readonly TaskScheduler _taskScheduler;
-
-            public WorkspaceTaskScheduler(WorkspaceTaskSchedulerFactory factory, TaskScheduler taskScheduler)
-            {
-                _factory = factory;
-                _taskScheduler = taskScheduler;
-            }
-
-            private TTask ScheduleTaskWorker<TTask>(
-                string taskName, Func<TTask> taskCreator, CancellationToken cancellationToken)
-                where TTask : Task
-            {
-                taskName = taskName ?? GetType().Name + ".ScheduleTask";
-                var asyncToken = _factory.BeginAsyncOperation(taskName);
-
-                var task = taskCreator();
-
-                _factory.CompleteAsyncOperation(asyncToken, task);
-                return task;
-            }
-
-            public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken)
-            {
-                return ScheduleTaskWorker<Task>(
-                    taskName, () => Task.Factory.SafeStartNew(
-    taskAction, cancellationToken, _taskScheduler),
-                    cancellationToken);
-            }
-
-            public Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken)
-            {
-                return ScheduleTaskWorker<Task<T>>(
-                    taskName, () => Task.Factory.SafeStartNew(
-    taskFunc, cancellationToken, _taskScheduler),
-                    cancellationToken);
-            }
-
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return ScheduleTaskWorker<Task>(
-                    taskName, () => Task.Factory.SafeStartNewFromAsync(
-    taskFunc, cancellationToken, _taskScheduler),
-                    cancellationToken);
-            }
-
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return ScheduleTaskWorker<Task<T>>(
-                    taskName, () => Task.Factory.SafeStartNewFromAsync(
-    taskFunc, cancellationToken, _taskScheduler),
-                    cancellationToken);
-            }
         }
     }
 }

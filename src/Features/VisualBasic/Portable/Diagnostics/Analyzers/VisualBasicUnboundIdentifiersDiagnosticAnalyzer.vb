@@ -1,10 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.AddImport
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
@@ -12,10 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
     Friend NotInheritable Class VisualBasicUnboundIdentifiersDiagnosticAnalyzer
         Inherits UnboundIdentifiersDiagnosticAnalyzerBase(Of SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax, LambdaExpressionSyntax)
 
-        Private Const s_undefinedType1 As String = "BC30002"
-        Private ReadOnly _messageFormat As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.ERR_UndefinedType1), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
-        Private Const s_undefinedType2 As String = "BC30057"
-        Private ReadOnly _messageFormat2 As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.ERR_TooManyArgs1), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
+        Private ReadOnly _messageFormat As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.Type_0_is_not_defined), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
+        Private ReadOnly _messageFormat2 As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.Too_many_arguments_to_0), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
 
 
         Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
@@ -33,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(s_undefinedType1, _messageFormat)
+                Return GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundIdentifierId, _messageFormat)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor2 As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(s_undefinedType2, _messageFormat2)
+                Return GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundConstructorId, _messageFormat2)
             End Get
         End Property
 

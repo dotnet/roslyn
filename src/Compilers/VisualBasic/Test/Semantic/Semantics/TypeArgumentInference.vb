@@ -66,7 +66,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Int32
@@ -109,7 +109,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Int32[]
@@ -133,7 +133,7 @@ Module Module1
         Dim x As New Test1(Of Integer)
         Dim y As IDerived(Of Long, Byte) = Nothing
 
-        x.Foo(y)
+        x.Goo(y)
     End Sub
 
     Sub M1(Of T, S)(x As IDictionary(Of T, S))
@@ -151,7 +151,7 @@ Interface IDerived(Of T, S)
 End Interface
 
 Class Test1(Of T)
-    Sub Foo(Of S)(x As IBase(Of T, S))
+    Sub Goo(Of S)(x As IBase(Of T, S))
         Dim x1 As T = Nothing
         Dim x2 As S = Nothing
 
@@ -162,7 +162,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Collections.Generic.Dictionary`2[System.Byte,System.Int32]
@@ -182,7 +182,7 @@ Module Module1
         Dim x As New Test1(Of Integer)
         Dim y As IDerived(Of Long, Byte) = Nothing
 
-        x.Foo(y)
+        x.Goo(y)
     End Sub
 
 End Module
@@ -196,7 +196,7 @@ Class IDerived(Of T, S)
 End Class
 
 Class Test1(Of T)
-    Sub Foo(Of S)(x As IBase(Of T, S))
+    Sub Goo(Of S)(x As IBase(Of T, S))
         Dim x1 As T = Nothing
         Dim x2 As S = Nothing
 
@@ -207,12 +207,12 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30311: Value of type 'IDerived(Of Long, Byte)' cannot be converted to 'IBase(Of Integer, Byte)'.
-        x.Foo(y)
+        x.Goo(y)
               ~
 </expected>)
         End Sub
@@ -242,7 +242,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -278,7 +278,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`1[System.Object]
@@ -319,7 +319,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`2[System.String,System.Object]
@@ -381,7 +381,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`2[System.Double,System.Int32]
@@ -403,19 +403,19 @@ Imports System
 Imports System.Collections.Generic
 
 Module M
-    Sub Foo(Of T)(ParamArray a As Action(Of List(Of T))())
+    Sub Goo(Of T)(ParamArray a As Action(Of List(Of T))())
         System.Console.WriteLine(GetType(T))
     End Sub
 
     Sub Main()
-        Foo({Sub(x As IList(Of String)) Exit Sub}) 
-        Foo(Sub(x As IList(Of String)) Exit Sub) 
+        Goo({Sub(x As IList(Of String)) Exit Sub}) 
+        Goo(Sub(x As IList(Of String)) Exit Sub) 
     End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertNoErrors(compilation)
 
@@ -459,7 +459,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 1
@@ -499,7 +499,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 2
@@ -538,7 +538,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 1
@@ -580,7 +580,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
 "2
@@ -600,7 +600,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -627,7 +627,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -652,7 +652,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -679,7 +679,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -713,21 +713,21 @@ Namespace Case2
     End Class
 End Namespace
 Module Module2
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T)
     End Sub
     Sub Main()
-        Foo(New Case1.B, New Case1.C)
+        Goo(New Case1.B, New Case1.C)
     End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T)(x As T, y As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-        Foo(New Case1.B, New Case1.C)
+BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Goo(Of T)(x As T, y As T)' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+        Goo(New Case1.B, New Case1.C)
         ~~~
 </expected>)
         End Sub
@@ -754,25 +754,25 @@ Namespace Case2
     End Class
 End Namespace
 Module Module2
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T, z As Integer)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T, z As Integer)
     End Sub
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T, z As UInteger)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T, z As UInteger)
     End Sub
     Sub Main()
-        Foo(New Case1.B, New Case1.C, 1)
+        Goo(New Case1.B, New Case1.C, 1)
     End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(Of T)(x As T, y As T, z As Integer)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-    'Public Sub Foo(Of T)(x As T, y As T, z As UInteger)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-        Foo(New Case1.B, New Case1.C, 1)
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(Of T)(x As T, y As T, z As Integer)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+    'Public Sub Goo(Of T)(x As T, y As T, z As UInteger)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
+        Goo(New Case1.B, New Case1.C, 1)
         ~~~
 </expected>)
         End Sub
@@ -792,7 +792,7 @@ Module Module2
 End Module    </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -818,7 +818,7 @@ Module Module2
 End Module    </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -848,7 +848,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -857,7 +857,7 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
                                      ~
 </expected>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -899,7 +899,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`2[System.Int32,System.Double]
@@ -938,7 +938,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -974,7 +974,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
@@ -1000,7 +1000,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1021,19 +1021,19 @@ Imports System
  
 Module Program
     Sub Main()
-        Dim x As Func(Of Integer, Long) = AddressOf Foo
+        Dim x As Func(Of Integer, Long) = AddressOf Goo
     End Sub
  
-    Function Foo(Of T)(x As T) As T
+    Function Goo(Of T)(x As T) As T
         Return Nothing
     End Function
 End Module
     </file>
 </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             CompilationUtils.AssertNoErrors(comp1)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
@@ -1050,17 +1050,17 @@ Imports System.Collections.Generic
 
 Module Program
     Sub Main()
-        Dim x As Func(Of List(Of Integer)) = AddressOf Foo
+        Dim x As Func(Of List(Of Integer)) = AddressOf Goo
     End Sub
 
-    Function Foo(Of T)() As IList(Of T)
+    Function Goo(Of T)() As IList(Of T)
         Return Nothing
     End Function
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
@@ -1074,23 +1074,23 @@ Option Strict Off
 Imports System
 Imports System.Collections.Generic
 Module M1
-    Sub foo(Of TT, UU, VV)(x As Func(Of TT, UU, VV),
+    Sub goo(Of TT, UU, VV)(x As Func(Of TT, UU, VV),
                            y As Func(Of UU, VV, TT),
                            z As Func(Of VV, TT, UU))
     End Sub
-    Sub foo(Of TT, UU)(xx As TT,
+    Sub goo(Of TT, UU)(xx As TT,
                        yy As UU,
                        zz As Action)
     End Sub
     Public Sub Test()
-        foo(1, 2, Sub()
+        goo(1, 2, Sub()
                   End Sub)
     End Sub
 End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
@@ -1126,7 +1126,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1175,7 +1175,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Where VB$AnonymousDelegate_0`2[System.Int64,System.Int64]
@@ -1229,7 +1229,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Func`1[System.Int32]
@@ -1286,7 +1286,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1359,7 +1359,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1426,7 +1426,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -1492,7 +1492,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -1561,7 +1561,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1622,7 +1622,7 @@ Friend Class MethodCompiler
 End Class    </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.Predicate`1[Symbol]
@@ -1677,7 +1677,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 X: System.Int32
@@ -1724,7 +1724,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 f5 - T: (System.Int32)    
@@ -1769,7 +1769,7 @@ Module Module1
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Gen1A: CB - CB
@@ -1811,7 +1811,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompileAndVerify(compilation)
 
@@ -1846,7 +1846,7 @@ Module Module1
     Sub Baz(Of T)(a As Func(Of T))
     End Sub
  
-    Sub Foo(ByRef a As Integer)
+    Sub Goo(ByRef a As Integer)
         Baz(Sub()
                 Console.WriteLine(a)
             End Sub)
@@ -1855,7 +1855,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1863,6 +1863,66 @@ BC36639: 'ByRef' parameter 'a' cannot be used in a lambda expression.
                 Console.WriteLine(a)
                                   ~
 </expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
+        Public Sub ShapeMismatchInOneArgument_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C3
+    Shared Sub Main()
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+    End Sub
+    Shared Function Nullable(Of T As Structure)(x As T) As T?
+        Return x
+    End Function
+    Shared Sub Test2(Of T, U)(x As VT(Of T, U), y As VT(Of T, U))
+        System.Console.Write(1) 
+    End Sub
+    Public Structure VT(Of T, S)
+    End Structure
+End Class
+    </file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As C3.VT(Of T, U), y As C3.VT(Of T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As C3.VT(Of T, U), y As C3.VT(Of T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+        ~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
+        Public Sub ShapeMismatchInOneArgument_02()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Class C3
+    Shared Sub Main()
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+    End Sub
+    Shared Function Nullable(Of T As Structure)(x As T) As T?
+        Return x
+    End Function
+    Shared Sub Test2(Of T)(x As T, y As T)
+        System.Console.Write(1) 
+    End Sub
+    Public Structure VT(Of T, S)
+    End Structure
+End Class
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+11
+]]>)
         End Sub
 
     End Class

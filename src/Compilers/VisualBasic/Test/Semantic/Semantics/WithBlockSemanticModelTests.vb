@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithAliasedStaticField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports Alias1 = ClassWithField
@@ -50,7 +50,7 @@ End Module
 
         <Fact>
         Public Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Module WithDeclaresAnonymousLocalSymbolAndTypeInfo
@@ -77,7 +77,7 @@ End Module
 
         <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
         Public Sub WithSpeculativeSymbolInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C1
@@ -219,7 +219,7 @@ End Module
 
         <Fact, WorkItem(2662, "https://github.com/dotnet/roslyn/issues/2662")>
         Public Sub Issue2662()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -274,6 +274,255 @@ End Module
             model.GetAliasInfo(name)
 
             Assert.Equal("theCustomer As Program.Customer", model.GetSymbolInfo(withBlock.WithStatement.Expression).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(187910, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=187910&_a=edit")>
+        Public Sub Bug187910()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Class ClassWithField
+    Public field1 As String = "a"
+End Class
+Class WithAliasedStaticField
+    Sub Test(parameter as ClassWithField)
+        With parameter
+            System.Console.WriteLine(.field1)
+        End With
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim compilationB = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="b.vb">
+Class WithAliasedStaticField1
+    Sub Test(parameter as ClassWithField)
+        With parameter
+            System.Console.WriteLine(.field1)
+        End With
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim treeA = compilation.SyntaxTrees.Single()
+            Dim modelA = compilation.GetSemanticModel(treeA)
+            Dim parameter = treeA.GetCompilationUnitRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "parameter").First()
+
+            Assert.Equal("Sub WithAliasedStaticField.Test(parameter As ClassWithField)", modelA.GetEnclosingSymbol(parameter.SpanStart).ToTestDisplayString())
+
+            Dim treeB = compilationB.SyntaxTrees.Single()
+            Dim withBlockB = treeB.GetCompilationUnitRoot().DescendantNodes().OfType(Of WithBlockSyntax)().Single()
+
+            Dim modelAB As SemanticModel = Nothing
+            Assert.True(modelA.TryGetSpeculativeSemanticModel(parameter.Parent.Parent.SpanStart, withBlockB, modelAB))
+
+            Assert.Equal("Sub WithAliasedStaticField.Test(parameter As ClassWithField)", modelAB.GetEnclosingSymbol(withBlockB.WithStatement.Expression.SpanStart).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        Public Sub WithTargetAsArgument_01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Base
+End Class
+
+Class Derived
+    Inherits Base
+
+    Public Function Contains(node As Base) As Boolean
+        Return True
+    End Function
+End Class
+
+Module Ext
+    Sub M(vbNode As Derived)
+        With vbNode
+            If .Contains(vbNode) Then
+            End If
+        End With
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "vbNode").ToArray()
+
+            Dim symbolInfo1 = model.GetSymbolInfo(nodes(0))
+            Assert.Equal("vbNode As Derived", symbolInfo1.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo1.Symbol.Kind)
+
+            Dim symbolInfo2 = model.GetSymbolInfo(nodes(1))
+            Assert.Equal("vbNode As Derived", symbolInfo2.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo2.Symbol.Kind)
+
+            Assert.Same(symbolInfo1.Symbol, symbolInfo2.Symbol)
+        End Sub
+
+        <Fact>
+        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        Public Sub WithTargetAsArgument_02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Base
+End Class
+
+Class Derived
+    Inherits Base
+End Class
+
+Module Ext
+    <System.Runtime.CompilerServices.Extension()>
+    Public Function GetCurrent(Of TNode As Base)(root As Base, node As TNode) As TNode
+        Return Nothing
+    End Function
+
+    Sub M(vbNode As Derived)
+        With vbNode
+            If .GetCurrent(vbNode) Is Nothing Then
+            End If
+        End With
+    End Sub
+End Module
+    ]]></file>
+</compilation>, additionalRefs:={SystemCoreRef})
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "vbNode").ToArray()
+
+            Dim symbolInfo1 = model.GetSymbolInfo(nodes(0))
+            Assert.Equal("vbNode As Derived", symbolInfo1.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo1.Symbol.Kind)
+
+            Dim symbolInfo2 = model.GetSymbolInfo(nodes(1))
+            Assert.Equal("vbNode As Derived", symbolInfo2.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo2.Symbol.Kind)
+
+            Assert.Same(symbolInfo1.Symbol, symbolInfo2.Symbol)
+        End Sub
+
+        <Fact>
+        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        Public Sub WithTargetAsArgument_03()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Base
+End Class
+
+Class Derived
+    Inherits Base
+
+    Public Function Contains(node As Base) As Boolean
+        Return True
+    End Function
+End Class
+
+Module Ext
+    <System.Runtime.CompilerServices.Extension()>
+    Public Function GetCurrent(Of TNode As Base)(root As Base, node As TNode) As TNode
+        Return Nothing
+    End Function
+
+    Sub M(vbNode As Derived)
+        With vbNode
+            If .GetCurrent(vbNode) Is Nothing Then
+            End If
+            If .Contains(vbNode) Then
+            End If
+        End With
+    End Sub
+End Module
+    ]]></file>
+</compilation>, additionalRefs:={SystemCoreRef})
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "vbNode").ToArray()
+
+            Dim symbolInfo1 = model.GetSymbolInfo(nodes(0))
+            Assert.Equal("vbNode As Derived", symbolInfo1.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo1.Symbol.Kind)
+
+            Dim symbolInfo2 = model.GetSymbolInfo(nodes(1))
+            Assert.Equal("vbNode As Derived", symbolInfo2.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo2.Symbol.Kind)
+
+            Dim symbolInfo3 = model.GetSymbolInfo(nodes(2))
+            Assert.Equal("vbNode As Derived", symbolInfo3.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Parameter, symbolInfo3.Symbol.Kind)
+
+            Assert.Same(symbolInfo1.Symbol, symbolInfo2.Symbol)
+            Assert.Same(symbolInfo1.Symbol, symbolInfo3.Symbol)
+        End Sub
+
+        <Fact>
+        <WorkItem(10929, "https://github.com/dotnet/roslyn/issues/10929")>
+        Public Sub WithTargetAsArgument_04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Base
+End Class
+
+Class Derived
+    Inherits Base
+End Class
+
+Module Ext
+    <System.Runtime.CompilerServices.Extension()>
+    Public Function GetCurrent(Of TNode As Base)(root As Base, node As TNode) As TNode
+        Return Nothing
+    End Function
+
+    readonly property vbNode As Derived
+        Get
+            return nothing
+        End Get
+    End Property
+
+    Sub M()
+        With vbNode
+            If .GetCurrent(vbNode) Is Nothing Then
+            End If
+        End With
+    End Sub
+End Module
+    ]]></file>
+</compilation>, additionalRefs:={SystemCoreRef})
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "vbNode").ToArray()
+
+            Dim symbolInfo1 = model.GetSymbolInfo(nodes(0))
+            Assert.Equal("ReadOnly Property Ext.vbNode As Derived", symbolInfo1.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Property, symbolInfo1.Symbol.Kind)
+
+            Dim symbolInfo2 = model.GetSymbolInfo(nodes(1))
+            Assert.Equal("ReadOnly Property Ext.vbNode As Derived", symbolInfo2.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.Property, symbolInfo2.Symbol.Kind)
+
+            Assert.Same(symbolInfo1.Symbol, symbolInfo2.Symbol)
         End Sub
 
     End Class

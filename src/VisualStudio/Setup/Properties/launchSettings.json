@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Visual Studio Extension": {
+      "commandName": "Executable",
+      "executablePath": "$(DevEnvDir)devenv.exe",
+      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log"
+    },
+    "Visual Studio Extension (with Native Debugging)": {
+      "commandName": "Executable",
+      "executablePath": "$(DevEnvDir)devenv.exe",
+      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log",
+      "nativeDebugging": true
+    }
+  }
+}

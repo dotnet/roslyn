@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CompilationOptions),
                 "AssemblyIdentityComparer",
+                "Language",
                 "CheckOverflow",
                 "ConcurrentBuild",
                 "CryptoKeyContainer",
@@ -29,7 +30,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Deterministic",
                 "EnableEditAndContinue",
                 "Errors",
-                "ExtendedCustomDebugInformation",
                 "DebugPlusMode",
                 "Features",
                 "GeneralDiagnosticOption",

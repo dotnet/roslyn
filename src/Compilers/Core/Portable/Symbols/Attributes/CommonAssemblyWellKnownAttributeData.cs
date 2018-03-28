@@ -270,8 +270,8 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region AssemblyFlagsAttributeSetting
-        private AssemblyNameFlags _assemblyFlagsAttributeSetting;
-        public AssemblyNameFlags AssemblyFlagsAttributeSetting
+        private AssemblyFlags _assemblyFlagsAttributeSetting;
+        public AssemblyFlags AssemblyFlagsAttributeSetting
         {
             get
             {
@@ -318,6 +318,24 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: false);
                 _hasCompilationRelaxationsAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region ReferenceAssemblyAttribute
+        private bool _hasReferenceAssemblyAttribute;
+        public bool HasReferenceAssemblyAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasReferenceAssemblyAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasReferenceAssemblyAttribute = value;
                 SetDataStored();
             }
         }

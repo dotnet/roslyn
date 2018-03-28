@@ -25,16 +25,16 @@ public struct A
     public static int Main() { return 1; }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
     // (4,7): error CS0573: 'A': cannot have instance property or field initializers in structs
     //     A a = new A();   // CS8036
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A").WithLocation(4, 7),
     // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
     //     A a = new A();   // CS8036
     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-    // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+    // (4,7): warning CS0169: The field 'A.a' is never used
     //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7)
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
     );
         }
 
@@ -52,7 +52,7 @@ struct S {
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
     // (3,25): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     event System.Action E = null;
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(3, 25)
@@ -79,7 +79,7 @@ struct S {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "10 20 False").VerifyDiagnostics();
         }
@@ -90,12 +90,12 @@ struct S {
         public void TestConstructorStruct()
         {
             var text = @"
-struct  Foo
+struct  Goo
 {
-    public Foo(int x) : this(5, 6)
+    public Goo(int x) : this(5, 6)
     {
     }
-    public Foo(int x, int y) 
+    public Goo(int x, int y) 
     {
         m_x = x;
         m_y = y;
@@ -182,6 +182,7 @@ class Program
         }
 
         // Overriding base System.Object methods on struct
+        [WorkItem(20496, "https://github.com/dotnet/roslyn/issues/20496")]
         [WorkItem(540990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540990")]
         [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestOverridingBaseConstructorStruct()
@@ -279,7 +280,7 @@ using System;
 struct C<T>
 {
     public int num;
-    public int Foo1()
+    public int Goo1()
     {
         return this.num;
     }
@@ -290,7 +291,7 @@ class Test
     {
         C<object> c;
         c.num = 1;
-        bool verify = c.Foo1() == 1;
+        bool verify = c.Goo1() == 1;
         Console.WriteLine(verify);
     }
 }
@@ -439,7 +440,7 @@ public class C
 ";
 
             // Calls constructor (vs initobj), then initobj
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             // TODO (tomat)
             CompileAndVerify(compilation).VerifyIL("C.M", @"
 {
@@ -493,7 +494,7 @@ public class C
             // Uses initobj for both
             // CONSIDER: This is the dev10 behavior, but it seems like a bug.
             // Shouldn't there be an error for trying to call an inaccessible ctor?
-            var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             CompileAndVerify(comp).VerifyIL("C.M", @"
 {
@@ -532,7 +533,7 @@ public class TestClass
     }
 }
 ";
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
                 // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new TestStruct().IntI")
                 );
@@ -558,7 +559,7 @@ public class mem033
         new S().P = 1; // CS0131 
     }
 }";
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateCompilation(csSource).VerifyDiagnostics(
                 // (14,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         new S().P = 1; // CS0131 
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S().P")
@@ -576,7 +577,7 @@ public struct X
     public X? recursiveFld;
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,15): error CS0523: Struct member 'X.recursiveFld' of type 'X?' causes a cycle in the struct layout
                 //     public X? recursiveFld;
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "recursiveFld").WithArguments("X.recursiveFld", "X?")
@@ -602,7 +603,7 @@ public struct X1
 }
 
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     // (11,5): error CS0568: Structs cannot contain explicit parameterless constructors
     //     X1()
     Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X1").WithLocation(11, 5),

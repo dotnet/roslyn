@@ -4,13 +4,14 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Public MustInherit Class BasicTestBase
-    Inherits BasicTestBaseBase
+    Inherits CommonTestBase
 
     Protected Overloads Function GetCompilationForEmit(
         source As IEnumerable(Of String),
@@ -18,7 +19,11 @@ Public MustInherit Class BasicTestBase
         options As VisualBasicCompilationOptions,
         parseOptions As VisualBasicParseOptions
     ) As VisualBasicCompilation
-        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
+        Return DirectCast(MyClass.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
+    End Function
+
+    Public Function XCDataToString(Optional data As XCData = Nothing) As String
+        Return data?.Value.Replace(vbLf, Environment.NewLine)
     End Function
 
     Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol)
@@ -29,11 +34,12 @@ Public MustInherit Class BasicTestBase
         End If
     End Function
 
-    ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         expectedOutput As XCData,
-        Optional additionalRefs() As MetadataReference = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional references As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -41,17 +47,16 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
-
-        If parseOptions Is Nothing AndAlso options IsNot Nothing Then
-            parseOptions = options.ParseOptions
-        End If
 
         Return CompileAndVerify(
             source,
-            If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
-            additionalRefs,
+            XCDataToString(expectedOutput),
+            expectedReturnCode,
+            args,
+            references,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -59,10 +64,10 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             parseOptions,
+            emitOptions,
             verify)
     End Function
 
-    ' TODO (tomat): remove - here only to override emitters default
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
@@ -72,9 +77,12 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
-        Optional verify As Boolean = True) As CompilationVerifier
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
-        Return MyBase.CompileAndVerify(
+        Return MyBase.CompileAndVerifyCommon(
             compilation,
             manifestResources,
             dependencies,
@@ -83,35 +91,46 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
             verify)
     End Function
 
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         expectedOutput As XCData,
+        Optional args As String() = Nothing,
+        Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional verify As Boolean = True) As CompilationVerifier
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
         Return CompileAndVerify(
             compilation,
-            Nothing,
+            manifestResources,
             dependencies,
             sourceSymbolValidator,
             validator,
             symbolValidator,
             expectedSignatures,
-            If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
+            XCDataToString(expectedOutput),
+            Nothing,
+            args,
+            emitOptions,
             verify)
     End Function
 
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         Optional expectedOutput As String = Nothing,
-        Optional additionalRefs() As MetadataReference = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional references As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -119,16 +138,19 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Verification.Passes,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
 
         Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
-        Dim allReferences = If(additionalRefs IsNot Nothing, defaultRefs.Concat(additionalRefs), defaultRefs)
+        Dim allReferences = If(references IsNot Nothing, defaultRefs.Concat(references), defaultRefs)
 
         Return Me.CompileAndVerify(source,
                                    allReferences,
                                    expectedOutput,
+                                   expectedReturnCode,
+                                   args,
                                    dependencies,
                                    sourceSymbolValidator,
                                    validator,
@@ -136,15 +158,17 @@ Public MustInherit Class BasicTestBase
                                    expectedSignatures,
                                    options,
                                    parseOptions,
+                                   emitOptions,
                                    verify)
 
     End Function
 
-    ' TODO: EmitOptions.All
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -152,16 +176,19 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         If options Is Nothing Then
             options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
         End If
 
-        Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=allReferences, options:=options, parseOptions:=parseOptions)
+        Dim assemblyName As String = Nothing
+        Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
+        Dim compilation = CreateEmptyCompilation(sourceTrees, allReferences, options, assemblyName)
 
-        Return MyBase.CompileAndVerify(
+        Return MyBase.CompileAndVerifyCommon(
             compilation,
             Nothing,
             dependencies,
@@ -170,13 +197,18 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
             verify)
     End Function
 
-    Friend Shadows Function CompileAndVerifyOnWin8Only(
-        source As XElement,
+    Friend Shadows Function CompileAndVerify(
+        source As String,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -184,12 +216,53 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional assemblyName As String = Nothing,
+        Optional verify As Verification = Verification.Passes
+    ) As CompilationVerifier
+
+        If options Is Nothing Then
+            options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
+        End If
+
+        Dim compilation = CreateEmptyCompilation(source, allReferences, options, assemblyName, parseOptions)
+
+        Return MyBase.CompileAndVerifyCommon(
+            compilation,
+            Nothing,
+            dependencies,
+            Translate(sourceSymbolValidator),
+            validator,
+            Translate(symbolValidator),
+            expectedSignatures,
+            expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
+            verify)
+    End Function
+
+    Friend Shadows Function CompileAndVerifyOnWin8Only(
+        source As XElement,
+        allReferences As IEnumerable(Of MetadataReference),
+        Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
+        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
         Return Me.CompileAndVerify(
             source,
             allReferences,
             If(OSVersion.IsWin8, expectedOutput, Nothing),
+            If(OSVersion.IsWin8, expectedReturnCode, Nothing),
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -197,13 +270,14 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             parseOptions,
-            verify:=OSVersion.IsWin8)
+            verify:=If(OSVersion.IsWin8, verify, Verification.Skipped))
     End Function
 
-    ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         expectedOutput As XCData,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional allReferences() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -212,12 +286,14 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
         Return CompileAndVerifyOnWin8Only(
             source,
             allReferences,
-            If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
+            XCDataToString(expectedOutput),
+            expectedReturnCode,
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -231,7 +307,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         Optional expectedOutput As String = Nothing,
-        Optional additionalRefs() As MetadataReference = Nothing,
+        Optional references() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -239,13 +315,13 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True,
+        Optional verify As Verification = Verification.Passes,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
         Return CompileAndVerify(
             source,
             expectedOutput:=If(OSVersion.IsWin8, expectedOutput, Nothing),
-            additionalRefs:=additionalRefs,
+            references:=references,
             dependencies:=dependencies,
             sourceSymbolValidator:=sourceSymbolValidator,
             validator:=validator,
@@ -253,35 +329,35 @@ Public MustInherit Class BasicTestBase
             expectedSignatures:=expectedSignatures,
             options:=options,
             parseOptions:=parseOptions,
-            verify:=OSVersion.IsWin8 AndAlso verify,
+            verify:=If(OSVersion.IsWin8, verify, Verification.Skipped),
             useLatestFramework:=useLatestFramework)
     End Function
 
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
+    ''' <param name="source">The sources compile according to the following schema
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
     ''' source
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    Friend Function CompileWithCustomILSource(sources As XElement, ilSource As XCData) As CompilationVerifier
-        Return CompileWithCustomILSource(sources, ilSource.Value)
+    Friend Function CompileWithCustomILSource(source As XElement, ilSource As XCData) As CompilationVerifier
+        Return CompileWithCustomILSource(source, ilSource.Value)
     End Function
 
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
+    ''' <param name="source">The sources compile according to the following schema
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
     ''' source
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    Friend Function CompileWithCustomILSource(sources As XElement,
+    Friend Function CompileWithCustomILSource(source As XElement,
                                               ilSource As String,
                                               Optional options As VisualBasicCompilationOptions = Nothing,
                                               Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing,
@@ -291,7 +367,7 @@ Public MustInherit Class BasicTestBase
         End If
 
         If ilSource = Nothing Then
-            Return CompileAndVerify(sources)
+            Return CompileAndVerify(source)
         End If
 
         Dim reference As MetadataReference = Nothing
@@ -299,7 +375,7 @@ Public MustInherit Class BasicTestBase
             reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
         End Using
 
-        Dim compilation = CreateCompilationWithReferences(sources, {MscorlibRef, MsvbRef, reference}, options)
+        Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef, MsvbRef, reference}, options)
 
         If compilationVerifier IsNot Nothing Then
             compilationVerifier(compilation)
@@ -333,25 +409,6 @@ Public MustInherit Class BasicTestBase
                                 expectedSignatures:=expectedSignatures)
     End Function
 
-End Class
-
-Public MustInherit Class BasicTestBaseBase
-    Inherits CommonTestBase
-
-    Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
-        Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
-        Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=references, options:=options)
-        Return references.Select(
-            Function(r)
-                If r.Properties.Kind = MetadataImageKind.Assembly Then
-                    Dim assemblySymbol = tc1.GetReferencedAssemblySymbol(r)
-                    Return If(assemblySymbol Is Nothing, Nothing, assemblySymbol.Modules(0))
-                Else
-                    Return tc1.GetReferencedModuleSymbol(r)
-                End If
-            End Function)
-    End Function
-
     Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get
             Return TestOptions.ReleaseDll
@@ -360,14 +417,14 @@ Public MustInherit Class BasicTestBaseBase
 
     Protected Overrides Function GetCompilationForEmit(
         source As IEnumerable(Of String),
-        additionalRefs As IEnumerable(Of MetadataReference),
+        references As IEnumerable(Of MetadataReference),
         options As CompilationOptions,
         parseOptions As ParseOptions
     ) As Compilation
         Return VisualBasicCompilation.Create(
             GetUniqueName(),
             syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
-            references:=If(additionalRefs IsNot Nothing, DefaultVbReferences.Concat(additionalRefs), DefaultVbReferences),
+            references:=If(references IsNot Nothing, DefaultVbReferences.Concat(references), DefaultVbReferences),
             options:=DirectCast(options, VisualBasicCompilationOptions))
     End Function
 
@@ -409,7 +466,7 @@ Public MustInherit Class BasicTestBaseBase
     End Function
 
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
-        Dim compilation = CreateCompilationWithMscorlib(source, options)
+        Dim compilation = CreateCompilationWithMscorlib40(source, options)
         compilation.VerifyDiagnostics()
         Return GetPdbXml(compilation, methodName)
     End Function
@@ -429,7 +486,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -438,7 +495,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -446,7 +503,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -455,7 +512,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -463,7 +520,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -472,7 +529,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_r
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -480,7 +537,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -510,7 +567,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit D1
        extends B
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -519,7 +576,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -528,7 +585,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -536,7 +593,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -545,7 +602,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_r
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -553,7 +610,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -582,7 +639,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit D2
        extends D1
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -590,7 +647,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D2::set_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -598,7 +655,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D2::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -607,7 +664,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D2::get_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -725,5 +782,115 @@ Public MustInherit Class BasicTestBaseBase
             Return x.Arity - y.Arity
         End Function
     End Class
+
+#Region "IOperation tree validation"
+
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As (tree As String, syntax As SyntaxNode, operation As IOperation)
+        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
+        If node Is Nothing Then
+            Return Nothing
+        End If
+
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim semanticModel = compilation.GetSemanticModel(tree)
+        Dim operation = semanticModel.GetOperation(node)
+        If operation IsNot Nothing Then
+            Return (OperationTreeVerifier.GetOperationTree(compilation, operation), node, operation)
+        Else
+            Return (Nothing, Nothing, Nothing)
+        End If
+    End Function
+
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
+        source As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional useLatestFrameworkReferences As Boolean = False) As (tree As String, syntax As SyntaxNode, operation As IOperation, compilation As Compilation)
+
+        Dim fileName = "a.vb"
+        Dim syntaxTree = Parse(source, fileName, parseOptions)
+        Dim defaultRefs = If(useLatestFrameworkReferences, LatestVbReferences, DefaultVbReferences)
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=defaultRefs.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
+        Return (operationTree.tree, operationTree.syntax, operationTree.operation, compilation)
+    End Function
+
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
+        OperationTreeVerifier.Verify(expectedOperationTree, operationTree.tree)
+        If additionalOperationTreeVerifier IsNot Nothing Then
+            additionalOperationTreeVerifier(operationTree.operation, compilation, operationTree.syntax)
+        End If
+    End Sub
+
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
+        source As String,
+        expectedOperationTree As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing,
+        Optional useLatestFrameworkReferences As Boolean = False)
+
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(source, compilationOptions, parseOptions, which, useLatestFrameworkReferences)
+        OperationTreeVerifier.Verify(expectedOperationTree, operationTree.tree)
+        If additionalOperationTreeVerifier IsNot Nothing Then
+            additionalOperationTreeVerifier(operationTree.operation, operationTree.compilation, operationTree.syntax)
+        End If
+    End Sub
+
+    Friend Shared Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
+        source As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional useLatestFrameworkReferences As Boolean = False)
+
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(source, compilationOptions, parseOptions, which, useLatestFrameworkReferences)
+        Assert.Null(operationTree.tree)
+    End Sub
+
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+        compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
+        VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which, additionalOperationTreeVerifier)
+    End Sub
+
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
+        source As String,
+        expectedOperationTree As String,
+        expectedDiagnostics As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional references As IEnumerable(Of MetadataReference) = Nothing,
+        Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing,
+        Optional useLatestFramework As Boolean = False)
+
+        Dim fileName = "a.vb"
+        Dim syntaxTree = Parse(source, fileName, parseOptions)
+        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
+        Dim allReferences = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        allReferences = If(references IsNot Nothing, allReferences.Concat(references), allReferences)
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
+    End Sub
+
+    Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
+        Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
+    End Function
+
+    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As (operation As IOperation, syntaxNode As SyntaxNode)
+        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
+        If node Is Nothing Then
+            Return (Nothing, Nothing)
+        End If
+
+        Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+        Dim operation = semanticModel.GetOperation(node)
+        Return (operation, node)
+    End Function
+
+#End Region
 
 End Class

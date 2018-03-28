@@ -75,10 +75,30 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>> TagsChangedForBuffer;
+            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
 
             public event EventHandler Paused;
             public event EventHandler Resumed;
+
+            /// <summary>
+            /// A cancellation source we use for the initial tagging computation.  We only cancel
+            /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
+            /// set of tags for our view/buffer.
+            /// </summary>
+            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new CancellationTokenSource();
+
+            /// <summary>
+            /// Whether or not we've gotten any change notifications from our <see cref="ITaggerEventSource"/>.
+            /// The first time we hear about changes, we fast track getting tags and reporting 
+            /// them to the UI.
+            /// 
+            /// We use an int so we can use <see cref="Interlocked.CompareExchange(ref int, int, int)"/> 
+            /// to read/set this.
+            /// </summary>
+            private int _seenEventSourceChanged;
+
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             public TagSource(
                 ITextView textViewOpt,
@@ -108,12 +128,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Connect();
 
-                // Kick off a task to compute the initial set of tags.
-                RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
+                // Start computing the initial set of tags immediately.  We want to get the UI
+                // to a complete state as soon as possible.
+                ComputeInitialTags();
             }
 
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
+            private void ComputeInitialTags()
+            {
+                // Note: we always kick this off to the new UI pump instead of computing tags right
+                // on this thread.  The reason for that is that we may be getting created at a time
+                // when the view itself is initializing.  As such the view is not in a state where
+                // we want code touching it.
+                RegisterNotification(
+                    () => RecomputeTagsForeground(initialTags: true),
+                    delay: 0,
+                    cancellationToken: GetCancellationToken(initialTags: true));
+            }
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -196,27 +226,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-            {
-                _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
-            }
-
-            /// <summary>
-            /// Called by derived types to enqueue tags re-calculation request
-            /// </summary>
-            private void RecalculateTagsOnChanged(TaggerEventArgs e)
-            {
-                // First, cancel any previous requests (either still queued, or started).  We no longer
-                // want to continue it if new changes have come in.
-                _workQueue.CancelCurrentWork();
-
-                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _workQueue.CancellationToken);
-            }
+                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
 
             private void Connect()
             {
                 _workQueue.AssertIsForeground();
 
-                _eventSource.Changed += OnChanged;
+                _eventSource.Changed += OnEventSourceChanged;
                 _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
                 _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
 
@@ -260,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
                 _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
-                _eventSource.Changed -= OnChanged;
+                _eventSource.Changed -= OnEventSourceChanged;
             }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
@@ -273,12 +289,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 RaiseTagsChanged(SpecializedCollections.SingletonCollection(
-                    new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)));
+                    new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
+                    initialTags: false);
             }
 
-            private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection)
+            private void RaiseTagsChanged(
+                ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection, bool initialTags)
             {
-                TagsChangedForBuffer?.Invoke(collection);
+                TagsChangedForBuffer?.Invoke(collection, initialTags);
             }
 
             private void RaisePaused()
@@ -293,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
             {
-                return enumerator.MoveNext() ? enumerator.Current : default(T);
+                return enumerator.MoveNext() ? enumerator.Current : default;
             }
 
             /// <summary>

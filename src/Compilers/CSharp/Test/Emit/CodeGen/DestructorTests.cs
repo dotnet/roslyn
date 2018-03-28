@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CSharp.RuntimeBinder;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class DestructorTests : EmitMetadataTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ClassDestructor()
         {
             var text = @"
@@ -75,7 +74,142 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodiedClassDestructor()
+        {
+            var text = @"
+using System;
+
+public class Base
+{
+    ~Base() => Console.WriteLine(""~Base"");
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Base b = new Base();
+        b = null;
+        GC.Collect(GC.MaxGeneration);
+        GC.WaitForPendingFinalizers();
+    }
+}
+";
+            var validator = GetDestructorValidator("Base");
+            var compVerifier = CompileAndVerify(text,
+                sourceSymbolValidator: validator,
+                symbolValidator: validator,
+                expectedOutput: @"~Base",
+                expectedSignatures: new[]
+                {
+                    Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
+                });
+
+            compVerifier.VerifyIL("Base.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Base""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void object.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodiedSubClassDestructor()
+        {
+            var text = @"
+using System;
+
+public class Base
+{
+    ~Base() => Console.WriteLine(""~Base"");
+}
+
+public class Derived : Base
+{
+    ~Derived() => Console.WriteLine(""~Derived"");
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Derived d = new Derived();
+        d = null;
+        GC.Collect(GC.MaxGeneration);
+        GC.WaitForPendingFinalizers();
+    }
+}
+";
+            var validator = GetDestructorValidator("Derived");
+            var compVerifier = CompileAndVerify(text,
+                sourceSymbolValidator: validator,
+                symbolValidator: validator,
+                expectedOutput: @"~Derived
+~Base",
+                expectedSignatures: new[]
+                {
+                    Signature("Base", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed"),
+                    Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
+                });
+
+            compVerifier.VerifyIL("Base.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Base""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void object.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+            compVerifier.VerifyIL("Derived.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Derived""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void Base.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+            compVerifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SubclassDestructor()
         {
             var text = @"
@@ -120,7 +254,7 @@ public class Program
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
                 });
 
-            compVerifier.VerifyIL("Base.Finalize", @"
+        compVerifier.VerifyIL("Base.Finalize", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -139,10 +273,29 @@ public class Program
   IL_0013:  ret
 }
 ");
-            compVerifier.VerifyDiagnostics();
+        compVerifier.VerifyIL("Derived.Finalize", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldstr      ""~Derived""
+    IL_0005:  call       ""void System.Console.WriteLine(string)""
+    IL_000a:  leave.s    IL_0013
+  }
+  finally
+  {
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""void Base.Finalize()""
+    IL_0012:  endfinally
+  }
+  IL_0013:  ret
+}
+");
+        compVerifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DestructorOverridesNonDestructor()
         {
             var text = @"
@@ -207,7 +360,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -263,7 +416,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -508,7 +661,7 @@ public class M<T> : L<T>
 
 } // end of class D
 ";
-            var compilation = CreateCompilationWithCustomILSource("", text);
+            var compilation = CreateCompilationWithILAndMscorlib40("", text);
 
             var globalNamespace = compilation.GlobalNamespace;
 
@@ -531,7 +684,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(
@@ -540,7 +693,7 @@ public class B : A
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
 
             // We produce unverifiable code here as per bug resolution (compat concerns, not common case).
-            CompileAndVerify(compilation, verify: false).VerifyIL("B.Finalize",
+            CompileAndVerify(compilation, verify: Verification.Fails).VerifyIL("B.Finalize",
 
                 @"
 {

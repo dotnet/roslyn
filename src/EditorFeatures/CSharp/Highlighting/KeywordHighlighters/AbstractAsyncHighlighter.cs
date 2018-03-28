@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
@@ -16,41 +15,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         protected void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
         {
             // Highlight async keyword
-            node.TypeSwitch(
-                (MethodDeclarationSyntax methodDeclaration) =>
-                {
+            switch (node)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
                     var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
                     if (asyncModifier.Kind() != SyntaxKind.None)
                     {
                         spans.Add(asyncModifier.Span);
                     }
-                },
-                (SimpleLambdaExpressionSyntax simpleLambda) =>
-                {
+                    break;
+
+                case SimpleLambdaExpressionSyntax simpleLambda:
                     if (simpleLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
                         spans.Add(simpleLambda.AsyncKeyword.Span);
                     }
-                },
-                (ParenthesizedLambdaExpressionSyntax parenthesizedLambda) =>
-                {
+                    break;
+
+                case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
                     if (parenthesizedLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
                         spans.Add(parenthesizedLambda.AsyncKeyword.Span);
                     }
-                },
-                (AnonymousMethodExpressionSyntax anonymousMethod) =>
-                {
+                    break;
+
+                case AnonymousMethodExpressionSyntax anonymousMethod:
                     if (anonymousMethod.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
                         spans.Add(anonymousMethod.AsyncKeyword.Span);
                     }
-                });
+                    break;
 
-            // Highlight await keywords
-            node.TypeSwitch(
-                (AwaitExpressionSyntax awaitExpression) =>
-                {
+                case AwaitExpressionSyntax awaitExpression:
                     // Note if there is already a highlight for the previous token, merge it
                     // with this span. That way, we highlight nested awaits with a single span.
                     var handled = false;
@@ -71,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     {
                         spans.Add(awaitToken.Span);
                     }
-                });
+                    break;
+            }
 
             foreach (var child in node.ChildNodes())
             {

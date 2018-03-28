@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // Taken from csharp\LanguageAnalysis\Compiler\IDE\LIB\CMEvents.cpp
 
@@ -141,9 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldExpression is TypeSyntax)
+                if (oldExpression is TypeSyntax typeSyntax)
                 {
-                    return CompareTypes((TypeSyntax)oldExpression, (TypeSyntax)newExpression);
+                    return CompareTypes(typeSyntax, (TypeSyntax)newExpression);
                 }
 
                 if (oldExpression is LiteralExpressionSyntax)
@@ -151,33 +151,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return StringComparer.Ordinal.Equals(oldExpression.ToString(), newExpression.ToString());
                 }
 
-                if (oldExpression is CastExpressionSyntax)
+                if (oldExpression is CastExpressionSyntax oldCast)
                 {
-                    var oldCast = (CastExpressionSyntax)oldExpression;
                     var newCast = (CastExpressionSyntax)newExpression;
 
                     return CompareTypes(oldCast.Type, newCast.Type)
                         && CompareExpressions(oldCast.Expression, newCast.Expression);
                 }
 
-                if (oldExpression is PrefixUnaryExpressionSyntax)
+                if (oldExpression is PrefixUnaryExpressionSyntax prefixUnary)
                 {
-                    return CompareExpressions(((PrefixUnaryExpressionSyntax)oldExpression).Operand, ((PrefixUnaryExpressionSyntax)newExpression).Operand);
+                    return CompareExpressions(prefixUnary.Operand, ((PrefixUnaryExpressionSyntax)newExpression).Operand);
                 }
 
-                if (oldExpression is AwaitExpressionSyntax)
+                if (oldExpression is AwaitExpressionSyntax awaitExpression)
                 {
-                    return CompareExpressions(((AwaitExpressionSyntax)oldExpression).Expression, ((AwaitExpressionSyntax)newExpression).Expression);
+                    return CompareExpressions(awaitExpression.Expression, ((AwaitExpressionSyntax)newExpression).Expression);
                 }
 
-                if (oldExpression is PostfixUnaryExpressionSyntax)
+                if (oldExpression is PostfixUnaryExpressionSyntax postfixUnary)
                 {
-                    return CompareExpressions(((PostfixUnaryExpressionSyntax)oldExpression).Operand, ((PostfixUnaryExpressionSyntax)newExpression).Operand);
+                    return CompareExpressions(postfixUnary.Operand, ((PostfixUnaryExpressionSyntax)newExpression).Operand);
                 }
 
-                if (oldExpression is BinaryExpressionSyntax)
+                if (oldExpression is BinaryExpressionSyntax oldBinaryExpression)
                 {
-                    var oldBinaryExpression = (BinaryExpressionSyntax)oldExpression;
                     var newBinaryExpression = (BinaryExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldBinaryExpression.Left, newBinaryExpression.Left)
@@ -193,9 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         && CompareExpressions(oldAssignmentExpression.Right, newAssignmentExpression.Right);
                 }
 
-                if (oldExpression is MemberAccessExpressionSyntax)
+                if (oldExpression is MemberAccessExpressionSyntax oldMemberAccessExpression)
                 {
-                    var oldMemberAccessExpression = (MemberAccessExpressionSyntax)oldExpression;
                     var newMemberAccessExpression = (MemberAccessExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldMemberAccessExpression.Expression, newMemberAccessExpression.Expression)
@@ -250,21 +247,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     return CompareTypeDeclarations(oldMember, newMember, newNodeParent, eventQueue);
                 }
-                else if (oldMember is BaseMethodDeclarationSyntax)
+                else if (oldMember is BaseMethodDeclarationSyntax baseMethod)
                 {
-                    return CompareMethodDeclarations((BaseMethodDeclarationSyntax)oldMember, (BaseMethodDeclarationSyntax)newMember, newNodeParent, eventQueue);
+                    return CompareMethodDeclarations(baseMethod, (BaseMethodDeclarationSyntax)newMember, newNodeParent, eventQueue);
                 }
-                else if (oldMember is BaseFieldDeclarationSyntax)
+                else if (oldMember is BaseFieldDeclarationSyntax baseField)
                 {
-                    return CompareFieldDeclarations((BaseFieldDeclarationSyntax)oldMember, (BaseFieldDeclarationSyntax)newMember, newNodeParent, eventQueue);
+                    return CompareFieldDeclarations(baseField, (BaseFieldDeclarationSyntax)newMember, newNodeParent, eventQueue);
                 }
-                else if (oldMember is BasePropertyDeclarationSyntax)
+                else if (oldMember is BasePropertyDeclarationSyntax baseProperty)
                 {
-                    return ComparePropertyDeclarations((BasePropertyDeclarationSyntax)oldMember, (BasePropertyDeclarationSyntax)newMember, newNodeParent, eventQueue);
+                    return ComparePropertyDeclarations(baseProperty, (BasePropertyDeclarationSyntax)newMember, newNodeParent, eventQueue);
                 }
-                else if (oldMember is EnumMemberDeclarationSyntax)
+                else if (oldMember is EnumMemberDeclarationSyntax enumMember)
                 {
-                    return CompareEnumMemberDeclarations((EnumMemberDeclarationSyntax)oldMember, (EnumMemberDeclarationSyntax)newMember, newNodeParent, eventQueue);
+                    return CompareEnumMemberDeclarations(enumMember, (EnumMemberDeclarationSyntax)newMember, newNodeParent, eventQueue);
                 }
 
                 throw new NotImplementedException();
@@ -335,9 +332,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     CodeModelEventType.Unknown,
                     eventQueue);
 
-                if (oldProperty is IndexerDeclarationSyntax)
+                if (oldProperty is IndexerDeclarationSyntax oldIndexer)
                 {
-                    var oldIndexer = (IndexerDeclarationSyntax)oldProperty;
                     var newIndexer = (IndexerDeclarationSyntax)newProperty;
                     same &= CompareChildren(
                         CompareParameters,
@@ -528,9 +524,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldMember is BaseTypeDeclarationSyntax)
+                if (oldMember is BaseTypeDeclarationSyntax oldType)
                 {
-                    var oldType = (BaseTypeDeclarationSyntax)oldMember;
                     var newType = (BaseTypeDeclarationSyntax)newMember;
 
                     var oldMembers = GetValidMembers(oldType);
@@ -590,9 +585,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                     return same;
                 }
-                else if (oldMember is DelegateDeclarationSyntax)
+                else if (oldMember is DelegateDeclarationSyntax oldDelegate)
                 {
-                    var oldDelegate = (DelegateDeclarationSyntax)oldMember;
                     var newDelegate = (DelegateDeclarationSyntax)newMember;
 
                     bool same = true;
@@ -673,9 +667,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     return CompareTypeDeclarations(oldNamespaceOrType, newNamespaceOrType, newNodeParent, eventQueue);
                 }
-                else if (oldNamespaceOrType is NamespaceDeclarationSyntax)
+                else if (oldNamespaceOrType is NamespaceDeclarationSyntax namespaceDecl)
                 {
-                    return CompareNamespaceDeclarations((NamespaceDeclarationSyntax)oldNamespaceOrType, (NamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
+                    return CompareNamespaceDeclarations(namespaceDecl, (NamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
                 }
 
                 return false;
@@ -837,13 +831,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             private TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
             {
-                if (method is MethodDeclarationSyntax)
+                if (method is MethodDeclarationSyntax methodDecl)
                 {
-                    return ((MethodDeclarationSyntax)method).ReturnType;
+                    return methodDecl.ReturnType;
                 }
-                else if (method is OperatorDeclarationSyntax)
+                else if (method is OperatorDeclarationSyntax operatorDecl)
                 {
-                    return ((OperatorDeclarationSyntax)method).ReturnType;
+                    return operatorDecl.ReturnType;
                 }
 
                 // TODO(DustinCa): What about conversion operators? How does the legacy code base handle those?
@@ -868,23 +862,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
-                if (node is BaseFieldDeclarationSyntax)
+                if (node is BaseFieldDeclarationSyntax baseField)
                 {
-                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)node).Declaration.Variables)
+                    foreach (var variableDeclarator in baseField.Declaration.Variables)
                     {
                         eventQueue.EnqueueAddEvent(variableDeclarator, parent);
                     }
                 }
-                else if (node is AttributeListSyntax)
+                else if (node is AttributeListSyntax attributeList)
                 {
-                    foreach (var attribute in ((AttributeListSyntax)node).Attributes)
+                    foreach (var attribute in attributeList.Attributes)
                     {
                         AddEventToEventQueueForAttributes(attribute, parent, eventQueue.EnqueueAddEvent);
                     }
                 }
-                else if (node is AttributeSyntax)
+                else if (node is AttributeSyntax attribute)
                 {
-                    AddEventToEventQueueForAttributes((AttributeSyntax)node, parent, eventQueue.EnqueueAddEvent);
+                    AddEventToEventQueueForAttributes(attribute, parent, eventQueue.EnqueueAddEvent);
                 }
                 else
                 {
@@ -904,23 +898,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
-                if (node is BaseFieldDeclarationSyntax)
+                if (node is BaseFieldDeclarationSyntax baseField)
                 {
-                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)node).Declaration.Variables)
+                    foreach (var variableDeclarator in baseField.Declaration.Variables)
                     {
                         eventQueue.EnqueueChangeEvent(variableDeclarator, parent, eventType);
                     }
                 }
-                else if (node is AttributeListSyntax)
+                else if (node is AttributeListSyntax attributeList)
                 {
-                    foreach (var attribute in ((AttributeListSyntax)node).Attributes)
+                    foreach (var attribute in attributeList.Attributes)
                     {
                         ChangeEventQueueForAttributes(attribute, parent, eventType, eventQueue);
                     }
                 }
-                else if (node is AttributeSyntax)
+                else if (node is AttributeSyntax attribute)
                 {
-                    ChangeEventQueueForAttributes((AttributeSyntax)node, parent, eventType, eventQueue);
+                    ChangeEventQueueForAttributes(attribute, parent, eventType, eventQueue);
                 }
                 else
                 {
@@ -930,9 +924,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             private static void ChangeEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, CodeModelEventType eventType, CodeModelEventQueue eventQueue)
             {
-                if (parent is BaseFieldDeclarationSyntax)
+                if (parent is BaseFieldDeclarationSyntax baseField)
                 {
-                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
+                    foreach (var variableDeclarator in baseField.Declaration.Variables)
                     {
                         eventQueue.EnqueueChangeEvent(attribute, variableDeclarator, eventType);
                     }
@@ -955,23 +949,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return;
                 }
 
-                if (node is BaseFieldDeclarationSyntax)
+                if (node is BaseFieldDeclarationSyntax baseField)
                 {
-                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)node).Declaration.Variables)
+                    foreach (var variableDeclarator in baseField.Declaration.Variables)
                     {
                         eventQueue.EnqueueRemoveEvent(variableDeclarator, parent);
                     }
                 }
-                else if (node is AttributeListSyntax)
+                else if (node is AttributeListSyntax attributeList)
                 {
-                    foreach (var attribute in ((AttributeListSyntax)node).Attributes)
+                    foreach (var attribute in attributeList.Attributes)
                     {
                         AddEventToEventQueueForAttributes(attribute, parent, eventQueue.EnqueueRemoveEvent);
                     }
                 }
-                else if (node is AttributeSyntax)
+                else if (node is AttributeSyntax attribute)
                 {
-                    AddEventToEventQueueForAttributes((AttributeSyntax)node, parent, eventQueue.EnqueueRemoveEvent);
+                    AddEventToEventQueueForAttributes(attribute, parent, eventQueue.EnqueueRemoveEvent);
                 }
                 else
                 {
@@ -981,9 +975,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             private void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
             {
-                if (parent is BaseFieldDeclarationSyntax)
+                if (parent is BaseFieldDeclarationSyntax baseField)
                 {
-                    foreach (var variableDeclarator in ((BaseFieldDeclarationSyntax)parent).Declaration.Variables)
+                    foreach (var variableDeclarator in baseField.Declaration.Variables)
                     {
                         enqueueAddOrRemoveEvent(attribute, variableDeclarator);
                     }

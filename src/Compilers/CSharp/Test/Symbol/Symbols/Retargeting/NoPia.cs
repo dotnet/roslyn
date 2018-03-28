@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.vb
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.dll
         /// </summary>
-        private static readonly string s_sourcePia1 =
+        private const string s_sourcePia1 =
 @"
 using System;
 using System.Reflection;
@@ -58,7 +58,7 @@ namespace NS1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.dll
         /// </summary>
-        private static readonly string s_sourceLocalTypes1_IL =
+        private const string s_sourceLocalTypes1_IL =
 @"
 using System;
 using System.Runtime.CompilerServices;
@@ -91,7 +91,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.vb
         /// </summary>
-        private static readonly string s_sourceLocalTypes1 =
+        private const string s_sourceLocalTypes1 =
 @"
 using NS1;
 
@@ -106,7 +106,7 @@ public class LocalTypes1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.dll
         /// </summary>
-        private static readonly string s_sourceLocalTypes2_IL =
+        private const string s_sourceLocalTypes2_IL =
 @"
 using NS1;
 using System;
@@ -139,7 +139,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.vb
         /// </summary>
-        private static readonly string s_sourceLocalTypes2 =
+        private const string s_sourceLocalTypes2 =
 @"
 using NS1;
 
@@ -154,7 +154,7 @@ public class LocalTypes2
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.dll
         /// </summary>
-        private static readonly string s_sourceLocalTypes3_IL =
+        private const string s_sourceLocalTypes3_IL =
 @"
 using System;
 using System.Reflection;
@@ -219,7 +219,7 @@ public class LocalTypes3
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.vb
         /// </summary>
-        private static readonly string s_sourceLocalTypes3 =
+        private const string s_sourceLocalTypes3 =
 @"
 using System;
 using System.Collections.Generic;
@@ -275,10 +275,10 @@ public class LocalTypes3
         [ClrOnlyFact]
         public void HideLocalTypeDefinitions()
         {
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateEmptyCompilation(s_sourceLocalTypes1_IL, new[] { MscorlibRef }, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var LocalTypes2 = CreateEmptyCompilation(s_sourceLocalTypes2_IL, new[] { MscorlibRef }, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
@@ -341,13 +341,13 @@ public class LocalTypes3
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_S2.FullName));
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_1()
         {
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilationWithMscorlib40(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var LocalTypes2 = CreateCompilationWithMscorlib40(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
             var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
@@ -638,14 +638,16 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_2()
         {
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes2);
 
@@ -937,17 +939,19 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_3()
         {
-            var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1", targetFramework: TargetFramework.StandardCompat);
             CompileAndVerify(Pia1);
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes2);
 
@@ -1246,7 +1250,7 @@ public class LocalTypes3
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
             var localTypes1Ref = new CSharpCompilationReference(LocalTypes1);
@@ -1271,7 +1275,7 @@ public class LocalTypes3
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1290,18 +1294,18 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void CyclicReference_3()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
 
-            var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
             var piaRef = new CSharpCompilationReference(Pia1);
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1323,7 +1327,7 @@ public class LocalTypes3
         [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_1()
         {
-            var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
+            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
             CompileAndVerify(LocalTypes3);
 
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
@@ -1367,9 +1371,515 @@ public class LocalTypes3
         }
 
         [ClrOnlyFact]
+        public void ValueTupleWithMissingCanonicalType()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+[CompilerGenerated, TypeIdentifier(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""S1"")]
+public struct S1 { }
+
+public class C
+{
+    public ValueTuple<S1, S1> Test1()
+    {
+        throw new Exception();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+
+            var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { comp },
+                                null,
+                                new MetadataReference[] { },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies1[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+
+            var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { },
+                                null,
+                                new MetadataReference[] { comp.ToMetadataReference() },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies2[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+        }
+
+        [ClrOnlyFact]
+        public void EmbeddedValueTuple()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System
+{
+    [CompilerGenerated, TypeIdentifier(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""ValueTuple"")]
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+public class C
+{
+    public ValueTuple<int, int> Test1()
+    {
+        throw new Exception();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
+            comp.VerifyDiagnostics();
+
+            var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { comp },
+                                null,
+                                new MetadataReference[] { },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies1[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+
+            var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { },
+                                null,
+                                new MetadataReference[] { comp.ToMetadataReference() },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies2[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        public void CannotEmbedValueTuple()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+";
+
+            var pia = CreateCompilationWithMscorlib46(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyDiagnostics();
+
+            string source = @"
+public class C
+{
+    public System.ValueTuple<string, string> TestValueTuple()
+    {
+        throw new System.Exception();
+    }
+    public (int, int) TestTuple()
+    {
+        throw new System.Exception();
+    }
+    public object TestTupleLiteral()
+    {
+        return (1, 2);
+    }
+    public void TestDeconstruction()
+    {
+        int x, y;
+        var resultingTuple = ((x, y) = new C());
+    }
+    public void Deconstruct(out int a, out int b) { a = b = 1; }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,12): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (int, int) TestTuple()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(8, 12),
+                // (4,19): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<string, string> TestValueTuple()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "ValueTuple<string, string>").WithArguments("System.ValueTuple<T1, T2>").WithLocation(4, 19),
+                // (14,16): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         return (1, 2);
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
+                // (19,31): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         var resultingTuple = ((x, y) = new C());
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 31)
+            };
+
+            var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferred_ByMethod()
+        {
+            string piaSource = @"
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    IEnumerable<IEnumerable<(int, int)>> M();
+    IEnumerable<IEnumerable<S<int>>> M2();
+}";
+
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public interface ITest2 : ITest1 { }
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
+            };
+
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferred_ByProperty()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    (int, int) P {get;}
+    S<int> P2 {get;}
+}";
+
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public interface ITest2 : ITest1 { }
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
+            };
+
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedGenericDelegateReferred_ByEvent()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public delegate void S<T> (T x);
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    event S<int> E;
+}";
+
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public interface ITest2 : ITest1 { }
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
+            };
+
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferred_ByField()
+        {
+            string piaSource = @"
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+public struct Test1
+{
+    public IEnumerable<IEnumerable<(int, int)>> F;
+    public IEnumerable<IEnumerable<S<int>>> F2;
+}";
+
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public interface ITest2
+{
+    void M(Test1 x); 
+}
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
+            };
+
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferredFromMetadata()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}";
+
+            var libSource = @"
+public class D
+{
+    public static (int, int) M() { throw new System.Exception(); }
+    public static S<int> M2() { throw new System.Exception(); }
+}";
+
+            var pia = CreateCompilationWithMscorlib46(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyDiagnostics();
+
+            var lib = CreateCompilationWithMscorlib46(libSource, options: TestOptions.ReleaseDll, references: new[] { pia.ToMetadataReference() });
+            lib.VerifyEmitDiagnostics();
+
+            string source = @"
+public class C
+{
+    public void TestTupleFromMetadata()
+    {
+        D.M();
+        D.M2();
+    }
+    public void TestTupleAssignmentFromMetadata()
+    {
+        var t = D.M();
+        t.ToString();
+        var t2 = D.M2();
+        t2.ToString();
+    }
+}";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
+            };
+
+            var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true), lib.ToMetadataReference() });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true), lib.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        public void CheckForUnembeddableTypesInTuples()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct Generic<T1> { }
+";
+
+            var pia = CreateCompilationWithMscorlib46(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyDiagnostics();
+
+            string source = @"
+public class C
+{
+    public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+    {
+        throw new System.Exception();
+    }
+    public (Generic<int>, Generic<int>) Test2()
+    {
+        throw new System.Exception();
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}";
+
+            var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { new CSharpCompilationReference(pia).WithEmbedInteropTypes(true) });
+            comp1.VerifyDiagnostics(
+                // (8,13): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 13),
+                // (8,27): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 27),
+                // (4,30): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 30),
+                // (4,47): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 47)
+                );
+
+            var comp2 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { MetadataReference.CreateFromImage(pia.EmitToArray()).WithEmbedInteropTypes(true) });
+            comp2.VerifyDiagnostics(
+                // (8,13): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 13),
+                // (8,27): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 27),
+                // (4,30): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 30),
+                // (4,47): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 47)
+                );
+        }
+
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_2()
         {
-            var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes3);
 
@@ -1413,13 +1923,13 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void GenericsClosedOverLocalTypes1_3()
         {
-            var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
-            var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes3);
 
@@ -1463,7 +1973,7 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void NestedType1()
         {
             string source =
@@ -1497,7 +2007,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -1523,12 +2033,12 @@ public struct S1
 }
 ";
 
-            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -1543,7 +2053,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -1558,7 +2068,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -1573,7 +2083,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -1589,7 +2099,7 @@ public struct S1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void NestedType2()
         {
             string source =
@@ -1622,7 +2132,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -1648,12 +2158,12 @@ public struct S1
 }
 ";
 
-            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -1668,7 +2178,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -1683,7 +2193,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -1698,7 +2208,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -1714,7 +2224,7 @@ public struct S1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void NestedType3()
         {
             string source =
@@ -1747,7 +2257,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             //CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -1773,12 +2283,12 @@ public struct S1
 }
 ";
 
-            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -1793,7 +2303,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -1808,7 +2318,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -1823,7 +2333,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -1839,7 +2349,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void NestedType4()
         {
             string piaSource =
@@ -1863,7 +2373,7 @@ public struct S1
 }
 ";
 
-            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             string source =
@@ -1885,12 +2395,12 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
                                                             references: new MetadataReference[] { new CSharpCompilationReference(pia, embedInteropTypes: true) });
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -1905,7 +2415,7 @@ interface AttrTest1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -1921,7 +2431,7 @@ interface AttrTest1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void GenericType1()
         {
             string source =
@@ -1955,7 +2465,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             //CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -1981,12 +2491,12 @@ public struct S2<T>
 }
 ";
 
-            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -2001,7 +2511,7 @@ public struct S2<T>
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -2016,7 +2526,7 @@ public struct S2<T>
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -2031,7 +2541,7 @@ public struct S2<T>
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -2047,7 +2557,7 @@ public struct S2<T>
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(685240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")]
         public void Bug685240()
         {
@@ -2068,7 +2578,7 @@ public interface I1
 }
 ";
 
-            var pia1 = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var pia1 = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(pia1);
 
             string moduleSource = @"
@@ -2081,10 +2591,10 @@ public class Test
 }
 ";
 
-            var module1 = CreateCompilationWithMscorlib(moduleSource, options: TestOptions.ReleaseModule, assemblyName: "Module1",
+            var module1 = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule, assemblyName: "Module1",
                 references: new[] { new CSharpCompilationReference(pia1, embedInteropTypes: true) });
 
-            var multiModule = CreateCompilationWithMscorlib("", options: TestOptions.ReleaseDll,
+            var multiModule = CreateCompilation("", options: TestOptions.ReleaseDll,
                 references: new[] { module1.EmitToImageReference() });
 
             CompileAndVerify(multiModule);
@@ -2099,11 +2609,71 @@ public class Consumer
 }
 ";
 
-            var consumer = CreateCompilationWithMscorlib(consumerSource, options: TestOptions.ReleaseDll,
+            var consumer = CreateCompilation(consumerSource, options: TestOptions.ReleaseDll,
                 references: new[] { new CSharpCompilationReference(multiModule),
                                     new CSharpCompilationReference(pia1)});
 
             CompileAndVerify(consumer);
+        }
+
+        [Fact]
+        [WorkItem(24964, "https://github.com/dotnet/roslyn/issues/24964")]
+        public void UnificationAcrossDistinctCoreLibs()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+public struct Test
+{
+}
+";
+
+            var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, assemblyName: "Pia");
+
+            string consumer1 = @"
+public class UsePia1 
+{
+    public static Test M1()
+    {
+        return default;
+    }
+} 
+";
+
+            string consumer2 = @"
+class UsePia2 
+{
+    public static void Main()
+    {
+        UsePia1.M1();
+    }
+} 
+";
+
+            foreach (MetadataReference piaRef in new[] { piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference() })
+            {
+                var compilation1 = CreateCompilationWithMscorlib45(consumer1, references: new[] { piaRef.WithEmbedInteropTypes(true) });
+
+                foreach (MetadataReference consumer1Ref in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
+                {
+                    var compilation2 = CreateCompilationWithMscorlib46(consumer2, references: new[] { piaRef, consumer1Ref });
+
+                    compilation2.VerifyDiagnostics();
+
+                    Assert.NotSame(compilation1.SourceAssembly.CorLibrary, compilation2.SourceAssembly.CorLibrary);
+
+                    var test = compilation2.GetTypeByMetadataName("Test");
+                    Assert.Equal("Pia.dll", test.ContainingModule.Name);
+
+                    var usePia1 = compilation2.GetTypeByMetadataName("UsePia1");
+                    Assert.Same(test, usePia1.GetMember<MethodSymbol>("M1").ReturnType);
+                }
+            }
         }
     }
 }

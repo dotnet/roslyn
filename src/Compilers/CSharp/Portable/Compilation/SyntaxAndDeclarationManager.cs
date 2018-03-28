@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -363,6 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!oldLoadDirectives.IsEmpty);
                 GetRemoveSetForLoadedTrees(oldLoadDirectives, loadDirectiveMap, loadedSyntaxTreeMap, removeSet);
+            }
+            else
+            {
+                oldLoadDirectives = ImmutableArray<LoadDirective>.Empty;
             }
 
             removeSet.Add(oldTree);

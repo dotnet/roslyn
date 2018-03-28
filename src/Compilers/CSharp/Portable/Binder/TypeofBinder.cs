@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
             // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
-            // Since we only depend on existence of nameable members and nameof(x) produces a constant
-            // string expression usable in an early attribute, we use early attribute binding.
-            : base(next, next.Flags | BinderFlags.UnsafeRegion | BinderFlags.EarlyAttributeBinding)
+            : base(next, next.Flags | BinderFlags.UnsafeRegion)
         {
             OpenTypeVisitor.Visit(typeExpression, out _allowedMap, out _isTypeExpressionOpen);
         }

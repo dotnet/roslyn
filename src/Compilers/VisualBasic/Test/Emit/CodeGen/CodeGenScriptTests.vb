@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -55,7 +56,7 @@ System.Console.WriteLine(1+1)
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "System.Console.WriteLine(1+1)"))
         End Sub
 
@@ -74,7 +75,7 @@ Return 1
         <Fact>
         Public Sub MeKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     Me.Bar
 End Sub
 
@@ -82,7 +83,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-Me.Foo
+Me.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -95,7 +96,7 @@ Me.Foo
         <Fact>
         Public Sub MyBaseAndMyClassKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     MyClass.Bar
 End Sub
 
@@ -103,7 +104,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-MyBase.Foo
+MyBase.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -116,11 +117,11 @@ MyBase.Foo
         <Fact>
         Public Sub SubStatement()
             Dim source = <text>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
 
-Foo
+Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -134,23 +135,23 @@ Foo
             Dim source =
     <compilation>
         <file>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Foo"))
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Goo"))
         End Sub
 
         <Fact>
         Public Sub FunctionStatement()
             Dim source = <text>
-Function Foo As Integer
+Function Goo As Integer
     Return 3
 End Function
 
-System.Console.WriteLine(Foo)
+System.Console.WriteLine(Goo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -261,7 +262,7 @@ Next
             Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
 
-        <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
+        <WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")>
         <Fact>
         Public Sub ErrorInUsing()
             Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
@@ -297,7 +298,7 @@ System.Console.Write("complete")
                 </compilation>,
                 parseOptions:=TestOptions.Script,
                 options:=TestOptions.DebugExe,
-                additionalRefs:={SystemCoreRef})
+                references:={SystemCoreRef})
             Dim verifier = CompileAndVerify(comp, expectedOutput:="complete")
             Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
             Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
@@ -356,7 +357,7 @@ System.Console.Write("complete")
                 "s0.dll",
                 syntaxTree:=Parse(source0.Value, parseOptions),
                 references:=references)
-            Dim verifier = CompileAndVerify(s0, verify:=False)
+            Dim verifier = CompileAndVerify(s0, verify:=Verification.Fails)
             Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
             Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
             methodData.VerifyIL(
@@ -400,7 +401,7 @@ System.Console.Write("complete")
 
         <Fact>
         Public Sub ScriptEntryPoint_MissingMethods()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file name="a.vbx"><![CDATA[
 System.Console.WriteLine(1)

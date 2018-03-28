@@ -211,10 +211,10 @@ class Structs
             };
 
             CompileAndVerify(verifiable, assemblyValidator: validator);
-            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.Fails);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.Fails);
         }
 
         [Fact]
@@ -232,7 +232,7 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = 512  )] class P512   {}
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = Int32.MaxValue  )] class PMax   {}
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,48): error CS0599: Invalid value for named attribute argument 'Pack'
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = -1").WithArguments("Pack"),
                 // (6,48): error CS0599: Invalid value for named attribute argument 'Pack'
@@ -257,7 +257,7 @@ using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential, Size = -1)] class S {}
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,38): error CS0599: Invalid value for named attribute argument 'Size'
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Size = -1").WithArguments("Size"));
         }
@@ -284,7 +284,7 @@ public class C4 { }
 [StructLayout(LayoutKind.Sequential, CharSet = (CharSet)Int32.MaxValue)]
 public class C5 { }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)(-1)").WithArguments("StructLayout"),
                 // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
@@ -332,10 +332,11 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, verify: false);
+            CompileAndVerify(source, verify: Verification.Fails);
         }
 
         [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
         public void ExplicitFieldLayout()
         {
             string source = @"
@@ -366,6 +367,54 @@ public class A
                     switch (name)
                     {
                         case "a":
+                            expectedOffset = 4;
+                            break;
+
+                        case "b":
+                            expectedOffset = 8;
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
+
+                    Assert.Equal(expectedOffset, field.GetOffset());
+                }
+            });
+        }
+
+        [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        public void ExplicitFieldLayout_OnBackingField()
+        {
+            string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+public struct A
+{
+    [field: FieldOffset(4)]
+    int a { get; set; }
+
+    [field: FieldOffset(8)]
+    event Action b;
+}
+";
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            {
+                var reader = assembly.GetMetadataReader();
+                Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
+
+                foreach (var fieldHandle in reader.FieldDefinitions)
+                {
+                    var field = reader.GetFieldDefinition(fieldHandle);
+                    string name = reader.GetString(field.Name);
+
+                    int expectedOffset;
+                    switch (name)
+                    {
+                        case "<a>k__BackingField":
                             expectedOffset = 4;
                             break;
 
@@ -443,7 +492,7 @@ enum En
     A = 1
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset"),
                 // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
@@ -517,7 +566,7 @@ partial struct S
     public int x;
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,15): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'C'. To specify an ordering, all instance fields must be in the same declaration.
                 Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
         }
@@ -538,7 +587,7 @@ partial struct C
 {
     public int y;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

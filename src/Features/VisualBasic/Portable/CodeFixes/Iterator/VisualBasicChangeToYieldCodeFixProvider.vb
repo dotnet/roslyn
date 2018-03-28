@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Iterator
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
             root = root.ReplaceNode(returnStatement, yieldStatement)
 
-            Return Task.FromResult(Of CodeAction)(New MyCodeAction(ReplaceReturnWithYield, document.WithSyntaxRoot(root)))
+            Return Task.FromResult(Of CodeAction)(New MyCodeAction(VBFeaturesResources.Replace_Return_with_Yield, document.WithSyntaxRoot(root)))
         End Function
 
         Private Class MyCodeAction

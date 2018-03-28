@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.22216.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26014.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicSyntaxGenerator", "Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj", "{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}"
 EndProject
@@ -16,97 +16,31 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|Mixed Platforms = Debug|Mixed Platforms
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|Mixed Platforms = Release|Mixed Platforms
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|x86.ActiveCfg = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|x86.ActiveCfg = Release|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|x86.ActiveCfg = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|x86.ActiveCfg = Release|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|x86.Build.0 = Debug|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.Build.0 = Release|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|x86.ActiveCfg = Release|Any CPU
-		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|x86.Build.0 = Release|Any CPU
+		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Any CPU.Build.0 = Debug|x64
+		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Any CPU.ActiveCfg = Release|x64
+		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Any CPU.Build.0 = Release|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Any CPU.Build.0 = Debug|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Any CPU.ActiveCfg = Release|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Any CPU.Build.0 = Release|x64
+		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Debug|Any CPU.Build.0 = Debug|x64
+		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|Any CPU.ActiveCfg = Release|x64
+		{02459936-CD2C-4F61-B671-5C518F2A3DDC}.Release|Any CPU.Build.0 = Release|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Debug|Any CPU.Build.0 = Debug|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|Any CPU.ActiveCfg = Release|x64
+		{288089C5-8721-458E-BE3E-78990DAB5E2E}.Release|Any CPU.Build.0 = Release|x64
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.Build.0 = Debug|x64
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.ActiveCfg = Release|x64
+		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
-		SccProjectUniqueName0 = Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj
-		SccProjectName0 = Source/CSharpSyntaxGenerator
-		SccAuxPath0 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath0 = Source\\CSharpSyntaxGenerator
-		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName1 = Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj
-		SccProjectName1 = Source/BoundTreeGenerator
-		SccAuxPath1 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath1 = Source\\BoundTreeGenerator
-		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName2 = Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj
-		SccProjectName2 = Source/VisualBasicSyntaxGenerator
-		SccAuxPath2 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath2 = Source\\VisualBasicSyntaxGenerator
-		SccProvider2 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName3 = Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj
-		SccProjectName3 = Source/CSharpErrorFactsGenerator
-		SccAuxPath3 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath3 = Source\\CSharpErrorFactsGenerator
-		SccProvider3 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName4 = Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj
-		SccProjectName4 = Source/VisualBasicErrorFactsGenerator
-		SccAuxPath4 = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath4 = Source\\VisualBasicErrorFactsGenerator
-		SccProvider4 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 	EndGlobalSection
 EndGlobal

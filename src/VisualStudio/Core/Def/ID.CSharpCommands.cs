@@ -17,12 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int ContextImplementInterfaceExplicit = 0x1902;    // cmdidContextImplementInterfaceExplicit
             public const int ContextImplementAbstractClass = 0x1903;        // cmdidContextImplementAbstractClass
 
-            public const int ContextOrganizeRemoveUnusedUsings = 0x1911;    // cmdidContextOrganizeRemoveUnusedUsings
-            public const int ContextOrganizeSortUsings = 0x1912;            // cmdidContextOrganizeSortUsings
             public const int ContextOrganizeRemoveAndSort = 0x1913;         // cmdidContextOrganizeRemoveAndSort
-
-            public const int OrganizeRemoveUnusedUsings = 0x1921;           // cmdidCSharpOrganizeRemoveUnusedUsings
-            public const int OrganizeSortUsings = 0x1922;                   // cmdidCSharpOrganizeSortUsings
             public const int OrganizeRemoveAndSort = 0x1923;                // cmdidCSharpOrganizeRemoveAndSort
 
             public const int SmartTagRename = 0x2000;                       // cmdidSmartTagRename

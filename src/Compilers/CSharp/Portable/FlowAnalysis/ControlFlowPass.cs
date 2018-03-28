@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -218,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Block:
                 case BoundKind.ThrowStatement:
                 case BoundKind.LabeledStatement:
+                case BoundKind.LocalFunctionStatement:
                     base.VisitStatement(statement);
                     break;
                 case BoundKind.StatementList:
@@ -232,7 +234,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReachable(BoundStatement statement)
         {
-            if (!this.State.Alive && !this.State.Reported && !statement.WasCompilerGenerated && statement.Syntax.Span.Length != 0)
+            if (!this.State.Alive &&
+                !this.State.Reported &&
+                !statement.WasCompilerGenerated &&
+                statement.Syntax.Span.Length != 0)
             {
                 var firstToken = statement.Syntax.GetFirstToken();
                 Diagnostics.Add(ErrorCode.WRN_UnreachableCode, new SourceLocation(firstToken));
@@ -306,44 +311,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitGotoStatement(node);
         }
 
-        protected override void VisitSwitchSectionLabel(LabelSymbol label, BoundSwitchSection node)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
-            _labelsDefined.Add(label);
-            base.VisitSwitchSectionLabel(label, node);
-
-            // switch statement labels are always considered to be referenced
-            _labelsUsed.Add(label);
-        }
-
-        public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
-        {
-            base.VisitSwitchSection(node);
+            base.VisitPatternSwitchSection(node, isLastSection);
 
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                Debug.Assert(node.SwitchLabels.Any());
-
-                var boundLabel = node.SwitchLabels.Last();
-                Diagnostics.Add(lastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
-                                new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
-                this.State.Reported = true;
-            }
-
-            return null;
-        }
-
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
-        {
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
-
-            // Check for switch section fall through error
-            if (this.State.Alive)
-            {
-                var syntax = node.PatternSwitchLabels.Last().Pattern.Syntax;
+                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
-                this.State.Reported = true;
             }
         }
     }

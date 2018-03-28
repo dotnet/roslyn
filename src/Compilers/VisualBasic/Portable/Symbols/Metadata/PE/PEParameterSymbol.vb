@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -62,14 +63,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ByRef parameter As ParamInfo(Of TypeSymbol),
             <Out> ByRef isBad As Boolean
         ) As PEParameterSymbol
-            Return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, parameter.Handle, parameter.CustomModifiers, isBad)
+            Return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, isBad)
         End Function
 
         Friend Shared Function Create(
             containingSymbol As Symbol,
             name As String,
             isByRef As Boolean,
-            countOfCustomModifiersPrecedingByRef As UShort,
+            refCustomModifiers As ImmutableArray(Of CustomModifier),
             type As TypeSymbol,
             handle As ParameterHandle,
             flags As ParameterAttributes,
@@ -79,11 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             defaultValue As ConstantValue,
             customModifiers As ImmutableArray(Of CustomModifier)
         ) As PEParameterSymbol
-            If customModifiers.IsDefaultOrEmpty Then
+            If customModifiers.IsEmpty AndAlso refCustomModifiers.IsEmpty Then
                 Return New PEParameterSymbol(containingSymbol, name, isByRef, type, handle, flags, isParamArray, hasOptionCompare, ordinal, defaultValue)
             End If
 
-            Return New PEParameterSymbolWithCustomModifiers(containingSymbol, name, isByRef, countOfCustomModifiersPrecedingByRef, type, handle, flags,
+            Return New PEParameterSymbolWithCustomModifiers(containingSymbol, name, isByRef, refCustomModifiers, type, handle, flags,
                                                             isParamArray, hasOptionCompare, ordinal, defaultValue, customModifiers)
         End Function
 
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _containingSymbol = containingSymbol
             Dim hasNameInMetadata As Boolean
             _name = EnsureParameterNameNotEmpty(name, hasNameInMetadata)
-            _type = type
+            _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, DirectCast(containingSymbol.ContainingModule, PEModuleSymbol))
             _handle = handle
             _ordinal = CType(ordinal, UShort)
             _flags = flags
@@ -126,18 +127,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             containingSymbol As Symbol,
             ordinal As Integer,
             isByRef As Boolean,
-            countOfCustomModifiersPrecedingByRef As UShort,
+            refCustomModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)),
             type As TypeSymbol,
             handle As ParameterHandle,
             customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)),
             <Out> ByRef isBad As Boolean
         ) As PEParameterSymbol
 
-            If customModifiers.IsDefaultOrEmpty Then
+            If customModifiers.IsDefaultOrEmpty AndAlso refCustomModifiers.IsDefaultOrEmpty Then
                 Return New PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, isBad)
             End If
 
-            Return New PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, countOfCustomModifiersPrecedingByRef, type, handle, customModifiers, isBad)
+            Return New PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, type, handle, customModifiers, isBad)
         End Function
 
         Private Sub New(
@@ -156,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             isBad = False
             _containingSymbol = containingSymbol
-            _type = type
+            _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol)
             _ordinal = CType(ordinal, UShort)
             _handle = handle
 
@@ -195,13 +196,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Inherits PEParameterSymbol
 
             Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-            Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
+            Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
 
             Public Sub New(
                 containingSymbol As Symbol,
                 name As String,
                 isByRef As Boolean,
-                countOfCustomModifiersPrecedingByRef As UShort,
+                refCustomModifiers As ImmutableArray(Of CustomModifier),
                 type As TypeSymbol,
                 handle As ParameterHandle,
                 flags As ParameterAttributes,
@@ -214,10 +215,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 MyBase.New(containingSymbol, name, isByRef, type, handle, flags, isParamArray, hasOptionCompare, ordinal, defaultValue)
 
                 _customModifiers = customModifiers
-                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+                _refCustomModifiers = refCustomModifiers
 
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse isByRef)
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length)
+                Debug.Assert(_refCustomModifiers.IsEmpty OrElse isByRef)
             End Sub
 
             Public Sub New(
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 containingSymbol As Symbol,
                 ordinal As Integer,
                 isByRef As Boolean,
-                countOfCustomModifiersPrecedingByRef As UShort,
+                refCustomModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)),
                 type As TypeSymbol,
                 handle As ParameterHandle,
                 customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)),
@@ -234,15 +234,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 MyBase.New(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, isBad)
 
                 _customModifiers = VisualBasicCustomModifier.Convert(customModifiers)
-                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+                _refCustomModifiers = VisualBasicCustomModifier.Convert(refCustomModifiers)
 
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse isByRef)
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length)
+                Debug.Assert(_refCustomModifiers.IsEmpty OrElse isByRef)
             End Sub
 
-            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
-                    Return _countOfCustomModifiersPrecedingByRef
+                    Return _refCustomModifiers
                 End Get
             End Property
 
@@ -491,6 +490,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
                 Return (_flags And ParameterAttributes.HasFieldMarshal) <> 0
@@ -595,12 +600,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 Return _lazyHasCallerFilePathAttribute.Value
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-            Get
-                Return 0
             End Get
         End Property
 

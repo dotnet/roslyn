@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = new AdhocWorkspace().CurrentSolution
                     .AddProject(pid, "test", "test", LanguageNames.CSharp)
                     .AddMetadataReference(pid, TestReferences.NetFx.v4_0_30319.mscorlib)
-                    .AddDocument(did, "foo.cs", SourceText.From(sourceText));
+                    .AddDocument(did, "goo.cs", SourceText.From(sourceText));
 
             return solution.GetDocument(did);
         }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 versionStamp.WriteTo(writer);
 
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = new ObjectReader(readerStream))
+                using (var reader = ObjectReader.TryGetReader(readerStream))
                 {
                     var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
 

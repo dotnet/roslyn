@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = new EarlyWellKnownAttributeBinder(binder);
             }
             var inProgressBinder = new ConstantFieldsInProgressBinder(new ConstantFieldsInProgress(symbol, dependencies), binder);
-            var boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
+            BoundFieldEqualsValue boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
             var initValueNodeLocation = equalsValueNode.Value.Location;
 
-            var value = GetAndValidateConstantValue(boundValue, symbol, symbol.Type, initValueNodeLocation, diagnostics);
+            var value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type, initValueNodeLocation, diagnostics);
             Debug.Assert(value != null);
 
             return value;
         }
 
-        private static BoundExpression BindFieldOrEnumInitializer(
+        private static BoundFieldEqualsValue BindFieldOrEnumInitializer(
             Binder binder,
             FieldSymbol fieldSymbol,
             EqualsValueClauseSyntax initializer,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var enumConstant = fieldSymbol as SourceEnumConstantSymbol;
             Binder collisionDetector = new LocalScopeBinder(binder);
             collisionDetector = new ExecutableCodeBinder(initializer, fieldSymbol, collisionDetector);
-            BoundExpression result;
+            BoundFieldEqualsValue result;
 
             if ((object)enumConstant != null)
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                result = collisionDetector.BindVariableOrAutoPropInitializer(initializer, RefKind.None, fieldSymbol.Type, diagnostics);
+                result = collisionDetector.BindFieldInitializer(fieldSymbol, initializer, diagnostics);
             }
 
             return result;

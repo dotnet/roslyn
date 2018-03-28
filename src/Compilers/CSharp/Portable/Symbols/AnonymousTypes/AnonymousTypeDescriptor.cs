@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -59,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(AnonymousTypeDescriptor desc)
         {
-            return this.Equals(desc, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false);
+            return this.Equals(desc, TypeCompareKind.ConsiderEverything);
         }
 
         /// <summary>
         /// Compares two anonymous type descriptors, takes into account fields names and types, not locations.
         /// </summary>
-        internal bool Equals(AnonymousTypeDescriptor other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal bool Equals(AnonymousTypeDescriptor other, TypeCompareKind comparison)
         {
             // Comparing keys ensures field count and field names are the same
             if (this.Key != other.Key)
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
             for (int i = 0; i < count; i++)
             {
-                if (!myFields[i].Type.Equals(otherFields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                if (!myFields[i].Type.Equals(otherFields[i].Type, comparison))
                 {
                     return false;
                 }
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public override bool Equals(object obj)
         {
-            return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false);
+            return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, TypeCompareKind.ConsiderEverything);
         }
 
         public override int GetHashCode()

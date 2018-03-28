@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) {}
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
@@ -40,11 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16),
+    // (3,16): warning CS0649: Field 'S.I' is never assigned to, and will always have its default value 0
+    //     public int I = 9;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "I").WithArguments("S.I", "0").WithLocation(3, 16)
 );
         }
 
@@ -57,7 +60,7 @@ class A {
     A F;
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
@@ -85,7 +88,7 @@ class A {
     A G;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
@@ -114,7 +117,7 @@ class A {
     A F;
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var fs = a.GetMembers("F");
@@ -138,7 +141,7 @@ class A
     private static char N3 = ' ';
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var n1 = a.GetMembers("N1").Single() as FieldSymbol;
@@ -172,7 +175,7 @@ class A {
     int? F = null;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
@@ -196,7 +199,7 @@ class A {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var type1 = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
             var type2 = type1.GetTypeMembers("S").Single();
 
@@ -231,7 +234,7 @@ class C1
     @out @in;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
@@ -251,7 +254,7 @@ class C
     const int x;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             NamedTypeSymbol type1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C").Single();
             FieldSymbol mem = (FieldSymbol)type1.GetMembers("x").Single();
             Assert.Equal("x", mem.Name);
@@ -267,67 +270,136 @@ class C
             var source = @"
 class A
 {
-    const delegate void D(); 
+    const delegate void D();
     protected virtual void Finalize const () { }
 }
 ";
 
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (4,11): error CS1031: Type expected
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate"),
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
                 // (4,11): error CS1001: Identifier expected
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "delegate"),
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "delegate").WithLocation(4, 11),
                 // (4,11): error CS0145: A const field requires a value to be provided
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_ConstValueRequired, "delegate"),
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "delegate").WithLocation(4, 11),
                 // (4,11): error CS1002: ; expected
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate"),
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(4, 11),
                 // (5,37): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-                // (5,43): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
+                // (5,44): error CS8124: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "("),
-                // (5,43): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 44),
+                // (5,46): error CS1001: Identifier expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
-                // (5,43): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 46),
+                // (5,46): error CS0145: A const field requires a value to be provided
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "() { "),
-                // (5,43): error CS1003: Syntax error, '[' expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-                // (5,44): error CS1525: Invalid expression term ')'
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{"),
-                // (5,48): error CS1003: Syntax error, ']' expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
                 // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1),
                 // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual"),
-                // (5,43): error CS0102: The type 'A' already contains a definition for ''
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
+                // (5,46): error CS0102: The type 'A' already contains a definition for ''
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", ""),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
+                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
+                // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", ""));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
+    );
+        }
+
+        [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
+        [Fact]
+        public void Error_InvalidConstWithCSharp6()
+        {
+            var source = @"
+class A
+{
+    const delegate void D();
+    protected virtual void Finalize const () { }
+}
+";
+
+            // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (4,11): error CS1031: Type expected
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
+                // (4,11): error CS1001: Identifier expected
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "delegate").WithLocation(4, 11),
+                // (4,11): error CS0145: A const field requires a value to be provided
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "delegate").WithLocation(4, 11),
+                // (4,11): error CS1002: ; expected
+                //     const delegate void D();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(4, 11),
+                // (5,37): error CS1002: ; expected
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
+                // (5,43): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 43),
+                // (5,44): error CS8124: Tuple must contain at least two elements.
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 44),
+                // (5,46): error CS1001: Identifier expected
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 46),
+                // (5,46): error CS0145: A const field requires a value to be provided
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
+                // (5,46): error CS1003: Syntax error, ',' expected
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                // (5,48): error CS1002: ; expected
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
+                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1),
+                // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
+                // (5,46): error CS0102: The type 'A' already contains a definition for ''
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
+                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
+                // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
+                // (5,23): error CS0670: Field cannot have void type
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
+                // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
+                );
         }
 
         [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]
@@ -341,7 +413,7 @@ class A
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
                 // (4,13): warning CS0169: The field 'A.a' is never used
@@ -398,7 +470,7 @@ class K
         return v => { value__ = v; };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (19,25): warning CS0067: The event 'E.value__' is never used
                 //     event System.Action value__;
@@ -411,7 +483,7 @@ class K
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "value__").WithArguments("A.value__"));
 
             // PEVerify should not report "Field value__ ... is not marked RTSpecialName".
-            var verifier = new CompilationVerifier(this, compilation);
+            var verifier = new CompilationVerifier(compilation);
             verifier.EmitAndVerify(
                 "Error: Field name value__ is reserved for Enums only.",
                 "Error: Field name value__ is reserved for Enums only.",
