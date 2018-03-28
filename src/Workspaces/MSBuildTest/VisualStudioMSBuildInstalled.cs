@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -95,6 +96,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private static void RegisterMSBuildAssemblyResolution(string msbuildToolsPath)
         {
+            if (s_isRegistered)
+            {
+                throw new InvalidOperationException("Attempted to register twice!");
+            }
+
             var assemblyNames = new[]
             {
                 "Microsoft.Build",
