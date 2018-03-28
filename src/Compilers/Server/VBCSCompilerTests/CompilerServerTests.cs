@@ -1260,7 +1260,7 @@ class Program
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive1()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
@@ -1270,7 +1270,7 @@ class Program
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive2()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
@@ -1280,7 +1280,7 @@ class Program
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive3()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
@@ -1290,7 +1290,7 @@ class Program
         }
 
         [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
-        [ConditionalFact(typeof(DesktopOnly), typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive4()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);

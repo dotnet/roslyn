@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
         [WorkItem(25781, "https://github.com/dotnet/roslyn/issues/25781")]
-        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void GetMalformedDocumentationCommentXml()
         {
             var source = @"
