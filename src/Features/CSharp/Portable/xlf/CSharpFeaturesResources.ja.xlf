@@ -642,11 +642,6 @@
         <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_foreach">
-        <source>Convert to 'foreach'</source>
-        <target state="new">Convert to 'foreach'</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

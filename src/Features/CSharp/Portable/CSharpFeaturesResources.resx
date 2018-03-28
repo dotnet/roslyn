@@ -527,7 +527,4 @@
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
   </data>
-  <data name="Convert_to_foreach" xml:space="preserve">
-    <value>Convert to 'foreach'</value>
-  </data>
 </root>

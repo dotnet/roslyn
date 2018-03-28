@@ -151,8 +151,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        var q1 = [|from num in new int[] { 4, 5 }
-                 join x1 in new int[] { 4, 5 } on num equals x1
+        var q1 = [|from num in new int[] { 1, 2 }
+                 join x1 in new int[] { 3, 4 } on num equals x1
                  select x1 + 5|];
     }
 }";
@@ -165,9 +165,10 @@ class Program
     {
         System.Collections.Generic.IEnumerable<int> enumerable()
         {
-            foreach (var num in new int[] { 4, 5 })
+            var v = new int[] { 3, 4 };
+            foreach (var num in new int[] { 1, 2 })
             {
-                foreach (var x1 in new int[] { 4, 5 })
+                foreach (var x1 in v)
                 {
                     if (object.Equals(num, x1))
                     {
@@ -251,7 +252,7 @@ class Query
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-        public async Task Join()
+        public async Task GroupJoin()
         {
             string source = @"
 using System;
@@ -271,37 +272,8 @@ class Query
     }
 }
 ";
-            string output = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-class Query
-{
-    public static void Main(string[] args)
-    {
-        List<int> c1 = new List<int> { 1, 2, 3, 4, 5, 7 };
-        List<int> c2 = new List<int> { 12, 34, 42, 51, 52, 66, 75 };
-        List<string> r1 = new List<string>();
-        foreach (var x1 in c1)
-        {
-            foreach (var x2 in c2)
-            {
-                if (Equals(x1, x2 / 10))
-                {
-                    var g = new { x1, x2 };
-                    if (x1 < 7)
-                    {
-                        r1.Add(x1 + "":"" + g.ToString());
-                    }
-                }
-            }
-        }
-
-        Console.WriteLine(r1);
-    }
-}
-";
-            await TestInRegularAndScriptAsync(source, output);
+            // GroupJoin is not supported
+            await TestMissingAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
@@ -408,11 +380,12 @@ class Program
 {
     static void Main()
     {
-        System.Collections.Generic.IEnumerable<int> enumerable()
+        System.Collections.Generic.IEnumerable<int> enumerable1()
         {
+            var enumerable = Enumerable.Range(1, 13);
             foreach (var a in Enumerable.Range(1, 13))
             {
-                foreach (var b in Enumerable.Range(1, 13))
+                foreach (var b in enumerable)
                 {
                     if (object.Equals(4 * a, b))
                     {
@@ -422,7 +395,7 @@ class Program
             }
         }
 
-        var q2 = enumerable();
+        var q2 = enumerable1();
 
         foreach (var q in q2)
         {
@@ -652,33 +625,8 @@ static class Test
                       select x8|];
     }
 }";
-            string output = @"
-using System;
-using System.Linq;
-
-static class Test
-{
-    static void Main()
-    {
-        System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>> enumerable()
-        {
-            foreach (var x3 in new int[] { 0 })
-            {
-                foreach (var x7 in (new int[] { 0 }))
-                {
-                    if (object.Equals(5, 5))
-                    {
-                        var x8 = new { x3 = x3, x7 = x7 };
-                        yield return x8;
-                    }
-                }
-            }
-        }
-
-        var qie = enumerable();
-    }
-}";
-            await TestInRegularAndScriptAsync(source, output);
+            // GroupJoin is not supported
+            await TestMissingAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
@@ -1621,7 +1569,7 @@ public class Test
         => new List<int>([|from a in q select a * a|]);
 }
 ";
-            
+
             // No support for expresison bodied constructors yet.
             await TestMissingAsync(source);
         }
@@ -2369,6 +2317,68 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task CountAsArgument()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void N(int value) { }
+    void M(IEnumerable<int> nums)
+    {
+        N(([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count());
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void N(int value) { }
+    void M(IEnumerable<int> nums)
+    {
+        var count = 0;
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                count++;
+            }
+        }
+
+        N(count);
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task CountAsArgumentExpressionBody()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void N(int value) { }
+    void M(IEnumerable<int> nums)
+        => N(([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count());
+}
+";
+
+            await TestMissingAsync(source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task ReturnCountNameGeneration()
         {
             string source = @"
@@ -2394,6 +2404,112 @@ class C
     int M(IEnumerable<int> nums)
     {
         int count = 1;
+        var count1 = 0;
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                count1++;
+            }
+        }
+
+        return count1;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task CountNameUsedAfter()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void N(int c) {}
+    void M(IEnumerable<int> nums)
+    {
+        N(([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count());
+
+        if (true)
+        {
+            int count = 1;
+        }
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void N(int c) {}
+    void M(IEnumerable<int> nums)
+    {
+        var count1 = 0;
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                count1++;
+            }
+        }
+
+        N(count1);
+
+        if (true)
+        {
+            int count = 1;
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task ReturnCountNameUsedBefore()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        if (true)
+        {
+            int count = 1;
+        }
+
+        return ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count();
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        if (true)
+        {
+            int count = 1;
+        }
+
         var count1 = 0;
         foreach (int n1 in nums)
         {
@@ -2546,6 +2662,89 @@ public class Test
 }
 ";
             // Cannot convert in expression bodied property
+            await TestMissingAsync(source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task InInlineLambda()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        Func<IEnumerable<int>> lambda = () => [|from x in new int[] { 1 } select x|];
+    }
+}
+";
+            // Inline lambda is not supported
+            await TestMissingAsync(source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task InLambdaWithBody()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        Func<IEnumerable<int>> lambda = () => { return [|from x in new int[] { 1 } select x|]; };
+    }
+}
+";
+
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        Func<IEnumerable<int>> lambda = () => 
+        {
+            IEnumerable<int> localFunction()
+            {
+                foreach (var x in new int[] { 1 }) { yield return x; }
+            }
+
+            return localFunction();
+        };
+    }
+}
+";
+            // Inline lambda is not supported
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task InWhen()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        switch (nums.First())
+        {
+            case 0 when (nums == [|from x in new int[] { 1 } select x|]):
+                return;
+            default:
+                return;
+        }
+    }
+}
+";
+            // In when is not supported
             await TestMissingAsync(source);
         }
 
