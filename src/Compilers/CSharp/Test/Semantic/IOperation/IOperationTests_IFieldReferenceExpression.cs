@@ -247,6 +247,84 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void IFieldReferenceExpression_IndexingFixed_Unmovable()
+        {
+            string source = @"
+
+unsafe struct S1
+{
+    public fixed int field[10];
+}
+
+unsafe class C
+{
+    void M()
+    {
+        S1 s = default;
+
+        /*<bind>*/ s.field[3] = 1; /*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
+  Left: 
+    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+      Children(2):
+          IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
+            Instance Receiver: 
+              ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S1) (Syntax: 's')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_IndexingFixed_Movable()
+        {
+            string source = @"
+
+unsafe struct S1
+{
+    public fixed int field[10];
+}
+
+unsafe class C
+{
+    S1 s = default;
+
+    void M()
+    {
+        /*<bind>*/ s.field[3] = 1; /*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
+  Left: 
+    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+      Children(2):
+          IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
+            Instance Receiver: 
+              IFieldReferenceOperation: S1 C.s (OperationKind.FieldReference, Type: S1) (Syntax: 's')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 's')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void IFieldReference_StaticFieldWithInstanceReceiver()
         {
             string source = @"

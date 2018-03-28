@@ -1985,6 +1985,26 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Indexer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="new">Alias ambiguous type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
+        <source>Warning: Collection was modified during iteration.</source>
+        <target state="new">Warning: Collection was modified during iteration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
+        <source>Warning: Iteration variable crossed function boundary.</source>
+        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
+        <source>Warning: Collection may be modified during iteration.</source>
+        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

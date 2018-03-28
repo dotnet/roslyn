@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -714,6 +713,9 @@ namespace Microsoft.CodeAnalysis
                         case AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile:
                             isAllowed = IsAcceptedVolatileModifierType(type);
                             break;
+                        case AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType:
+                            isAllowed = IsAcceptedUnmanagedTypeModifierType(type);
+                            break;
                     }
 
                     if (isAllowed)
@@ -872,6 +874,58 @@ namespace Microsoft.CodeAnalysis
             {
                 offsets.Free();
                 locals.Free();
+            }
+        }
+
+        internal TypeSymbol DecodeGenericParameterConstraint(EntityHandle token, out bool isUnmanagedConstraint)
+        {
+            isUnmanagedConstraint = false;
+
+            switch (token.Kind)
+            {
+                case HandleKind.TypeSpecification:
+                    {
+                        try
+                        {
+                            var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
+                            var modifiers = DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
+                            var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
+
+                            if (modReqFound)
+                            {
+                                if (type.SpecialType == SpecialType.System_ValueType)
+                                {
+                                    isUnmanagedConstraint = true;
+                                }
+                                else
+                                {
+                                    return GetUnsupportedMetadataTypeSymbol();
+                                }
+                            }
+                            else if (!modifiers.IsDefaultOrEmpty)
+                            {
+                                // Optional modifiers (also, other required parameters) not allowed on generic parameters
+                                // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                return GetUnsupportedMetadataTypeSymbol();
+                            }
+
+                            return type;
+                        }
+                        catch (BadImageFormatException mrEx)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol(mrEx);
+                        }
+                        catch (UnsupportedSignatureContent)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol();
+                        }
+                    }
+                case HandleKind.TypeReference:
+                    return GetTypeOfTypeRef((TypeReferenceHandle)token, out _);
+                case HandleKind.TypeDefinition:
+                    return GetTypeOfTypeDef((TypeDefinitionHandle)token);
+                default:
+                    return GetUnsupportedMetadataTypeSymbol();
             }
         }
 
@@ -2393,6 +2447,7 @@ namespace Microsoft.CodeAnalysis
             None,
             System_Runtime_CompilerServices_Volatile,
             System_Runtime_InteropServices_InAttribute,
+            System_Runtime_InteropServices_UnmanagedType,
         }
     }
 }

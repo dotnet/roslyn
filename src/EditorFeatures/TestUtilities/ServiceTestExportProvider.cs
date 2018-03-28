@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Implementation.InlineRename.InlineRenameService), // Ensure that EditorFeatures.Wpf is included in the composition
-                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
-                typeof(CodeAnalysis.Diagnostics.EngineV2.DiagnosticAnalyzerExecutor)
+                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider)
             };
 
             return MinimalTestExportProvider.GetLanguageNeutralTypes().Concat(types).Distinct().ToArray();

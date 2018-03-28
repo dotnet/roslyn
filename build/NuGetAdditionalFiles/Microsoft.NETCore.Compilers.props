@@ -33,7 +33,7 @@
   <Target Name="MakeCompilerScriptsExecutable"
           Condition="'$(BuildingProject)' == 'true' AND
                      '$(OS)' != 'Windows_NT' AND
-                     ('$(CscToolPath)' != '' OR '$(VbcToolPath) != '')"
+                     ('$(CscToolPath)' != '' OR '$(VbcToolPath)' != '')"
           BeforeTargets="CoreCompile">
     <Exec Command="chmod +x &quot;$(CscToolPath)/$(CscToolExe)&quot; &quot;$(VbcToolPath)/$(VbcToolExe)&quot;" />
   </Target>

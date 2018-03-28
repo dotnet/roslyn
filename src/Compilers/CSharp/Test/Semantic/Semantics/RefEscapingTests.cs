@@ -3201,5 +3201,56 @@ public class C
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
+        public void PointerElementAccess_RefStructPointer()
+        {
+            CreateCompilation(@"
+public ref struct TestStruct
+{
+    public void M() { }
+}
+public class C
+{
+    public static unsafe void Test(TestStruct[] ar)
+    {
+        fixed (TestStruct* p = ar)
+        {
+            for (int i = 0; i < ar.Length; i++)
+            {
+                p[i].M();
+            }
+        }
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,36): error CS0611: Array elements cannot be of type 'TestStruct'
+                //     public static unsafe void Test(TestStruct[] ar)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
+        }
+
+        [Fact]
+        [WorkItem(24776, "https://github.com/dotnet/roslyn/issues/24776")]
+        public void PointerIndirectionOperator_RefStructPointer()
+        {
+            CreateCompilation(@"
+public ref struct TestStruct
+{
+    public void M() { }
+}
+public class C
+{
+    public static unsafe void Test(TestStruct[] ar)
+    {
+        fixed (TestStruct* p = ar)
+        {
+            var x = *p;
+        }
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,36): error CS0611: Array elements cannot be of type 'TestStruct'
+                //     public static unsafe void Test(TestStruct[] ar)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
+        }
     }
 }

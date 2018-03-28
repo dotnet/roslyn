@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             End If
 
             AddIndentBlockOperations(Of ParameterListSyntax)(list, node, Function(n) Not n.OpenParenToken.IsMissing AndAlso n.Parameters.Count > 0)
-            AddIndentBlockOperations(Of ArgumentListSyntax)(list, node, Function(n) Not n.OpenParenToken.IsMissing AndAlso n.Arguments.Count > 0 AndAlso n.Arguments.Any(Function(a) Not a.IsMissing))
+            AddArgumentListIndentBlockOperations(list, node)
             AddIndentBlockOperations(Of TypeParameterListSyntax)(list, node, Function(n) Not n.OpenParenToken.IsMissing AndAlso n.Parameters.Count > 0, indentationDelta:=1)
         End Sub
 
@@ -104,6 +104,62 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
             list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(
                     baseToken, startToken, endToken, TextSpan.FromBounds(baseToken.Span.End, closeBrace.Span.End), indentationDelta, IndentBlockOption.RelativePosition))
+        End Sub
+
+        Private Sub AddArgumentListIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode)
+            Dim argumentList = TryCast(node, ArgumentListSyntax)
+            If argumentList Is Nothing OrElse
+               argumentList.OpenParenToken.IsMissing OrElse
+               argumentList.Arguments.Count = 0 OrElse
+               argumentList.Arguments.All(Function(a) a.IsMissing) Then
+                Return
+            End If
+
+            Dim openBrace = argumentList.GetFirstToken(includeZeroWidth:=True)
+            Dim closeBrace = argumentList.GetLastToken(includeZeroWidth:=True)
+
+            Dim sourceText = node.SyntaxTree.GetText()
+
+            ' First, create a list of all arguments that start lines.
+            Dim arguments = New List(Of ArgumentSyntax)
+
+            Dim previousLineNumber = -1
+            For Each argument In argumentList.Arguments
+                Dim lineNumber = sourceText.Lines.GetLineFromPosition(argument.SpanStart).LineNumber
+                If lineNumber > previousLineNumber Then
+                    arguments.Add(argument)
+                    previousLineNumber = lineNumber
+                End If
+            Next
+
+            ' Next create indent block operations using the arguments that start each line.
+            ' These indent block operations span to the start of the next argument starting a line,
+            ' or the close brace of the argument list if there isn't another argument.
+            For i = 0 To arguments.Count - 1
+                Dim argument = arguments(i)
+                Dim baseToken = argument.GetFirstToken(includeZeroWidth:=True)
+                Dim startToken = baseToken.GetNextToken(includeZeroWidth:=True)
+
+                Dim endToken As SyntaxToken
+                Dim span As TextSpan
+
+                If i < arguments.Count - 1 Then
+                    Dim nextArgument = arguments(i + 1)
+                    Dim firstToken = nextArgument.GetFirstToken(includeZeroWidth:=True)
+
+                    endToken = firstToken.GetPreviousToken(includeZeroWidth:=True)
+
+                    span = TextSpan.FromBounds(baseToken.Span.End, firstToken.SpanStart)
+                Else
+                    endToken = closeBrace.GetPreviousToken(includeZeroWidth:=True)
+                    span = TextSpan.FromBounds(baseToken.Span.End, closeBrace.Span.End)
+                End If
+
+                Dim operation = FormattingOperations.CreateRelativeIndentBlockOperation(
+                    baseToken, startToken, endToken, span, indentationDelta:=0, IndentBlockOption.RelativePosition)
+
+                operations.Add(operation)
+            Next
         End Sub
 
         Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AlignTokensOperation))

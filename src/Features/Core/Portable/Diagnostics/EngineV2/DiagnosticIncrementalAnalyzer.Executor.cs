@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -27,10 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private class Executor
         {
             private readonly DiagnosticIncrementalAnalyzer _owner;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public Executor(DiagnosticIncrementalAnalyzer owner)
             {
                 _owner = owner;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_owner.Owner, _owner.HostDiagnosticUpdateSource);
             }
 
             public IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
@@ -578,8 +579,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
 
-                var executor = project.Solution.Workspace.Services.GetService<ICodeAnalysisDiagnosticAnalyzerExecutor>();
-                return await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                return await _diagnosticAnalyzerRunner.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)

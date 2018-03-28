@@ -4756,6 +4756,123 @@ unsafe class C
             Assert.Equal(0, accessSummary.MethodGroup.Length);
         }
 
+        [Fact]
+        public void PointerElementAccessSemanticModelAPIs_Fixed_Unmovable()
+        {
+            var text = @"
+unsafe class C
+{
+    struct S1
+    {
+        public fixed int f[10];
+    }
+
+    void M()
+    {
+        S1 p = default;
+
+        p.f[i] = 123;
+    }
+}
+";
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
+
+            var receiverSyntax = syntax.Expression;
+            var indexSyntax = syntax.ArgumentList.Arguments.Single().Expression;
+            var accessSyntax = syntax;
+
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var intPointerType = new PointerTypeSymbol(intType);
+
+            var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
+            var receiverSymbol = receiverSummary.Symbol;
+            Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal("f", receiverSymbol.Name);
+            Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
+            Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
+            Assert.Equal(intPointerType, receiverSummary.Type);
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, receiverSummary.MethodGroup.Length);
+
+            var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
+            var indexSymbol = indexSummary.Symbol;
+            Assert.Null(indexSymbol);
+
+            var accessSummary = model.GetSemanticInfoSummary(accessSyntax);
+            Assert.Null(accessSummary.Symbol);
+            Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
+            Assert.Equal(0, accessSummary.CandidateSymbols.Length);
+            Assert.Equal(intType, accessSummary.Type);
+            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, accessSummary.MethodGroup.Length);
+        }
+
+        [Fact]
+        public void PointerElementAccessSemanticModelAPIs_Fixed_Movable()
+        {
+            var text = @"
+unsafe class C
+{
+    struct S1
+    {
+        public fixed int f[10];
+    }
+
+    S1 p = default;
+    void M()
+    {
+        p.f[i] = 123;
+    }
+}
+";
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
+
+            var receiverSyntax = syntax.Expression;
+            var indexSyntax = syntax.ArgumentList.Arguments.Single().Expression;
+            var accessSyntax = syntax;
+
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var intPointerType = new PointerTypeSymbol(intType);
+
+            var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
+            var receiverSymbol = receiverSummary.Symbol;
+            Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal("f", receiverSymbol.Name);
+            Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
+            Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
+            Assert.Equal(intPointerType, receiverSummary.Type);
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, receiverSummary.MethodGroup.Length);
+
+            var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
+            var indexSymbol = indexSummary.Symbol;
+            Assert.Null(indexSymbol);
+
+            var accessSummary = model.GetSemanticInfoSummary(accessSyntax);
+            Assert.Null(accessSummary.Symbol);
+            Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
+            Assert.Equal(0, accessSummary.CandidateSymbols.Length);
+            Assert.Equal(intType, accessSummary.Type);
+            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, accessSummary.MethodGroup.Length);
+        }
+
         #endregion PointerElementAccess SemanticModel tests
 
         #region Pointer conversion tests
@@ -6145,15 +6262,15 @@ class NotPointer
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,26): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                // (9,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (byte* p = (byte*)&x)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(byte*)&x").WithLocation(9, 26),
-                // (13,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(byte*)&x").WithLocation(9, 26),
+                // (13,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "n").WithLocation(13, 25),
-                // (17,25): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "n").WithLocation(13, 25),
+                // (17,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (int*)n)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n").WithLocation(17, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)n").WithLocation(17, 25),
                 // (5,23): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
                 //     public NotPointer n;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null").WithLocation(5, 23)
@@ -6243,9 +6360,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
-                //         fixed (int* p = stackalloc int[2])
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "stackalloc int[2]"));
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
         }
 
         [Fact]
@@ -6315,9 +6432,9 @@ class Program
 ";
             // Confusing, but matches Dev10.
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = null)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "null").WithLocation(6, 25),
                 // (10,26): error CS0211: Cannot take the address of the given expression
                 //         fixed (int* p = &null)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "null").WithLocation(10, 26),
@@ -6327,9 +6444,9 @@ class Program
                 // (18,26): error CS0103: The name '_' does not exist in the current context
                 //         fixed (int* p = &_)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(18, 26),
-                // (22,25): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                // (22,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = ()=>throw null)
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>throw null").WithArguments("lambda expression", "int*").WithLocation(22, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "()=>throw null").WithLocation(22, 25),
                 // (26,27): error CS0211: Cannot take the address of the given expression
                 //         fixed (int* p = &(()=>throw null))
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "()=>throw null").WithLocation(26, 27)
@@ -6351,9 +6468,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,26): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (x => x))
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "int*"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "x => x").WithLocation(6, 26));
         }
 
         [Fact]
@@ -6371,9 +6488,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0428: Cannot convert method group 'Main' to non-delegate type 'int*'. Did you intend to invoke the method?
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = Main)
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "int*"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "Main").WithLocation(6, 25));
         }
 
         [Fact]
@@ -7463,33 +7580,37 @@ unsafe class C
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,31): error CS1575: A stackalloc expression requires [] after type
+                // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[]"),
-                // (7,31): error CS1575: A stackalloc expression requires [] after type
-                //         { int* p = stackalloc int[1, 1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]"),
-                // (8,31): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34),
+                // (8,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]"),
-                // (9,31): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 34),
+                // (9,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]"),
-                // (10,31): error CS1575: A stackalloc expression requires [] after type
-                //         { int* p = stackalloc int[1][]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]"),
-                // (11,31): error CS1575: A stackalloc expression requires [] after type
-                //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]"),
-
-                // CONSIDER: these are plausible, but not ideal.
-
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(9, 34),
                 // (9,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(9, 37),
                 // (11,38): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"));
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(11, 38),
+                // (7,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[1, 1]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
+                // (8,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[][]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
+                // (9,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[][1]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
+                // (10,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[1][]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
+                // (11,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[1][1]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)
+                );
         }
 
         [Fact]

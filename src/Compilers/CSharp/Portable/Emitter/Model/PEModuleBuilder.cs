@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
-
+        
         private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
@@ -67,6 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 return Compilation.NeedsGeneratedIsByRefLikeAttribute;
+            }
+        }
+
+        internal bool NeedsGeneratedIsUnmanagedAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedIsUnmanagedAttribute;
             }
         }
 
@@ -1440,6 +1449,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsReadOnlyAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsUnmanagedAttribute();
+        }
+
         internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1455,6 +1475,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
