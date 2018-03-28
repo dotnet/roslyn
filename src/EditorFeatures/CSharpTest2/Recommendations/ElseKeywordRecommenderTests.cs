@@ -421,10 +421,19 @@ else"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInsideStatement()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"if (true)
+    Console.WriteLine()$$; // Complete statement, but we're not at the end of it.
+"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSkippedToken()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-$@"if (true)
+@"if (true)
     Console.WriteLine();,
 $$"));
         }
