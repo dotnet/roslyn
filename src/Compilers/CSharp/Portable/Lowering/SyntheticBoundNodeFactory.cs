@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
         {
-            return new SynthesizedLocal(CurrentMethodOrNestedFunction, type, kind, syntax, isPinned, refKind);
+            return new SynthesizedLocal(CurrentFunction, type, kind, syntax, isPinned, refKind);
         }
 #endif
 
