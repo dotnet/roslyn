@@ -336,6 +336,7 @@ $$"));
         [InlineData("while (true)")]
         [InlineData("while (true) {")]
         [InlineData("while (true) { { }")]
+        [InlineData("for (int i = 0;")]
         public async Task TestNotAfterIfIncompleteStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -355,6 +356,7 @@ $$"));
         [InlineData("while (true)")]
         [InlineData("while (true) {")]
         [InlineData("while (true) { { }")]
+        [InlineData("for (int i = 0;")]
         public async Task TestNotAfterIfNestedIfIncompleteStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -375,6 +377,7 @@ $@"if (true)
         [InlineData("while (true)")]
         [InlineData("while (true) {")]
         [InlineData("while (true) { { }")]
+        [InlineData("for (int i = 0;")]
         public async Task TestNotAfterIfNestedIfElseIncompleteStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
