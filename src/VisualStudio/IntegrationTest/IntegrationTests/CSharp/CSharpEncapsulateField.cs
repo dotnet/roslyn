@@ -39,11 +39,11 @@ namespace myNamespace
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName, timeout: TimeSpan.FromSeconds(10));
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: HangMitigatingTimeout);
             dialog.ClickCancel(encapsulateField.DialogName);
             dialog.VerifyClosed(encapsulateField.DialogName);
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName, timeout: TimeSpan.FromSeconds(10));
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: HangMitigatingTimeout);
             dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }

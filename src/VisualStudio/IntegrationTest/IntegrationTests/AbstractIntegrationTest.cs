@@ -10,6 +10,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IDisposable
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        protected static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+
         public readonly VisualStudioInstance VisualStudio;
 
         protected readonly string ProjectName = "TestProj";
