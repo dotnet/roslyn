@@ -240,6 +240,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 registration = cancellationToken.Register(() =>
                 {
+                    // Note: We only ever expect that a single submission is being built,
+                    // even though we're calling CancelAllSubmissions(). If MSBuildWorkspace is
+                    // ever updated to support parallel builds, we'll likely need to update this code.
+
                     taskSource.TrySetCanceled();
                     buildManager.CancelAllSubmissions();
                     registration.Dispose();
