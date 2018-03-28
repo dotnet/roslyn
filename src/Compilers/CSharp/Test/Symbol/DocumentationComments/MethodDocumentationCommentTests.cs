@@ -215,7 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
         }
 
-        [Fact, WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(25781, "https://github.com/dotnet/roslyn/issues/25781")]
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
         public void GetMalformedDocumentationCommentXml()
         {
             var source = @"

@@ -1082,8 +1082,9 @@ End Module",
         ''' </summary>
         <Fact()>
         Public Sub RefReturnLateBoundCall()
-            Dim comp1 = CreateCSharpCompilation(
-"public class A
+            Using New EnsureEnglishUICulture()
+                Dim comp1 = CreateCSharpCompilation(
+    "public class A
 {
 #pragma warning disable 0649
     private string _f = ""ABC"";
@@ -1105,9 +1106,9 @@ public class B
         b = b.ToLower();
     }
 }")
-            comp1.VerifyDiagnostics()
-            Dim comp2 = CreateVisualBasicCompilation(
-                Nothing,
+                comp1.VerifyDiagnostics()
+                Dim comp2 = CreateVisualBasicCompilation(
+                    Nothing,
 "Module M
     Sub Main()
         Dim a = New A()
@@ -1121,10 +1122,9 @@ public class B
         b.F(a.F(), a.G())
     End Sub
 End Module",
-                referencedCompilations:={comp1},
-                compilationOptions:=TestOptions.DebugExe)
+                    referencedCompilations:={comp1},
+                    compilationOptions:=TestOptions.DebugExe)
 
-            Using New EnsureEnglishUICulture()
                 Dim verifier = CompileAndVerify(comp2, expectedOutput:="Public member 'G' on type 'A' not found.")
                 verifier.VerifyIL("M.F",
                 <![CDATA[
