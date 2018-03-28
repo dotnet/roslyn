@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2313,6 +2313,37 @@ public class Test
     public void TestIt()
     {
         [|MyAbClass|]  test = new TestInstance();
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [Fact]
+        public async Task DoNoSuggestVarForRefForeachVar()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        unsafe public Span(void* pointer, int length) { }
+
+        public ref SpanEnum GetEnumerator() => throw new Exception();
+
+        public struct SpanEnum
+        {
+            public ref int Current => 0;
+            public bool MoveNext() => false;
+        }
+    }
+}
+class C
+{
+    public void M(Span<int> span)
+    {
+        foreach ([|ref|] var rx in span)
+        {
+        }
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }

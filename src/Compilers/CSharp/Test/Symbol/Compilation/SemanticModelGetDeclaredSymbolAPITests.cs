@@ -16,6 +16,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SemanticModelTests : CSharpTestBase
     {
         [Fact]
+        public void RefForEachVar()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> span)
+    {
+        foreach (ref readonly int rx in span) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            ILocalSymbol rx = model.GetDeclaredSymbol(rxDecl);
+            Assert.NotNull(rx);
+            Assert.True(rx.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rx.RefKind);
+        }
+
+        [Fact]
+        public void RefForVar()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int x)
+    {
+        for (ref readonly int rx = ref x;;) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            var model = comp.GetSemanticModel(tree);
+            ISymbol rx = model.GetDeclaredSymbol(rxDecl.Variables.Single());
+            Assert.NotNull(rx);
+            var rxLocal = Assert.IsAssignableFrom<ILocalSymbol>(rx);
+            Assert.True(rxLocal.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rxLocal.RefKind);
+        }
+
+        [Fact]
         public void TestGetDeclaredSymbolFromNamespace()
         {
             var compilation = CreateCompilation(@"

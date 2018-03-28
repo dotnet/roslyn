@@ -21,6 +21,7 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Exes\csi\net46\csi.rsp
     file source=$(OutputPath)\Exes\vbc\net46\vbc.rsp
 
+    file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.Managed.Core.targets
     file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets
     file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets
 

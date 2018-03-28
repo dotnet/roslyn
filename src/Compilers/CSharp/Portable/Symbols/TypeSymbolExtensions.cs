@@ -1528,9 +1528,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new Cci.TypeReferenceWithAttributes(typeRef);
         }
 
-        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeUnmanagedType(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+
+        private static bool IsWellKnownInteropServicesTopLevelType(this ITypeSymbol typeSymbol, string name)
         {
-            if (typeSymbol.Name != "InAttribute" || typeSymbol.ContainingType != null)
+            if (typeSymbol.Name != name || typeSymbol.ContainingType != null)
             {
                 return false;
             }

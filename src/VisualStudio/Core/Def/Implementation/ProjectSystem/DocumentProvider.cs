@@ -348,7 +348,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-            if (_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;
                 foreach (var project in _projectTracker.ImmutableProjects)
@@ -635,7 +637,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (document.Project.Workspace is VisualStudioWorkspace workspace)
                 {
-                    workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
+                    document.Project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newMoniker);
                 }
             }
         }

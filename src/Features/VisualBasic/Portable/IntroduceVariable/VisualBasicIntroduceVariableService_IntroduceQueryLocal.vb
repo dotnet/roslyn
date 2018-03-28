@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant:=False,
-                container:=oldOutermostQuery, cancellationToken:=cancellationToken)
+                containerOpt:=oldOutermostQuery, cancellationToken:=cancellationToken)
             Dim newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken)
 
             Dim letClause = SyntaxFactory.LetClause(

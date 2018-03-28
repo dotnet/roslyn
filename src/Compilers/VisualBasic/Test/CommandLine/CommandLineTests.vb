@@ -123,7 +123,7 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/23529")>
+        <Fact>
         Public Sub CreateCompilationWithKeyFile()
             Dim source = "
 Public Class C
@@ -139,7 +139,7 @@ End Class"
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keyfile:key.snk"})
             Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
 
-            Assert.True(TypeOf comp.Options.StrongNameProvider Is PortableStrongNameProvider)
+            Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
         End Sub
 
         <Fact>

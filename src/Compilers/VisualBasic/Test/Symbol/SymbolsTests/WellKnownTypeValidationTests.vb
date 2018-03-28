@@ -511,7 +511,8 @@ End Namespace
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -550,7 +551,8 @@ End Namespace
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -597,7 +599,8 @@ End Namespace
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
@@ -686,7 +689,8 @@ End Namespace
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
