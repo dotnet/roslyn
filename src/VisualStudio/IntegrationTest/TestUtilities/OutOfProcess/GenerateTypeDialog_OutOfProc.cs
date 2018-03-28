@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Windows.Automation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -106,10 +104,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             createNewFileComboBox.Collapse();
 
-            return children.Cast<AutomationElement>().Select(element => element.Current.Name).ToArray();
+            var result = new string[children.Length];
+            for (int i = 0; i < children.Length; i++)
+            {
+                result[i] = children.GetElement(i).CurrentName;
+            }
+
+            return result;
         }
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
         {
             return VisualStudioInstance.Shell.GetHWnd();
         }

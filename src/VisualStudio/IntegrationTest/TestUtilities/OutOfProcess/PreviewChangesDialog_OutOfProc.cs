@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Windows.Automation;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
-using Xunit;
-
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -43,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel(string expectedTitle)
             => DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Cancel");
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
             => VisualStudioInstance.Shell.GetHWnd();
     }
 }

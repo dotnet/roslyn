@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public class Dialog_OutOfProc : OutOfProcComponent
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Click(string dialogName, string buttonName)
             => DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), dialogName, buttonName);
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
             => VisualStudioInstance.Shell.GetHWnd();
     }
 }
