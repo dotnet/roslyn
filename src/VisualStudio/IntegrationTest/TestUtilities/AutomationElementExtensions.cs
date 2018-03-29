@@ -115,7 +115,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var invokePattern = element.GetCurrentPattern<IUIAutomationInvokePattern>(UIA_PatternIds.UIA_InvokePatternId);
             if (invokePattern != null)
             {
-                invokePattern.Invoke();
+                RetryIfNotAvailable(
+                    pattern => pattern.Invoke(),
+                    invokePattern);
             }
             else
             {
@@ -133,7 +135,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var expandCollapsePattern = element.GetCurrentPattern<IUIAutomationExpandCollapsePattern>(UIA_PatternIds.UIA_ExpandCollapsePatternId);
             if (expandCollapsePattern != null)
             {
-                expandCollapsePattern.Expand();
+                RetryIfNotAvailable(
+                    pattern => pattern.Expand(),
+                    expandCollapsePattern);
             }
             else
             {
@@ -151,7 +155,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var expandCollapsePattern = element.GetCurrentPattern<IUIAutomationExpandCollapsePattern>(UIA_PatternIds.UIA_ExpandCollapsePatternId);
             if (expandCollapsePattern != null)
             {
-                expandCollapsePattern.Collapse();
+                RetryIfNotAvailable(
+                    pattern => pattern.Collapse(),
+                    expandCollapsePattern);
             }
             else
             {
@@ -169,7 +175,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var selectionItemPattern = element.GetCurrentPattern<IUIAutomationSelectionItemPattern>(UIA_PatternIds.UIA_SelectionItemPatternId);
             if (selectionItemPattern != null)
             {
-                selectionItemPattern.Select();
+                RetryIfNotAvailable(
+                    pattern => pattern.Select(),
+                    selectionItemPattern);
             }
             else
             {
@@ -187,7 +195,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var valuePattern = element.GetCurrentPattern<IUIAutomationValuePattern>(UIA_PatternIds.UIA_ValuePatternId);
             if (valuePattern != null)
             {
-                return valuePattern.CurrentValue;
+                return RetryIfNotAvailable(
+                    pattern => pattern.CurrentValue,
+                    valuePattern);
             }
             else
             {
@@ -205,7 +215,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var valuePattern = element.GetCurrentPattern<IUIAutomationValuePattern>(UIA_PatternIds.UIA_ValuePatternId);
             if (valuePattern != null)
             {
-                valuePattern.SetValue(value);
+                RetryIfNotAvailable(
+                    pattern => pattern.SetValue(value),
+                    valuePattern);
             }
             else
             {
@@ -282,7 +294,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);
             if (togglePattern != null)
             {
-                return togglePattern.CurrentToggleState == ToggleState.ToggleState_On;
+                return RetryIfNotAvailable(
+                    pattern => pattern.CurrentToggleState == ToggleState.ToggleState_On,
+                    togglePattern);
             }
             else
             {
@@ -300,7 +314,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);
             if (togglePattern != null)
             {
-                togglePattern.Toggle();
+                RetryIfNotAvailable(
+                    pattern => pattern.Toggle(),
+                    togglePattern);
             }
             else
             {
@@ -314,6 +330,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static string GetNameForExceptionMessage(this IUIAutomationElement element)
         {
             return element.CurrentAutomationId ?? element.CurrentName ?? "<unnamed>";
+        }
+
+        private static void RetryIfNotAvailable<T>(Action<T> action, T state)
+        {
+            for (var i = 0; true; i++)
+            {
+                try
+                {
+                    action(state);
+                    return;
+                }
+                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount - 1)
+                {
+                    Thread.Sleep(AutomationRetryDelay);
+                    continue;
+                }
+            }
         }
 
         private static TResult RetryIfNotAvailable<T, TResult>(Func<T, TResult> function, T state)
