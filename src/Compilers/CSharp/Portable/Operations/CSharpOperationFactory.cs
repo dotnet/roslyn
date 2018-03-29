@@ -600,11 +600,12 @@ namespace Microsoft.CodeAnalysis.Operations
                                             OperationFactory.NullOperation :
                                             new Lazy<IOperation>(() =>
                                                 new InstanceReferenceExpression(
-                                                semanticModel: _semanticModel,
-                                                syntax: boundObjectInitializerMember.Syntax,
-                                                type: boundObjectInitializerMember.ReceiverType,
-                                                constantValue: default(Optional<object>),
-                                                isImplicit: true));
+                                                        InstanceReferenceKind.Initializer,
+                                                        semanticModel: _semanticModel,
+                                                        syntax: boundObjectInitializerMember.Syntax,
+                                                        type: boundObjectInitializerMember.ReceiverType,
+                                                        constantValue: default(Optional<object>),
+                                                        isImplicit: true));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
@@ -978,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundBaseReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundBaseReference.ConstantValue);
             bool isImplicit = boundBaseReference.WasCompilerGenerated;
-            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(InstanceReferenceKind.Base, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInstanceReferenceOperation CreateBoundThisReferenceOperation(BoundThisReference boundThisReference)
@@ -987,7 +988,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundThisReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundThisReference.ConstantValue);
             bool isImplicit = boundThisReference.WasCompilerGenerated;
-            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(InstanceReferenceKind.ThisOverridable, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundAssignmentOperatorOrMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
@@ -1229,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundImplicitReceiver.Type;
             Optional<object> constantValue = ConvertToOptional(boundImplicitReceiver.ConstantValue);
             bool isImplicit = boundImplicitReceiver.WasCompilerGenerated;
-            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(InstanceReferenceKind.Initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalAccessOperation CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)
