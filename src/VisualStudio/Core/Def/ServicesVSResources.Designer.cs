@@ -198,6 +198,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Always for clarity.
+        /// </summary>
+        internal static string Always_for_clarity {
+            get {
+                return ResourceManager.GetString("Always_for_clarity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analysis.
         /// </summary>
         internal static string Analysis {
@@ -1471,6 +1480,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Never if unnecessary.
+        /// </summary>
+        internal static string Never_if_unnecessary {
+            get {
+                return ResourceManager.GetString("Never_if_unnecessary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never if unnecessary (not recommended).
+        /// </summary>
+        internal static string Never_if_unnecessary_not_recommended {
+            get {
+                return ResourceManager.GetString("Never_if_unnecessary_not_recommended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Never show this again.
         /// </summary>
         internal static string Never_show_this_again {
@@ -2035,24 +2062,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove if unnecessary.
-        /// </summary>
-        internal static string Remove_if_unnecessary {
-            get {
-                return ResourceManager.GetString("Remove_if_unnecessary", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove if unnecessary (not recommended).
-        /// </summary>
-        internal static string Remove_if_unnecessary_not_recommended {
-            get {
-                return ResourceManager.GetString("Remove_if_unnecessary_not_recommended", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove item.
         /// </summary>
         internal static string Remove_item {
@@ -2094,15 +2103,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Reorder {
             get {
                 return ResourceManager.GetString("Reorder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Require for clarity.
-        /// </summary>
-        internal static string Require_for_clarity {
-            get {
-                return ResourceManager.GetString("Require_for_clarity", resourceCulture);
             }
         }
         

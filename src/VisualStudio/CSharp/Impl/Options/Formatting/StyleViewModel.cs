@@ -1342,14 +1342,14 @@ class C
         {
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.CastOperationParentheses,
-                CSharpVSResources.Cast_operator,
+                CSharpVSResources.In_cast_expression,
                 new[] { s_castParenthesesIgnore, s_castParenthesesRequireForPrecedenceClarity, s_castParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: true);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
-                CSharpVSResources.Arithmetic_operators,
+                CSharpVSResources.In_arithmetic_expressions,
                 new[] { s_arithmeticParenthesesIgnore, s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: true);
@@ -1377,7 +1377,7 @@ class C
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.BitwiseOperationParentheses,
-                CSharpVSResources.Bitwise_operators,
+                CSharpVSResources.In_bitwise_expressions,
                 new[] { s_bitwiseParenthesesIgnore, s_bitwiseParenthesesRequireForPrecedenceClarity, s_bitwiseParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: false);
@@ -1391,14 +1391,14 @@ class C
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.CoalesceOperationParentheses,
-                CSharpVSResources.Coalesce_operator,
+                CSharpVSResources.In_coalesce_expression,
                 new[] { s_coalesceParenthesesIgnore, s_coalesceParenthesesRequireForPrecedenceClarity, s_coalesceParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: false);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
-                CSharpVSResources.Assignment_operators,
+                CSharpVSResources.In_assignment_expressions,
                 new[] { s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: true);

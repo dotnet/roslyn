@@ -528,14 +528,14 @@
   <data name="Separate_using_directive_groups" xml:space="preserve">
     <value>Separate using directive groups</value>
   </data>
-  <data name="Arithmetic_operators" xml:space="preserve">
-    <value>Arithmetic operators:   *   /   %   +   -</value>
+  <data name="In_arithmetic_expressions" xml:space="preserve">
+    <value>In arithmetic expressions:   *   /   %   +   -</value>
   </data>
-  <data name="Bitwise_operators" xml:space="preserve">
-    <value>Bitwise operators:   &amp;   |   ^</value>
+  <data name="In_bitwise_expressions" xml:space="preserve">
+    <value>In bitwise expressions:   &amp;   |   ^</value>
   </data>
-  <data name="Coalesce_operator" xml:space="preserve">
-    <value>Coalesce operator:   ??</value>
+  <data name="In_coalesce_expression" xml:space="preserve">
+    <value>In coalesce expression:   ??</value>
   </data>
   <data name="Equality_operators" xml:space="preserve">
     <value>Equality operators:   ==   !=</value>
@@ -552,11 +552,11 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Assignment_operators" xml:space="preserve">
-    <value>Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</value>
+  <data name="In_assignment_expressions" xml:space="preserve">
+    <value>In assignment expressions:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</value>
   </data>
-  <data name="Cast_operator" xml:space="preserve">
-    <value>Cast operator:  (type)expression</value>
+  <data name="In_cast_expression" xml:space="preserve">
+    <value>In cast expression:  (type)expression</value>
   </data>
   <data name="Event_Hookup_Command_Handler" xml:space="preserve">
     <value>Generate Event Subscription Command Handler</value>

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             }
 
             var preference = optionSet.GetOption(CodeStyleOptions.CastOperationParentheses, LanguageNames.CSharp);
-            if (preference.Value != ParenthesesPreference.RequireForClarity)
+            if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
             }

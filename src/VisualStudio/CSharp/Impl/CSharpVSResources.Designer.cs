@@ -79,24 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Arithmetic operators:   *   /   %   +   -.
-        /// </summary>
-        internal static string Arithmetic_operators {
-            get {
-                return ResourceManager.GetString("Arithmetic_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=.
-        /// </summary>
-        internal static string Assignment_operators {
-            get {
-                return ResourceManager.GetString("Assignment_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string Automatically_format_block_on_close_brace {
@@ -138,33 +120,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Automatically_format_when_typing {
             get {
                 return ResourceManager.GetString("Automatically_format_when_typing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bitwise operators:   &amp;   |   ^.
-        /// </summary>
-        internal static string Bitwise_operators {
-            get {
-                return ResourceManager.GetString("Bitwise_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cast operator:  (type)expression.
-        /// </summary>
-        internal static string Cast_operator {
-            get {
-                return ResourceManager.GetString("Cast_operator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Coalesce operator:   ??.
-        /// </summary>
-        internal static string Coalesce_operator {
-            get {
-                return ResourceManager.GetString("Coalesce_operator", resourceCulture);
             }
         }
         
@@ -345,6 +300,51 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Ignore_spaces_in_declaration_statements {
             get {
                 return ResourceManager.GetString("Ignore_spaces_in_declaration_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In arithmetic expressions:   *   /   %   +   -.
+        /// </summary>
+        internal static string In_arithmetic_expressions {
+            get {
+                return ResourceManager.GetString("In_arithmetic_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In assignment expressions:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=.
+        /// </summary>
+        internal static string In_assignment_expressions {
+            get {
+                return ResourceManager.GetString("In_assignment_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In bitwise expressions:   &amp;   |   ^.
+        /// </summary>
+        internal static string In_bitwise_expressions {
+            get {
+                return ResourceManager.GetString("In_bitwise_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In cast expression:  (type)expression.
+        /// </summary>
+        internal static string In_cast_expression {
+            get {
+                return ResourceManager.GetString("In_cast_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In coalesce expression:   ??.
+        /// </summary>
+        internal static string In_coalesce_expression {
+            get {
+                return ResourceManager.GetString("In_coalesce_expression", resourceCulture);
             }
         }
         

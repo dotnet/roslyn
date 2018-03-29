@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal enum ParenthesesPreference
     {
         Ignore,
-        RequireForClarity,
-        RemoveIfUnnecessary,
+        NeverIfUnnecessary,
+        AlwaysForClarity,
     }
 }

@@ -38,17 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
                 SyntaxKind.ExclusiveOrExpression,
                 SyntaxKind.AndExpression,
                 SyntaxKind.OrElseExpression,
-                SyntaxKind.AndAlsoExpression,
-                SyntaxKind.SimpleAssignmentStatement,
-                SyntaxKind.AddAssignmentStatement,
-                SyntaxKind.SubtractAssignmentStatement,
-                SyntaxKind.MultiplyAssignmentStatement,
-                SyntaxKind.DivideAssignmentStatement,
-                SyntaxKind.IntegerDivideAssignmentStatement,
-                SyntaxKind.ExponentiateAssignmentStatement,
-                SyntaxKind.LeftShiftAssignmentStatement,
-                SyntaxKind.RightShiftAssignmentStatement,
-                SyntaxKind.ConcatenateAssignmentStatement)
+                SyntaxKind.AndAlsoExpression)
 
         Protected Overrides Sub GetPartsOfBinaryLike(
                 binaryLike As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode)
@@ -90,8 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
         End Function
 
         Protected Overrides Function IsBinaryLike(node As SyntaxNode) As Boolean
-            Return TypeOf node Is BinaryExpressionSyntax OrElse
-                   TypeOf node Is AssignmentStatementSyntax
+            Return TypeOf node Is BinaryExpressionSyntax
         End Function
     End Class
 End Namespace

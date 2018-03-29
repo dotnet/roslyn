@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor;
@@ -204,24 +203,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected void AddParenthesesOption(
             string language, OptionSet optionSet,
             PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
-            string title, string[] examples, bool allowRequireForClarity, bool recommended)
+            string title, string[] examples, bool isOther, bool recommended)
         {
             var preferences = new List<ParenthesesPreference>();
             var codeStylePreferences = new List<CodeStylePreference>();
 
-            preferences.Add(ParenthesesPreference.Ignore);
-            codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Ignore, isChecked: false));
-
-            if (allowRequireForClarity)
+            if (isOther)
             {
-                preferences.Add(ParenthesesPreference.RequireForClarity);
-                codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Require_for_clarity, isChecked: false));
+                preferences.Add(ParenthesesPreference.Ignore);
+                codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Ignore, isChecked: false));
+            }
+            else 
+            {
+                preferences.Add(ParenthesesPreference.AlwaysForClarity);
+                codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Always_for_clarity, isChecked: false));
             }
 
-            preferences.Add(ParenthesesPreference.RemoveIfUnnecessary);
+            preferences.Add(ParenthesesPreference.NeverIfUnnecessary);
             codeStylePreferences.Add(new CodeStylePreference(recommended
-                ? ServicesVSResources.Remove_if_unnecessary
-                : ServicesVSResources.Remove_if_unnecessary_not_recommended,
+                ? ServicesVSResources.Never_if_unnecessary
+                : ServicesVSResources.Never_if_unnecessary_not_recommended,
                 isChecked: false));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(

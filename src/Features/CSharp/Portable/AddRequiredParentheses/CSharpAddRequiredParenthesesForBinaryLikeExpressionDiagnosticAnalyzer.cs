@@ -40,18 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             SyntaxKind.IsExpression,
             SyntaxKind.AsExpression,
             SyntaxKind.CoalesceExpression,
-            SyntaxKind.IsPatternExpression,
-            SyntaxKind.SimpleAssignmentExpression,
-            SyntaxKind.AddAssignmentExpression,
-            SyntaxKind.SubtractAssignmentExpression,
-            SyntaxKind.MultiplyAssignmentExpression,
-            SyntaxKind.DivideAssignmentExpression,
-            SyntaxKind.ModuloAssignmentExpression,
-            SyntaxKind.AndAssignmentExpression,
-            SyntaxKind.ExclusiveOrAssignmentExpression,
-            SyntaxKind.OrAssignmentExpression,
-            SyntaxKind.LeftShiftAssignmentExpression,
-            SyntaxKind.RightShiftAssignmentExpression);
+            SyntaxKind.IsPatternExpression,);
 
         protected override ImmutableArray<SyntaxKind> GetSyntaxNodeKinds()
             => s_kinds;
@@ -64,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 
         protected override bool IsBinaryLike(SyntaxNode node)
             => node is BinaryExpressionSyntax ||
-               node is AssignmentExpressionSyntax ||
                node is IsPatternExpressionSyntax isPattern && isPattern.Pattern is ConstantPatternSyntax;
 
         protected override void GetPartsOfBinaryLike(
@@ -78,12 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
                 left = binaryExpression.Left;
                 operatorToken = binaryExpression.OperatorToken;
                 right = binaryExpression.Right;
-                return;
-
-            case AssignmentExpressionSyntax assignmentExpression:
-                left = assignmentExpression.Left;
-                operatorToken = assignmentExpression.OperatorToken;
-                right = assignmentExpression.Right;
                 return;
 
             case IsPatternExpressionSyntax isPatternExpression:

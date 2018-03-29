@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -61,13 +62,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 return;
             }
 
-            if (preference.Value == ParenthesesPreference.RequireForClarity &&
+            if (preference.Value == ParenthesesPreference.AlwaysForClarity &&
                 clarifiesPrecedence)
             {
                 // User wants these parens if they clarify precedence, and these parens
                 // clarify precedence.  So keep these around.
                 return;
             }
+
+            // either they don't want unnecessary parentheses, or they want them only for
+            // clarification purposes and this does not make things clear.
+            Debug.Assert(preference.Value == ParenthesesPreference.NeverIfUnnecessary ||
+                         !clarifiesPrecedence);
 
             var severity = preference.Notification.Value;
 
