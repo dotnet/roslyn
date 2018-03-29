@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _property.AreLocalsZeroed && base.AreLocalsZeroed;
+                return !_property.HasSkipLocalsInitAttribute && base.AreLocalsZeroed;
             }
         }
 

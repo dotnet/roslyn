@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            get { return true; }
+            get { return ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed; }
         }
 
         internal override bool IsComImport

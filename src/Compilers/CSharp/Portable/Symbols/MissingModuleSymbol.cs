@@ -185,6 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ModuleMetadata GetMetadata() => null;
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
     }
 
     internal class MissingModuleSymbolWithName : MissingModuleSymbol

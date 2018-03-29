@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool AreLocalsZeroed
         {
-            // PROTOTYPE(SkipLocalsInitAttribute): we might want to delegate to the module in the future
-            get { return true; }
+            get { return ContainingModule.AreLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
