@@ -21,9 +21,35 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    /// <summary>
+    /// This attribute supports tests that need to use a MEF container (<see cref="ExportProvider"/>) directly or
+    /// indirectly during the test sequence. It ensures production code uniformly handles the export provider created
+    /// during a test, and cleans up the state before the test completes.
+    /// </summary>
+    /// <remarks>
+    /// <para>This attribute serves several important functions for tests that use state variables which are otherwise
+    /// shared at runtime:</para>
+    /// <list type="bullet">
+    /// <item>Ensures <see cref="HostServices"/> implementations all use the same <see cref="ExportProvider"/>, which is
+    /// the one created by the test.</item>
+    /// <item>Clears static cached values in production code holding instances of <see cref="HostServices"/>, or any
+    /// object obtained from it or one of its related interfaces such as <see cref="HostLanguageServices"/>.</item>
+    /// <item>Isolates tests by waiting for asynchronous operations to complete before a test is considered
+    /// complete.</item>
+    /// <item>When required, provides a separate <see cref="ExportProvider"/> for the <see cref="RemoteWorkspace"/>
+    /// executing in the test process. If this provider is created during testing, it is cleaned up with the primary
+    /// export provider during test teardown.</item>
+    /// </list>
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public sealed class UseExportProviderAttribute : BeforeAfterTestAttribute
     {
+        /// <summary>
+        /// Asynchronous operations are expected to be cancelled at the end of the test that started them. Operations
+        /// cancelled by the test are cleaned up immediately. The remaining operations are given an opportunity to run
+        /// to completion. If this timeout is exceeded by the asynchronous operations running after a test completes,
+        /// the test is failed.
+        /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(15);
 
         // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
@@ -44,6 +70,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ExportProviderCache.EnabledViaUseExportProviderAttributeOnly = true;
         }
 
+        /// <summary>
+        /// To the extent reasonably possible, this method resets the state of the test environment to the same state as
+        /// it started, ensuring that tests running in sequence cannot influence the outcome of later tests.
+        /// </summary>
+        /// <remarks>
+        /// <para>The test cleanup runs in two primary steps:</para>
+        /// <list type="number">
+        /// <item>Waiting for asynchronous operations started by the test to complete.</item>
+        /// <item>Disposing of mutable resources created by the test.</item>
+        /// <item>Clearing static state variables related to the use of MEF during a test.</item>
+        /// </list>
+        /// </remarks>
         public override void After(MethodInfo methodUnderTest)
         {
             var exportProvider = ExportProviderCache.ExportProviderForCleanup;
@@ -52,10 +90,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var listenerProvider = exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault();
                 if (listenerProvider != null)
                 {
-                    var stopwatch = Stopwatch.StartNew();
-
+                    // Immediately clear items from the foreground notification service for which cancellation is
+                    // requested. This service maintains a queue separately from Tasks, and work items scheduled for
+                    // execution after a delay are not immediately purged when cancellation is requested. This code
+                    // instructs the service to walk the list of queued work items and immediately cancel and purge any
+                    // which are already cancelled.
                     var foregroundNotificationService = exportProvider?.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
                     foregroundNotificationService?.ReleaseCancelledItems();
+
+                    var stopwatch = Stopwatch.StartNew();
 
                     var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
                     var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout);
@@ -80,9 +123,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             finally
             {
+                // Dispose of the export provider, including calling Dispose for any IDisposable services created during
+                // the test.
                 exportProvider?.Dispose();
+
+                // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
+                // after the end of a test attempts to create an ExportProvider.
                 MefHostServices.HookServiceCreation((_, __) => throw new InvalidOperationException("Cannot create host services after test tear down."));
                 RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
+
+                // Reset static state variables.
                 DesktopMefHostServices.ResetHostServicesTestOnly();
                 _hostServices = null;
                 ExportProviderCache.EnabledViaUseExportProviderAttributeOnly = false;

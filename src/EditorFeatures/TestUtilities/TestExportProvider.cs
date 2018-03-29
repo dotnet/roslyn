@@ -14,8 +14,8 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     /// <summary>
-    /// This type caches MEF compositions for our unit tests.  MEF composition is a relatively expensive
-    /// operation and caching yields demonstrable benefits for testing.
+    /// This type provides cached <see cref="IExportProviderFactory"/> instances for use in tests. These factories allow
+    /// for efficient creation of <see cref="ExportProvider"/> instances without sharing mutable state.
     /// </summary>
     public static class TestExportProvider
     {
@@ -114,20 +114,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .ToArray();
         }
 
-        /// <summary>
-        /// Create fresh ExportProvider that doesn't share anything with others. Tests can use this
-        /// export provider to create all new MEF components not shared with others.
-        /// </summary>
         private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
         {
             return ExportProviderCache.CreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
-        /// <summary>
-        /// Create fresh ComposableCatalog that doest share anything with others. Everything under
-        /// this catalog should have been created from scratch that doesn't share anything with 
-        /// others.
-        /// </summary>
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
             return ExportProviderCache

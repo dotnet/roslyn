@@ -522,7 +522,6 @@ class C
                     LanguageNames.CSharp,
                     metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
 
-
             var project = emptyProject
                 .AddMetadataReferences(new[] { otherAssemblyReference })
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
