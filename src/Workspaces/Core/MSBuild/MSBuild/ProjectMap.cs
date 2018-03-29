@@ -8,11 +8,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
+    /// <summary>
+    /// A map of projects that can be optionally used with <see cref="MSBuildProjectLoader.LoadProjectInfoAsync"/> when loading a
+    /// project into a custom <see cref="Workspace"/>. To use, pass <see cref="Workspace.CurrentSolution"/> to <see cref="Create(Solution)"/>.
+    /// </summary>
     public class ProjectMap
     {
+        /// <summary>
+        /// A map of project path to <see cref="ProjectId"/>s. Note that there can be multiple <see cref="ProjectId"/>s per project path
+        /// if the project is multi-targeted -- one for each target framework.
+        /// </summary>
         private readonly Dictionary<string, HashSet<ProjectId>> _projectPathToProjectIdsMap;
+
+        /// <summary>
+        /// A map of project path to <see cref="ProjectInfo"/>s. Note that there can be multiple <see cref="ProjectId"/>s per project path
+        /// if the project is multi-targeted -- one for each target framework.
+        /// </summary>
         private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _projectPathToProjectInfosMap;
+
+        /// <summary>
+        /// A map of <see cref="ProjectId"/> to the output file of the project (if any).
+        /// </summary>
         private readonly Dictionary<ProjectId, string> _projectIdToOutputFilePathMap;
+
+        /// <summary>
+        /// A map of <see cref="ProjectId"/> to the output ref file of the project (if any).
+        /// </summary>
         private readonly Dictionary<ProjectId, string> _projectIdToOutputRefFilePathMap;
 
         private ProjectMap()
@@ -23,8 +44,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectIdToOutputRefFilePathMap = new Dictionary<ProjectId, string>();
         }
 
+        /// <summary>
+        /// Create an empty <see cref="ProjectMap"/>.
+        /// </summary>
         public static ProjectMap Create() => new ProjectMap();
 
+        /// <summary>
+        /// Create a <see cref="ProjectMap"/> populated with the given <see cref="Solution"/>.
+        /// </summary>
+        /// <param name="solution">The <see cref="Solution"/> to populate the new <see cref="ProjectMap"/> with.</param>
+        /// <returns></returns>
         public static ProjectMap Create(Solution solution)
         {
             var projectMap = new ProjectMap();
@@ -37,30 +66,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return projectMap;
         }
 
+        /// <summary>
+        /// Add a <see cref="Project"/> to this <see cref="ProjectMap"/>.
+        /// </summary>
+        /// <param name="project">The <see cref="Project"/> to add to this <see cref="ProjectMap"/>.</param>
         public void Add(Project project)
         {
             Add(project.Id, project.FilePath, project.OutputFilePath, project.OutputRefFilePath);
             AddProjectInfo(project.State.ProjectInfo);
         }
 
-        private void Add(ProjectId id, string projectPath, string outputFilePath, string outputRefFilePath)
+        private void Add(ProjectId projectId, string projectPath, string outputFilePath, string outputRefFilePath)
         {
-            if (!_projectPathToProjectIdsMap.TryGetValue(projectPath, out var projectPathIdSet))
-            {
-                projectPathIdSet = new HashSet<ProjectId>();
-                _projectPathToProjectIdsMap.Add(projectPath, projectPathIdSet);
-            }
-
-            projectPathIdSet.Add(id);
+            _projectPathToProjectIdsMap.MultiAdd(projectPath, projectId);
 
             if (!string.IsNullOrEmpty(outputFilePath))
             {
-                _projectIdToOutputFilePathMap.Add(id, outputFilePath);
+                _projectIdToOutputFilePathMap.Add(projectId, outputFilePath);
             }
 
             if (!string.IsNullOrEmpty(outputRefFilePath))
             {
-                _projectIdToOutputRefFilePathMap.Add(id, outputRefFilePath);
+                _projectIdToOutputRefFilePathMap.Add(projectId, outputRefFilePath);
             }
         }
 
@@ -81,88 +108,79 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectPathToProjectInfosMap[projectInfo.FilePath] = projectInfos;
         }
 
+        private ProjectId CreateProjectId(string projectPath, string outputFilePath, string outputRefFilePath)
+        {
+            var newProjectId = ProjectId.CreateNewId(debugName: projectPath);
+            Add(newProjectId, projectPath, outputFilePath, outputRefFilePath);
+            return newProjectId;
+        }
+
         internal ProjectId GetOrCreateProjectId(string projectPath)
         {
-            if (!_projectPathToProjectIdsMap.TryGetValue(projectPath, out var ids))
+            if (!_projectPathToProjectIdsMap.TryGetValue(projectPath, out var projectIds))
             {
-                ids = new HashSet<ProjectId>();
-                _projectPathToProjectIdsMap.Add(projectPath, ids);
+                projectIds = new HashSet<ProjectId>();
+                _projectPathToProjectIdsMap.Add(projectPath, projectIds);
             }
 
-            if (ids.Count == 1)
-            {
-                return ids.Single();
-            }
-            else
-            {
-                var id = ProjectId.CreateNewId(debugName: projectPath);
-                Add(id, projectPath, outputFilePath: null, outputRefFilePath: null);
-                return id;
-            }
+            return projectIds.Count == 1
+                ? projectIds.Single()
+                : CreateProjectId(projectPath, outputFilePath: null, outputRefFilePath: null);
         }
 
         internal ProjectId GetOrCreateProjectId(ProjectFileInfo projectFileInfo)
         {
-            ProjectId result = null;
             var projectPath = projectFileInfo.FilePath;
             var outputFilePath = projectFileInfo.OutputFilePath;
             var outputRefFilePath = projectFileInfo.OutputRefFilePath;
 
-            if (TryGetIdsByProjectPath(projectPath, out var ids))
+            if (TryGetIdsByProjectPath(projectPath, out var projectIds))
             {
-                if (ids.Count == 1)
+                if (TryFindOutputFileRefPathInProjectIdSet(outputRefFilePath, projectIds, out var projectId) ||
+                    TryFindOutputFilePathInProjectIdSet(outputFilePath, projectIds, out projectId))
                 {
-                    var id = ids.Single();
-
-                    if (!string.IsNullOrWhiteSpace(outputRefFilePath) &&
-                        TryGetOutputRefFilePathById(id, out var path) &&
-                        PathUtilities.Comparer.Equals(path, outputRefFilePath))
-                    {
-                        result = id;
-                    }
-
-                    if (result == null &&
-                        !string.IsNullOrWhiteSpace(outputFilePath) &&
-                        TryGetOutputFilePathById(id, out path) &&
-                        PathUtilities.Comparer.Equals(path, outputFilePath))
-                    {
-                        result = id;
-                    }
-                }
-
-                if (result == null && !string.IsNullOrEmpty(outputRefFilePath))
-                {
-                    foreach (var id in ids)
-                    {
-                        if (TryGetOutputRefFilePathById(id, out var path) && PathUtilities.Comparer.Equals(path, outputRefFilePath))
-                        {
-                            result = id;
-                            break;
-                        }
-                    }
-                }
-
-                if (result == null && !string.IsNullOrEmpty(outputFilePath))
-                {
-                    foreach (var id in ids)
-                    {
-                        if (TryGetOutputFilePathById(id, out var path) && PathUtilities.Comparer.Equals(path, outputFilePath))
-                        {
-                            result = id;
-                            break;
-                        }
-                    }
+                    return projectId;
                 }
             }
 
-            if (result == null)
-            {
-                result = ProjectId.CreateNewId(debugName: projectPath);
-                Add(result, projectPath, outputFilePath, outputRefFilePath);
-            }
-
-            return result;
+            return CreateProjectId(projectPath, outputFilePath, outputRefFilePath);
         }
+
+        private bool TryFindOutputFileRefPathInProjectIdSet(string outputRefFilePath, HashSet<ProjectId> set, out ProjectId result)
+            => TryFindPathInProjectIdSet(outputRefFilePath, GetOutputRefFilePathById, set, out result);
+
+        private bool TryFindOutputFilePathInProjectIdSet(string outputFilePath, HashSet<ProjectId> set, out ProjectId result)
+            => TryFindPathInProjectIdSet(outputFilePath, GetOutputFilePathById, set, out result);
+
+        private bool TryFindPathInProjectIdSet(string path, Func<ProjectId, string> getPathById, HashSet<ProjectId> set, out ProjectId result)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                foreach (var id in set)
+                {
+                    var p = getPathById(id);
+
+                    if (PathUtilities.Comparer.Equals(p, path))
+                    {
+                        result = id;
+                        return true;
+                    }
+                }
+            }
+
+            result = null;
+            return false;
+        }
+
+        private string GetOutputRefFilePathById(ProjectId projectId)
+            => TryGetOutputRefFilePathById(projectId, out var path)
+                ? path
+                : null;
+
+        private string GetOutputFilePathById(ProjectId projectId)
+            => TryGetOutputFilePathById(projectId, out var path)
+                ? path
+                : null;
 
         internal bool TryGetIdsByProjectPath(string projectPath, out HashSet<ProjectId> ids)
             => _projectPathToProjectIdsMap.TryGetValue(projectPath, out ids);
