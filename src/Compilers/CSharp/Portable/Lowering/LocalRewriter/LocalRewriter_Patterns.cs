@@ -314,9 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // decision automaton and we just reuse the local variable when we need the input expression.
                     // It is possible for this assumption to be violated by a side-effecting Deconstruct that
                     // modifies the local variable which has been captured in a lambda. Since the language assumes
-                    // that the pattern-matching machinery performs no such tomfoolery (functions called by
-                    // pattern-matching are assumed to be idempotent and not side-effecting), we feel justified
-                    // in taking this assumption in the compiler too.
+                    // that functions called during pattern-matching are idempotent and not side-effecting, we feel
+                    // justified in taking this assumption in the compiler too.
                     _ = _tempAllocator.TrySetTemp(_inputTemp, _loweredInput);
                 }
 
