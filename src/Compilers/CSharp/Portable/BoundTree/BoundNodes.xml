@@ -836,7 +836,7 @@
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
@@ -917,7 +917,7 @@
   <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">

@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// <para>
-    /// A utility class for making a decision dag for a pattern-matching construct. A decision dag is represented by
+    /// A utility class for making a decision dag (directed acyclic graph) for a pattern-matching construct.
+    /// A decision dag is represented by
     /// the class <see cref="BoundDecisionDag"/> and is a representation of a finite state automaton that performs a
     /// sequence of binary tests. Each node is represented by a <see cref="BoundDecisionDagNode"/>. There are four
     /// kind of nodes: <see cref="BoundTestDecisionDagNode"/> performs one of the binary tests;
@@ -121,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out LabelSymbol successLabel)
         {
             successLabel = new GeneratedLabelSymbol("success");
-            var rootIdentifier = new BoundDagTemp(inputExpression.Syntax, inputExpression.Type, null, 0);
-            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(1, pattern.Syntax, rootIdentifier, pattern, null, successLabel)));
+            var rootIdentifier = new BoundDagTemp(inputExpression.Syntax, inputExpression.Type, source: null, index: 0);
+            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, successLabel)));
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundPatternSwitchSection> switchSections)
         {
-            var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, null, 0);
+            var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, source: null, index: 0);
             int i = 0;
             var builder = ArrayBuilder<RemainingTestsForCase>.GetInstance(switchSections.Length);
             foreach (BoundPatternSwitchSection section in switchSections)
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
-                        builder.Add(MakeTestsForPattern(++i, label.Syntax, rootIdentifier, label.Pattern, label.Guard, label.Label));
+                        builder.Add(MakeTestsForPattern(++i, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
                     }
                 }
             }
@@ -155,12 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms)
         {
-            var rootIdentifier = new BoundDagTemp(switchExpressionInput.Syntax, switchExpressionInput.Type, null, 0);
+            var rootIdentifier = new BoundDagTemp(switchExpressionInput.Syntax, switchExpressionInput.Type, source: null, index: 0);
             int i = 0;
             var builder = ArrayBuilder<RemainingTestsForCase>.GetInstance(switchArms.Length);
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
-                builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.Guard, arm.Label));
+                builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.WhenClause, arm.Label));
             }
 
             return MakeDecisionDag(syntax, builder.ToImmutableAndFree());
@@ -174,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundDagTemp input,
             BoundPattern pattern,
-            BoundExpression guard,
+            BoundExpression whenClause,
             LabelSymbol label)
         {
             MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundDagTest> tests, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
-            return new RemainingTestsForCase(index, syntax, tests, bindings, guard, label);
+            return new RemainingTestsForCase(index, syntax, tests, bindings, whenClause, label);
         }
 
         private void MakeAndSimplifyTestsAndBindings(
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var testsBuilder = ArrayBuilder<BoundDagTest>.GetInstance();
             var bindingsBuilder = ArrayBuilder<(BoundExpression, BoundDagTemp)>.GetInstance();
-            MakeDecisionsAndBindings(input, pattern, testsBuilder, bindingsBuilder);
+            MakeTestsAndBindings(input, pattern, testsBuilder, bindingsBuilder);
             SimplifyTestsAndBindings(testsBuilder, bindingsBuilder);
             tests = testsBuilder.ToImmutableAndFree();
             bindings = bindingsBuilder.ToImmutableAndFree();
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             usedValues.Free();
         }
 
-        private void MakeDecisionsAndBindings(
+        private void MakeTestsAndBindings(
             BoundDagTemp input,
             BoundPattern pattern,
             ArrayBuilder<BoundDagTest> tests,
@@ -273,23 +274,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
-                    MakeDecisionsAndBindings(input, declaration, tests, bindings);
+                    MakeTestsAndBindings(input, declaration, tests, bindings);
                     break;
                 case BoundConstantPattern constant:
-                    MakeDecisionsAndBindings(input, constant, tests, bindings);
+                    MakeTestsAndBindings(input, constant, tests, bindings);
                     break;
                 case BoundDiscardPattern wildcard:
                     // Nothing to do. It always matches.
                     break;
                 case BoundRecursivePattern recursive:
-                    MakeDecisionsAndBindings(input, recursive, tests, bindings);
+                    MakeTestsAndBindings(input, recursive, tests, bindings);
                     break;
                 default:
                     throw new NotImplementedException(pattern.Kind.ToString());
             }
         }
 
-        private void MakeDecisionsAndBindings(
+        private void MakeTestsAndBindings(
             BoundDagTemp input,
             BoundDeclarationPattern declaration,
             ArrayBuilder<BoundDagTest> tests,
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a null and type test if needed.
             if (!declaration.IsVar)
             {
-                input = ConvertToType(input, declaration.Syntax, type, tests);
+                input = MakeConvertToType(input, declaration.Syntax, type, tests);
             }
 
             BoundExpression left = declaration.VariableAccess;
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNotNull(
+        private static void MakeCheckNotNull(
             BoundDagTemp input,
             SyntaxNode syntax,
             ArrayBuilder<BoundDagTest> tests)
@@ -331,13 +332,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate a not-null check and a type check.
         /// </summary>
-        private BoundDagTemp ConvertToType(
+        private BoundDagTemp MakeConvertToType(
             BoundDagTemp input,
             SyntaxNode syntax,
             TypeSymbol type,
             ArrayBuilder<BoundDagTest> tests)
         {
-            CheckNotNull(input, syntax, tests);
+            MakeCheckNotNull(input, syntax, tests);
             if (input.Type != type)
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
@@ -355,14 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var evaluation = new BoundDagTypeEvaluation(syntax, type, input);
-                input = new BoundDagTemp(syntax, type, evaluation, 0);
+                input = new BoundDagTemp(syntax, type, evaluation, index: 0);
                 tests.Add(evaluation);
             }
 
             return input;
         }
 
-        private void MakeDecisionsAndBindings(
+        private void MakeTestsAndBindings(
             BoundDagTemp input,
             BoundConstantPattern constant,
             ArrayBuilder<BoundDagTest> tests,
@@ -374,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var convertedInput = ConvertToType(input, constant.Syntax, constant.Value.Type, tests);
+                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, tests);
                 tests.Add(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput));
             }
         }
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeDecisionsAndBindings(
+        private void MakeTestsAndBindings(
             BoundDagTemp input,
             BoundRecursivePattern recursive,
             ArrayBuilder<BoundDagTest> tests,
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(input.Type.IsErrorType() || input.Type == recursive.InputType);
             if (recursive.DeclaredType != null && recursive.DeclaredType.Type != input.Type)
             {
-                input = ConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, tests);
+                input = MakeConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, tests);
             }
 
             if (!recursive.Deconstruction.IsDefault)
@@ -420,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundPattern pattern = recursive.Deconstruction[i];
                         SyntaxNode syntax = pattern.Syntax;
                         var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
-                        MakeDecisionsAndBindings(output, pattern, tests, bindings);
+                        MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
                 else if (input.Type.IsTupleType)
@@ -435,8 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         FieldSymbol field = elements[i];
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
                         tests.Add(evaluation);
-                        var output = new BoundDagTemp(syntax, field.Type, evaluation, 0);
-                        MakeDecisionsAndBindings(output, pattern, tests, bindings);
+                        var output = new BoundDagTemp(syntax, field.Type, evaluation, index: 0);
+                        MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
                 // PROTOTYPE(patterns2): Handle the ITuple case.
@@ -472,8 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     tests.Add(evaluation);
-                    var output = new BoundDagTemp(prop.pattern.Syntax, prop.symbol.GetTypeOrReturnType(), evaluation, 0);
-                    MakeDecisionsAndBindings(output, prop.pattern, tests, bindings);
+                    var output = new BoundDagTemp(prop.pattern.Syntax, prop.symbol.GetTypeOrReturnType(), evaluation, index: 0);
+                    MakeTestsAndBindings(output, prop.pattern, tests, bindings);
                 }
             }
 
@@ -691,19 +692,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void FilterCase(
-            RemainingTestsForCase c,
-            BoundDagTest d,
+            RemainingTestsForCase testsForCase,
+            BoundDagTest test,
             ArrayBuilder<RemainingTestsForCase> whenTrueBuilder,
             ArrayBuilder<RemainingTestsForCase> whenFalseBuilder)
         {
             var trueBuilder = ArrayBuilder<BoundDagTest>.GetInstance();
             var falseBuilder = ArrayBuilder<BoundDagTest>.GetInstance();
-            foreach (BoundDagTest other in c.RemainingTests)
+            foreach (BoundDagTest other in testsForCase.RemainingTests)
             {
                 CheckConsistentDecision(
-                    test: d,
+                    test: test,
                     other: other,
-                    syntax: d.Syntax,
+                    syntax: test.Syntax,
                     trueTestPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                     falseTestPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                     trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
@@ -712,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!trueDecisionImpliesTrueOther)
                     {
-                        Debug.Assert(d != other);
+                        Debug.Assert(test != other);
                         trueBuilder?.Add(other);
                     }
                 }
@@ -725,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!falseDecisionImpliesTrueOther)
                     {
-                        Debug.Assert(d != other);
+                        Debug.Assert(test != other);
                         falseBuilder?.Add(other);
                     }
                 }
@@ -733,19 +734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     falseBuilder?.Free();
                     falseBuilder = null;
-                }
-            }
-
-            RemainingTestsForCase makeNext(ArrayBuilder<BoundDagTest> remainingDecisions)
-            {
-                if (remainingDecisions.Count == c.RemainingTests.Length)
-                {
-                    remainingDecisions.Free();
-                    return c;
-                }
-                else
-                {
-                    return new RemainingTestsForCase(c.Index, c.Syntax, remainingDecisions.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
                 }
             }
 
@@ -759,6 +747,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var pcd = makeNext(falseBuilder);
                 whenFalseBuilder.Add(pcd);
+            }
+
+            return;
+
+            RemainingTestsForCase makeNext(ArrayBuilder<BoundDagTest> remainingTests)
+            {
+                if (remainingTests.Count == testsForCase.RemainingTests.Length)
+                {
+                    remainingTests.Free();
+                    return testsForCase;
+                }
+                else
+                {
+                    return new RemainingTestsForCase(
+                        testsForCase.Index, testsForCase.Syntax, remainingTests.ToImmutableAndFree(),
+                        testsForCase.Bindings, testsForCase.WhenClause, testsForCase.CaseLabel);
+                }
             }
         }
 

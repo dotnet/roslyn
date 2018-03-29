@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     VisitPattern(null, label.Pattern);
                     SetState(StateWhenTrue);
-                    if (label.Guard != null)
+                    if (label.WhenClause != null)
                     {
-                        VisitCondition(label.Guard);
+                        VisitCondition(label.WhenClause);
                         SetState(StateWhenTrue);
                     }
 
