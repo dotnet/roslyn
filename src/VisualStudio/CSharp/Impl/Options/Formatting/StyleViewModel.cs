@@ -856,13 +856,17 @@ class List<T>
 ";
 
         private static readonly string s_preferReadonly = $@"
-class Customer
+class Customer1
 {{
 //[
         // {ServicesVSResources.Prefer_colon}
         // '_value' can only be assigned in constructor
         private readonly int _value = 0;
-        
+//]
+}}
+class Customer2
+{{
+//[
         // {ServicesVSResources.Over_colon}
         // '_value' can be assigned anywhere
         private int _value = 0;

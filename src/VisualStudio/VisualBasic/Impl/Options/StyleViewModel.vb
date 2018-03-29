@@ -338,12 +338,15 @@ Class Customer
 End Class"
 
         Private Shared ReadOnly s_preferReadonly As String = $"
-Class Customer
+Class Customer1
 //[
     ' {ServicesVSResources.Prefer_colon}
     ' 'value' can only be assigned in constructor
     Private ReadOnly value As Integer = 0
-
+//]
+End Class
+Class Customer2
+//[
     ' {ServicesVSResources.Over_colon}
     ' 'value' can be assigned anywhere
     Private value As Integer = 0
