@@ -2,19 +2,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Threading;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
-using ExpandCollapsePatternIdentifiers = System.Windows.Automation.ExpandCollapsePatternIdentifiers;
-using InvokePatternIdentifiers = System.Windows.Automation.InvokePatternIdentifiers;
-using SelectionItemPatternIdentifiers = System.Windows.Automation.SelectionItemPatternIdentifiers;
-using TogglePatternIdentifiers = System.Windows.Automation.TogglePatternIdentifiers;
-using ValuePatternIdentifiers = System.Windows.Automation.ValuePatternIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class AutomationElementExtensions
     {
+        private const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
+        private const int AutomationRetryCount = 3;
+        private static readonly TimeSpan AutomationRetryDelay = TimeSpan.FromMilliseconds(100);
+
         /// <summary>
         /// Given an <see cref="IUIAutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="automationId"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
@@ -97,6 +98,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return parent.FindAll(TreeScope.TreeScope_Descendants, condition);
         }
 
+        public static T GetCurrentPattern<T>(this IUIAutomationElement element, int patternId)
+        {
+            return RetryIfNotAvailable(
+                e => (T)element.GetCurrentPattern(patternId),
+                element);
+        }
+
         /// <summary>
         /// Invokes an <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
@@ -104,7 +112,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void Invoke(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(InvokePatternIdentifiers.Pattern.Id) is IUIAutomationInvokePattern invokePattern)
+            var invokePattern = element.GetCurrentPattern<IUIAutomationInvokePattern>(UIA_PatternIds.UIA_InvokePatternId);
+            if (invokePattern != null)
             {
                 invokePattern.Invoke();
             }
@@ -121,7 +130,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void Expand(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(ExpandCollapsePatternIdentifiers.Pattern.Id) is IUIAutomationExpandCollapsePattern expandCollapsePattern)
+            var expandCollapsePattern = element.GetCurrentPattern<IUIAutomationExpandCollapsePattern>(UIA_PatternIds.UIA_ExpandCollapsePatternId);
+            if (expandCollapsePattern != null)
             {
                 expandCollapsePattern.Expand();
             }
@@ -138,7 +148,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void Collapse(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(ExpandCollapsePatternIdentifiers.Pattern.Id) is IUIAutomationExpandCollapsePattern expandCollapsePattern)
+            var expandCollapsePattern = element.GetCurrentPattern<IUIAutomationExpandCollapsePattern>(UIA_PatternIds.UIA_ExpandCollapsePatternId);
+            if (expandCollapsePattern != null)
             {
                 expandCollapsePattern.Collapse();
             }
@@ -155,7 +166,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void Select(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(SelectionItemPatternIdentifiers.Pattern.Id) is IUIAutomationSelectionItemPattern selectionItemPattern)
+            var selectionItemPattern = element.GetCurrentPattern<IUIAutomationSelectionItemPattern>(UIA_PatternIds.UIA_SelectionItemPatternId);
+            if (selectionItemPattern != null)
             {
                 selectionItemPattern.Select();
             }
@@ -172,7 +184,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static string GetValue(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(ValuePatternIdentifiers.Pattern.Id) is IUIAutomationValuePattern valuePattern)
+            var valuePattern = element.GetCurrentPattern<IUIAutomationValuePattern>(UIA_PatternIds.UIA_ValuePatternId);
+            if (valuePattern != null)
             {
                 return valuePattern.CurrentValue;
             }
@@ -189,7 +202,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void SetValue(this IUIAutomationElement element, string value)
         {
-            if (element.GetCurrentPattern(ValuePatternIdentifiers.Pattern.Id) is IUIAutomationValuePattern valuePattern)
+            var valuePattern = element.GetCurrentPattern<IUIAutomationValuePattern>(UIA_PatternIds.UIA_ValuePatternId);
+            if (valuePattern != null)
             {
                 valuePattern.SetValue(value);
             }
@@ -265,7 +279,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <returns></returns>
         public static bool IsToggledOn(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(TogglePatternIdentifiers.Pattern.Id) is IUIAutomationTogglePattern togglePattern)
+            var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);
+            if (togglePattern != null)
             {
                 return togglePattern.CurrentToggleState == ToggleState.ToggleState_On;
             }
@@ -282,7 +297,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// support the <see cref="IUIAutomationTogglePattern"/>.
         public static void Toggle(this IUIAutomationElement element)
         {
-            if (element.GetCurrentPattern(TogglePatternIdentifiers.Pattern.Id) is IUIAutomationTogglePattern togglePattern)
+            var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);
+            if (togglePattern != null)
             {
                 togglePattern.Toggle();
             }
@@ -298,6 +314,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static string GetNameForExceptionMessage(this IUIAutomationElement element)
         {
             return element.CurrentAutomationId ?? element.CurrentName ?? "<unnamed>";
+        }
+
+        private static TResult RetryIfNotAvailable<T, TResult>(Func<T, TResult> function, T state)
+        {
+            for (var i = 0; true; i++)
+            {
+                try
+                {
+                    return function(state);
+                }
+                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount - 1)
+                {
+                    Thread.Sleep(AutomationRetryDelay);
+                    continue;
+                }
+            }
         }
     }
 }
