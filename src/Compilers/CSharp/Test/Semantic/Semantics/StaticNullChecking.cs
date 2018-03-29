@@ -8678,6 +8678,30 @@ class C
                 );
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Report warnings
+        // if `where T : new()` implies T is non-nullable.
+        [Fact]
+        public void New_03()
+        {
+            var source =
+@"class C
+{
+    static void F1<T>() where T : new() { }
+    static void F2<T>(T t) where T : new() { }
+    static void G<U>() where U : class, new()
+    {
+        object? x = null;
+        F1<object?>();
+        F2(x);
+        U? y = null;
+        F1<U?>();
+        F2(y);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void DynamicObjectCreation_01()
         {
@@ -19489,29 +19513,6 @@ class C3<T3> where T3 : new()
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         x2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(15, 9));
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Report warnings.
-        [Fact]
-        public void NewConstaint()
-        {
-            var source =
-@"class C
-{
-    static void F1<T>() where T : new() { }
-    static void F2<T>(T t) where T : new() { }
-    static void G<U>() where U : class, new()
-    {
-        object? x = null;
-        F1<object?>(); // warn: T not nullable
-        F2(x); // warn: T not nullable
-        U? y = null;
-        F1<U?>(); // warn: T not nullable
-        F2(y); // warn: T not nullable
-    }
-}";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
         }
     }
 }
