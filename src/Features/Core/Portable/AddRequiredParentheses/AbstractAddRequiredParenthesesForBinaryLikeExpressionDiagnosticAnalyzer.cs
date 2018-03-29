@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
             var parent = TryGetParentExpression(binaryLike);
-            if (parent != null && !IsBinaryLike(parent))
+            if (parent == null || !IsBinaryLike(parent))
             {
                 return;
             }

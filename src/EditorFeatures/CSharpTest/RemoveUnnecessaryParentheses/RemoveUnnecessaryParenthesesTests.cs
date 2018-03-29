@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         i = 1 + 2;
     }
-}", offeredWhenRequireForClarityIsEnabled: false);
+}", offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         i *= 1 + 2;
     }
-}", offeredWhenRequireForClarityIsEnabled: false);
+}", offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]

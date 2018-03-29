@@ -66,10 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                     clarifiesPrecedence = IsAmbiguousInnerExpressionKindForCast(innerKind);
                     return true;
 
-                case AssignmentExpressionSyntax assignmentExpression:
-                    parentExpression = assignmentExpression;
-                    break;
-
                 case BinaryExpressionSyntax binaryExpression:
                     parentExpression = binaryExpression;
                     break;

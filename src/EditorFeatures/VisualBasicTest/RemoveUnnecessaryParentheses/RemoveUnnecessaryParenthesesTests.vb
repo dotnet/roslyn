@@ -220,7 +220,7 @@ end class",
     sub M()
         i = 1 + 2
     end sub
-end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -254,7 +254,7 @@ end class",
     sub M()
         i *= 1 + 2
     end sub
-end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
