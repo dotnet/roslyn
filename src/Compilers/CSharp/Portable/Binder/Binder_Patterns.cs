@@ -88,13 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             var name = node.UnderscoreToken.ValueText;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.AllMethodsOnArityZero);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, ref useSiteDiagnostics, options: LookupOptions.AllMethodsOnArityZero);
             diagnostics.Add(node, useSiteDiagnostics);
             if (lookupResult.IsMultiViable)
             {
                 diagnostics.Add(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, node.Location, lookupResult.SingleSymbolOrDefault ?? lookupResult.Symbols[0]);
             }
 
+            lookupResult.Free();
             return new BoundDiscardPattern(node);
         }
 
