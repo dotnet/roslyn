@@ -293,8 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return usingStatement.AwaitOpt != null;
                 case BoundKind.ForEachStatement:
                     var foreachStatement = (BoundForEachStatement)pending.Branch;
-                    var foreachSyntax = (CommonForEachStatementSyntax)foreachStatement.Syntax;
-                    return foreachSyntax.AwaitKeyword != default;
+                    return foreachStatement.AwaitOpt != null;
                 default:
                     return false;
             }

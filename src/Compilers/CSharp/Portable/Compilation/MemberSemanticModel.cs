@@ -828,13 +828,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
             MethodSymbol disposeMethod = enumeratorInfoOpt.NeedsDisposeMethod
-                ? enumeratorInfoOpt.IsAsync ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync) : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)
+                ? enumeratorInfoOpt.IsAsync
+                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)
                 : null;
 
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
-                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
+                currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
                 disposeMethod,
                 enumeratorInfoOpt.ElementType,
                 boundForEach.ElementConversion,

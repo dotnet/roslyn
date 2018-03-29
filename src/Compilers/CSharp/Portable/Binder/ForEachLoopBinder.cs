@@ -374,10 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
-            var currentType = IsAsync ? builder.TryGetNextMethod.ReturnType : builder.CurrentPropertyGetter.ReturnType;
+            TypeSymbol currentType = IsAsync ? builder.TryGetNextMethod.ReturnType : builder.CurrentPropertyGetter.ReturnType;
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(currentType, builder.ElementType, ref useSiteDiagnostics);
 
-            var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
+            TypeSymbol getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
             // we never convert struct enumerators to object - it is done only for null-checks.
             builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
                 Conversion.Identity :
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionExpr,
                 builder.CollectionConversion,
                 CheckOverflowAtRuntime,
-                false,
+                explicitCastInCode: false,
                 ConstantValue.NotAvailable,
                 builder.CollectionType);
 
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             string methodName = this.IsAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
-            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics);
+            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -835,6 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="lookupResult">Passed in for reusability.</param>
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
+        /// <param name="arguments">If unspecified, we'll look for a method with no arguments. You can specify arguments, for example when looking for the `TryGetNext(out bool)` method.</param>
         /// <returns>The desired method or null.</returns>
         private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, AnalyzedArguments arguments = null)
         {
@@ -924,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (warningsOnly)
                     {
-                        var patternName = IsAsync ? MessageID.IDS_FeatureAsyncStreams : MessageID.IDS_Collection;
+                        MessageID patternName = IsAsync ? MessageID.IDS_FeatureAsyncStreams : MessageID.IDS_Collection;
                         diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, _syntax.Expression.Location, patternType, patternName.Localize(), result);
                     }
                     result = null;
@@ -1057,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 lookupResult.Clear(); // Reuse the same LookupResult
 
-                MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType, MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics: diagnostics);
+                MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType, MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics);
 
                 // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
 
