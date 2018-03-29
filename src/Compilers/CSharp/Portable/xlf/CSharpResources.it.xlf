@@ -8730,6 +8730,11 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="new">indexing movable fixed buffers</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="new">Invalid object creation</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

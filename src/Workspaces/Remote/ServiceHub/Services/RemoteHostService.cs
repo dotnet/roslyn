@@ -220,10 +220,10 @@ namespace Microsoft.CodeAnalysis.Remote
             FatalError.NonFatalHandler = WatsonReporter.Report;
 
             // start performance reporter
-            var diagnosticAnalyzerPerformanceTracker = RoslynServices.SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+            var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
-                var globalOperationNotificationService = RoslynServices.SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
+                var globalOperationNotificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
                 _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, ShutdownCancellationToken);
             }
         }
@@ -265,12 +265,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private RemotePersistentStorageLocationService GetPersistentStorageService()
         {
-            return (RemotePersistentStorageLocationService)RoslynServices.SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
+            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
         {
-            var notificationService = RoslynServices.SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
             return notificationService;
         }
 
