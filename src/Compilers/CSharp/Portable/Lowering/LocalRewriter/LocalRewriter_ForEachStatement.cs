@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.Instrument)
             {
-                //startLabelStatement = new BoundSequencePoint(null, startLabelStatement);
+                startLabelStatement = new BoundSequencePoint(null, startLabelStatement);
             }
 
             // still-true:

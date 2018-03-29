@@ -1362,6 +1362,7 @@ public class C
       IL_003e:  br.s       IL_00ba
       // sequence point: <hidden>
       IL_0040:  br.s       IL_0079
+      // sequence point: <hidden>
       IL_0042:  ldarg.0
       IL_0043:  ldarg.0
       IL_0044:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
@@ -3064,6 +3065,7 @@ class C
       IL_004a:  br.s       IL_00b6
       // sequence point: <hidden>
       IL_004c:  br.s       IL_0075
+      // sequence point: <hidden>
       IL_004e:  ldarg.0
       IL_004f:  ldarg.0
       IL_0050:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
