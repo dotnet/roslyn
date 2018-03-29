@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                 case OperatorPrecedence.Shift: return PrecedenceKind.Shift;
                 case OperatorPrecedence.Additive:
                 case OperatorPrecedence.Multiplicative: return PrecedenceKind.Arithmetic;
-                case OperatorPrecedence.AssignmentAndLambdaExpression: return PrecedenceKind.Assignment;
             }
 
             throw ExceptionUtilities.UnexpectedValue(precedence);

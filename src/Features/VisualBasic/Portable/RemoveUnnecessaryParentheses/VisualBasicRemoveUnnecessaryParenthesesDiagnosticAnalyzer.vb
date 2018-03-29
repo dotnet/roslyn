@@ -35,18 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             Dim innerExpressionIsSimple = innerExpressionPrecedence = OperatorPrecedence.PrecedenceNone
 
             Dim parentBinary = TryCast(parenthesizedExpression.Parent, BinaryExpressionSyntax)
-            Dim parentAssignment = TryCast(parenthesizedExpression.Parent, AssignmentStatementSyntax)
 
             If parentBinary IsNot Nothing Then
                 precedenceKind = GetPrecedenceKind(parentBinary)
                 clarifiesPrecedence = Not innerExpressionIsSimple AndAlso
                                       parentBinary.GetOperatorPrecedence() <> innerExpressionPrecedence
-                Return True
-            ElseIf parentAssignment IsNot Nothing Then
-                ' if we have:  a = (b.length)  this can be removed, and precedence is not clarified. however:
-                ' if we have:  a *= (b + c)    this can be removed, but the parens were clarifying precedence
-                precedenceKind = PrecedenceKind.Assignment
-                clarifiesPrecedence = Not innerExpressionIsSimple
                 Return True
             End If
 
@@ -55,13 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             Return True
         End Function
 
-        Public Shared Function GetPrecedenceKind(binaryLike As SyntaxNode) As PrecedenceKind
-            Dim binary = TryCast(binaryLike, BinaryExpressionSyntax)
-            If binary Is Nothing Then
-                Debug.Assert(TypeOf binaryLike Is AssignmentStatementSyntax)
-                Return PrecedenceKind.Assignment
-            End If
-
+        Public Shared Function GetPrecedenceKind(binary As BinaryExpressionSyntax) As PrecedenceKind
             Dim precedence = binary.GetOperatorPrecedence()
             Select Case precedence
                 Case OperatorPrecedence.PrecedenceXor,

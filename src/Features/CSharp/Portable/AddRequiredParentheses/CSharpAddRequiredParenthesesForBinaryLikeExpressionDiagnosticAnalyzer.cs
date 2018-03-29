@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer :
-        AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer<SyntaxKind>
+        AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer<
+            ExpressionSyntax, ExpressionSyntax, SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kinds = ImmutableArray.Create(
             SyntaxKind.AddExpression,
@@ -40,24 +41,24 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             SyntaxKind.IsExpression,
             SyntaxKind.AsExpression,
             SyntaxKind.CoalesceExpression,
-            SyntaxKind.IsPatternExpression,);
+            SyntaxKind.IsPatternExpression);
 
         protected override ImmutableArray<SyntaxKind> GetSyntaxNodeKinds()
             => s_kinds;
 
-        protected override int GetPrecedence(SyntaxNode binaryLike)
-            => (int)((ExpressionSyntax)binaryLike).GetOperatorPrecedence();
+        protected override int GetPrecedence(ExpressionSyntax binaryLike)
+            => (int)binaryLike.GetOperatorPrecedence();
 
-        protected override PrecedenceKind GetPrecedenceKind(SyntaxNode binaryLike)
-            => CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer.GetPrecedenceKind((ExpressionSyntax)binaryLike);
+        protected override PrecedenceKind GetPrecedenceKind(ExpressionSyntax binaryLike)
+            => CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer.GetPrecedenceKind(binaryLike);
 
-        protected override bool IsBinaryLike(SyntaxNode node)
+        protected override bool IsBinaryLike(ExpressionSyntax node)
             => node is BinaryExpressionSyntax ||
                node is IsPatternExpressionSyntax isPattern && isPattern.Pattern is ConstantPatternSyntax;
 
         protected override void GetPartsOfBinaryLike(
-            SyntaxNode binaryLikeOpt,
-            out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+            ExpressionSyntax binaryLikeOpt,
+            out ExpressionSyntax left, out SyntaxToken operatorToken, out ExpressionSyntax right)
         {
             Debug.Assert(IsBinaryLike(binaryLikeOpt));
             switch (binaryLikeOpt)
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             }
         }
 
-        protected override SyntaxNode GetParentExpressionOrAssignment(SyntaxNode binaryLike)
+        protected override ExpressionSyntax TryGetParentExpression(ExpressionSyntax binaryLike)
             => binaryLike.Parent is ConstantPatternSyntax
                 ? binaryLike.Parent.Parent as ExpressionSyntax
                 : binaryLike.Parent as ExpressionSyntax;

@@ -1533,29 +1533,29 @@ I agree to all of the foregoing:</source>
         <target state="new">Ignore</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_if_unnecessary">
-        <source>Remove if unnecessary</source>
-        <target state="new">Remove if unnecessary</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="new">Parentheses preferences:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_if_unnecessary_not_recommended">
-        <source>Remove if unnecessary (not recommended)</source>
-        <target state="new">Remove if unnecessary (not recommended)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Require_for_clarity">
-        <source>Require for clarity</source>
-        <target state="new">Require for clarity</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Other_operators">
         <source>Other operators</source>
         <target state="new">Other operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="new">Never if unnecessary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="new">Always for clarity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary_not_recommended">
+        <source>Never if unnecessary (not recommended)</source>
+        <target state="new">Never if unnecessary (not recommended)</target>
         <note />
       </trans-unit>
     </body>

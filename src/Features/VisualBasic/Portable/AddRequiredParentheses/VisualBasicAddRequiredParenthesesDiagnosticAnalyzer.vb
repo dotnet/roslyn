@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddRequiredParentheses
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,7 +11,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
     <DiagnosticAnalyzer(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer
-        Inherits AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(Of SyntaxKind)
+        Inherits AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(Of
+            ExpressionSyntax, BinaryExpressionSyntax, SyntaxKind)
 
         Private Shared ReadOnly s_kinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
                 SyntaxKind.AddExpression,
@@ -41,45 +41,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
                 SyntaxKind.AndAlsoExpression)
 
         Protected Overrides Sub GetPartsOfBinaryLike(
-                binaryLike As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode)
-            Dim binary = TryCast(binaryLike, BinaryExpressionSyntax)
-            If binary IsNot Nothing Then
-                left = binary.Left
-                operatorToken = binary.OperatorToken
-                right = binary.Right
-            Else
-                Dim assignment = DirectCast(binaryLike, AssignmentStatementSyntax)
-                left = assignment.Left
-                operatorToken = assignment.OperatorToken
-                right = assignment.Right
-            End If
+                binary As BinaryExpressionSyntax, ByRef left As ExpressionSyntax, ByRef operatorToken As SyntaxToken, ByRef right As ExpressionSyntax)
+            left = binary.Left
+            operatorToken = binary.OperatorToken
+            right = binary.Right
         End Sub
 
         Protected Overrides Function GetSyntaxNodeKinds() As ImmutableArray(Of SyntaxKind)
             Return s_kinds
         End Function
 
-        Protected Overrides Function GetPrecedence(binaryLike As SyntaxNode) As Integer
-            Dim binary = TryCast(binaryLike, BinaryExpressionSyntax)
-            If binary IsNot Nothing Then
-                Return binary.GetOperatorPrecedence()
-            Else
-                ' VB has no actual precedence for assignment (because it's a statement).  Our caller 
-                ' just needs this value to be different than all the actual precedence values, so
-                ' we just return -1 to keep things simple here.
-                Return -1
-            End If
+        Protected Overrides Function GetPrecedence(binary As BinaryExpressionSyntax) As Integer
+            Return binary.GetOperatorPrecedence()
         End Function
 
-        Protected Overrides Function GetPrecedenceKind(binaryLike As SyntaxNode) As PrecedenceKind
-            Return VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.GetPrecedenceKind(binaryLike)
+        Protected Overrides Function GetPrecedenceKind(binary As BinaryExpressionSyntax) As PrecedenceKind
+            Return VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.GetPrecedenceKind(binary)
         End Function
 
-        Protected Overrides Function GetParentExpressionOrAssignment(binaryLikeExpression As SyntaxNode) As SyntaxNode
-            Return binaryLikeExpression.Parent
+        Protected Overrides Function TryGetParentExpression(binary As BinaryExpressionSyntax) As ExpressionSyntax
+            Return TryCast(binary.Parent, ExpressionSyntax)
         End Function
 
-        Protected Overrides Function IsBinaryLike(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsBinaryLike(node As ExpressionSyntax) As Boolean
             Return TypeOf node Is BinaryExpressionSyntax
         End Function
     End Class

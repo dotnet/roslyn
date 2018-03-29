@@ -309,61 +309,7 @@ Class Customer
     End Sub
 End Class"
 
-#Region "assignment parentheses"
-
-        Private Shared ReadOnly s_assignmentParenthesesIgnore As String = $"
-class C
-    sub M()
-//[
-        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
-        x *= (y + z)
-//]
-    end sub
-end class
-"
-
-        Private Shared ReadOnly s_assignmentParenthesesRequireForPrecedenceClarity As String = $"
-class C
-    sub M()
-//[
-        ' {ServicesVSResources.Prefer_colon}
-        x *= (y + z)
-
-        ' {ServicesVSResources.Over_colon}
-        x *= y + z
-//]
-    end sub
-end class
-"
-
-        Private Shared ReadOnly s_assignmentParenthesesRemoveIfUnnecessary As String = $"
-class C
-    sub M()
-//[
-        ' {ServicesVSResources.Prefer_colon}
-        x *= y + z
-
-        ' {ServicesVSResources.Over_colon}
-        x *= (y + z)
-//]
-    end sub
-end class
-"
-
-#End Region
-
 #Region "arithmetic parentheses"
-
-        Private Shared ReadOnly s_arithmeticParenthesesIgnore As String = $"
-class C
-    sub M()
-//[
-        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
-        Dim v = a + (b + c)
-//]
-    end sub
-end class
-"
 
         Private Shared ReadOnly s_arithmeticParenthesesRequireForPrecedenceClarity As String = $"
 class C
@@ -397,17 +343,6 @@ end class
 
 #Region "logical parentheses"
 
-        Private Shared ReadOnly s_logicalParenthesesIgnore As String = $"
-class C
-    sub M()
-//[
-        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
-        Dim v = a OrElse (b OrElse c)
-//]
-    end sub
-end class
-"
-
         Private Shared ReadOnly s_logicalParenthesesRequireForPrecedenceClarity As String = $"
 class C
     sub M()
@@ -438,17 +373,6 @@ end class
 #End Region
 
 #Region "relational parentheses"
-
-        Private ReadOnly s_relationalParenthesesIgnore As String = $"
-class C
-    sub M()
-//[
-        // {ServicesVSResources.Keep_all_parentheses_in_colon}
-        dim v = (a + b) <= c
-//]
-    end sub
-end class
-"
 
         Private ReadOnly s_relationalParenthesesRequireForPrecedenceClarity As String = $"
 class C
@@ -481,17 +405,6 @@ end class
 #End Region
 
 #Region "shift parentheses"
-
-        Private Shared ReadOnly s_shiftParenthesesIgnore As String = $"
-class C
-    sub M()
-//[
-        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
-        Dim v = (a + b) << c
-//]
-    end sub
-end class
-"
 
         Private Shared ReadOnly s_shiftParenthesesRequireForPrecedenceClarity As String = $"
 class C
@@ -609,44 +522,37 @@ end class
         Private Sub AddParenthesesOptions(optionSet As OptionSet)
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
-                BasicVSResources.Arithmetic_operators,
-                {s_arithmeticParenthesesIgnore, s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=True,
+                BasicVSResources.In_arithmetic_expressions,
+                {s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary},
+                isOther:=False,
                 recommended:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ShiftOperationParentheses,
-                BasicVSResources.Shift_operators,
-                {s_shiftParenthesesIgnore, s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=True,
+                BasicVSResources.In_shift_expressions,
+                {s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary},
+                isOther:=False,
                 recommended:=False)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.RelationalOperationParentheses,
-                BasicVSResources.Relational_operators,
-                {s_relationalParenthesesIgnore, s_relationalParenthesesRequireForPrecedenceClarity, s_relationalParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=True,
+                BasicVSResources.In_relational_expressions,
+                {s_relationalParenthesesRequireForPrecedenceClarity, s_relationalParenthesesRemoveIfUnnecessary},
+                isOther:=False,
                 recommended:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.LogicalOperationParentheses,
-                BasicVSResources.Logical_operators,
-                {s_logicalParenthesesIgnore, s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=True,
-                recommended:=True)
-
-            AddParenthesesOption(
-                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
-                BasicVSResources.Assignment_operators,
-                {s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=True,
+                BasicVSResources.In_logical_expressions,
+                {s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary},
+                isOther:=False,
                 recommended:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherOperationParentheses,
                 ServicesVSResources.Other_operators,
                 {s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=False,
+                isOther:=True,
                 recommended:=True)
         End Sub
     End Class

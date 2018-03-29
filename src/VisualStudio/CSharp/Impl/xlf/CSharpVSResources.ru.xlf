@@ -697,49 +697,49 @@
         <target state="new">Generate Event Subscription Command Handler</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arithmetic_operators">
-        <source>Arithmetic operators:   *   /   %   +   -</source>
-        <target state="new">Arithmetic operators:   *   /   %   +   -</target>
+      <trans-unit id="In_arithmetic_expressions">
+        <source>In arithmetic expressions:   *   /   %   +   -</source>
+        <target state="new">In arithmetic expressions:   *   /   %   +   -</target>
         <note />
       </trans-unit>
-      <trans-unit id="Bitwise_operators">
-        <source>Bitwise operators:   &amp;   |   ^</source>
-        <target state="new">Bitwise operators:   &amp;   |   ^</target>
+      <trans-unit id="In_bitwise_expressions">
+        <source>In bitwise expressions:   &amp;   |   ^</source>
+        <target state="new">In bitwise expressions:   &amp;   |   ^</target>
         <note />
       </trans-unit>
-      <trans-unit id="Coalesce_operator">
-        <source>Coalesce operator:   ??</source>
-        <target state="new">Coalesce operator:   ??</target>
+      <trans-unit id="In_coalesce_expression">
+        <source>In coalesce expression:   ??</source>
+        <target state="new">In coalesce expression:   ??</target>
         <note />
       </trans-unit>
-      <trans-unit id="Equality_operators">
-        <source>Equality operators:   ==   !=</source>
-        <target state="new">Equality operators:   ==   !=</target>
+      <trans-unit id="In_equality_expressions">
+        <source>In_equality expressions:   ==   !=</source>
+        <target state="new">In_equality expressions:   ==   !=</target>
         <note />
       </trans-unit>
-      <trans-unit id="Logical_operators">
-        <source>Logical operators:   &amp;&amp;   ||</source>
-        <target state="new">Logical operators:   &amp;&amp;   ||</target>
+      <trans-unit id="In_logical_expressions">
+        <source>In logical expressions:   &amp;&amp;   ||</source>
+        <target state="new">In logical expressions:   &amp;&amp;   ||</target>
         <note />
       </trans-unit>
-      <trans-unit id="Relational_operators">
-        <source>Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as</source>
-        <target state="new">Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as</target>
+      <trans-unit id="In_relational_expressions">
+        <source>In relational expressions:   &lt;   &lt;=   &gt;   &gt;=   is   as</source>
+        <target state="new">In relational expressions:   &lt;   &lt;=   &gt;   &gt;=   is   as</target>
         <note />
       </trans-unit>
-      <trans-unit id="Shift_operators">
-        <source>Shift operators:   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">Shift operators:   &lt;&lt;   &gt;&gt;</target>
+      <trans-unit id="In_shift_expressions">
+        <source>In shift expressions:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">In shift expressions:   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assignment_operators">
-        <source>Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</source>
-        <target state="new">Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</target>
+      <trans-unit id="In_assignment_expressions">
+        <source>In assignment expressions:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</source>
+        <target state="new">In assignment expressions:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cast_operator">
-        <source>Cast operator:  (type)expression</source>
-        <target state="new">Cast operator:  (type)expression</target>
+      <trans-unit id="In_cast_expression">
+        <source>In cast expression:  (type)expression</source>
+        <target state="new">In cast expression:  (type)expression</target>
         <note />
       </trans-unit>
     </body>

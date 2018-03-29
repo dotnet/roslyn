@@ -92,24 +92,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;.
-        '''</summary>
-        Friend Shared ReadOnly Property Arithmetic_operators() As String
-            Get
-                Return ResourceManager.GetString("Arithmetic_operators", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=.
-        '''</summary>
-        Friend Shared ReadOnly Property Assignment_operators() As String
-            Get
-                Return ResourceManager.GetString("Assignment_operators", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Automatic _insertion of Interface and MustOverride members.
         '''</summary>
         Friend Shared ReadOnly Property Automatic_insertion_of_Interface_and_MustOverride_members() As String
@@ -254,6 +236,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;.
+        '''</summary>
+        Friend Shared ReadOnly Property In_arithmetic_expressions() As String
+            Get
+                Return ResourceManager.GetString("In_arithmetic_expressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=.
+        '''</summary>
+        Friend Shared ReadOnly Property In_assignment_expressions() As String
+            Get
+                Return ResourceManager.GetString("In_assignment_expressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In logical expressions:   And   AndAlso   Or   OrElse.
+        '''</summary>
+        Friend Shared ReadOnly Property In_logical_expressions() As String
+            Get
+                Return ResourceManager.GetString("In_logical_expressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like.
+        '''</summary>
+        Friend Shared ReadOnly Property In_relational_expressions() As String
+            Get
+                Return ResourceManager.GetString("In_relational_expressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to In shift expressions:   &lt;&lt;   &gt;&gt;.
+        '''</summary>
+        Friend Shared ReadOnly Property In_shift_expressions() As String
+            Get
+                Return ResourceManager.GetString("In_shift_expressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
         '''</summary>
         Friend Shared ReadOnly Property Include_snippets_when_Tab_is_typed_after_an_identifier() As String
@@ -286,15 +313,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Large() As String
             Get
                 Return ResourceManager.GetString("Large", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Logical operators:   And   AndAlso   Or   OrElse.
-        '''</summary>
-        Friend Shared ReadOnly Property Logical_operators() As String
-            Get
-                Return ResourceManager.GetString("Logical_operators", resourceCulture)
             End Get
         End Property
         
@@ -479,15 +497,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like.
-        '''</summary>
-        Friend Shared ReadOnly Property Relational_operators() As String
-            Get
-                Return ResourceManager.GetString("Relational_operators", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; calls.
         '''</summary>
         Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_calls() As String
@@ -502,15 +511,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Separate_import_directive_groups() As String
             Get
                 Return ResourceManager.GetString("Separate_import_directive_groups", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Shift operators:   &lt;&lt;   &gt;&gt;.
-        '''</summary>
-        Friend Shared ReadOnly Property Shift_operators() As String
-            Get
-                Return ResourceManager.GetString("Shift_operators", resourceCulture)
             End Get
         End Property
         

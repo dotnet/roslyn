@@ -537,17 +537,17 @@
   <data name="In_coalesce_expression" xml:space="preserve">
     <value>In coalesce expression:   ??</value>
   </data>
-  <data name="Equality_operators" xml:space="preserve">
-    <value>Equality operators:   ==   !=</value>
+  <data name="In_equality_expressions" xml:space="preserve">
+    <value>In_equality expressions:   ==   !=</value>
   </data>
-  <data name="Logical_operators" xml:space="preserve">
-    <value>Logical operators:   &amp;&amp;   ||</value>
+  <data name="In_logical_expressions" xml:space="preserve">
+    <value>In logical expressions:   &amp;&amp;   ||</value>
   </data>
-  <data name="Relational_operators" xml:space="preserve">
-    <value>Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as</value>
+  <data name="In_relational_expressions" xml:space="preserve">
+    <value>In relational expressions:   &lt;   &lt;=   &gt;   &gt;=   is   as</value>
   </data>
-  <data name="Shift_operators" xml:space="preserve">
-    <value>Shift operators:   &lt;&lt;   &gt;&gt;</value>
+  <data name="In_shift_expressions" xml:space="preserve">
+    <value>In shift expressions:   &lt;&lt;   &gt;&gt;</value>
   </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>

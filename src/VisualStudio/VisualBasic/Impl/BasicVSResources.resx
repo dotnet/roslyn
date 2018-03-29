@@ -279,19 +279,19 @@
   <data name="Separate_import_directive_groups" xml:space="preserve">
     <value>Separate import directive groups</value>
   </data>
-  <data name="Arithmetic_operators" xml:space="preserve">
-    <value>Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;</value>
+  <data name="In_arithmetic_expressions" xml:space="preserve">
+    <value>In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;</value>
   </data>
-  <data name="Logical_operators" xml:space="preserve">
-    <value>Logical operators:   And   AndAlso   Or   OrElse</value>
+  <data name="In_logical_expressions" xml:space="preserve">
+    <value>In logical expressions:   And   AndAlso   Or   OrElse</value>
   </data>
-  <data name="Relational_operators" xml:space="preserve">
-    <value>Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</value>
+  <data name="In_relational_expressions" xml:space="preserve">
+    <value>In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</value>
   </data>
-  <data name="Shift_operators" xml:space="preserve">
-    <value>Shift operators:   &lt;&lt;   &gt;&gt;</value>
+  <data name="In_shift_expressions" xml:space="preserve">
+    <value>In shift expressions:   &lt;&lt;   &gt;&gt;</value>
   </data>
-  <data name="Assignment_operators" xml:space="preserve">
-    <value>Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</value>
+  <data name="In_assignment_expressions" xml:space="preserve">
+    <value>In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</value>
   </data>
 </root>

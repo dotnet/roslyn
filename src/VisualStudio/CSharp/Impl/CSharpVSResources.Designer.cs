@@ -196,15 +196,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Equality operators:   ==   !=.
-        /// </summary>
-        internal static string Equality_operators {
-            get {
-                return ResourceManager.GetString("Equality_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate Event Subscription Command Handler.
         /// </summary>
         internal static string Event_Hookup_Command_Handler {
@@ -345,6 +336,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string In_coalesce_expression {
             get {
                 return ResourceManager.GetString("In_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In_equality expressions:   ==   !=.
+        /// </summary>
+        internal static string In_equality_expressions {
+            get {
+                return ResourceManager.GetString("In_equality_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In logical expressions:   &amp;&amp;   ||.
+        /// </summary>
+        internal static string In_logical_expressions {
+            get {
+                return ResourceManager.GetString("In_logical_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In relational expressions:   &lt;   &lt;=   &gt;   &gt;=   is   as.
+        /// </summary>
+        internal static string In_relational_expressions {
+            get {
+                return ResourceManager.GetString("In_relational_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In shift expressions:   &lt;&lt;   &gt;&gt;.
+        /// </summary>
+        internal static string In_shift_expressions {
+            get {
+                return ResourceManager.GetString("In_shift_expressions", resourceCulture);
             }
         }
         
@@ -669,15 +696,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Leave_statements_and_member_declarations_on_the_same_line {
             get {
                 return ResourceManager.GetString("Leave_statements_and_member_declarations_on_the_same_line", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Logical operators:   &amp;&amp;   ||.
-        /// </summary>
-        internal static string Logical_operators {
-            get {
-                return ResourceManager.GetString("Logical_operators", resourceCulture);
             }
         }
         
@@ -1105,15 +1123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as.
-        /// </summary>
-        internal static string Relational_operators {
-            get {
-                return ResourceManager.GetString("Relational_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove spaces before and after binary operators.
         /// </summary>
         internal static string Remove_spaces_before_and_after_binary_operators {
@@ -1200,15 +1209,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Set_spacing_for_operators {
             get {
                 return ResourceManager.GetString("Set_spacing_for_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shift operators:   &lt;&lt;   &gt;&gt;.
-        /// </summary>
-        internal static string Shift_operators {
-            get {
-                return ResourceManager.GetString("Shift_operators", resourceCulture);
             }
         }
         

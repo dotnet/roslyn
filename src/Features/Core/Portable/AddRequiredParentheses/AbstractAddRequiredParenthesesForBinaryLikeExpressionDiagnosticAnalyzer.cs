@@ -7,16 +7,19 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
-    internal abstract class AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer<TLanguageKindEnum>
+    internal abstract class AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer<
+        TExpressionSyntax, TBinaryLikeExpressionSyntax, TLanguageKindEnum>
         : AbstractAddRequiredParenthesesDiagnosticAnalyzer<TLanguageKindEnum>
+        where TExpressionSyntax : SyntaxNode
+        where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        protected abstract int GetPrecedence(SyntaxNode binaryLike);
-        protected abstract PrecedenceKind GetPrecedenceKind(SyntaxNode binaryLike);
-        protected abstract SyntaxNode GetParentExpressionOrAssignment(SyntaxNode binaryLike);
-        protected abstract bool IsBinaryLike(SyntaxNode node);
+        protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract PrecedenceKind GetPrecedenceKind(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract TExpressionSyntax TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract void GetPartsOfBinaryLike(
-            SyntaxNode binaryLike, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+            TBinaryLikeExpressionSyntax binaryLike, out TExpressionSyntax left, out SyntaxToken operatorToken, out TExpressionSyntax right);
 
         protected override void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -28,14 +31,14 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var binaryLike = context.Node;
-            var parent = GetParentExpressionOrAssignment(binaryLike);
-            if (!IsBinaryLike(parent))
+            var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
+            var parent = TryGetParentExpression(binaryLike);
+            if (parent != null && !IsBinaryLike(parent))
             {
                 return;
             }
 
-            var parentBinaryLike = parent;
+            var parentBinaryLike = (TBinaryLikeExpressionSyntax)parent;
             if (GetPrecedence(binaryLike) == GetPrecedence(parentBinaryLike))
             {
                 return;
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         }
 
         private void AddDiagnostics(
-            SyntaxNodeAnalysisContext context, SyntaxNode binaryLikeOpt,
+            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt,
             int precedence, DiagnosticSeverity severity, ImmutableArray<Location> additionalLocations)
         {
             if (binaryLikeOpt != null && 
@@ -74,8 +77,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 context.ReportDiagnostic(
                     Diagnostic.Create(GetDescriptorWithSeverity(severity), operatorToken.GetLocation(), additionalLocations));
 
-                AddDiagnostics(context, left, precedence, severity, additionalLocations);
-                AddDiagnostics(context, right, precedence, severity, additionalLocations);
+                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations);
+                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations);
             }
         }
     }

@@ -272,29 +272,29 @@
         <target state="translated">Oddziel grupy dyrektywy import</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arithmetic_operators">
-        <source>Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;</source>
-        <target state="new">Arithmetic operators:   ^   *   /   \   Mod   +   -   &amp;</target>
+      <trans-unit id="In_arithmetic_expressions">
+        <source>In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;</source>
+        <target state="new">In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Logical_operators">
-        <source>Logical operators:   And   AndAlso   Or   OrElse</source>
-        <target state="new">Logical operators:   And   AndAlso   Or   OrElse</target>
+      <trans-unit id="In_logical_expressions">
+        <source>In logical expressions:   And   AndAlso   Or   OrElse</source>
+        <target state="new">In logical expressions:   And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
-      <trans-unit id="Relational_operators">
-        <source>Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</source>
-        <target state="new">Relational operators:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</target>
+      <trans-unit id="In_relational_expressions">
+        <source>In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</source>
+        <target state="new">In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</target>
         <note />
       </trans-unit>
-      <trans-unit id="Shift_operators">
-        <source>Shift operators:   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">Shift operators:   &lt;&lt;   &gt;&gt;</target>
+      <trans-unit id="In_shift_expressions">
+        <source>In shift expressions:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">In shift expressions:   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assignment_operators">
-        <source>Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</source>
-        <target state="new">Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</target>
+      <trans-unit id="In_assignment_expressions">
+        <source>In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</source>
+        <target state="new">In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</target>
         <note />
       </trans-unit>
     </body>

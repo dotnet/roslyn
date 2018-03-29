@@ -138,14 +138,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.Suggestion);
 
         private static CodeStyleOption<ParenthesesPreference> RequireForPrecedenceClarityPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RequireForClarity, NotificationOption.Suggestion);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.Suggestion);
 
         private static CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RemoveIfUnnecessary, NotificationOption.Suggestion);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Suggestion);
 
         private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
-            yield return CodeStyleOptions.AssignmentOperationParentheses;
             yield return CodeStyleOptions.ArithmeticOperationParentheses;
             yield return CodeStyleOptions.ShiftOperationParentheses;
             yield return CodeStyleOptions.RelationalOperationParentheses;
