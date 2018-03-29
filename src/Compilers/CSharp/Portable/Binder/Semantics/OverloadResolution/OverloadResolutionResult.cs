@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System;
 
 #if DEBUG
 using System.Text;
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Since we didn't return...
-            AssertNone(MemberResolutionKind.BadArguments);
+            AssertNone(MemberResolutionKind.BadArgumentConversion);
 
             // Otherwise, if there is any such method where type inference succeeded but inferred
             // type arguments that violate the constraints on the method, then the first such method is 
@@ -372,12 +371,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
-            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[5]; // from highest to lowest priority
-            const int requiredParameterMissingPriority = 0;
-            const int nameUsedForPositionalPriority = 1;
-            const int noCorrespondingNamedParameterPriority = 2;
-            const int noCorrespondingParameterPriority = 3;
-            const int badNonTrailingNamedArgument = 4;
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[6]; // from highest to lowest priority
+            const int duplicateNamedArguments = 0;
+            const int requiredParameterMissingPriority = 1;
+            const int nameUsedForPositionalPriority = 2;
+            const int noCorrespondingNamedParameterPriority = 3;
+            const int noCorrespondingParameterPriority = 4;
+            const int badNonTrailingNamedArgument = 5;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -425,6 +425,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgument].Result.BadArgumentsOpt[0])
                         {
                             supportedInPriorityOrder[badNonTrailingNamedArgument] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.DuplicateNamedArguments:
+                        {
+                            if (supportedInPriorityOrder[duplicateNamedArguments].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[duplicateNamedArguments].Result.BadArgumentsOpt[0])
+                            {
+                                supportedInPriorityOrder[duplicateNamedArguments] = result;
+                            }
                         }
                         break;
                     default:
@@ -481,6 +490,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // and followed by unnamed arguments.
                         case MemberResolutionKind.BadNonTrailingNamedArgument:
                             ReportBadNonTrailingNamedArgument(firstSupported, diagnostics, arguments, symbols);
+                            return;
+
+                        case MemberResolutionKind.DuplicateNamedArguments:
+                            ReportDuplicateNamedArguments(firstSupported, diagnostics, arguments);
                             return;
                     }
                 }
@@ -740,6 +753,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols), location);
         }
 
+        private void ReportDuplicateNamedArguments(MemberResolutionResult<TMember> result, DiagnosticBag diagnostics, AnalyzedArguments arguments)
+        {
+            Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
+            var name = arguments.Names[result.Result.BadArgumentsOpt[0]];
+            Debug.Assert(name != null);
+
+            // CS: Named argument '{0}' cannot be specified multiple times
+            diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateNamedArgument, name.Identifier.Text), name.Location);
+        }
+
         private static void ReportNoCorrespondingNamedParameter(
             MemberResolutionResult<TMember> bad,
             string methodName,
@@ -980,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags flags,
             bool isMethodGroupConversion)
         {
-            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArguments);
+            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArgumentConversion);
             if (badArg.IsNull)
             {
                 return false;

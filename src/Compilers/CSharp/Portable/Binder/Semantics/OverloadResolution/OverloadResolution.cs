@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MemberResolutionKind.NoCorrespondingParameter:
                     switch (expandedResult.Kind)
                     {
-                        case MemberResolutionKind.BadArguments:
+                        case MemberResolutionKind.BadArgumentConversion:
                         case MemberResolutionKind.NameUsedForPositional:
                         case MemberResolutionKind.TypeInferenceFailed:
                         case MemberResolutionKind.TypeInferenceExtensionInstanceArgument:

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -114,13 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterMap argsToParameters = new ParameterMap(parametersPositions, argumentCount);
 
             // We have analyzed every argument and tried to make it correspond to a particular parameter. 
-            // There are now four questions we must answer:
+            // We must now answer the following questions:
             //
-            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
-            // (2) Is there any argument without a corresponding parameter?
-            // (3) Was there any named argument that specified a parameter that was already
+            // (1) Is there any named argument that were specified twice?
+            // (2) Is there any named argument used out-of-position and followed by unnamed arguments?
+            // (3) Is there any argument without a corresponding parameter?
+            // (4) Was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
-            // (4) Is there any non-optional parameter without a corresponding argument?
+            // (5) Is there any non-optional parameter without a corresponding argument?
             //
             // If the answer to any of these questions is "yes" then the method is not applicable.
             // It is possible that the answer to any number of these questions is "yes", and so
@@ -128,7 +128,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // should we need to report why a given method is not applicable. We prioritize
             // them in the given order.
 
-            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
+            // (1) Is there any named argument that were specified twice?
+
+            int? duplicateNamedArgument = CheckForDuplicateNamedArguments(arguments);
+            if (duplicateNamedArgument != null)
+            {
+                return ArgumentAnalysisResult.DuplicateNamedArguments(duplicateNamedArgument.Value);
+            }
+
+            // (2) Is there any named argument used out-of-position and followed by unnamed arguments?
 
             int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters, parameters);
             if (badNonTrailingNamedArgument != null)
@@ -136,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.BadNonTrailingNamedArgument(badNonTrailingNamedArgument.Value);
             }
 
-            // (2) Is there any argument without a corresponding parameter?
+            // (3) Is there any argument without a corresponding parameter?
 
             if (unmatchedArgumentIndex != null)
             {
@@ -150,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // (3) was there any named argument that specified a parameter that was already
+            // (4) was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
 
             int? nameUsedForPositional = NameUsedForPositional(arguments, argsToParameters);
@@ -159,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.NameUsedForPositional(nameUsedForPositional.Value);
             }
 
-            // (4) Is there any non-optional parameter without a corresponding argument?
+            // (5) Is there any non-optional parameter without a corresponding argument?
 
             int? requiredParameterMissing = CheckForMissingRequiredParameter(argsToParameters, parameters, isMethodGroupConversion, expanded);
             if (requiredParameterMissing != null)
@@ -467,6 +475,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            return null;
+        }
+
+        private static int? CheckForDuplicateNamedArguments(AnalyzedArguments arguments)
+        {
+            if (arguments.Names.IsEmpty())
+            {
+                // No checks if there are no named arguments
+                return null;
+            }
+
+            var alreadyDefined = PooledHashSet<string>.GetInstance();
+            for (int i = 0; i < arguments.Names.Count; ++i)
+            {
+                string name = arguments.Name(i);
+
+                if (name is null)
+                {
+                    // Skip unnamed arguments
+                    continue;
+                }
+
+                if (!alreadyDefined.Add(name))
+                {
+                    alreadyDefined.Free();
+                    return i;
+                }
+            }
+
+            alreadyDefined.Free();
             return null;
         }
     }
