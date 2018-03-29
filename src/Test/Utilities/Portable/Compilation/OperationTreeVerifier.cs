@@ -1436,6 +1436,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Visit(operation.Body);
                 }
             }
+            else
+            {
+                Assert.Null(operation.IgnoredBody);
+            }
         }
 
         private void LogCaseClauseCommon(ICaseClauseOperation operation)

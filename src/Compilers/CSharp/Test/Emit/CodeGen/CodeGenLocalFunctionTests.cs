@@ -108,7 +108,7 @@ IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.Obj
 
             Assert.Equal(OperationKind.ExpressionStatement, objectCreationOperation.Parent.Kind);
             Assert.Equal(OperationKind.Block, objectCreationOperation.Parent.Parent.Kind);
-            Assert.Equal(localFunctionOperation.IgnoredBody, objectCreationOperation.Parent.Parent);
+            Assert.Same(localFunctionOperation.IgnoredBody, objectCreationOperation.Parent.Parent);
 
             var info = model.GetTypeInfo(creation);
             Assert.Equal("System.Object", info.Type.ToTestDisplayString());
