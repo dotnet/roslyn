@@ -192,6 +192,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilation = Me.DeclaringCompilation
             MarkEmbeddedAttributeTypeReference(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation)
             ReportExtensionAttributeUseSiteError(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, arguments.Diagnostics)
+
+            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
+                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, arguments.Attribute.ToString())
+            End If
         End Sub
 
         ''' <summary>
