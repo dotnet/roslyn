@@ -203,7 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     if (!success) goto outer_loop_continue;
             //     /* loop.Body */
             //     /* loop.ContinueLabel: */
-            var innerLoopBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, checkAndBreak, rewrittenBody, loop.ContinueLabel, forEachSyntax);
+            var innerLoopBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables.Concat(successVar),
+                iterationVarDecl, checkAndBreak, rewrittenBody, loop.ContinueLabel, forEachSyntax);
 
             // while (true)
             // {
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // finally { await e.DisposeAsync(); }
             BoundStatement result = new BoundBlock(
                 syntax: forEachSyntax,
-                locals: ImmutableArray.Create(enumeratorVar, successVar),
+                locals: ImmutableArray.Create(enumeratorVar),
                 statements: ImmutableArray.Create(enumeratorVarDecl, outerLoopOrTryFinally));
 
             // PROTOTYPE(async-streams)
@@ -1213,17 +1214,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// goto still-true;
         /// ]]> 
         /// </summary>
-        private static BoundStatement MakeWhileTrueLoop(BoundForEachStatement loop, BoundBlock body)
+        private BoundStatement MakeWhileTrueLoop(BoundForEachStatement loop, BoundBlock body)
         {
             Debug.Assert(loop.EnumeratorInfoOpt.IsAsync);
             SyntaxNode syntax = loop.Syntax;
             GeneratedLabelSymbol startLabel = new GeneratedLabelSymbol("still-true");
+            BoundStatement startLabelStatement = new BoundLabelStatement(syntax, startLabel);
+
+            if (this.Instrument)
+            {
+                //startLabelStatement = new BoundSequencePoint(null, startLabelStatement);
+            }
 
             // still-true:
             // /* body */
             // goto still-true;
             return BoundStatementList.Synthesized(syntax, hasErrors: false,
-                 new BoundLabelStatement(syntax, startLabel),
+                 startLabelStatement,
                  body,
                  new BoundGotoStatement(syntax, startLabel));
         }

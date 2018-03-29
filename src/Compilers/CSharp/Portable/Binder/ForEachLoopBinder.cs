@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
-            bool hasAwait = _syntax.AwaitKeyword != default;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;

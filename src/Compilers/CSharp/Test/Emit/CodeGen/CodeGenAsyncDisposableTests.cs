@@ -249,6 +249,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            // PROTOTYPE(async-streams) Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
         }
 
         [Fact]
