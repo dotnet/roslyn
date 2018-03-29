@@ -135,8 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 : default;
 
             var invokeMethod = delegateType.DelegateInvokeMethod;
-            var returnType = invokeMethod.GenerateReturnTypeSyntax();
 
+            var returnType = invokeMethod.GenerateReturnTypeSyntax();
+            
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
 
