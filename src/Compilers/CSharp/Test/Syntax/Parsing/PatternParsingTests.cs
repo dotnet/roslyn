@@ -2552,6 +2552,33 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParseFuzz()
         {
             Random random = new Random();
+            for (int i = 0; i < 2000; i++)
+            {
+                string source = $"class C{{void M(){{switch(e){{case {makePattern0()}:T v = e;}}}}}}";
+                try
+                {
+                    Parse(source, options: TestOptions.Regular.WithRecursivePatterns());
+                    for (int j = 0; j < 30; j++)
+                    {
+                        int k1 = random.Next(source.Length);
+                        int k2 = random.Next(source.Length);
+                        string source2 = source.Substring(0, k1) + source.Substring(k2);
+                        Parse(source2, options: TestOptions.Regular.WithRecursivePatterns());
+                    }
+                }
+                catch (StackOverflowException)
+                {
+                    Console.WriteLine("Failed on \"" + source + "\"");
+                    Assert.True(false, source);
+                }
+                catch (OutOfMemoryException)
+                {
+                    Console.WriteLine("Failed on \"" + source + "\"");
+                    Assert.True(false, source);
+                }
+            }
+            return;
+
             string makeProps(int maxDepth, bool needNames)
             {
                 int nProps = random.Next(maxDepth);
@@ -2595,31 +2622,6 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 }
             }
             string makePattern0() => makePattern(random.Next(5));
-            for (int i = 0; i < 2000; i++)
-            {
-                string source = $"class C{{void M(){{switch(e){{case {makePattern0()}:T v = e;}}}}}}";
-                try
-                {
-                    Parse(source, options: TestOptions.Regular.WithRecursivePatterns());
-                    for (int j = 0; j < 30; j++)
-                    {
-                        int k1 = random.Next(source.Length);
-                        int k2 = random.Next(source.Length);
-                        string source2 = source.Substring(0, k1) + source.Substring(k2);
-                        Parse(source2, options: TestOptions.Regular.WithRecursivePatterns());
-                    }
-                }
-                catch (StackOverflowException)
-                {
-                    Console.WriteLine("Failed on \"" + source + "\"");
-                    Assert.True(false, source);
-                }
-                catch (OutOfMemoryException)
-                {
-                    Console.WriteLine("Failed on \"" + source + "\"");
-                    Assert.True(false, source);
-                }
-            }
         }
     }
 }
