@@ -172,12 +172,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return false;
         }
 
-        private string GetOutputRefFilePathById(ProjectId projectId)
+        internal string GetOutputRefFilePathById(ProjectId projectId)
             => TryGetOutputRefFilePathById(projectId, out var path)
                 ? path
                 : null;
 
-        private string GetOutputFilePathById(ProjectId projectId)
+        internal string GetOutputFilePathById(ProjectId projectId)
             => TryGetOutputFilePathById(projectId, out var path)
                 ? path
                 : null;
