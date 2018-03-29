@@ -252,16 +252,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public bool IsCaretOnScreen()
             => ExecuteOnActiveView(view =>
             {
-                var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
-                var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
+                var caret = view.Caret;
 
-                var advancedView = viewPrimitivies.View.AdvancedTextView;
-                var caret = advancedView.Caret;
-
-                return caret.Left >= advancedView.ViewportLeft
-                    && caret.Right <= advancedView.ViewportRight
-                    && caret.Top >= advancedView.ViewportTop
-                    && caret.Bottom <= advancedView.ViewportBottom;
+                return caret.Left >= view.ViewportLeft
+                    && caret.Right <= view.ViewportRight
+                    && caret.Top >= view.ViewportTop
+                    && caret.Bottom <= view.ViewportBottom;
             });
 
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
@@ -270,13 +266,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
-                var primitives = GetComponentModelService<IEditorPrimitivesFactoryService>();
                 return GetLightbulbPreviewClassifications(
                     menuText,
                     broker,
                     view,
-                    classifierAggregatorService,
-                    primitives);
+                    classifierAggregatorService);
             });
         }
 
@@ -284,8 +278,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     string menuText,
                     ILightBulbBroker broker,
                     IWpfTextView view,
-                    IViewClassifierAggregatorService viewClassifierAggregator,
-                    IEditorPrimitivesFactoryService editorPrimitives)
+                    IViewClassifierAggregatorService viewClassifierAggregator)
         {
             LightBulbHelper.WaitForLightBulbSession(broker, view);
 

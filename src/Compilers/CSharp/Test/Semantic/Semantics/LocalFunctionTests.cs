@@ -3718,5 +3718,118 @@ class C<T>
                 Assert.Same(symbol, parameterSymbol.Type);
             }
         }
+
+        public sealed class ScriptGlobals
+        {
+            public int SomeGlobal => 42;
+        }
+
+        [Fact]
+        public void CanAccessScriptGlobalsFromInsideMethod()
+        {
+            var source = @"
+void Method()
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = SomeGlobal;
+    }
+}";
+            CreateSubmission(source, new[] { ScriptTestFixtures.HostRef }, hostObjectType: typeof(ScriptGlobals))
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessScriptGlobalsFromInsideLambda()
+        {
+            var source = @"
+var lambda = new System.Action(() =>
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = SomeGlobal;
+    }
+});";
+            CreateSubmission(source, new[] { ScriptTestFixtures.HostRef }, hostObjectType: typeof(ScriptGlobals))
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionVariablesFromInsideMethod()
+        {
+            var previous = CreateSubmission("int previousSubmissionVariable = 42;")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+void Method()
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = previousSubmissionVariable;
+    }
+}";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionVariablesFromInsideLambda()
+        {
+            var previous = CreateSubmission("int previousSubmissionVariable = 42;")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+var lambda = new System.Action(() =>
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        _ = previousSubmissionVariable;
+    }
+});";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionMethodsFromInsideMethod()
+        {
+            var previous = CreateSubmission("void PreviousSubmissionMethod() { }")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+void Method()
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        PreviousSubmissionMethod();
+    }
+}";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void CanAccessPreviousSubmissionMethodsFromInsideLambda()
+        {
+            var previous = CreateSubmission("void PreviousSubmissionMethod() { }")
+                .VerifyEmitDiagnostics();
+
+            var source = @"
+var lambda = new System.Action(() =>
+{
+    LocalFunction();
+    void LocalFunction()
+    {
+        PreviousSubmissionMethod();
+    }
+});";
+            CreateSubmission(source, previous: previous)
+                .VerifyEmitDiagnostics();
+        }
     }
 }

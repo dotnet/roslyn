@@ -930,6 +930,9 @@
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
   </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
+  </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
   </data>
@@ -4287,6 +4290,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefForEach" xml:space="preserve">
     <value>ref foreach iteration variables</value>
   </data>
+  <data name="IDS_FeatureExtensibleFixedStatement" xml:space="preserve">
+    <value>extensible fixed statement</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -5306,6 +5312,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
     <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>
   </data>
+  <data name="ERR_InvalidObjectCreation" xml:space="preserve">
+    <value>Invalid object creation</value>
+  </data>
   <data name="IDS_FeatureStackAllocInitializer" xml:space="preserve">
     <value>stackalloc initializer</value>
   </data>
@@ -5314,5 +5323,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
     <value>declaration of expression variables in member initializers and queries</value>
+  </data>
+  <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
+    <value>indexing movable fixed buffers</value>
   </data>
 </root>

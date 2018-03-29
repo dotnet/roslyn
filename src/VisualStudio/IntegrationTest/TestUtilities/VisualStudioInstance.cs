@@ -45,6 +45,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
+        public ImmediateWindow_OutOfProc ImmediateWindow { get; }
+
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
 
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
@@ -110,6 +112,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);

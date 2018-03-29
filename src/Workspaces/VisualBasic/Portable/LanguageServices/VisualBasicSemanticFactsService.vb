@@ -21,9 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Class VisualBasicSemanticFactsService
+        Inherits AbstractSemanticFactsService
         Implements ISemanticFactsService
 
         Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
+
+        Protected Overrides ReadOnly Property SyntaxFactsService As ISyntaxFactsService = VisualBasicSyntaxFactsService.Instance
 
         Private Sub New()
         End Sub
@@ -289,6 +292,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
+        End Function
+
+        Public Function GetSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFactsService.GetSymbolInfo
+            Return semanticModel.GetSymbolInfo(node, cancellationToken)
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueName(semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
+            Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, cancellationToken)
         End Function
     End Class
 End Namespace

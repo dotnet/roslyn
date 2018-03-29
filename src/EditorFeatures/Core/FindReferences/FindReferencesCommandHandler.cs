@@ -4,49 +4,55 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
-    internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.FindReferences)]
+    internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
+
+        public string DisplayName => EditorFeaturesResources.Find_References_Command_Handler;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
-            IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             Contract.ThrowIfNull(streamingPresenters);
             Contract.ThrowIfNull(listenerProvider);
 
-            _waitIndicator = waitIndicator;
             _streamingPresenters = streamingPresenters;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
-        public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(FindReferencesCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
-        public void ExecuteCommand(FindReferencesCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(FindReferencesCommandArgs args, CommandExecutionContext context)
         {
             // Get the selection that user has in our buffer (this also works if there
             // is no selection and the caret is just at a single position).  If we 
@@ -64,17 +70,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     // user has selected a symbol that has another symbol touching it
                     // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
                     // symbol selected, not the symbol following.
-                    if (TryExecuteCommand(selectedSpan.Start, document))
+                    if (TryExecuteCommand(selectedSpan.Start, document, context))
                     {
-                        return;
+                        return true;
                     }
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
-        private bool TryExecuteCommand(int caretPosition, Document document)
+        private bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
         {
             var streamingService = document.GetLanguageService<IFindUsagesService>();
             var streamingPresenter = GetStreamingPresenter();
