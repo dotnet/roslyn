@@ -738,6 +738,26 @@ class Test
         }
 
         [Fact]
+        public void InAsyncArgType()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    async static Task M1(in int i)
+    {
+        await Task.Factory.StartNew(() => { });
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,33): error CS1988: Async methods cannot have ref, in or out parameters
+                //     async static Task M1(in int i)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
         public void BadAwaitWithoutAsync()
         {
             var source = @"
