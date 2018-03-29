@@ -9230,7 +9230,6 @@ public class C
 }
 ";
 
-
             var comp_init = CompileAndVerify(source_init);
             var comp_skip = CompileAndVerify(source_skip);
 
