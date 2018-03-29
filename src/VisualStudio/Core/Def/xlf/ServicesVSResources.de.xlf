@@ -1503,6 +1503,16 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
         <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
