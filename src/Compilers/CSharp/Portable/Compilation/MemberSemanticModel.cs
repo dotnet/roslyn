@@ -250,6 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (kind == SyntaxKind.SwitchExpression)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if (kind == SyntaxKind.SwitchExpressionArm)
                 {
                     binder = rootBinder.GetBinder(current);
