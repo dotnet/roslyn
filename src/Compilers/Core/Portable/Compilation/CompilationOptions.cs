@@ -199,6 +199,11 @@ namespace Microsoft.CodeAnalysis
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
 
         /// <summary>
+        /// Warning report option for each warning.
+        /// </summary>
+        public ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> PerTreeDiagnosticOptions { get; protected set; }
+
+        /// <summary>
         /// Whether diagnostics suppressed in source, i.e. <see cref="Diagnostic.IsSuppressed"/> is true, should be reported.
         /// </summary>
         public bool ReportSuppressedDiagnostics { get; protected set; }
@@ -269,6 +274,7 @@ namespace Microsoft.CodeAnalysis
             ReportDiagnostic generalDiagnosticOption,
             int warningLevel,
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> perTreeDiagnosticOptions,
             bool concurrentBuild,
             bool deterministic,
             DateTime currentLocalTime,
@@ -281,33 +287,34 @@ namespace Microsoft.CodeAnalysis
             MetadataImportOptions metadataImportOptions,
             bool referencesSupersedeLowerVersions)
         {
-            this.OutputKind = outputKind;
-            this.ModuleName = moduleName;
-            this.MainTypeName = mainTypeName;
-            this.ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
-            this.CryptoKeyContainer = cryptoKeyContainer;
-            this.CryptoKeyFile = string.IsNullOrEmpty(cryptoKeyFile) ? null : cryptoKeyFile;
-            this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
-            this.DelaySign = delaySign;
-            this.CheckOverflow = checkOverflow;
-            this.Platform = platform;
-            this.GeneralDiagnosticOption = generalDiagnosticOption;
-            this.WarningLevel = warningLevel;
-            this.SpecificDiagnosticOptions = specificDiagnosticOptions;
-            this.ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
-            this.OptimizationLevel = optimizationLevel;
-            this.ConcurrentBuild = concurrentBuild;
-            this.Deterministic = deterministic;
-            this.CurrentLocalTime = currentLocalTime;
-            this.DebugPlusMode = debugPlusMode;
-            this.XmlReferenceResolver = xmlReferenceResolver;
-            this.SourceReferenceResolver = sourceReferenceResolver;
-            this.MetadataReferenceResolver = metadataReferenceResolver;
-            this.StrongNameProvider = strongNameProvider;
-            this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
-            this.MetadataImportOptions = metadataImportOptions;
-            this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
-            this.PublicSign = publicSign;
+            OutputKind = outputKind;
+            ModuleName = moduleName;
+            MainTypeName = mainTypeName;
+            ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
+            CryptoKeyContainer = cryptoKeyContainer;
+            CryptoKeyFile = string.IsNullOrEmpty(cryptoKeyFile) ? null : cryptoKeyFile;
+            CryptoPublicKey = cryptoPublicKey.NullToEmpty();
+            DelaySign = delaySign;
+            CheckOverflow = checkOverflow;
+            Platform = platform;
+            GeneralDiagnosticOption = generalDiagnosticOption;
+            WarningLevel = warningLevel;
+            SpecificDiagnosticOptions = specificDiagnosticOptions;
+            PerTreeDiagnosticOptions = perTreeDiagnosticOptions;
+            ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            OptimizationLevel = optimizationLevel;
+            ConcurrentBuild = concurrentBuild;
+            Deterministic = deterministic;
+            CurrentLocalTime = currentLocalTime;
+            DebugPlusMode = debugPlusMode;
+            XmlReferenceResolver = xmlReferenceResolver;
+            SourceReferenceResolver = sourceReferenceResolver;
+            MetadataReferenceResolver = metadataReferenceResolver;
+            StrongNameProvider = strongNameProvider;
+            AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
+            MetadataImportOptions = metadataImportOptions;
+            ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
+            PublicSign = publicSign;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -385,6 +392,13 @@ namespace Microsoft.CodeAnalysis
         {
             return CommonWithSpecificDiagnosticOptions(value);
         }
+
+        /// <summary>
+        /// Create a new options instance with the specified diagnostic-specific options.
+        /// </summary>
+        public CompilationOptions WithPerTreeDiagnosticOptions(
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> value)
+            => CommonWithPerTreeDiagnosticOptions(value);
 
         /// <summary>
         /// Creates a new options instance with the specified suppressed diagnostics reporting option.
@@ -520,6 +534,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
+        protected abstract CompilationOptions CommonWithPerTreeDiagnosticOptions(ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> perTreeDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
         protected abstract CompilationOptions CommonWithModuleName(string moduleName);
         protected abstract CompilationOptions CommonWithMainTypeName(string mainTypeName);
@@ -618,6 +633,9 @@ namespace Microsoft.CodeAnalysis
                    this.ReportSuppressedDiagnostics == other.ReportSuppressedDiagnostics &&
                    string.Equals(this.ScriptClassName, other.ScriptClassName, StringComparison.Ordinal) &&
                    this.SpecificDiagnosticOptions.SequenceEqual(other.SpecificDiagnosticOptions, (left, right) => (left.Key == right.Key) && (left.Value == right.Value)) &&
+                   PerTreeDiagnosticOptions.SequenceEqual(other.PerTreeDiagnosticOptions, (left, right) =>
+                       (left.Key == right.Key) && left.Value.SequenceEqual(right.Value, (nestedLeft, nestedRight) =>
+                           string.Equals(nestedLeft.Key, nestedRight.Key, StringComparison.Ordinal) && (nestedLeft.Value == nestedRight.Value))) &&
                    this.WarningLevel == other.WarningLevel &&
                    object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver) &&
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
@@ -652,13 +670,15 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.ReportSuppressedDiagnostics,
                    Hash.Combine(this.ScriptClassName != null ? StringComparer.Ordinal.GetHashCode(this.ScriptClassName) : 0,
                    Hash.Combine(Hash.CombineValues(this.SpecificDiagnosticOptions),
+                   Hash.Combine(Hash.CombineValues(PerTreeDiagnosticOptions.Keys),
+                   Hash.Combine(Hash.CombineValues(PerTreeDiagnosticOptions.Values),
                    Hash.Combine(this.WarningLevel,
                    Hash.Combine(this.MetadataReferenceResolver,
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

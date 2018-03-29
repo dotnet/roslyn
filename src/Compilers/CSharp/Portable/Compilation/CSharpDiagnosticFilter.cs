@@ -26,7 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
         /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        public static Diagnostic Filter(
+            Diagnostic d,
+            int warningLevelOption,
+            ReportDiagnostic generalDiagnosticOption,
+            IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> perTreeDiagnosticOptions)
         {
             if (d == null)
             {
@@ -63,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (s_alinkWarnings.Contains((ErrorCode)d.Code) &&
                 specificDiagnosticOptions.Keys.Contains(CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn)))
             {
-                reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),
+                reportAction = GetDiagnosticReport(
+                    ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),
                     d.IsEnabledByDefault,
                     CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn),
                     ErrorFacts.GetWarningLevel(ErrorCode.WRN_ALinkWarn),
@@ -72,12 +78,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     warningLevelOption,
                     generalDiagnosticOption,
                     specificDiagnosticOptions,
+                    perTreeDiagnosticOptions,
                     out hasPragmaSuppression);
             }
             else
             {
-                reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location,
-                    d.Category, warningLevelOption, generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
+                reportAction = GetDiagnosticReport(
+                    d.Severity,
+                    d.IsEnabledByDefault,
+                    d.Id,
+                    d.WarningLevel,
+                    d.Location as Location,
+                    d.Category,
+                    warningLevelOption,
+                    generalDiagnosticOption,
+                    specificDiagnosticOptions,
+                    perTreeDiagnosticOptions,
+                    out hasPragmaSuppression);
             }
 
             if (hasPragmaSuppression)
@@ -88,8 +105,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return d.WithReportDiagnostic(reportAction);
         }
 
-        // Take a warning and return the final deposition of the given warning,
-        // based on both command line options and pragmas.
+        /// <summary>
+        /// Take a warning and return the final deposition of the given warning,
+        /// based on both command line options and pragmas. The behavior is as follows:
+        ///     1. If the diagnostic warning level is greater than the current compiler
+        ///        warning level, the warning is suppressed and <paramref
+        ///        name="hasPragmaSuppression"/> is false.
+        ///     2. If the warning is suppressed in the specific or per-tree specific
+        ///        diagnostic options, the warning is suppressed and <paramref
+        ///        name="hasPragmaSuppression"/> is false.
+        ///     3. If the warning is not otherwise suppressed and is suppressed by a pragma,
+        ///        the warning is suppressed and <paramref name="hasPragmaSuppression"/> is true.
+        ///     5. Otherwise, the <paramref name="perTreeDiagnosticOptions"/> take precedence in
+        ///        deciding the warning setting, followed by
+        ///        <paramref name="specificDiagnosticOptions"/>. If the warning is
+        ///        <see cref="ReportDiagnostic.Default"/> after this calculation,
+        ///        <paramref name="generalDiagnosticOption"/> options are applied.
+        /// </summary> 
         internal static ReportDiagnostic GetDiagnosticReport(
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
@@ -100,9 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevelOption,
             ReportDiagnostic generalDiagnosticOption,
             IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<string, ReportDiagnostic>> perTreeDiagnosticOptions,
             out bool hasPragmaSuppression)
         {
             hasPragmaSuppression = false;
+
+            // honor the warning level
+            if (diagnosticWarningLevel > warningLevelOption)
+            {
+                return ReportDiagnostic.Suppress;
+            }
 
             // Read options (e.g., /nowarn or /warnaserror)
             ReportDiagnostic report = ReportDiagnostic.Default;
@@ -112,17 +151,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
 
-            // Compute if the reporting should be suppressed.
-            if (diagnosticWarningLevel > warningLevelOption  // honor the warning level
-                || report == ReportDiagnostic.Suppress)                // check options (/nowarn)
+            // If location is available, look for tree-specific options
+            if (location?.SourceTree != null &&
+                perTreeDiagnosticOptions.TryGetValue(location.SourceTree, out ImmutableDictionary<string, ReportDiagnostic> idToReport) &&
+                idToReport.TryGetValue(id, out ReportDiagnostic perTreeSetting))
+            {
+                report = perTreeSetting;
+            }
+
+            // Return if the diagnostic is already suppressed, as pragmas
+            // can't suppress it further and global options do not apply
+            if (report == ReportDiagnostic.Suppress)
             {
                 return ReportDiagnostic.Suppress;
             }
 
-            // If location is available, check out pragmas
-            if (location != null &&
-                location.SourceTree != null &&
-                ((SyntaxTree)location.SourceTree).GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress)
+            // Check pragmas
+            if (location?.SourceTree?.GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress)
             {
                 hasPragmaSuppression = true;
             }

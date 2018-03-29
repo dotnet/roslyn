@@ -138,5 +138,12 @@ namespace Microsoft.CodeAnalysis
                 return result;
             }
         }
+
+        /// <summary>
+        /// Constructs an IEnumerable for an immutable dictionary, but wraps keys and values with
+        /// tuples instead of a KeyValuePair.
+        /// </summary>
+        internal static IEnumerable<(K, V)> AsTupleEnumerable<K, V>(this ImmutableDictionary<K, V> source)
+            => source.Select(kvp => (kvp.Key, kvp.Value));
     }
 }

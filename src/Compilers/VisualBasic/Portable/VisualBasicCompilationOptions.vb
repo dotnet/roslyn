@@ -93,7 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional strongNameProvider As StrongNameProvider = Nothing,
             Optional publicSign As Boolean = False,
             Optional reportSuppressedDiagnostics As Boolean = False,
-            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public)
+            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public,
+            Optional perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)) = Nothing)
 
             MyClass.New(
                 outputKind,
@@ -119,91 +120,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform,
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
+                perTreeDiagnosticOptions,
                 concurrentBuild,
-                deterministic:=deterministic,
-                currentLocalTime:=Nothing,
-                suppressEmbeddedDeclarations:=False,
-                debugPlusMode:=False,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                Deterministic:=deterministic,
+                CurrentLocalTime:=Nothing,
+                SuppressEmbeddedDeclarations:=False,
+                DebugPlusMode:=False,
+                XmlReferenceResolver:=xmlReferenceResolver,
+                SourceReferenceResolver:=sourceReferenceResolver,
+                MetadataReferenceResolver:=metadataReferenceResolver,
+                AssemblyIdentityComparer:=assemblyIdentityComparer,
+                StrongNameProvider:=strongNameProvider,
+                MetadataImportOptions:=metadataImportOptions,
+                ReferencesSupersedeLowerVersions:=False,
+                IgnoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
 #Enable Warning RS0026 ' Do not add multiple overloads with optional parameters
-
-        '' 15.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        <EditorBrowsable(EditorBrowsableState.Never)>
-        Public Sub New(
-            outputKind As OutputKind,
-            moduleName As String,
-            mainTypeName As String,
-            scriptClassName As String,
-            globalImports As IEnumerable(Of GlobalImport),
-            rootNamespace As String,
-            optionStrict As OptionStrict,
-            optionInfer As Boolean,
-            optionExplicit As Boolean,
-            optionCompareText As Boolean,
-            parseOptions As VisualBasicParseOptions,
-            embedVbCoreRuntime As Boolean,
-            optimizationLevel As OptimizationLevel,
-            checkOverflow As Boolean,
-            cryptoKeyContainer As String,
-            cryptoKeyFile As String,
-            cryptoPublicKey As ImmutableArray(Of Byte),
-            delaySign As Boolean?,
-            platform As Platform,
-            generalDiagnosticOption As ReportDiagnostic,
-            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
-            concurrentBuild As Boolean,
-            deterministic As Boolean,
-            xmlReferenceResolver As XmlReferenceResolver,
-            sourceReferenceResolver As SourceReferenceResolver,
-            metadataReferenceResolver As MetadataReferenceResolver,
-            assemblyIdentityComparer As AssemblyIdentityComparer,
-            strongNameProvider As StrongNameProvider,
-            publicSign As Boolean,
-            reportSuppressedDiagnostics As Boolean)
-
-            MyClass.New(
-                outputKind,
-                moduleName,
-                mainTypeName,
-                scriptClassName,
-                globalImports,
-                rootNamespace,
-                optionStrict,
-                optionInfer,
-                optionExplicit,
-                optionCompareText,
-                parseOptions,
-                embedVbCoreRuntime,
-                optimizationLevel,
-                checkOverflow,
-                cryptoKeyContainer,
-                cryptoKeyFile,
-                cryptoPublicKey,
-                delaySign,
-                platform,
-                generalDiagnosticOption,
-                specificDiagnosticOptions,
-                concurrentBuild,
-                deterministic,
-                xmlReferenceResolver,
-                sourceReferenceResolver,
-                metadataReferenceResolver,
-                assemblyIdentityComparer,
-                strongNameProvider,
-                publicSign,
-                reportSuppressedDiagnostics,
-                MetadataImportOptions.Public)
-
-        End Sub
 
         Private Sub New(
             outputKind As OutputKind,
@@ -229,19 +162,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             platform As Platform,
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
-            concurrentBuild As Boolean,
-            deterministic As Boolean,
-            currentLocalTime As Date,
-            suppressEmbeddedDeclarations As Boolean,
-            debugPlusMode As Boolean,
-            xmlReferenceResolver As XmlReferenceResolver,
-            sourceReferenceResolver As SourceReferenceResolver,
-            metadataReferenceResolver As MetadataReferenceResolver,
-            assemblyIdentityComparer As AssemblyIdentityComparer,
-            strongNameProvider As StrongNameProvider,
-            metadataImportOptions As MetadataImportOptions,
-            referencesSupersedeLowerVersions As Boolean,
-            ignoreCorLibraryDuplicatedTypes As Boolean)
+            perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)),
+            ConcurrentBuild As Boolean,
+            Deterministic As Boolean,
+            CurrentLocalTime As Date,
+            SuppressEmbeddedDeclarations As Boolean,
+            DebugPlusMode As Boolean,
+            XmlReferenceResolver As XmlReferenceResolver,
+            SourceReferenceResolver As SourceReferenceResolver,
+            MetadataReferenceResolver As MetadataReferenceResolver,
+            AssemblyIdentityComparer As AssemblyIdentityComparer,
+            StrongNameProvider As StrongNameProvider,
+            MetadataImportOptions As MetadataImportOptions,
+            ReferencesSupersedeLowerVersions As Boolean,
+            IgnoreCorLibraryDuplicatedTypes As Boolean)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -260,17 +194,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption:=generalDiagnosticOption,
                 warningLevel:=1,
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
-                concurrentBuild:=concurrentBuild,
-                deterministic:=deterministic,
-                currentLocalTime:=currentLocalTime,
-                debugPlusMode:=debugPlusMode,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
+                perTreeDiagnosticOptions:=CreateCaseInsensitivePerTreeOptions(perTreeDiagnosticOptions),
+                concurrentBuild:=ConcurrentBuild,
+                deterministic:=Deterministic,
+                currentLocalTime:=CurrentLocalTime,
+                debugPlusMode:=DebugPlusMode,
+                xmlReferenceResolver:=XmlReferenceResolver,
+                sourceReferenceResolver:=SourceReferenceResolver,
+                metadataReferenceResolver:=MetadataReferenceResolver,
+                assemblyIdentityComparer:=AssemblyIdentityComparer,
+                strongNameProvider:=StrongNameProvider,
+                metadataImportOptions:=MetadataImportOptions,
+                referencesSupersedeLowerVersions:=ReferencesSupersedeLowerVersions)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -279,13 +214,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _optionExplicit = optionExplicit
             _optionCompareText = optionCompareText
             _embedVbCoreRuntime = embedVbCoreRuntime
-            _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
+            _suppressEmbeddedDeclarations = SuppressEmbeddedDeclarations
             _parseOptions = parseOptions
-            _ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes
+            _ignoreCorLibraryDuplicatedTypes = IgnoreCorLibraryDuplicatedTypes
 
             Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
         End Sub
+
+        Private Shared Function CreateCaseInsensitivePerTreeOptions(perTreeOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))
+            Dim finalPerTreeOptions = If(perTreeOptions,
+                ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)).Empty)
+
+            ' If all of the values have case insensitive comparers, we can reuse this dictionary. Otherwise, we'll create a new one
+            For Each diagOptions In finalPerTreeOptions.Values
+                If diagOptions.KeyComparer IsNot CaseInsensitiveComparison.Comparer Then
+                    finalPerTreeOptions = ImmutableDictionary.CreateRange(finalPerTreeOptions.Select(
+                    Function(kvp)
+                        Return KeyValuePair.Create(kvp.Key, ImmutableDictionary.CreateRange(CaseInsensitiveComparison.Comparer, kvp.Value))
+                    End Function).ToImmutableDictionaryOrEmpty())
+                    Exit For
+                End If
+            Next
+            Return finalPerTreeOptions
+        End Function
 
         Friend Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
@@ -302,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionCompareText:=other.OptionCompareText,
                 parseOptions:=other.ParseOptions,
                 embedVbCoreRuntime:=other.EmbedVbCoreRuntime,
-                suppressEmbeddedDeclarations:=other.SuppressEmbeddedDeclarations,
+                SuppressEmbeddedDeclarations:=other.SuppressEmbeddedDeclarations,
                 optimizationLevel:=other.OptimizationLevel,
                 checkOverflow:=other.CheckOverflow,
                 cryptoKeyContainer:=other.CryptoKeyContainer,
@@ -312,19 +264,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform:=other.Platform,
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
-                concurrentBuild:=other.ConcurrentBuild,
-                deterministic:=other.Deterministic,
-                currentLocalTime:=other.CurrentLocalTime,
-                debugPlusMode:=other.DebugPlusMode,
-                xmlReferenceResolver:=other.XmlReferenceResolver,
-                sourceReferenceResolver:=other.SourceReferenceResolver,
-                metadataReferenceResolver:=other.MetadataReferenceResolver,
-                assemblyIdentityComparer:=other.AssemblyIdentityComparer,
-                strongNameProvider:=other.StrongNameProvider,
-                metadataImportOptions:=other.MetadataImportOptions,
-                referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
+                perTreeDiagnosticOptions:=other.PerTreeDiagnosticOptions,
+                ConcurrentBuild:=other.ConcurrentBuild,
+                Deterministic:=other.Deterministic,
+                CurrentLocalTime:=other.CurrentLocalTime,
+                DebugPlusMode:=other.DebugPlusMode,
+                XmlReferenceResolver:=other.XmlReferenceResolver,
+                SourceReferenceResolver:=other.SourceReferenceResolver,
+                MetadataReferenceResolver:=other.MetadataReferenceResolver,
+                AssemblyIdentityComparer:=other.AssemblyIdentityComparer,
+                StrongNameProvider:=other.StrongNameProvider,
+                MetadataImportOptions:=other.MetadataImportOptions,
+                ReferencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign,
-                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
+                IgnoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -809,6 +762,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
         End Function
 
+        Protected Overrides Function CommonWithPerTreeDiagnosticOptions(perTreeDiagnosticOptions As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As CompilationOptions
+            Return Me.WithPerTreeDiagnosticOptions(perTreeDiagnosticOptions)
+        End Function
+
         Protected Overrides Function CommonWithReportSuppressedDiagnostics(reportSuppressedDiagnostics As Boolean) As CompilationOptions
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
@@ -859,6 +816,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
         Public Shadows Function WithSpecificDiagnosticOptions(value As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As VisualBasicCompilationOptions
             Return New VisualBasicCompilationOptions(Me) With {.SpecificDiagnosticOptions = value.ToImmutableDictionaryOrEmpty()}
+        End Function
+
+        Public Shadows Function WithPerTreeDiagnosticOptions(value As ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic))) As CompilationOptions
+            If value Is Nothing Then
+                value = ImmutableDictionary(Of SyntaxTree, ImmutableDictionary(Of String, ReportDiagnostic)).Empty
+            End If
+
+            If value Is Me.PerTreeDiagnosticOptions Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.PerTreeDiagnosticOptions = value}
         End Function
 
         ''' <summary>
@@ -1109,8 +1078,148 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
+            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions, PerTreeDiagnosticOptions)
         End Function
+
+        ' 2.8 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider,
+            publicSign As Boolean,
+            reportSuppressedDiagnostics As Boolean,
+            metadataImportOptions As MetadataImportOptions)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
+                publicSign,
+                reportSuppressedDiagnostics,
+                metadataImportOptions,
+                perTreeDiagnosticOptions:=Nothing)
+
+        End Sub
+
+        '' 2.7 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider,
+            publicSign As Boolean,
+            reportSuppressedDiagnostics As Boolean)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
+                publicSign,
+                reportSuppressedDiagnostics,
+                MetadataImportOptions.Public)
+
+        End Sub
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         <EditorBrowsable(EditorBrowsableState.Never)>
@@ -1277,7 +1386,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyClass.New(
                 outputKind,
-                reportSuppressedDiagnostics,
                 moduleName,
                 mainTypeName,
                 scriptClassName,
@@ -1295,23 +1403,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile,
                 cryptoPublicKey,
                 delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver,
+                assemblyIdentityComparer,
+                strongNameProvider,
                 publicSign:=False,
-                platform:=platform,
-                generalDiagnosticOption:=generalDiagnosticOption,
-                specificDiagnosticOptions:=specificDiagnosticOptions,
-                concurrentBuild:=concurrentBuild,
-                deterministic:=deterministic,
-                currentLocalTime:=Nothing,
-                suppressEmbeddedDeclarations:=False,
-                debugPlusMode:=False,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public,
-                referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
+                metadataImportOptions:=MetadataImportOptions.Public)
 
         End Sub
 #Enable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads
