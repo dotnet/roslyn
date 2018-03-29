@@ -5127,6 +5127,153 @@ End Class
         End Sub
 #End Region
 
+#Region "SkipLocalsInitAttribute"
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnMethod()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Sub M()
+    End Sub
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_AttributeNotSupportedInVB, "System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithArguments("System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithLocation(8, 6))
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnClass()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Class C
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_AttributeNotSupportedInVB, "System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithArguments("System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithLocation(7, 2))
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnProperty()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_AttributeNotSupportedInVB, "System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithArguments("System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithLocation(8, 6))
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnAccessors()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Property P As Integer
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+        Get
+            Return 1
+        End Get
+
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_AttributeNotSupportedInVB, "System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithArguments("System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithLocation(9, 10),
+                Diagnostic(ERRID.WRN_AttributeNotSupportedInVB, "System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithArguments("System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithLocation(14, 10))
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnModule()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Module: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_AttributeNotSupportedInVB, "Module: System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithArguments("System.Runtime.CompilerServices.SkipLocalsInitAttribute").WithLocation(1, 2))
+        End Sub
+
+#End Region
+
 #Region "RequiredAttributeAttribute"
 
         <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
