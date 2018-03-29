@@ -26,6 +26,7 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementsDataFlow 
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
+    - GetOperation (IOperation)
 - VB/F# interop
 - Performance and stress testing
  
@@ -81,10 +82,11 @@ This document provides guidance for thinking about language interactions and tes
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
-- Ref return, ref readonly return, ref ternary, ref readonly local
+- Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc
 - Patterns
+- Fixed (plain and custom, with `GetPinnableReference`)
 
 # Misc
 - reserved keywords (sometimes contextual)
