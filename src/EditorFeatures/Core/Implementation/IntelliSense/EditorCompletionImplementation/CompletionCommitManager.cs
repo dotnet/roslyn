@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
             '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
 
-        public ImmutableArray<char> GetPotentialCommitCharacters()
-        {
-            return CommitChars;
-        }
+        public ImmutableArray<char> PotentialCommitCharacters => CommitChars;
 
         public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location)
         {
@@ -38,33 +35,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return new CommitResult(handled: false);
+                return new CommitResult(isHandled: false, CommitBehavior.None);
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionItemSource.RoslynItem, out var roslynItem))
             {
-                return new CommitResult(handled: false);
+                return new CommitResult(isHandled: false, CommitBehavior.None);
             }
 
             var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
             if (needsCustomCommit)
             {
                 CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
-                return new CommitResult(handled: true, CommitBehavior.SuppressFurtherCommandHandlers);
+                return new CommitResult(isHandled: true, CommitBehavior.SuppressFurtherCommandHandlers);
             }
 
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
             {
-                return new CommitResult(handled: false, CommitBehavior.RaiseFurtherCommandHandlers);
+                return new CommitResult(isHandled: false, CommitBehavior.RaiseFurtherCommandHandlers);
             }
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new CommitResult(handled: false, CommitBehavior.SuppressFurtherCommandHandlers);
+                return new CommitResult(isHandled: false, CommitBehavior.SuppressFurtherCommandHandlers);
             }
 
-            return new CommitResult(handled: false);
+            return new CommitResult(isHandled: false, CommitBehavior.None);
         }
 
         private CommitBehavior CustomCommit(
