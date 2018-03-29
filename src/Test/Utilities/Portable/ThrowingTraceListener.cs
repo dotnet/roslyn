@@ -3,6 +3,10 @@
 using System;
 using System.Diagnostics;
 
+#if !NETSTANDARD1_3
+using System.Runtime.Serialization;
+#endif
+
 namespace Microsoft.CodeAnalysis
 {
     // To enable this for a process, add the following to the app.config for the project:
@@ -56,11 +60,17 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+#if !NETSTANDARD1_3
+        [Serializable]
+#endif
         public class DebugAssertFailureException : Exception
         {
             public DebugAssertFailureException() { }
             public DebugAssertFailureException(string message) : base(message) { }
-            public DebugAssertFailureException(string message, Exception inner) : base(message, inner) { }
+            public DebugAssertFailureException(string message, Exception innerException) : base(message, innerException) { }
+#if !NETSTANDARD1_3
+            protected DebugAssertFailureException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+#endif
         }
     }
 }
