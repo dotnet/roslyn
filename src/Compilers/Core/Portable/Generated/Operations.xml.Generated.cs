@@ -5947,28 +5947,23 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Local function symbol.
         /// </summary>
         public IMethodSymbol Symbol { get; }
-        protected abstract IBlockOperation BlockBodyImpl { get; }
-        protected abstract IBlockOperation ExpressionBodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (BlockBody != null)
+                if (Body != null)
                 {
-                    yield return BlockBody;
+                    yield return Body;
                 }
-                if (ExpressionBody != null)
+                if (IgnoredBody != null)
                 {
-                    yield return ExpressionBody;
+                    yield return IgnoredBody;
                 }
             }
         }
-        /// <summary>
-        /// Body of the local function.
-        /// </summary>
-        public IBlockOperation Body => BlockBody ?? ExpressionBody;
-        public IBlockOperation BlockBody => Operation.SetParentOperation(BlockBodyImpl, this);
-        public IBlockOperation ExpressionBody => Operation.SetParentOperation(ExpressionBodyImpl, this);
+        public abstract IBlockOperation Body { get; }
+        public abstract IBlockOperation IgnoredBody { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalFunction(this);
@@ -5984,15 +5979,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionOperation
     {
-        public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation blockBody, IBlockOperation expressionBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation body, IBlockOperation ignoredBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            BlockBodyImpl = blockBody;
-            ExpressionBodyImpl = expressionBody;
+            Body = SetParentOperation<IBlockOperation>(body, this);
+            IgnoredBody = SetParentOperation<IBlockOperation>(ignoredBody, this);
         }
 
-        protected override IBlockOperation BlockBodyImpl { get; }
-        protected override IBlockOperation ExpressionBodyImpl { get; }
+        public override IBlockOperation Body { get; }
+        public override IBlockOperation IgnoredBody { get; }
     }
 
     /// <summary>
@@ -6000,18 +5995,18 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LazyLocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionOperation
     {
-        private readonly Lazy<IBlockOperation> _lazyBlockBody;
-        private readonly Lazy<IBlockOperation> _lazyExpressionBody;
+        private readonly Lazy<IBlockOperation> _lazyBody;
+        private readonly Lazy<IBlockOperation> _lazyIgnoredBody;
 
-        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockOperation> blockBody, Lazy<IBlockOperation> expressionBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockOperation> body, Lazy<IBlockOperation> ignoredBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyBlockBody = blockBody ?? throw new System.ArgumentNullException(nameof(blockBody));
-            _lazyExpressionBody = expressionBody ?? throw new System.ArgumentNullException(nameof(expressionBody));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyIgnoredBody = ignoredBody ?? throw new System.ArgumentNullException(nameof(ignoredBody));
         }
 
-        protected override IBlockOperation BlockBodyImpl => _lazyBlockBody.Value;
-        protected override IBlockOperation ExpressionBodyImpl => _lazyExpressionBody.Value;
+        public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
+        public override IBlockOperation IgnoredBody => SetParentOperation(_lazyIgnoredBody.Value, this);
     }
 
     /// <summary>

@@ -22,19 +22,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Body of the local function.
         /// </summary>
-        /// <remarks>
-        /// This will return the <see cref="BlockBody"/> if it exists, and the <see cref="ExpressionBody"/> if the <see cref="BlockBody"/> does not exist.
-        /// If both exist, this will return just the <see cref="BlockBody"/>, and you must use <see cref="ExpressionBody"/> to retrieve the expression body.
-        /// </remarks>
         IBlockOperation Body { get; }
         /// <summary>
-        /// The block body of the local function, if it exists.
+        /// An extra body for the local function, if both a block body and expression body are specified in source.
         /// </summary>
-        IBlockOperation BlockBody { get; }
-        /// <summary>
-        /// The expression body of the local function, if it exists.
-        /// </summary>
-        IBlockOperation ExpressionBody { get; }
+        /// <remarks>
+        /// This is only ever non-null in error situations.
+        /// </remarks>
+        IBlockOperation IgnoredBody { get; }
     }
 }
 

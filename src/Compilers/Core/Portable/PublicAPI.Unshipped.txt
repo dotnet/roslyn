@@ -16,8 +16,7 @@ Microsoft.CodeAnalysis.OperationKind.TupleBinaryOperator = 87 -> Microsoft.CodeA
 Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation
 Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation.Initializer.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
-Microsoft.CodeAnalysis.Operations.ILocalFunctionOperation.BlockBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
-Microsoft.CodeAnalysis.Operations.ILocalFunctionOperation.ExpressionBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
+Microsoft.CodeAnalysis.Operations.ILocalFunctionOperation.IgnoredBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
 Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation
 Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation.BlockBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation
 Microsoft.CodeAnalysis.Operations.IMethodBodyBaseOperation.ExpressionBody.get -> Microsoft.CodeAnalysis.Operations.IBlockOperation

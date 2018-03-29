@@ -492,28 +492,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            BoundBlock blockBody = node.Body != null ? BindEmbeddedBlock(node.Body, diagnostics) : null;
-            DiagnosticBag expressionBodyDiagnostics = null;
+            BoundBlock blockBody = null;
             BoundBlock expressionBody = null;
-            if (node.ExpressionBody != null)
+            if (node.Body != null)
             {
-                expressionBodyDiagnostics = node.Body == null ? diagnostics : new DiagnosticBag();
-                expressionBody = BindExpressionBodyAsBlock(node.ExpressionBody, expressionBodyDiagnostics);
+                blockBody = runAnalysis(BindEmbeddedBlock(node.Body, diagnostics), diagnostics);
+
+                if (node.ExpressionBody != null)
+                {
+                    var expressionBodyDiagnostics = new DiagnosticBag();
+                    expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, expressionBodyDiagnostics), expressionBodyDiagnostics);
+                }
             }
-            else if (node.Body == null && node.ExpressionBody == null)
+            else if (node.ExpressionBody != null)
+            {
+                expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics), diagnostics);
+            }
+            else
             {
                 hasErrors = true;
                 diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
-            Debug.Assert(blockBody != null || expressionBody != null || hasErrors);
-            Debug.Assert((expressionBody == null) == (expressionBodyDiagnostics == null));
 
-            if (blockBody != null || expressionBody != null)
-            {
-                localSymbol.ComputeReturnType();
-                runAnalysis(ref blockBody, diagnostics);
-                runAnalysis(ref expressionBody, expressionBodyDiagnostics);
-            }
+            Debug.Assert(blockBody != null || expressionBody != null || hasErrors);
 
             localSymbol.GetDeclarationDiagnostics(diagnostics);
 
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
 
-            void runAnalysis(ref BoundBlock block, DiagnosticBag blockDiagnostics)
+            BoundBlock runAnalysis(BoundBlock block, DiagnosticBag blockDiagnostics)
             {
                 if (block != null)
                 {
@@ -543,6 +544,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                return block;
             }
         }
 

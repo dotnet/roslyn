@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        BoundBlock IBoundLambdaOrFunction.Body { get => BlockBody ?? ExpressionBody; }
+        BoundBlock IBoundLambdaOrFunction.Body { get => this.Body; }
     }
 
     internal sealed partial class BoundLambda : IBoundLambdaOrFunction

@@ -1423,13 +1423,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (operation.BlockBody != null)
+            if (operation.Body != null)
             {
-                Visit(operation.BlockBody, "Block Body");
-            }
-            if (operation.ExpressionBody != null)
-            {
-                Visit(operation.ExpressionBody, "Expression Body");
+                if (operation.IgnoredBody != null)
+                {
+                    Visit(operation.Body, "Body");
+                    Visit(operation.IgnoredBody, "IgnoredBody");
+
+                }
+                else
+                {
+                    Visit(operation.Body);
+                }
             }
         }
 

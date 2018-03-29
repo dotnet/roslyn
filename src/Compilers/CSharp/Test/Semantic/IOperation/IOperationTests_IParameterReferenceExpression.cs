@@ -1038,40 +1038,39 @@ class Class
 ";
             string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Collections.Generic.IEnumerable<T> Iterator()) (OperationKind.LocalFunction, Type: null) (Syntax: 'IEnumerable ... }')
-  Block Body: 
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... rn element;')
-        Locals: Local_1: T element
-        LoopControlVariable: 
-          IVariableDeclaratorOperation (Symbol: T element) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
-            Initializer: 
-              null
-        Collection: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
-            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: 
-              IParameterReferenceOperation: source (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
-        Body: 
-          IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (predica ... rn element;')
-            Condition: 
-              IInvocationOperation (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'predicate(element)')
-                Instance Receiver: 
-                  IParameterReferenceOperation: predicate (OperationKind.ParameterReference, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
-                Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null) (Syntax: 'element')
-                      ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            WhenTrue: 
-              IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return element;')
-                ReturnedValue: 
-                  ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
-            WhenFalse: 
-              null
-        NextVariables(0)
-      IReturnOperation (OperationKind.YieldBreak, Type: null, IsImplicit) (Syntax: '{ ... }')
-        ReturnedValue: 
-          null
+  IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... rn element;')
+      Locals: Local_1: T element
+      LoopControlVariable: 
+        IVariableDeclaratorOperation (Symbol: T element) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+          Initializer: 
+            null
+      Collection: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<T>, IsImplicit) (Syntax: 'source')
+          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IParameterReferenceOperation: source (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+      Body: 
+        IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (predica ... rn element;')
+          Condition: 
+            IInvocationOperation (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'predicate(element)')
+              Instance Receiver: 
+                IParameterReferenceOperation: predicate (OperationKind.ParameterReference, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument, Type: null) (Syntax: 'element')
+                    ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          WhenTrue: 
+            IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return element;')
+              ReturnedValue: 
+                ILocalReferenceOperation: element (OperationKind.LocalReference, Type: T) (Syntax: 'element')
+          WhenFalse: 
+            null
+      NextVariables(0)
+    IReturnOperation (OperationKind.YieldBreak, Type: null, IsImplicit) (Syntax: '{ ... }')
+      ReturnedValue: 
+        null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

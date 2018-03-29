@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, object argument)
         {
-            return new LocalFunctionStatement(operation.Symbol, Visit(operation.BlockBody), Visit(operation.ExpressionBody), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
