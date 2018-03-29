@@ -7992,7 +7992,7 @@ tryAgain:
                         }
                         else
                         {
-                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(forCase: true, precedence: Precedence.Ternary));
+                            var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(whenIsKeyword: true, precedence: Precedence.Ternary));
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
@@ -8000,7 +8000,7 @@ tryAgain:
                             }
                             if (node is PatternSyntax)
                             {
-                                var whenClause = ParseWhenClause();
+                                var whenClause = ParseWhenClause(Precedence.Expression);
                                 colon = this.EatToken(SyntaxKind.ColonToken);
                                 label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, whenClause, colon);
                                 label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
@@ -8311,7 +8311,7 @@ tryAgain:
             }
         }
 
-        private WhenClauseSyntax ParseWhenClause()
+        private WhenClauseSyntax ParseWhenClause(Precedence precedence)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
             {
@@ -8319,7 +8319,7 @@ tryAgain:
             }
 
             var when = this.EatContextualToken(SyntaxKind.WhenKeyword);
-            var condition = ParseSubExpression(Precedence.Expression);
+            var condition = ParseSubExpression(precedence);
             return _syntaxFactory.WhenClause(when, condition);
         }
 
@@ -9108,61 +9108,10 @@ tryAgain:
 
             else if (tk == SyntaxKind.SwitchKeyword && precedence < Precedence.Coalescing && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
             {
-                // PROTOTYPE(patterns2): for better error recovery when an expression is typed on a line before
-                // a switch statement, we should check if the cases between the parens look like cases with
-                // arrows, and whether the
-                // switch keyword is on the same line as the end of the expression. If those are not satisfied,
-                // we should refuse to consume the switch token here and instead let a "missing semicolon"
-                // occur in a caller. For now we just put up with poor error recovery in that case.
-                var governingExpression = leftOperand;
-                var switchKeyword = this.EatToken();
-                var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-                var arms = this.ParseSwitchExpressionArms();
-                // PROTOTYPE(patterns2): Should skip any unexpected tokens up through the close brace token.
-                var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                leftOperand = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
-                leftOperand = this.CheckFeatureAvailability(leftOperand, MessageID.IDS_FeatureRecursivePatterns);
+                leftOperand = ParseSwitchExpression(leftOperand);
             }
 
             return leftOperand;
-        }
-
-        private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()
-        {
-            // PROTOTYPE(patterns2): Error recovery here leaves much to be desired.
-            var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
-            do
-            {
-                // Use a precedence that excludes lambdas, assignments, and a ternary which could have a
-                // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
-                // to be consumed by the switch arm. The strange side-effect of that is that the ternary
-                // expression is not permitted as a constant expression here; it would have to be parenthesized.
-                var pattern = ParsePattern(Precedence.Coalescing);
-                var whenClause = ParseWhenClause();
-                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                var expression = ParseExpressionCore();
-                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
-                arms.Add(switchExpressionCase);
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    var commaToken = this.EatToken();
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken, this.CurrentToken.Text);
-                    }
-
-                    arms.AddSeparator(commaToken);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken);
-
-            SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
-            _pool.Free(arms);
-            return result;
         }
 
         private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature)

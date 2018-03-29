@@ -1127,5 +1127,197 @@ class Program
   IL_0015:  ret
 }");
         }
+
+        [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        public void TupleSwitch01()
+        {
+            var source = @"using System;
+
+public class Door
+{
+    public DoorState State;
+
+    public enum DoorState { Opened, Closed, Locked }
+
+    public enum Action { Open, Close, Lock, Unlock }
+
+    public void Act(Action action, bool haveKey = false)
+    {
+        Console.Write($""{State} {action}{(haveKey ? "" withKey"" : null)}"");
+        State = ChangeState0(State, action, haveKey);
+        Console.WriteLine($"" -> {State}"");
+    }
+
+    public static DoorState ChangeState0(DoorState state, Action action, bool haveKey = false)
+    {
+        switch ((state, action))
+        {
+            case (DoorState.Opened, Action.Close):
+                return DoorState.Closed;
+            case (DoorState.Closed, Action.Open):
+                return DoorState.Opened;
+            case (DoorState.Closed, Action.Lock) when haveKey:
+                return DoorState.Locked;
+            case (DoorState.Locked, Action.Unlock) when haveKey:
+                return DoorState.Closed;
+            case var (oldState, _):
+                return oldState;
+        }
+    }
+
+    public static DoorState ChangeState1(DoorState state, Action action, bool haveKey = false) =>
+        (state, action) switch {
+            (DoorState.Opened, Action.Close) => DoorState.Closed,
+            (DoorState.Closed, Action.Open) => DoorState.Opened,
+            (DoorState.Closed, Action.Lock) when haveKey => DoorState.Locked,
+            (DoorState.Locked, Action.Unlock) when haveKey => DoorState.Closed,
+            _ => state };
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var door = new Door();
+        door.Act(Door.Action.Close);
+        door.Act(Door.Action.Lock);
+        door.Act(Door.Action.Lock, true);
+        door.Act(Door.Action.Open);
+        door.Act(Door.Action.Unlock);
+        door.Act(Door.Action.Unlock, true);
+        door.Act(Door.Action.Open);
+    }
+}";
+            var expectedOutput =
+@"Opened Close -> Closed
+Closed Lock -> Closed
+Closed Lock withKey -> Locked
+Locked Open -> Locked
+Locked Unlock -> Locked
+Locked Unlock withKey -> Closed
+Closed Open -> Opened
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithRecursivePatterns());
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Door.ChangeState0",
+@"{
+  // Code size       94 (0x5e)
+  .maxstack  3
+  .locals init (Door.DoorState V_0,
+                System.ValueTuple<Door.DoorState, Door.Action> V_1,
+                Door.Action V_2)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  ldarg.0
+  IL_0003:  ldarg.1
+  IL_0004:  call       ""System.ValueTuple<Door.DoorState, Door.Action>..ctor(Door.DoorState, Door.Action)""
+  IL_0009:  ldloc.1
+  IL_000a:  ldfld      ""Door.DoorState System.ValueTuple<Door.DoorState, Door.Action>.Item1""
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  switch    (
+        IL_0024,
+        IL_0031,
+        IL_0041)
+  IL_0022:  br.s       IL_005c
+  IL_0024:  ldloc.1
+  IL_0025:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
+  IL_002a:  stloc.2
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldloc.2
+  IL_002d:  beq.s      IL_004e
+  IL_002f:  br.s       IL_005c
+  IL_0031:  ldloc.1
+  IL_0032:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  brfalse.s  IL_0050
+  IL_003b:  ldloc.2
+  IL_003c:  ldc.i4.2
+  IL_003d:  beq.s      IL_0052
+  IL_003f:  br.s       IL_005c
+  IL_0041:  ldloc.1
+  IL_0042:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
+  IL_0047:  stloc.2
+  IL_0048:  ldc.i4.3
+  IL_0049:  ldloc.2
+  IL_004a:  beq.s      IL_0057
+  IL_004c:  br.s       IL_005c
+  IL_004e:  ldc.i4.1
+  IL_004f:  ret
+  IL_0050:  ldc.i4.0
+  IL_0051:  ret
+  IL_0052:  ldarg.2
+  IL_0053:  brfalse.s  IL_005c
+  IL_0055:  ldc.i4.2
+  IL_0056:  ret
+  IL_0057:  ldarg.2
+  IL_0058:  brfalse.s  IL_005c
+  IL_005a:  ldc.i4.1
+  IL_005b:  ret
+  IL_005c:  ldloc.0
+  IL_005d:  ret
+}");
+            compVerifier.VerifyIL("Door.ChangeState1",
+@"{
+  // Code size       98 (0x62)
+  .maxstack  3
+  .locals init (System.ValueTuple<Door.DoorState, Door.Action> V_0,
+                Door.DoorState V_1,
+                Door.Action V_2,
+                Door.DoorState V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  ldarg.1
+  IL_0004:  call       ""System.ValueTuple<Door.DoorState, Door.Action>..ctor(Door.DoorState, Door.Action)""
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""Door.DoorState System.ValueTuple<Door.DoorState, Door.Action>.Item1""
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  switch    (
+        IL_0024,
+        IL_0031,
+        IL_0041)
+  IL_0022:  br.s       IL_005e
+  IL_0024:  ldloc.0
+  IL_0025:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
+  IL_002a:  stloc.2
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldloc.2
+  IL_002d:  beq.s      IL_004e
+  IL_002f:  br.s       IL_005e
+  IL_0031:  ldloc.0
+  IL_0032:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  brfalse.s  IL_0052
+  IL_003b:  ldloc.2
+  IL_003c:  ldc.i4.2
+  IL_003d:  beq.s      IL_0056
+  IL_003f:  br.s       IL_005e
+  IL_0041:  ldloc.0
+  IL_0042:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
+  IL_0047:  stloc.2
+  IL_0048:  ldc.i4.3
+  IL_0049:  ldloc.2
+  IL_004a:  beq.s      IL_005b
+  IL_004c:  br.s       IL_005e
+  IL_004e:  ldc.i4.1
+  IL_004f:  stloc.3
+  IL_0050:  br.s       IL_0060
+  IL_0052:  ldc.i4.0
+  IL_0053:  stloc.3
+  IL_0054:  br.s       IL_0060
+  IL_0056:  ldarg.2
+  IL_0057:  brtrue.s   IL_0056
+  IL_0059:  br.s       IL_005e
+  IL_005b:  ldarg.2
+  IL_005c:  brtrue.s   IL_005b
+  IL_005e:  ldarg.0
+  IL_005f:  stloc.3
+  IL_0060:  ldloc.3
+  IL_0061:  ret
+}");
+        }
     }
 }
