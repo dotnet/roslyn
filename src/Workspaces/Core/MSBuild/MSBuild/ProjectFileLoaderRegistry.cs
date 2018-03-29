@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             using (_dataGuard.DisposableWait())
             {
-                // otherwise try to figure it out from extension
                 var extension = Path.GetExtension(projectFilePath);
                 if (extension.Length > 0 && extension[0] == '.')
                 {
