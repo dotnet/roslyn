@@ -469,7 +469,7 @@ class C
 {
     void M(int p)
     {
-        /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
+        /*<bind>*/object F() => new object(); { return null; }/*</bind>*/;
     }
 }
 ";
@@ -504,12 +504,12 @@ class C
 {
     void M(int p)
     {
-        /*<bind>*/object F() { return new object(); } => new object(); /*</bind>*/;
+        /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'object F()  ... w object();')
+ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'object F()  ...  } => null;')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ return new object(); }')
       IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return new object();')
@@ -519,20 +519,20 @@ ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction
             Initializer: 
               null
   IgnoredBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> new object()')
-      IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'new object()')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> null')
+      IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'null')
         ReturnedValue: 
-          IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
-            Arguments(0)
-            Initializer: 
-              null
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,19): error CS8057: Block bodies and expression bodies cannot both be provided.
-                //         /*<bind>*/object F() { return new object(); } => new object(); /*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "object F() { return new object(); } => new object();").WithLocation(6, 19),
-                // file.cs(6,26): warning CS8321: The local function 'F' is declared but never used
-                //         /*<bind>*/object F() { return new object(); } => new object(); /*</bind>*/;
+                // error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "object F() { return new object(); } => null;").WithLocation(6, 19),
+                // warning CS8321: The local function 'F' is declared but never used
+                //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
             };
 
