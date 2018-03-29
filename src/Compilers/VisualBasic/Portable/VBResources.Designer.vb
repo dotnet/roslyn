@@ -12892,6 +12892,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is not supported in VB..
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeNotSupportedInVB() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeNotSupportedInVB", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Bad checksum value, non hex digits or odd number of hex digits..
         '''</summary>
         Friend ReadOnly Property WRN_BadChecksumValExtChecksum() As String
