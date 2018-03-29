@@ -7941,22 +7941,22 @@ public class Program
   // Code size       51 (0x33)
   .maxstack  1
   .locals init (int V_0, //i
-                int? V_1,
-                int V_2,
+                int V_1,
+                int? V_2,
                 int? V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloca.s   V_1
+  IL_0004:  stloc.2
+  IL_0005:  ldloca.s   V_2
   IL_0007:  call       ""bool int?.HasValue.get""
   IL_000c:  brfalse.s  IL_0025
-  IL_000e:  ldloca.s   V_1
+  IL_000e:  ldloca.s   V_2
   IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.2
+  IL_0015:  stloc.1
   IL_0016:  br.s       IL_0018
-  IL_0018:  ldloc.2
+  IL_0018:  ldloc.1
   IL_0019:  stloc.0
   IL_001a:  br.s       IL_001c
   IL_001c:  ldloc.0
@@ -8088,22 +8088,22 @@ public class Program
   // Code size       37 (0x25)
   .maxstack  1
   .locals init (System.IComparable V_0, //i
-                int? V_1,
-                System.IComparable V_2,
+                System.IComparable V_1,
+                int? V_2,
                 int? V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloca.s   V_1
+  IL_0004:  stloc.2
+  IL_0005:  ldloca.s   V_2
   IL_0007:  call       ""bool int?.HasValue.get""
   IL_000c:  brfalse.s  IL_0024
-  IL_000e:  ldloc.1
+  IL_000e:  ldloc.2
   IL_000f:  box        ""int?""
-  IL_0014:  stloc.2
+  IL_0014:  stloc.1
   IL_0015:  br.s       IL_0017
-  IL_0017:  ldloc.2
+  IL_0017:  ldloc.1
   IL_0018:  stloc.0
   IL_0019:  br.s       IL_001b
   IL_001b:  ldloc.0
@@ -8165,22 +8165,22 @@ public class Program
   // Code size       36 (0x24)
   .maxstack  1
   .locals init (int V_0, //i
-                object V_1,
-                int V_2,
+                int V_1,
+                object V_2,
                 object V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  isinst     ""int""
   IL_000b:  brfalse.s  IL_0023
-  IL_000d:  ldloc.1
+  IL_000d:  ldloc.2
   IL_000e:  unbox.any  ""int""
-  IL_0013:  stloc.2
+  IL_0013:  stloc.1
   IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  stloc.0
   IL_0018:  br.s       IL_001a
   IL_001a:  ldloc.0
@@ -8245,22 +8245,22 @@ public class Program
   // Code size       41 (0x29)
   .maxstack  1
   .locals init (T V_0, //i
-                object V_1,
-                T V_2,
+                T V_1,
+                object V_2,
                 object V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  isinst     ""T""
   IL_000b:  brfalse.s  IL_0028
-  IL_000d:  ldloc.1
+  IL_000d:  ldloc.2
   IL_000e:  unbox.any  ""T""
-  IL_0013:  stloc.2
+  IL_0013:  stloc.1
   IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  stloc.0
   IL_0018:  br.s       IL_001a
   IL_001a:  ldloc.0
@@ -8326,22 +8326,22 @@ public class Program
   // Code size       41 (0x29)
   .maxstack  1
   .locals init (T V_0, //i
-                System.IComparable V_1,
-                T V_2,
+                T V_1,
+                System.IComparable V_2,
                 System.IComparable V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  isinst     ""T""
   IL_000b:  brfalse.s  IL_0028
-  IL_000d:  ldloc.1
+  IL_000d:  ldloc.2
   IL_000e:  unbox.any  ""T""
-  IL_0013:  stloc.2
+  IL_0013:  stloc.1
   IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.2
+  IL_0016:  ldloc.1
   IL_0017:  stloc.0
   IL_0018:  br.s       IL_001a
   IL_001a:  ldloc.0
@@ -8409,24 +8409,24 @@ public class Program
   // Code size       51 (0x33)
   .maxstack  1
   .locals init (T V_0, //i
-                U V_1,
-                T V_2,
+                T V_1,
+                U V_2,
                 U V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  box        ""U""
   IL_000b:  isinst     ""T""
   IL_0010:  brfalse.s  IL_0032
-  IL_0012:  ldloc.1
+  IL_0012:  ldloc.2
   IL_0013:  box        ""U""
   IL_0018:  unbox.any  ""T""
-  IL_001d:  stloc.2
+  IL_001d:  stloc.1
   IL_001e:  br.s       IL_0020
-  IL_0020:  ldloc.2
+  IL_0020:  ldloc.1
   IL_0021:  stloc.0
   IL_0022:  br.s       IL_0024
   IL_0024:  ldloc.0
@@ -8603,8 +8603,8 @@ class Program
   // Code size       53 (0x35)
   .maxstack  1
   .locals init (T V_0, //t
-                System.ValueType V_1,
-                T V_2,
+                T V_1,
+                System.ValueType V_2,
                 System.ValueType V_3,
                 T V_4,
                 T V_5)
@@ -8612,16 +8612,16 @@ class Program
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  isinst     ""T""
   IL_000b:  brfalse.s  IL_0024
-  IL_000d:  ldloc.1
+  IL_000d:  ldloc.2
   IL_000e:  isinst     ""T""
   IL_0013:  unbox.any  ""T""
-  IL_0018:  stloc.2
+  IL_0018:  stloc.1
   IL_0019:  br.s       IL_001b
-  IL_001b:  ldloc.2
+  IL_001b:  ldloc.1
   IL_001c:  stloc.0
   IL_001d:  br.s       IL_001f
   IL_001f:  ldloc.0
@@ -8758,26 +8758,26 @@ class Program
   // Code size       54 (0x36)
   .maxstack  1
   .locals init (int V_0, //t
-                T V_1,
-                int V_2,
+                int V_1,
+                T V_2,
                 T V_3,
                 int V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  box        ""T""
   IL_000b:  isinst     ""int""
   IL_0010:  brfalse.s  IL_002e
-  IL_0012:  ldloc.1
+  IL_0012:  ldloc.2
   IL_0013:  box        ""T""
   IL_0018:  isinst     ""int""
   IL_001d:  unbox.any  ""int""
-  IL_0022:  stloc.2
+  IL_0022:  stloc.1
   IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.2
+  IL_0025:  ldloc.1
   IL_0026:  stloc.0
   IL_0027:  br.s       IL_0029
   IL_0029:  ldloc.0
@@ -9302,16 +9302,16 @@ public class Program
 @"{
   // Code size      106 (0x6a)
   .maxstack  1
-  .locals init (object V_0,
-                int V_1)
+  .locals init (int V_0,
+                object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
   IL_0003:  isinst     ""int""
   IL_0008:  brfalse.s  IL_0021
-  IL_000a:  ldloc.0
+  IL_000a:  ldloc.1
   IL_000b:  unbox.any  ""int""
-  IL_0010:  stloc.1
+  IL_0010:  stloc.0
   IL_0011:  ldsfld     ""bool Program.b""
   IL_0016:  brtrue.s   IL_0069
   IL_0018:  ldsfld     ""bool Program.b""
@@ -9355,22 +9355,22 @@ public class Program
                 int V_1, //i
                 int V_2, //i
                 int V_3, //i
-                object V_4,
-                int V_5,
+                int V_4,
+                object V_5,
                 object V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_6
   IL_0004:  ldloc.s    V_6
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloc.s    V_4
+  IL_0006:  stloc.s    V_5
+  IL_0008:  ldloc.s    V_5
   IL_000a:  isinst     ""int""
   IL_000f:  brfalse.s  IL_0033
-  IL_0011:  ldloc.s    V_4
+  IL_0011:  ldloc.s    V_5
   IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.s    V_5
+  IL_0018:  stloc.s    V_4
   IL_001a:  br.s       IL_001c
-  IL_001c:  ldloc.s    V_5
+  IL_001c:  ldloc.s    V_4
   IL_001e:  stloc.0
   IL_001f:  ldsfld     ""bool Program.b""
   IL_0024:  brtrue.s   IL_0028
@@ -9383,7 +9383,7 @@ public class Program
   IL_0038:  brtrue.s   IL_003c
   IL_003a:  br.s       IL_0055
   IL_003c:  br.s       IL_009b
-  IL_003e:  ldloc.s    V_5
+  IL_003e:  ldloc.s    V_4
   IL_0040:  stloc.1
   IL_0041:  ldsfld     ""bool Program.b""
   IL_0046:  brtrue.s   IL_004a
@@ -9396,7 +9396,7 @@ public class Program
   IL_005a:  brtrue.s   IL_005e
   IL_005c:  br.s       IL_0077
   IL_005e:  br.s       IL_009b
-  IL_0060:  ldloc.s    V_5
+  IL_0060:  ldloc.s    V_4
   IL_0062:  stloc.2
   IL_0063:  ldsfld     ""bool Program.b""
   IL_0068:  brtrue.s   IL_006c
@@ -9409,7 +9409,7 @@ public class Program
   IL_007c:  brtrue.s   IL_0080
   IL_007e:  br.s       IL_0090
   IL_0080:  br.s       IL_009b
-  IL_0082:  ldloc.s    V_5
+  IL_0082:  ldloc.s    V_4
   IL_0084:  stloc.3
   IL_0085:  ldsfld     ""bool Program.b""
   IL_008a:  brtrue.s   IL_008e
