@@ -245,6 +245,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateConstructorBodyOperation((BoundConstructorMethodBody)boundNode);
                 case BoundKind.NonConstructorMethodBody:
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
+                case BoundKind.DiscardExpression:
+                    return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
 
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
@@ -1879,6 +1881,16 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // We do not have operation nodes for the bound range variables, just it's value.
             return Create(boundRangeVariable.Value);
+        }
+
+        private IOperation CreateDiscardExpressionOperation(BoundDiscardExpression boundNode)
+        {
+            return new DiscardOperation((IDiscardSymbol)boundNode.ExpressionSymbol,
+                                        _semanticModel,
+                                        boundNode.Syntax,
+                                        boundNode.Type,
+                                        ConvertToOptional(boundNode.ConstantValue),
+                                        isImplicit: boundNode.WasCompilerGenerated);
         }
     }
 }

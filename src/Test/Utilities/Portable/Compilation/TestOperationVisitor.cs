@@ -1170,5 +1170,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assert.Empty(operation.Children);
             }
         }
+
+        public override void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            Assert.Equal(OperationKind.Discard, operation.Kind);
+
+            var discardSymbol = operation.DiscardSymbol;
+            Assert.Equal(operation.Type, discardSymbol.Type);
+        }
     }
 }
