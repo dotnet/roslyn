@@ -6565,7 +6565,7 @@ class C
         }
 
         [Fact]
-        public void AttributeDiagnosticsForEachArgument()
+        public void AttributeDiagnosticsForEachArgument01()
         {
             var source = @"using System;
 public class A : Attribute 
@@ -6576,6 +6576,25 @@ public class A : Attribute
 [A(new object[] { default(E), default(E) })]
 class C<T, U> { public enum E {} }";
 
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void AttributeDiagnosticsForEachArgument02()
+        {
+            var source = @"using System;
+public class A : Attribute 
+{
+  public A(object[] a, object[] b) {}
+}
+
+[A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+class C<T, U> { public enum E {} }";
+            // Note that we suppress further errors once we have reported a bad attribute argument.
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
