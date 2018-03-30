@@ -1827,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
                 return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);
             }
-            else if (boundPatternSwitchLabel.Guard == null &&
+            else if (boundPatternSwitchLabel.WhenClause == null &&
                      boundPatternSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
                      boundPatternSwitchLabel.Pattern is BoundConstantPattern cp &&
                      cp.Value.Type.IsValidV6SwitchGoverningType())
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 LabelSymbol label = boundPatternSwitchLabel.Label;
                 Lazy<IPatternOperation> pattern = new Lazy<IPatternOperation>(() => (IPatternOperation)Create(boundPatternSwitchLabel.Pattern));
-                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
+                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.WhenClause));
                 return new LazyPatternCaseClause(label, pattern, guardExpression, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }

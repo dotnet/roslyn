@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._factory = localRewriter._factory;
                 this._factory.Syntax = _loweredInput.Syntax;
                 this._tempAllocator = new DagTempAllocator(_factory);
-                this._inputTemp = new BoundDagTemp(loweredInput.Syntax, loweredInput.Type, null, 0);
+                this._inputTemp = new BoundDagTemp(loweredInput.Syntax, loweredInput.Type, source: null, index: 0);
             }
 
             public void Free()
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagFieldEvaluation f:
                         {
                             FieldSymbol field = f.Field;
-                            var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, 0);
+                            var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, index: 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             BoundExpression access = _localRewriter.MakeFieldAccess(f.Syntax, input, field, null, LookupResultKind.Viable, field.Type);
                             access.WasCompilerGenerated = true;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagPropertyEvaluation p:
                         {
                             PropertySymbol property = p.Property;
-                            var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, 0);
+                            var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, index: 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, _factory.Property(input, property));
                         }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             TypeSymbol type = t.Type;
-                            var outputTemp = new BoundDagTemp(t.Syntax, type, t, 0);
+                            var outputTemp = new BoundDagTemp(t.Syntax, type, t, index: 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     )
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
-                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation.Type, evaluation, 0));
+                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation.Type, evaluation, index: 0));
                     sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation.Type));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
                     return true;
