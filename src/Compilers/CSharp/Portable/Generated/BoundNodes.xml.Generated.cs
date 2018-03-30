@@ -2456,31 +2456,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalFunctionStatement : BoundStatement
     {
-        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock body, bool hasErrors = false)
-            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || body.HasErrors())
+        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody, bool hasErrors = false)
+            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors())
         {
 
             Debug.Assert(symbol != null, "Field 'symbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Symbol = symbol;
-            this.Body = body;
+            this.BlockBody = blockBody;
+            this.ExpressionBody = expressionBody;
         }
 
 
         public LocalFunctionSymbol Symbol { get; }
 
-        public BoundBlock Body { get; }
+        public BoundBlock BlockBody { get; }
+
+        public BoundBlock ExpressionBody { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitLocalFunctionStatement(this);
         }
 
-        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock body)
+        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody)
         {
-            if (symbol != this.Symbol || body != this.Body)
+            if (symbol != this.Symbol || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
             {
-                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, body, this.HasErrors);
+                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, blockBody, expressionBody, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8177,7 +8180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            this.Visit(node.Body);
+            this.Visit(node.BlockBody);
+            this.Visit(node.ExpressionBody);
             return null;
         }
         public override BoundNode VisitSequence(BoundSequence node)
@@ -9027,8 +9031,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            BoundBlock body = (BoundBlock)this.Visit(node.Body);
-            return node.Update(node.Symbol, body);
+            BoundBlock blockBody = (BoundBlock)this.Visit(node.BlockBody);
+            BoundBlock expressionBody = (BoundBlock)this.Visit(node.ExpressionBody);
+            return node.Update(node.Symbol, blockBody, expressionBody);
         }
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -10199,7 +10204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("localFunctionStatement", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("symbol", node.Symbol, null),
-                new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+                new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
+                new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
             }
             );
         }
