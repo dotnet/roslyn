@@ -160,10 +160,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Local that stores an expression value which needs to be spilled.
-        /// This local should either be hoisted or its lifespan ends before 
-        /// the end of the containing await expression.
+        /// Such a local arises from the translation of an await or switch expression,
+        /// and might be hoisted to an async state machine if it remains alive
+        /// after an await expression.
         /// </summary>
-        AwaitSpill = 28,
+        Spill = 28,
 
         AwaitByRefSpill = 29,
 

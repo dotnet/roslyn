@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// PROTOTYPE(patterns2): This is a placeholder. It is not used yet for lowering the
             /// switch expression, where it will be needed.
             /// </summary>
-            private readonly ArrayBuilder<BoundDecisionDag> _backwardLabels = ArrayBuilder<BoundDecisionDag>.GetInstance();
+            private readonly ArrayBuilder<BoundDecisionDagNode> _backwardLabels = ArrayBuilder<BoundDecisionDagNode>.GetInstance();
 
             /// <summary>
             /// The lowered decision dag. This includes all of the code to decide which pattern
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
-            private readonly Dictionary<BoundDecisionDag, LabelSymbol> _dagNodeLabels = new Dictionary<BoundDecisionDag, LabelSymbol>();
+            private readonly Dictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = new Dictionary<BoundDecisionDagNode, LabelSymbol>();
 
             protected BasePatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundExpression loweredInput, ImmutableArray<SyntaxNode> arms, BoundDecisionDag decisionDag)
                 : base(localRewriter, loweredInput)
@@ -56,16 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _switchArms.Add(arm, new ArrayBuilder<BoundStatement>());
                 }
 
-                ImmutableArray<BoundDecisionDag> sortedNodes = decisionDag.TopologicallySortedNodes();
+                ImmutableArray<BoundDecisionDagNode> sortedNodes = decisionDag.TopologicallySortedNodes;
                 ComputeLabelSet(sortedNodes);
                 LowerDecisionDag(sortedNodes);
             }
 
-            private void ComputeLabelSet(ImmutableArray<BoundDecisionDag> sortedNodes)
+            private void ComputeLabelSet(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
                 // Nodes with more than one predecessor are assigned a label
-                var hasPredecessor = PooledHashSet<BoundDecisionDag>.GetInstance();
-                void notePredecessor(BoundDecisionDag successor)
+                var hasPredecessor = PooledHashSet<BoundDecisionDagNode>.GetInstance();
+                void notePredecessor(BoundDecisionDagNode successor)
                 {
                     if (successor != null && !hasPredecessor.Add(successor))
                     {
@@ -73,28 +74,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                foreach (BoundDecisionDag node in sortedNodes)
+                foreach (BoundDecisionDagNode node in sortedNodes)
                 {
                     switch (node)
                     {
-                        case BoundWhenClause w:
+                        case BoundWhenDecisionDagNode w:
                             GetDagNodeLabel(node);
-                            //Debug.Assert(w.WhenTrue != null);
-                            //GetDagNodeLabel(w.WhenTrue);
                             if (w.WhenFalse != null)
                             {
                                 GetDagNodeLabel(w.WhenFalse);
                                 _backwardLabels.Add(w.WhenFalse);
                             }
                             break;
-                        case BoundDecision d:
-                            // Final decisions can branch directly to the target
+                        case BoundLeafDecisionDagNode d:
+                            // Leaf can branch directly to the target
                             _dagNodeLabels[node] = d.Label;
                             break;
-                        case BoundEvaluationPoint e:
+                        case BoundEvaluationDecisionDagNode e:
                             notePredecessor(e.Next);
                             break;
-                        case BoundDecisionPoint p:
+                        case BoundTestDecisionDagNode p:
                             notePredecessor(p.WhenTrue);
                             notePredecessor(p.WhenFalse);
                             break;
@@ -113,11 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _backwardLabels.Free();
             }
 
-            protected virtual LabelSymbol GetDagNodeLabel(BoundDecisionDag dag)
+            protected virtual LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
             {
                 if (!_dagNodeLabels.TryGetValue(dag, out LabelSymbol label))
                 {
-                    _dagNodeLabels.Add(dag, label = dag is BoundDecision d ? d.Label : _factory.GenerateLabel("dagNode"));
+                    _dagNodeLabels.Add(dag, label = dag is BoundLeafDecisionDagNode d ? d.Label : _factory.GenerateLabel("dagNode"));
                 }
 
                 return label;
@@ -126,82 +125,158 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Lower the given nodes into _loweredDecisionDag.
             /// </summary>
-            private void LowerDecisionDag(ImmutableArray<BoundDecisionDag> sortedNodes)
+            private void LowerDecisionDag(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
                 switch (sortedNodes[0])
                 {
-                    case BoundWhenClause wc:
+                    case BoundWhenDecisionDagNode wc:
                         // If the first node is in a when clause's section rather than the code for the
                         // lowered decision dag, jump there to start.
                         _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(wc)));
                         break;
-                    case BoundDecision d:
-                        // If the first node is a decision rather than the code for the
+                    case BoundLeafDecisionDagNode d:
+                        // If the first node is a leaf rather than the code for the
                         // lowered decision dag, jump there to start.
                         _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(d)));
                         break;
                 }
 
-                // Call LowerDecisionDagNode with each node and its following node in the generation order.
-                // However, some nodes can be emitted more efficiently as a switch dispatch (possibly out
-                // of order).
-                var loweredNodes = PooledHashSet<BoundDecisionDag>.GetInstance();
-                BoundDecisionDag previous = null;
-                foreach (BoundDecisionDag node in sortedNodes)
+                // Note that a when-clause can contain an assignment to a
+                // pattern variable declared in a different when-clause, so we only apply the optimization
+                // of using user-declared pattern variables as pattern-matching automaton temps
+                // when there are no nontrivial when-clauses at all.
+                if (!sortedNodes.Any(n => n is BoundWhenDecisionDagNode w && w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True))
                 {
-                    if (node is BoundWhenClause w)
-                    {
-                        // Code for the when clause goes in a separate code section for the switch section.
-                        LowerWhenClause(w);
-                        continue;
-                    }
-
-                    // BoundDecision nodes do not get any code generated for them.
-                    if (node is BoundDecision || loweredNodes.Contains(node))
-                    {
-                        continue;
-                    }
-
-                    if (previous != null && !loweredNodes.Contains(previous))
-                    {
-                        // Lower the node "previous".
-                        if (!GenerateSwitchDispatch(previous, loweredNodes))
-                        {
-                            LowerDecisionDagNode(previous, node);
-                        }
-
-                        loweredNodes.Add(previous);
-                    }
-
-                    previous = node;
+                    ShareTemps(sortedNodes);
                 }
 
-                // Lower the final node
-                if (previous != null && !loweredNodes.Contains(previous))
+                // Code for each when clause goes in the separate code section for its switch section.
+                foreach (BoundDecisionDagNode node in sortedNodes)
                 {
-                    LowerDecisionDagNode(previous, null);
+                    if (node is BoundWhenDecisionDagNode w)
+                    {
+                        LowerWhenClause(w);
+                    }
+                }
+
+                ImmutableArray<BoundDecisionDagNode> nodesToLower = sortedNodes.WhereAsArray(n => n.Kind != BoundKind.WhenDecisionDagNode && n.Kind != BoundKind.LeafDecisionDagNode);
+                var loweredNodes = PooledHashSet<BoundDecisionDagNode>.GetInstance();
+                for (int i = 0, length = nodesToLower.Length; i < length; i++)
+                {
+                    BoundDecisionDagNode node = nodesToLower[i];
+                    if (loweredNodes.Contains(node))
+                    {
+                        continue;
+                    }
+
+                    if (this._dagNodeLabels.TryGetValue(node, out LabelSymbol label))
+                    {
+                        _loweredDecisionDag.Add(_factory.Label(label));
+                    }
+
+                    // If we can generate an IL switch instruction, do so
+                    if (GenerateSwitchDispatch(node, loweredNodes))
+                    {
+                        continue;
+                    }
+
+                    // If we can generate a type test and cast more efficiently as an `is` followed by a null check, do so
+                    if (GenerateTypeTestAndCast(node, loweredNodes, nodesToLower, i))
+                    {
+                        continue;
+                    }
+
+                    // We pass the node that will follow so we can permit a test to fall through if appropriate
+                    BoundDecisionDagNode nextNode = ((i + 1) < length) ? nodesToLower[i + 1] : null;
+                    if (nextNode != null && loweredNodes.Contains(nextNode))
+                    {
+                        nextNode = null;
+                    }
+
+                    LowerDecisionDagNode(node, nextNode);
                 }
 
                 loweredNodes.Free();
             }
 
             /// <summary>
+            /// If we have a type test followed by a cast to that type, and the types are reference types,
+            /// then we can replace the pair of them by a conversion using `as` and a null check.
+            /// </summary>
+            /// <returns>true if we generated code for the test</returns>
+            private bool GenerateTypeTestAndCast(
+                BoundDecisionDagNode node,
+                HashSet<BoundDecisionDagNode> loweredNodes,
+                ImmutableArray<BoundDecisionDagNode> nodesToLower,
+                int indexOfNode)
+            {
+                Debug.Assert(node == nodesToLower[indexOfNode]);
+                if (node is BoundTestDecisionDagNode testNode &&
+                    testNode.WhenTrue is BoundEvaluationDecisionDagNode evaluationNode &&
+                    // Even if there are other entries to the evaluation point, we need not use it here
+                    // !this._dagNodeLabels.ContainsKey(evaluationPoint) &&
+                    TryLowerTypeTestAndCast(testNode.Test, evaluationNode.Evaluation, out BoundExpression sideEffect, out BoundExpression test)
+                    )
+                {
+                    var whenTrue = evaluationNode.Next;
+                    var whenFalse = testNode.WhenFalse;
+                    if (!this._dagNodeLabels.ContainsKey(evaluationNode))
+                    {
+                        loweredNodes.Add(evaluationNode);
+                    }
+
+                    var nextNode =
+                        (indexOfNode + 2 < nodesToLower.Length) &&
+                        nodesToLower[indexOfNode + 1] == evaluationNode &&
+                        !loweredNodes.Contains(nodesToLower[indexOfNode + 2]) ? nodesToLower[indexOfNode + 2] : null;
+
+                    _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                    GenerateTest(test, whenTrue, whenFalse, nextNode);
+                    return true;
+                }
+
+                return false;
+            }
+
+            private void GenerateTest(BoundExpression test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse, BoundDecisionDagNode nextNode)
+            {
+                // Because we have already "optimized" away tests for a constant switch expression, the test should be nontrivial.
+                Debug.Assert(test != null);
+
+                if (nextNode == whenFalse)
+                {
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenTrue), jumpIfTrue: true));
+                    // fall through to false path
+                }
+                else if (nextNode == whenTrue)
+                {
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenFalse), jumpIfTrue: false));
+                    // fall through to true path
+                }
+                else
+                {
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenTrue), jumpIfTrue: true));
+                    _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
+                }
+            }
+
+            /// <summary>
             /// Generate a switch dispatch for a contiguous sequence of dag nodes if applicable.
             /// Returns true if it was applicable.
             /// </summary>
-            private bool GenerateSwitchDispatch(BoundDecisionDag node, HashSet<BoundDecisionDag> loweredNodes)
+            private bool GenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
             {
                 Debug.Assert(!loweredNodes.Contains(node));
 
-                // We only generate a switch dispatch if we have two or more value decisions in a row
-                if (!(node is BoundDecisionPoint firstDecisionPoint &&
-                     firstDecisionPoint.Decision is BoundNonNullValueDecision firstDecision &&
-                     firstDecisionPoint.WhenFalse is BoundDecisionPoint whenFalse &&
-                     whenFalse.Decision is BoundNonNullValueDecision secondDecision &&
+                // We only generate a switch dispatch if we have two or more value tests in a row
+                if (!(node is BoundTestDecisionDagNode firstTestNode &&
+                     firstTestNode.Test is BoundDagValueTest firstTest &&
+                     firstTestNode.WhenFalse is BoundTestDecisionDagNode whenFalse &&
+                     whenFalse.Test is BoundDagValueTest secondTest &&
                      !loweredNodes.Contains(whenFalse) &&
                      !this._dagNodeLabels.ContainsKey(whenFalse) &&
-                     firstDecision.Input == secondDecision.Input &&
-                     firstDecision.Input.Type.IsValidV6SwitchGoverningType()))
+                     firstTest.Input == secondTest.Input &&
+                     firstTest.Input.Type.IsValidV6SwitchGoverningType()))
                 {
                     // PROTOTYPE(patterns2): Should optimize float, double, decimal value switches. For now use if-then-else
                     return false;
@@ -209,12 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Gather up the (value, label) pairs, starting with the first one
                 var cases = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
-                cases.Add((value: firstDecision.Value, label: GetDagNodeLabel(firstDecisionPoint.WhenTrue)));
+                cases.Add((value: firstTest.Value, label: GetDagNodeLabel(firstTestNode.WhenTrue)));
 
-                BoundDecisionPoint previous = firstDecisionPoint;
-                while (previous.WhenFalse is BoundDecisionPoint p &&
-                    p.Decision is BoundNonNullValueDecision vd &&
-                    vd.Input == firstDecision.Input &&
+                BoundTestDecisionDagNode previous = firstTestNode;
+                while (previous.WhenFalse is BoundTestDecisionDagNode p &&
+                    p.Test is BoundDagValueTest vd &&
+                    vd.Input == firstTest.Input &&
                     !this._dagNodeLabels.ContainsKey(p) &&
                     !loweredNodes.Contains(p))
                 {
@@ -228,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // string hash value in <PrivateImplementationDetails> class.
 
                 MethodSymbol stringEquality = null;
-                if (firstDecision.Input.Type.SpecialType == SpecialType.System_String)
+                if (firstTest.Input.Type.SpecialType == SpecialType.System_String)
                 {
                     EnsureStringHashFunction(cases.Count, node.Syntax);
                     stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
@@ -241,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LabelSymbol defaultLabel = GetDagNodeLabel(previous.WhenFalse);
                 var dispatch = new BoundSwitchDispatch(
-                    node.Syntax, _tempAllocator.GetTemp(firstDecision.Input), cases.ToImmutableAndFree(), defaultLabel, stringEquality);
+                    node.Syntax, _tempAllocator.GetTemp(firstTest.Input), cases.ToImmutableAndFree(), defaultLabel, stringEquality);
                 _loweredDecisionDag.Add(dispatch);
                 return true;
             }
@@ -299,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 privateImplClass.TryAddSynthesizedMethod(method);
             }
 
-            private void LowerWhenClause(BoundWhenClause whenClause)
+            private void LowerWhenClause(BoundWhenDecisionDagNode whenClause)
             {
                 // This node is used even when there is no when clause, to record bindings. In the case that there
                 // is no when clause, whenClause.WhenExpression and whenClause.WhenFalse are null, and the syntax for this
@@ -307,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We need to assign the pattern variables in the code where they are in scope, so we produce a branch
                 // to the section where they are in scope and evaluate the when clause there.
-                var whenTrue = (BoundDecision)whenClause.WhenTrue;
+                var whenTrue = (BoundLeafDecisionDagNode)whenClause.WhenTrue;
                 LabelSymbol labelToSectionScope = GetDagNodeLabel(whenClause);
 
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
@@ -330,9 +405,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                 Debug.Assert(foundSectionBuilder);
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));
-                foreach ((BoundExpression left, BoundDagTemp right) in whenClause.Bindings)
+                foreach ((BoundExpression leftExpression, BoundDagTemp dagTemp) in whenClause.Bindings)
                 {
-                    sectionBuilder.Add(_factory.Assignment(left, _tempAllocator.GetTemp(right)));
+                    BoundExpression rightExpression = _tempAllocator.GetTemp(dagTemp);
+                    if (leftExpression == rightExpression)
+                    {
+                        // In this case we would just be assigning the variable to itself, so we need generate no code.
+                        // This arises due to an optimization by which we use pattern variables as dag temps.
+                    }
+                    else
+                    {
+                        sectionBuilder.Add(_factory.Assignment(leftExpression, rightExpression));
+                    }
                 }
 
                 var whenFalse = whenClause.WhenFalse;
@@ -354,54 +438,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Translate the decision tree for node, given that it will be followed by the translation for nextNode.
+            /// Translate the decision dag for node, given that it will be followed by the translation for nextNode.
             /// </summary>
-            private void LowerDecisionDagNode(BoundDecisionDag node, BoundDecisionDag nextNode)
+            private void LowerDecisionDagNode(BoundDecisionDagNode node, BoundDecisionDagNode nextNode)
             {
-                if (this._dagNodeLabels.TryGetValue(node, out LabelSymbol label))
-                {
-                    _loweredDecisionDag.Add(_factory.Label(label));
-                }
-
                 switch (node)
                 {
-                    case BoundEvaluationPoint evaluationPoint:
+                    case BoundEvaluationDecisionDagNode evaluationNode:
                         {
-                            BoundExpression sideEffect = LowerEvaluation(evaluationPoint.Evaluation);
+                            BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
                             Debug.Assert(sideEffect != null);
                             _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
-                            if (nextNode != evaluationPoint.Next)
+                            if (nextNode != evaluationNode.Next)
                             {
                                 // We only need a goto if we would not otherwise fall through to the desired state
-                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evaluationPoint.Next)));
+                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evaluationNode.Next)));
                             }
                         }
 
                         break;
 
-                    case BoundDecisionPoint decisionPoint:
+                    case BoundTestDecisionDagNode testNode:
                         {
                             // PROTOTYPE(patterns2): should translate a chain of constant value tests into a switch instruction as before
-                            BoundExpression test = base.LowerDecision(decisionPoint.Decision);
-
-                            // Because we have already "optimized" away tests for a constant switch expression, the decision should be nontrivial.
-                            Debug.Assert(test != null);
-
-                            if (nextNode == decisionPoint.WhenFalse)
-                            {
-                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenTrue), jumpIfTrue: true));
-                                // fall through to false decision
-                            }
-                            else if (nextNode == decisionPoint.WhenTrue)
-                            {
-                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenFalse), jumpIfTrue: false));
-                                // fall through to true decision
-                            }
-                            else
-                            {
-                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenTrue), jumpIfTrue: true));
-                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(decisionPoint.WhenFalse)));
-                            }
+                            BoundExpression test = base.LowerTest(testNode.Test);
+                            GenerateTest(test, testNode.WhenTrue, testNode.WhenFalse, nextNode);
                         }
 
                         break;
