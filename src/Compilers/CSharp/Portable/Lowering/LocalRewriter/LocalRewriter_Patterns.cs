@@ -69,14 +69,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
+                /// <summary>
+                /// Try setting a user-declared variable (given by its accessing expression) to be
+                /// used for a pattern-matching temporary variable. Returns true when not already
+                /// assigned. The return value of this method is typically ignored by the caller as
+                /// once we have made an assignment we can keep it (we keep the first assignment we
+                /// find), but we return a success bool to emphasize that the assignment is not unconditional.
+                /// </summary>
+                public bool TrySetTemp(BoundDagTemp dagTemp, BoundExpression translation)
+                {
+                    if (!_map.ContainsKey(dagTemp))
+                    {
+                        _map.Add(dagTemp, translation);
+                        return true;
+                    }
+
+                    return false;
+                }
+
                 public ImmutableArray<LocalSymbol> AllTemps()
                 {
                     return _temps.ToImmutableArray();
-                }
-
-                public void AssignTemp(BoundDagTemp dagTemp, BoundExpression value)
-                {
-                    _map.Add(dagTemp, value);
                 }
             }
 
@@ -291,6 +304,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffect = testExpression = null;
                 return false;
             }
+
+            protected void ShareTemps(ImmutableArray<BoundDecisionDagNode> sortedNodes)
+            {
+                if (_loweredInput.Kind == BoundKind.Local || _loweredInput.Kind == BoundKind.Parameter)
+                {
+                    // If we're switching on a local variable and there is no when clause (checked by the caller),
+                    // we assume the value of the local variable does not change during the execution of the
+                    // decision automaton and we just reuse the local variable when we need the input expression.
+                    // It is possible for this assumption to be violated by a side-effecting Deconstruct that
+                    // modifies the local variable which has been captured in a lambda. Since the language assumes
+                    // that functions called during pattern-matching are idempotent and not side-effecting, we feel
+                    // justified in taking this assumption in the compiler too.
+                    _ = _tempAllocator.TrySetTemp(_inputTemp, _loweredInput);
+                }
+
+                foreach (BoundDecisionDagNode node in sortedNodes)
+                {
+                    if (node is BoundWhenDecisionDagNode w)
+                    {
+                        Debug.Assert(w.WhenExpression == null || w.WhenExpression.ConstantValue == ConstantValue.True);
+
+                        // We share a slot for a user-declared pattern-matching variable with a pattern temp if there
+                        // is no user-written when-clause that could modify the variable before the matching
+                        // automaton is done with it (checked by the caller).
+                        foreach ((BoundExpression left, BoundDagTemp dagTemp) in w.Bindings)
+                        {
+                            if (left is BoundLocal l)
+                            {
+                                Debug.Assert(l.LocalSymbol.DeclarationKind == LocalDeclarationKind.PatternVariable);
+                                _ = _tempAllocator.TrySetTemp(dagTemp, left);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private class IsPatternExpressionLocalRewriter : PatternLocalRewriter
@@ -368,19 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     dag = dag.SimplifyDecisionDagForConstantInput(_loweredInput, _localRewriter._compilation.Conversions, diagnostics);
                 }
 
-                // first, copy the input expression into the input temp
-                if (pattern.Kind != BoundKind.RecursivePattern &&
-                    (_loweredInput.Kind == BoundKind.Local || _loweredInput.Kind == BoundKind.Parameter || _loweredInput.ConstantValue != null))
+                // The optimization of sharing pattern-matching temps with user variables can always apply to
+                // an is-pattern expression because there is no when clause.
+                ShareTemps(dag.TopologicallySortedNodes);
+                var inputTemp = _tempAllocator.GetTemp(_inputTemp);
+                if (inputTemp != _loweredInput)
                 {
-                    // Since non-recursive patterns cannot have side-effects on locals, we reuse an existing local
-                    // if present. A recursive pattern, on the other hand, may mutate a local through a captured lambda
-                    // when a `Deconstruct` method is invoked.
-                    _tempAllocator.AssignTemp(_inputTemp, _loweredInput);
-                }
-                else
-                {
-                    // Even if subsequently unused (e.g. `GetValue() is _`), we assign to a temp to evaluate the side-effect
-                    _sideEffectBuilder.Add(_factory.AssignmentExpression(_tempAllocator.GetTemp(_inputTemp), _loweredInput));
+                    _sideEffectBuilder.Add(_factory.AssignmentExpression(inputTemp, _loweredInput));
                 }
 
                 var node = dag.RootNode;
@@ -439,9 +481,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(whenNode.WhenExpression == null);
                             Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == successLabel);
-                            foreach ((BoundExpression left, BoundDagTemp right) in whenNode.Bindings)
+                            foreach ((BoundExpression left, BoundDagTemp dagTemp) in whenNode.Bindings)
                             {
-                                _sideEffectBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
+                                BoundExpression right = _tempAllocator.GetTemp(dagTemp);
+                                if (left != right)
+                                {
+                                    _sideEffectBuilder.Add(_factory.AssignmentExpression(left, right));
+                                }
                             }
                         }
 

@@ -4451,7 +4451,7 @@ class Program
 {
   // Code size       16 (0x10)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init (int V_0) //value
   .try
   {
     IL_0000:  ldc.i4.1

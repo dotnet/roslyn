@@ -103,7 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Assign the input to a temp
-                result.Add(_factory.Assignment(_tempAllocator.GetTemp(base._inputTemp), expression));
+                BoundExpression inputTemp = _tempAllocator.GetTemp(base._inputTemp);
+                if (inputTemp == expression)
+                {
+                    // In this case we would just be assigning the variable to itself, so we need generate no code.
+                    // This arises due to an optimization by which we use pattern variables as pattern-matching temps.
+                }
+                else
+                {
+                    result.Add(_factory.Assignment(inputTemp, expression));
+                }
 
                 // then add the rest of the lowered dag that references that input
                 result.Add(_factory.Block(this._loweredDecisionDag.ToImmutable()));
