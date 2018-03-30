@@ -537,7 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Locals.All(l => l.SynthesizedKind.IsLongLived()));
             var builder = new BoundSpillSequenceBuilder();
+
+            // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
             _F.Syntax = node.Syntax;
+
             builder.AddStatements(VisitList(node.SideEffects));
             builder.AddLocals(node.Locals);
             var value = VisitExpression(ref builder, node.Value);

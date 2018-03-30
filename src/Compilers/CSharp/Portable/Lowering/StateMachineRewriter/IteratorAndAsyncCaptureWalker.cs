@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
+                        Debug.Assert(local.Type.IsRestrictedType());
                         diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
                     }
                     else

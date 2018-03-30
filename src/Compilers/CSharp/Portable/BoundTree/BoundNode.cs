@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        [Conditional("DEBUG")]
         public void CheckLocalsDefined()
         {
 #if DEBUG
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsScanner.Free();
             }
 
-            void AddAll(ImmutableArray<LocalSymbol> locals)
+            private void AddAll(ImmutableArray<LocalSymbol> locals)
             {
                 foreach (var local in locals)
                 {
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void RemoveAll(ImmutableArray<LocalSymbol> locals)
+            private void RemoveAll(ImmutableArray<LocalSymbol> locals)
             {
                 foreach (var local in locals)
                 {
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void CheckDeclared(LocalSymbol local)
+            private void CheckDeclared(LocalSymbol local)
             {
                 if (!DeclaredLocals.Contains(local))
                 {
