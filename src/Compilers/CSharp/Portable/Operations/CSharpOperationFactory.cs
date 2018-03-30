@@ -1457,6 +1457,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
                 loopControlVariable = new Lazy<IOperation>(() => new VariableDeclarator(local, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: declaratorSyntax, type: null, constantValue: default, isImplicit: false));
             }
+            else if (boundForEachStatement.IterationErrorExpressionOpt != null)
+            {
+                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.IterationErrorExpressionOpt));
+            }
             else
             {
                 loopControlVariable = OperationFactory.NullOperation;

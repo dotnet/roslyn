@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
+            BoundExpression iterationErrorExpression = null;
             uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
@@ -303,6 +304,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
                             hasErrors = true;
                         }
+                        else
+                        {
+                            // Bind the expression for error recovery, but discard all new diagnostics
+                            iterationErrorExpression = originalBinder.BindExpression(node.Variable, new DiagnosticBag());
+                            hasErrors = true;
+                        }
 
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
                         break;
@@ -334,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default(Conversion),
                     boundIterationVariableType,
                     iterationVariables,
+                    iterationErrorExpression,
                     collectionExpr,
                     deconstructStep,
                     body,
