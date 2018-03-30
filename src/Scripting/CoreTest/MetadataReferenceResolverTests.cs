@@ -61,6 +61,20 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             Assert.Contains(MicrosoftCodeAnalysisMetadataReference, metadataReferences);
         }
 
+        [Fact]
+        public void MultipleReferenceDirectiveToManyMetadataReferences()
+        {
+            var scriptCode = @"#r ""1 reference""
+                               #r ""2 references""";
+            var scriptOptions = ScriptOptions.Default.WithMetadataResolver(new TestFakeMetadataResolver());
+            var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
+            var metadataReferences = compilation.References.ToArray();
+
+            Assert.Contains(CurrentAssemblyMetadataReference, metadataReferences);
+            Assert.Contains(MicrosoftCodeAnalysisMetadataReference, metadataReferences);
+            Assert.True(metadataReferences.Count(r => r == CurrentAssemblyMetadataReference) == 1, "Same MetadataReference, resolved from 2 different #r directives, should appear only once in the compilation");
+        }
+
         private class TestFakeMetadataResolver : MetadataReferenceResolver
         {
             public override int GetHashCode() => 0;
