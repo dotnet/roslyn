@@ -67,7 +67,7 @@ public class TestClass
                 => dotnetDir != null && File.Exists(Path.Combine(dotnetDir, s_dotnetExeName)) && Directory.Exists(GetSdkPath(dotnetDir, s_dotnetSdkVersion));
 
             var dotnetInstallDir = Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR");
-            if (!isMatchingDotNetInstance(s_dotnetInstallDir))
+            if (!isMatchingDotNetInstance(dotnetInstallDir))
             {
                 dotnetInstallDir = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator).FirstOrDefault(isMatchingDotNetInstance);
             }
@@ -75,7 +75,7 @@ public class TestClass
             if (dotnetInstallDir != null)
             {
                 s_dotnetInstallDir = dotnetInstallDir;
-                s_dotnetSdkPath = GetSdkPath(s_dotnetInstallDir, s_dotnetSdkVersion);
+                s_dotnetSdkPath = GetSdkPath(dotnetInstallDir, s_dotnetSdkVersion);
             }
         }
 

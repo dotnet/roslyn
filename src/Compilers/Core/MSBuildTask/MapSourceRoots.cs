@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             public static readonly string[] SourceRootMetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
         }
 
-        private static string EndWithSlash(string path)
+        private static string EnsureEndsWithSlash(string path)
             => (path[path.Length - 1] == '/') ? path : path + '/';
 
         private static bool EndsWithDirectorySeparator(string path)
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         if (containingRoot != null && topLevelMappedPaths.TryGetValue(Utilities.FixFilePath(containingRoot), out var mappedTopLevelPath))
                         {
                             Debug.Assert(mappedTopLevelPath.EndsWith("/", StringComparison.Ordinal));
-                            root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EndWithSlash(nestedRoot.Replace('\\', '/')));
+                            root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EnsureEndsWithSlash(nestedRoot.Replace('\\', '/')));
                         }
                         else
                         {
