@@ -203,9 +203,11 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics)
         {
             // Locations of all #r directives in the order they are listed in the references list, and the MetadataReferences to which they resolved.
-            ImmutableArray<(MetadataReference MetadataReference, Location Location)> referencesWithLocation;
+            ImmutableArray<(ImmutableArray<MetadataReference> References, Location Location)> referencesWithLocation;
             GetCompilationReferences(compilation, diagnostics, out referencesWithLocation, out boundReferenceDirectiveMap);
-            references = referencesWithLocation.Select(r => r.MetadataReference).ToImmutableArray();
+
+            // flattened list of all MetadataReferences
+            references = referencesWithLocation.SelectMany(r => r.References).ToImmutableArray();
 
             // References originating from #r directives precede references supplied as arguments of the compilation.
             int referenceCount = references.Length;
@@ -229,100 +231,63 @@ namespace Microsoft.CodeAnalysis
             // When duplicate references with conflicting EmbedInteropTypes flag are encountered,
             // VB uses the flag from the last one, C# reports an error. We need to enumerate in reverse order
             // so that we find the one that matters first.
-            for (int referenceIndex = referenceCount - 1; referenceIndex >= 0; referenceIndex--)
+            // We start by enumerating the list of references with their locations
+            // then we will enumerate (also in reverse order) the references corresponding to each location
+            // and match them to the flat list of references
+            int referenceIndex = referenceCount;
+            for (int referenceWithLocationIndex = referencesWithLocation.Length - 1; referenceWithLocationIndex >= 0; referenceWithLocationIndex--)
             {
-                var boundReference = referencesWithLocation[referenceIndex].Item1;
-                if (boundReference == null)
+                var boundDirectiveReferences = referencesWithLocation[referenceWithLocationIndex].References;
+                if (boundDirectiveReferences.IsDefaultOrEmpty)
                 {
                     continue;
                 }
 
-                // add bound reference if it doesn't exist yet, merging aliases:
-                MetadataReference existingReference;
-                if (boundReferences.TryGetValue(boundReference, out existingReference))
+                for (int boundReferenceIndex = boundDirectiveReferences.Length - 1; boundReferenceIndex >= 0; boundReferenceIndex--)
                 {
-                    // merge properties of compilation-based references if the underlying compilations are the same
-                    if ((object)boundReference != existingReference)
+                    referenceIndex--;
+
+                    var boundReference = boundDirectiveReferences[boundReferenceIndex];
+                    if (boundReference == null) continue;
+
+                    // add bound reference if it doesn't exist yet, merging aliases:
+                    MetadataReference existingReference;
+                    if (boundReferences.TryGetValue(boundReference, out existingReference))
                     {
-                        MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
+                        // merge properties of compilation-based references if the underlying compilations are the same
+                        if ((object)boundReference != existingReference)
+                        {
+                            MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
+                        }
+
+                        continue;
                     }
 
-                    continue;
-                }
+                    boundReferences.Add(boundReference, boundReference);
 
-                boundReferences.Add(boundReference, boundReference);
+                    Location location;
 
-                Location location;
-                if (referencesWithLocation[referenceIndex].Item2 != Location.None)
-                {
-                    location = referencesWithLocation[referenceIndex].Item2;
-                    uniqueDirectiveReferences.Add(boundReference);
-                }
-                else
-                {
-                    location = Location.None;
-                }
-
-                // compilation reference
-
-                var compilationReference = boundReference as CompilationReference;
-                if (compilationReference != null)
-                {
-                    switch (compilationReference.Properties.Kind)
+                    if (referencesWithLocation[referenceWithLocationIndex].Location != Location.None)
                     {
-                        case MetadataImageKind.Assembly:
-                            existingReference = TryAddAssembly(
-                                compilationReference.Compilation.Assembly.Identity,
-                                boundReference,
-                                -assembliesBuilder.Count - 1,
-                                diagnostics,
-                                location,
-                                assemblyReferencesBySimpleName,
-                                supersedeLowerVersions);
-
-                            if (existingReference != null)
-                            {
-                                MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
-                                continue;
-                            }
-
-                            // Note, if SourceAssemblySymbol hasn't been created for 
-                            // compilationAssembly.Compilation yet, we want this to happen 
-                            // right now. Conveniently, this constructor will trigger creation of the 
-                            // SourceAssemblySymbol.
-                            var asmData = CreateAssemblyDataForCompilation(compilationReference);
-                            AddAssembly(asmData, referenceIndex, referenceMap, assembliesBuilder);
-                            break;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(compilationReference.Properties.Kind);
+                        location = referencesWithLocation[referenceWithLocationIndex].Location;
+                        uniqueDirectiveReferences.Add(boundReference);
+                    }
+                    else
+                    {
+                        location = Location.None;
                     }
 
-                    continue;
-                }
+                    // compilation reference
 
-                // PE reference
-
-                var peReference = (PortableExecutableReference)boundReference;
-                Metadata metadata = GetMetadata(peReference, MessageProvider, location, diagnostics);
-                Debug.Assert(metadata != null || diagnostics.HasAnyErrors());
-
-                if (metadata != null)
-                {
-                    Debug.Assert(metadata != null);
-
-                    switch (peReference.Properties.Kind)
+                    var compilationReference = boundReference as CompilationReference;
+                    if (compilationReference != null)
                     {
-                        case MetadataImageKind.Assembly:
-                            var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
-
-                            if (assemblyMetadata.IsValidAssembly())
-                            {
-                                PEAssembly assembly = assemblyMetadata.GetAssembly();
+                        switch (compilationReference.Properties.Kind)
+                        {
+                            case MetadataImageKind.Assembly:
                                 existingReference = TryAddAssembly(
-                                    assembly.Identity,
-                                    peReference,
+                                    compilationReference.Compilation.Assembly.Identity,
+                                    boundReference,
                                     -assembliesBuilder.Count - 1,
                                     diagnostics,
                                     location,
@@ -335,46 +300,96 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
-                                var asmData = CreateAssemblyDataForFile(
-                                    assembly,
-                                    cachedSymbols,
-                                    peReference.DocumentationProvider,
-                                    SimpleAssemblyName,
-                                    compilation.Options.MetadataImportOptions,
-                                    peReference.Properties.EmbedInteropTypes);
-
+                                // Note, if SourceAssemblySymbol hasn't been created for 
+                                // compilationAssembly.Compilation yet, we want this to happen 
+                                // right now. Conveniently, this constructor will trigger creation of the 
+                                // SourceAssemblySymbol.
+                                var asmData = CreateAssemblyDataForCompilation(compilationReference);
                                 AddAssembly(asmData, referenceIndex, referenceMap, assembliesBuilder);
-                            }
-                            else
-                            {
-                                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, location, peReference.Display));
-                            }
+                                break;
 
-                            // asmData keeps strong ref after this point
-                            GC.KeepAlive(assemblyMetadata);
-                            break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(compilationReference.Properties.Kind);
+                        }
 
-                        case MetadataImageKind.Module:
-                            var moduleMetadata = (ModuleMetadata)metadata;
-                            if (moduleMetadata.Module.IsLinkedModule)
-                            {
-                                // We don't support netmodules since some checks in the compiler need information from the full PE image
-                                // (Machine, Bit32Required, PE image hash).
-                                if (!moduleMetadata.Module.IsEntireImageAvailable)
+                        continue;
+                    }
+
+                    // PE reference
+
+                    var peReference = (PortableExecutableReference)boundReference;
+                    Metadata metadata = GetMetadata(peReference, MessageProvider, location, diagnostics);
+                    Debug.Assert(metadata != null || diagnostics.HasAnyErrors());
+
+                    if (metadata != null)
+                    {
+                        Debug.Assert(metadata != null);
+
+                        switch (peReference.Properties.Kind)
+                        {
+                            case MetadataImageKind.Assembly:
+                                var assemblyMetadata = (AssemblyMetadata)metadata;
+                                WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
+
+                                if (assemblyMetadata.IsValidAssembly())
                                 {
-                                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage, location, peReference.Display));
+                                    PEAssembly assembly = assemblyMetadata.GetAssembly();
+                                    existingReference = TryAddAssembly(
+                                        assembly.Identity,
+                                        peReference,
+                                        -assembliesBuilder.Count - 1,
+                                        diagnostics,
+                                        location,
+                                        assemblyReferencesBySimpleName,
+                                        supersedeLowerVersions);
+
+                                    if (existingReference != null)
+                                    {
+                                        MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
+                                        continue;
+                                    }
+
+                                    var asmData = CreateAssemblyDataForFile(
+                                        assembly,
+                                        cachedSymbols,
+                                        peReference.DocumentationProvider,
+                                        SimpleAssemblyName,
+                                        compilation.Options.MetadataImportOptions,
+                                        peReference.Properties.EmbedInteropTypes);
+
+                                    AddAssembly(asmData, referenceIndex, referenceMap, assembliesBuilder);
+                                }
+                                else
+                                {
+                                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, location, peReference.Display));
                                 }
 
-                                AddModule(moduleMetadata.Module, referenceIndex, referenceMap, ref lazyModulesBuilder);
-                            }
-                            else
-                            {
-                                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotModule, location, peReference.Display));
-                            }
-                            break;
+                                // asmData keeps strong ref after this point
+                                GC.KeepAlive(assemblyMetadata);
+                                break;
 
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(peReference.Properties.Kind);
+                            case MetadataImageKind.Module:
+                                var moduleMetadata = (ModuleMetadata)metadata;
+                                if (moduleMetadata.Module.IsLinkedModule)
+                                {
+                                    // We don't support netmodules since some checks in the compiler need information from the full PE image
+                                    // (Machine, Bit32Required, PE image hash).
+                                    if (!moduleMetadata.Module.IsEntireImageAvailable)
+                                    {
+                                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage, location, peReference.Display));
+                                    }
+
+                                    AddModule(moduleMetadata.Module, referenceIndex, referenceMap, ref lazyModulesBuilder);
+                                }
+                                else
+                                {
+                                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotModule, location, peReference.Display));
+                                }
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(peReference.Properties.Kind);
+                        }
                     }
                 }
             }
@@ -748,12 +763,12 @@ namespace Microsoft.CodeAnalysis
         protected void GetCompilationReferences(
             TCompilation compilation,
             DiagnosticBag diagnostics,
-            out ImmutableArray<(MetadataReference MetadataReference, Location Location)> references,
+            out ImmutableArray<(ImmutableArray<MetadataReference> References, Location Location)> references,
             out IDictionary<(string, string), ImmutableArray<MetadataReference>> boundReferenceDirectives)
         {
             boundReferenceDirectives = null;
 
-            ArrayBuilder<(MetadataReference, Location)> referencesBuilder = ArrayBuilder<(MetadataReference, Location)>.GetInstance();
+            var referencesBuilder = ArrayBuilder<(ImmutableArray<MetadataReference>, Location)>.GetInstance();
             ArrayBuilder<Location> referenceDirectiveLocationsBuilder = null;
 
             try
@@ -773,7 +788,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var boundReferences = ResolveReferenceDirective(referenceDirective.File, referenceDirective.Location, compilation);
-                    if (boundReferences == null)
+                    if (boundReferences.IsDefaultOrEmpty)
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotFound, referenceDirective.Location, referenceDirective.File));
                         continue;
@@ -785,26 +800,20 @@ namespace Microsoft.CodeAnalysis
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
-                    foreach (var boundReference in boundReferences)
-                    {
-                        referencesBuilder.Add((boundReference, referenceDirective.Location));
-                    }
+                    referencesBuilder.Add((boundReferences, referenceDirective.Location));
 
                     referenceDirectiveLocationsBuilder.Add(referenceDirective.Location);
-                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences.ToImmutableArray<MetadataReference>());
+                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences);
                 }
 
                 // add external reference at the end, so that they are processed first:
-                foreach (var externalReference in compilation.ExternalReferences)
-                {
-                    referencesBuilder.Add((externalReference, Location.None));
-                }
+                referencesBuilder.Add((compilation.ExternalReferences, Location.None));
 
                 // Add all explicit references of the previous script compilation.
                 var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
                 if (previousScriptCompilation != null)
                 {
-                    referencesBuilder.AddRange(previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences.Select(r => ((MetadataReference)r, Location.None)));
+                    referencesBuilder.Add((previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences, Location.None));
                 }
 
                 if (boundReferenceDirectives == null)
@@ -826,7 +835,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// For each given directive return a bound PE reference, or null if the binding fails.
         /// </summary>
-        private static PortableExecutableReference[] ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
+        private static ImmutableArray<MetadataReference> ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
         {
             var tree = location.SourceTree;
             string basePath = (tree != null && tree.FilePath.Length > 0) ? tree.FilePath : null;
@@ -835,12 +844,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(compilation.Options.MetadataReferenceResolver != null);
 
             var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
-            if (references.IsDefaultOrEmpty)
-            {
-                return null;
-            }
-
-            return references.ToArray();
+            return ImmutableArray<MetadataReference>.CastUp(references);
         }
 
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(
