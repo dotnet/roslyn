@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -22,15 +24,27 @@ namespace Microsoft.CodeAnalysis.Remote
         private volatile static Tuple<Checksum, Solution> s_primarySolution;
         private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
-        public SolutionService(AssetService assetService, RemoteWorkspace remoteWorkspace)
+        public SolutionService(AssetService assetService)
         {
             _assetService = assetService;
-            PrimaryWorkspace = remoteWorkspace;
         }
 
-        public RemoteWorkspace PrimaryWorkspace
+        public static RemoteWorkspace PrimaryWorkspace
         {
-            get;
+            get
+            {
+                var exportProvider = (IMefHostExportProvider)RoslynServices.HostServices;
+                var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
+                if (primaryWorkspace.Workspace == null)
+                {
+                    // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
+                    // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
+                    // The RemoteWorkspace constructor assigns itself as the new singleton instance.
+                    new RemoteWorkspace();
+                }
+
+                return (RemoteWorkspace)primaryWorkspace.Workspace;
+            }
         }
 
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
