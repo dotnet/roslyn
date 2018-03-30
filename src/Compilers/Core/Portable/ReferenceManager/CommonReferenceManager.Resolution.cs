@@ -265,16 +265,11 @@ namespace Microsoft.CodeAnalysis
 
                     boundReferences.Add(boundReference, boundReference);
 
-                    Location location;
+                    Location location = referencesWithLocation[referenceWithLocationIndex].Location;
 
-                    if (referencesWithLocation[referenceWithLocationIndex].Location != Location.None)
+                    if (location != Location.None)
                     {
-                        location = referencesWithLocation[referenceWithLocationIndex].Location;
                         uniqueDirectiveReferences.Add(boundReference);
-                    }
-                    else
-                    {
-                        location = Location.None;
                     }
 
                     // compilation reference
