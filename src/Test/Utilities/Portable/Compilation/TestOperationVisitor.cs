@@ -1174,6 +1174,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDiscardOperation(IDiscardOperation operation)
         {
             Assert.Equal(OperationKind.Discard, operation.Kind);
+            Assert.Empty(operation.Children);
 
             var discardSymbol = operation.DiscardSymbol;
             Assert.Equal(operation.Type, discardSymbol.Type);

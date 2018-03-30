@@ -6736,7 +6736,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
 
-
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDiscardOperation(this);
