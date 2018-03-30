@@ -629,7 +629,12 @@
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="new">Add parentheses</target>
+        <target state="translated">Přidat závorky</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_for_to_foreach">
+        <source>Convert 'for' to 'foreach'</source>
+        <target state="new">Convert 'for' to 'foreach'</target>
         <note />
       </trans-unit>
     </body>
