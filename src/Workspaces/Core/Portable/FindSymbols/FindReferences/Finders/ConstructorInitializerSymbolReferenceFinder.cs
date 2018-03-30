@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return false;
             }
 
-            var tokens = await document.GetConstructorInitializerTokensAsync(cancellationToken).ConfigureAwait(false);
+            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
             if (semanticModel.Language == LanguageNames.VisualBasic)
             {
-                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync("New", cancellationToken).ConfigureAwait(false)).Distinct();
+                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
             return await FindReferencesInTokensAsync(

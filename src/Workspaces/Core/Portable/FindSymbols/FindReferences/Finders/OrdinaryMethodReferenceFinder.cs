@@ -113,12 +113,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol,
                 document,
+                semanticModel,
                 cancellationToken).ConfigureAwait(false);
 
             if (IsForEachMethod(symbol))
