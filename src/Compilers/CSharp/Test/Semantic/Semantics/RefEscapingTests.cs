@@ -3272,8 +3272,6 @@ class C
 
         var r = t.Result;
         M(await t, ref r);
-        
-        return default;
     }
 
     void M(S t, ref S t1)
@@ -3291,10 +3289,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(14, 9),
                 // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         M(await t, ref r);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9),
-                // (17,9): error CS1997: Since 'C.M(Task<S>)' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
-                //         return default;
-                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.M(System.Threading.Tasks.Task<S>)").WithLocation(17, 9)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
                 );
         }
 
@@ -3303,8 +3298,6 @@ class C
         public void CoalesceRefStruct()
         {
             CreateCompilation(@"
-using System.Threading.Tasks;
-
 ref struct S { }
 
 class C
@@ -3316,15 +3309,12 @@ class C
         var a = (S?)null ?? default;
     }
 }", options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,14): error CS0306: The type 'S' may not be used as a type argument
+                // (8,14): error CS0306: The type 'S' may not be used as a type argument
                 //         _ = (S?)null ?? default;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(10, 14),
-                // (12,18): error CS0306: The type 'S' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(8, 14),
+                // (10,18): error CS0306: The type 'S' may not be used as a type argument
                 //         var a = (S?)null ?? default;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(12, 18),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System.Threading.Tasks;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(10, 18)
                 );
         }
 
@@ -3333,8 +3323,6 @@ class C
         public void ArrayAccessRefStruct()
         {
             CreateCompilation(@"
-using System.Threading.Tasks;
-
 ref struct S { }
 
 class C
@@ -3346,15 +3334,12 @@ class C
         var a = ((S[])null)[0];
     }
 }", options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,15): error CS0611: Array elements cannot be of type 'S'
+                // (8,15): error CS0611: Array elements cannot be of type 'S'
                 //         _ = ((S[])null)[0];
-                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(10, 15),
-                // (12,19): error CS0611: Array elements cannot be of type 'S'
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(8, 15),
+                // (10,19): error CS0611: Array elements cannot be of type 'S'
                 //         var a = ((S[])null)[0];
-                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(12, 19),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System.Threading.Tasks;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(10, 19)
                 );
         }
 
