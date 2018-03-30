@@ -322,6 +322,20 @@ namespace Analyzer.Utilities.Extensions
             return null;
         }
 
+        public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.LambdaMethod:
+                case MethodKind.LocalFunction:
+                case MethodKind.DelegateInvoke:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+      
         public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
         {
             for (var i = 0; i < methodSymbol.Parameters.Length; i++)
