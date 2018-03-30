@@ -3066,7 +3066,7 @@ public class Program
 {
     public static void Main()
     {
-        // Testing the constraint when the ambda type parameter is both coming from an enclosing type, or copied to the generated lambda class
+        // Testing the constraint when the lambda type parameter is both coming from an enclosing type, or copied to the generated lambda class
 
         Test<int>.User1(1);
         Test<int>.User2(2);

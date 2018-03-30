@@ -495,8 +495,7 @@ class Test
     }
 }",
                 LanguageVersion.CSharp7_3,
-                new CSharpParseOptions(LanguageVersion.CSharp7),
-                index: 1);
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact]
