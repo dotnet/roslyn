@@ -642,6 +642,16 @@
         <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="new">Convert to method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_method">
+        <source>Convert to regular method</source>
+        <target state="new">Convert to regular method</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
