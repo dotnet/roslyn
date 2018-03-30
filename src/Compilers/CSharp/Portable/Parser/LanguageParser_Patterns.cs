@@ -532,7 +532,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     list.Add(this.ParseSubpatternElement());
 
                     // additional patterns
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
                             this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
@@ -587,7 +588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsPossibleSubpatternElement()
         {
-            return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+            var tk = this.CurrentToken.Kind;
+            bool isExpression = this.IsPossibleExpression() &&
+                    // IsPossibleExpression returns true when the next token is a binary operator.
+                    // That is useful for error recovery elsewhere, but not here.
+                    !(SyntaxFacts.IsBinaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
+            return isExpression || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
         private PostSkipAction SkipBadPatternListTokens(
