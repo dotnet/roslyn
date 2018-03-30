@@ -14638,10 +14638,10 @@ class C : IEnumerable
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (11,46): error CS1623: Iterators cannot have ref or out parameters
+                // (11,46): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(ref int i)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "i"),
-                // (16,48): error CS1623: Iterators cannot have ref or out parameters
+                // (16,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(out float f)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "f")
                 );

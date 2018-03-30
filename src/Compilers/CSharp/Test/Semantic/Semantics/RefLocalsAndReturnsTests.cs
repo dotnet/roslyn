@@ -3439,7 +3439,7 @@ class Test
         yield return 0;
     }
 }").VerifyDiagnostics(
-                // (5,50): error CS1623: Iterators cannot have ref or out parameters
+                // (5,50): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator<int> GetEnumerator(in int p)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 50));
         }
