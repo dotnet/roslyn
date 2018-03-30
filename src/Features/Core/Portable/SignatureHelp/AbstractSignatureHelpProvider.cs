@@ -288,13 +288,17 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return supportedPlatforms;
         }
 
-        protected static int? GetSelectedIndex(ImmutableArray<IMethodSymbol> methodGroup, SymbolInfo symbolInfo)
+        protected static int? GetSelectedIndex(ImmutableArray<IMethodSymbol> candidates, SymbolInfo currentSymbol)
         {
-            var matched = symbolInfo.Symbol as IMethodSymbol;
+            var matched = currentSymbol.Symbol as IMethodSymbol;
             int? matchedIndex = null;
             if (matched != null)
             {
-                matchedIndex = methodGroup.IndexOf(matched);
+                var found = candidates.IndexOf(matched);
+                if (found >= 0)
+                {
+                    matchedIndex = found;
+                }
             }
 
             return matchedIndex;
