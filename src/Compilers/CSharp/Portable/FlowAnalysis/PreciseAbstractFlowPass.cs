@@ -2772,9 +2772,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(dispatchState.Clone());
                 VisitPattern(node.Expression, arm.Pattern);
                 SetState(StateWhenTrue);
-                if (arm.Guard != null)
+                if (arm.WhenClause != null)
                 {
-                    VisitCondition(arm.Guard);
+                    VisitCondition(arm.WhenClause);
                     SetState(StateWhenTrue);
                 }
 

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A list of all the nodes reachable from this one, in a topologically sorted order.
+        /// A list of all the nodes reachable from the root node, in a topologically sorted order.
         /// </summary>
         public ImmutableArray<BoundDecisionDagNode> TopologicallySortedNodes
         {
