@@ -357,7 +357,7 @@ End Class"
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
-            previous = New VisualBasicMetadataContext(previous.MetadataBlocks, previous.Compilation)
+            previous = New VisualBasicMetadataContext(previous.Compilation)
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
             Assert.Null(previous.EvaluationContext)
             Assert.NotNull(context)

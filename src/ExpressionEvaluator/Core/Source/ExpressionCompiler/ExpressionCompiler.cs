@@ -397,6 +397,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // If that doesn't work, we'll fall back to System.Core for subsequent retries.
                     linqLibrary = EvaluationContextBase.SystemCoreIdentity;
 
+                    // Can we remove the `useReferencedModulesOnly` attempt if we're only using
+                    // modules reachable from the current module? In short, can we avoid retrying?
                     if (useReferencedModulesOnly)
                     {
                         Debug.Assert(missingAssemblyIdentities.IsEmpty);

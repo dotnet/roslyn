@@ -9,13 +9,19 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
+    internal enum MakeAssemblyReferencesKind
+    {
+        AllAssemblies,
+        AllReferences,
+        DirectReferencesOnly,
+    }
+
     internal static partial class MetadataUtilities
     {
         /// <summary>
@@ -26,9 +32,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
             this ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
-            AssemblyIdentityComparer identityComparer)
+            AssemblyIdentityComparer identityComparer,
+            MakeAssemblyReferencesKind kind,
+            out Dictionary<AssemblyIdentity, MetadataReference> referencesByIdentity)
         {
-            Debug.Assert((identityComparer == null) || (moduleVersionId != default(Guid)));
+            Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || moduleVersionId != default(Guid));
+            Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || identityComparer != null);
 
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
@@ -69,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             }
                         }
                     }
-                    if (IsWindowsComponent(metadata.MetadataReader, metadata.Name))
+                    if (IsWindowsComponent(reader, metadata.Name))
                     {
                         runtimeWinMdBuilder.Add(metadata);
                     }
@@ -105,10 +114,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 modulesByName[name] = modulesByName.ContainsKey(name) ? null : metadata;
             }
 
+            // We don't walk the references of winmd assemblies currently. (That would require
+            // walking references from the current module and also the winmd assemblies.)
+            // So if there are any winmd assemblies, we'll use all assemblies.
+            if (kind == MakeAssemblyReferencesKind.AllReferences && runtimeWinMdBuilder.Any())
+            {
+                kind = MakeAssemblyReferencesKind.AllAssemblies;
+            }
+
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-            var identitiesBuilder = (identityComparer == null) ? null : ArrayBuilder<AssemblyIdentity>.GetInstance();
+            var identitiesBuilder = (kind == MakeAssemblyReferencesKind.DirectReferencesOnly) ? ArrayBuilder<AssemblyIdentity>.GetInstance() : null;
+            referencesByIdentity = (kind == MakeAssemblyReferencesKind.AllReferences) ? new Dictionary<AssemblyIdentity, MetadataReference>() : null;
+            ModuleMetadata targetModule = null;
             AssemblyIdentity intrinsicsAssembly = null;
+            MetadataReference targetReference = null;
 
             foreach (var metadata in metadataBuilder)
             {
@@ -116,31 +136,74 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
+
+                var reference = MakeAssemblyMetadata(metadata, modulesByName);
+
+                if (kind == MakeAssemblyReferencesKind.AllReferences)
+                {
+                    var reader = metadata.MetadataReader;
+                    var identity = reader.ReadAssemblyIdentityOrThrow();
+                    if (referencesByIdentity != null)
+                    {
+                        // TODO: Store different versions, indexed by same key.
+                        if (!referencesByIdentity.ContainsKey(identity))
+                        {
+                            referencesByIdentity.Add(identity, reference);
+                        }
+                    }
+                    if (targetReference == null &&
+                        reader.GetModuleVersionIdOrThrow() == moduleVersionId)
+                    {
+                        targetReference = reference;
+                    }
+                    continue;
+                }
+
+                referencesBuilder.Add(reference);
                 if (identitiesBuilder != null)
                 {
                     var reader = metadata.MetadataReader;
                     var identity = reader.ReadAssemblyIdentityOrThrow();
                     identitiesBuilder.Add(identity);
-                    if ((intrinsicsAssembly == null) &&
+                    if (targetModule == null &&
+                        reader.GetModuleVersionIdOrThrow() == moduleVersionId)
+                    {
+                        targetModule = metadata;
+                    }
+                    if (intrinsicsAssembly == null &&
                         reader.DeclaresType((r, t) => r.IsPublicNonInterfaceType(t, ExpressionCompilerConstants.IntrinsicAssemblyNamespace, ExpressionCompilerConstants.IntrinsicAssemblyTypeName)))
                     {
                         intrinsicsAssembly = identity;
                     }
                 }
-                var reference = MakeAssemblyMetadata(metadata, modulesByName);
-                referencesBuilder.Add(reference);
+            }
+
+            if (kind == MakeAssemblyReferencesKind.AllReferences)
+            {
+                Debug.Assert(referencesBuilder.Count == 0);
+                // CommonReferenceManager<TCompilation, TAssemblySymbol>.Bind()
+                // expects COR library to be included in the explicit assemblies (see bug #...).
+                Debug.Assert(corLibrary != null);
+                if (corLibrary != null && referencesByIdentity.TryGetValue(corLibrary, out var corLibraryReference))
+                {
+                    referencesBuilder.Add(corLibraryReference);
+                }
+                Debug.Assert(targetReference != null);
+                if (targetReference != null)
+                {
+                    referencesBuilder.Add(targetReference);
+                }
             }
 
             if (identitiesBuilder != null)
             {
                 // Remove assemblies not directly referenced by the target module.
-                var module = metadataBuilder.FirstOrDefault(m => m.MetadataReader.GetModuleVersionIdOrThrow() == moduleVersionId);
-                Debug.Assert(module != null);
-                if (module != null)
+                Debug.Assert(targetModule != null);
+                if (targetModule != null)
                 {
                     var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
-                    referencedModules.Add(module.MetadataReader.ReadAssemblyIdentityOrThrow());
-                    referencedModules.AddRange(module.MetadataReader.GetReferencedAssembliesOrThrow());
+                    referencedModules.Add(targetModule.MetadataReader.ReadAssemblyIdentityOrThrow());
+                    referencedModules.AddRange(targetModule.MetadataReader.GetReferencedAssembliesOrThrow());
                     // Ensure COR library is included, otherwise any compilation will fail.
                     // (Note, an equivalent assembly may have already been included from
                     // GetReferencedAssembliesOrThrow above but RemoveUnreferencedModules
@@ -198,6 +261,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var referencedIndices = PooledHashSet<int>.GetInstance();
 
+            // O(n*m) where n = all assemblies and m = referenced assemblies.
+            // Can this be more efficient?
             int n = identities.Count;
             int index;
             foreach (var referencedModule in referencedModules)

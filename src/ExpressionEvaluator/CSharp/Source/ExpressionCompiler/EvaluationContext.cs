@@ -69,15 +69,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// No locals since locals are associated with methods, not types.
         /// </remarks>
         internal static EvaluationContext CreateTypeContext(
-            CSharpMetadataContext previous,
+            MetadataContext<CSharpCompilation, EvaluationContext> previous,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
-            int typeToken)
+            int typeToken,
+            bool useReferencedAssembliesOnly = false) // TODO: Should not be optional. Make all callers explicit.
         {
             // Re-use the previous compilation if possible.
-            var compilation = previous.Matches(metadataBlocks) ?
+            var compilation = previous != null ?
                 previous.Compilation :
-                metadataBlocks.ToCompilation();
+                metadataBlocks.ToCompilation(moduleVersionId, useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies);
 
             return CreateTypeContext(compilation, moduleVersionId, typeToken);
         }
@@ -115,20 +116,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <param name="localSignatureToken">Method local signature token</param>
         /// <returns>Evaluation context</returns>
         internal static EvaluationContext CreateMethodContext(
-            CSharpMetadataContext previous,
+            MetadataContext<CSharpCompilation, EvaluationContext> previous,
             ImmutableArray<MetadataBlock> metadataBlocks,
             object symReader,
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
             uint ilOffset,
-            int localSignatureToken)
+            int localSignatureToken,
+            bool useReferencedAssembliesOnly = false) // TODO: Should not be optional. Make all callers explicit.
         {
             var offset = NormalizeILOffset(ilOffset);
 
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
+            if (previous != null)
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation();
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies);
             }
 
             return CreateMethodContext(

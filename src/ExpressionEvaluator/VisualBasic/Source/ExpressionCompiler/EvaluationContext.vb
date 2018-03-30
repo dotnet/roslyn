@@ -71,15 +71,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' No locals since locals are associated with methods, not types.
         ''' </remarks>
         Friend Shared Function CreateTypeContext(
-            previous As VisualBasicMetadataContext,
+            previous As MetadataContext(Of VisualBasicCompilation, EvaluationContext),
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
-            typeToken As Integer) As EvaluationContext
+            typeToken As Integer,
+            Optional useReferencedAssembliesOnly As Boolean = False) As EvaluationContext
 
             ' Re-use the previous compilation if possible.
-            Dim compilation = If(previous.Matches(metadataBlocks),
+            Dim compilation = If(previous IsNot Nothing,
                 previous.Compilation,
-                metadataBlocks.ToCompilation())
+                metadataBlocks.ToCompilation(moduleVersionId, If(useReferencedAssembliesOnly, MakeAssemblyReferencesKind.AllReferences, MakeAssemblyReferencesKind.AllAssemblies)))
 
             Return CreateTypeContext(compilation, moduleVersionId, typeToken)
         End Function
@@ -118,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <param name="localSignatureToken">Method local signature token.</param>
         ''' <returns>Evaluation context.</returns>
         Friend Shared Function CreateMethodContext(
-            previous As VisualBasicMetadataContext,
+            previous As MetadataContext(Of VisualBasicCompilation, EvaluationContext),
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
@@ -126,13 +127,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodToken As Integer,
             methodVersion As Integer,
             ilOffset As UInteger,
-            localSignatureToken As Integer) As EvaluationContext
+            localSignatureToken As Integer,
+            Optional useReferencedAssembliesOnly As Boolean = False) As EvaluationContext
 
             Dim offset = NormalizeILOffset(ilOffset)
 
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks) Then
+            If previous IsNot Nothing Then
                 ' Re-use entire context if method scope has not changed.
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
@@ -142,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
                 compilation = previous.Compilation
             Else
-                compilation = metadataBlocks.ToCompilation()
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, If(useReferencedAssembliesOnly, MakeAssemblyReferencesKind.AllReferences, MakeAssemblyReferencesKind.AllAssemblies))
             End If
 
             Return CreateMethodContext(

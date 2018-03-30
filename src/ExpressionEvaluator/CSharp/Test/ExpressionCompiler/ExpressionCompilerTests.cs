@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Assert.Equal(context.Compilation, previous.Compilation);
 
             // No EvaluationContext. Should reuse Compilation
-            previous = new CSharpMetadataContext(previous.MetadataBlocks, previous.Compilation);
+            previous = new CSharpMetadataContext(previous.Compilation);
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken);
             Assert.Null(previous.EvaluationContext);
             Assert.NotNull(context);
@@ -6028,7 +6028,7 @@ class C
                 GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
                 var context = EvaluationContext.CreateMethodContext(
-                    blocks.ToCompilation(),
+                    blocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
