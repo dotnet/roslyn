@@ -95,24 +95,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (methodGroup.Any())
             {
-                var matched = symbolInfo.Symbol as IMethodSymbol;
-                int? matchedIndex = null;
-                if (matched != null)
-                {
-                    matchedIndex = methodGroup.IndexOf(matched);
-                }
+                var selectedItem = GetSelectedIndex(methodGroup, symbolInfo);
 
                 return CreateSignatureHelpItems(
                     GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken),
                     textSpan,
                     GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
-                    selectedItem: matchedIndex);
+                    selectedItem);
             }
             else if (expressionType != null && expressionType.TypeKind == TypeKind.Delegate)
             {
-                return CreateSignatureHelpItems(
-                    GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken),
-                    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                var (items, selectedItem) = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken);
+
+                return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             }
             else
             {

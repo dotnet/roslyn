@@ -75,7 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             ' get the regular signature help items
             Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim memberGroup = semanticModel.GetMemberGroup(targetExpression, cancellationToken).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                            OfType(Of IMethodSymbol).ToImmutableArrayOrEmpty()
 
             ' try to bind to the actual method
             Dim symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken)
@@ -124,7 +125,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+            Dim selectedItem = GetSelectedIndex(memberGroup, symbolInfo)
+            Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
     End Class
 End Namespace

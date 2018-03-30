@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem = null)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
         {
             if (items == null || !items.Any() || state == null)
             {
@@ -285,6 +286,18 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             return supportedPlatforms;
+        }
+
+        protected static int? GetSelectedIndex(ImmutableArray<IMethodSymbol> methodGroup, SymbolInfo symbolInfo)
+        {
+            var matched = symbolInfo.Symbol as IMethodSymbol;
+            int? matchedIndex = null;
+            if (matched != null)
+            {
+                matchedIndex = methodGroup.IndexOf(matched);
+            }
+
+            return matchedIndex;
         }
     }
 }

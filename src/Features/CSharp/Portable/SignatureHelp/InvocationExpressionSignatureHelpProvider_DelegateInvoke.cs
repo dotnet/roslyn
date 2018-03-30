@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetDelegateInvokeItems(
+        private (IList<SignatureHelpItem> Items, int? SelectedItem) GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
-                return null;
+                return (null, null);
             }
 
             // Events can only be invoked directly from the class they were declared in.
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expressionSymbol.IsKind(SymbolKind.Event) &&
                 !expressionSymbol.ContainingType.OriginalDefinition.Equals(within.OriginalDefinition))
             {
-                return null;
+                return (null, null);
             }
 
             var position = invocationExpression.SpanStart;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateInvokePostambleParts(),
                 parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
 
-            return SpecializedCollections.SingletonList(item);
+            return (SpecializedCollections.SingletonList(item), 0);
         }
 
         private IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

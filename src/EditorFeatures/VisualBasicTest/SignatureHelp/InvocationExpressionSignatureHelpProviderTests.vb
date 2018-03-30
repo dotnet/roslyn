@@ -35,6 +35,60 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        [|M(i:="Hello"$$|])
+    End Sub
+
+    Public Sub M(i As String)
+    End Sub
+    Public Sub M(i As Integer)
+    End Sub
+    Public Sub M(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = {
+                New SignatureHelpTestItem("C.M(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0),
+                New SignatureHelpTestItem("C.M(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True)
+            }
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInteger() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        [|M(i:=1$$|])
+    End Sub
+
+    Public Sub M(i As String)
+    End Sub
+    Public Sub M(i As Integer)
+    End Sub
+    Public Sub M(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = {
+                New SignatureHelpTestItem("C.M(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True),
+                New SignatureHelpTestItem("C.M(i As String)", String.Empty, Nothing, currentParameterIndex:=0)
+            }
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
         <WorkItem(958593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958593")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationInsideStringLiteral() As Task
