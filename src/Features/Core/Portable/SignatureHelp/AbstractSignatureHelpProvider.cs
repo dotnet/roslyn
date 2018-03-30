@@ -288,9 +288,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return supportedPlatforms;
         }
 
-        protected static int? GetSelectedIndex(ImmutableArray<IMethodSymbol> candidates, SymbolInfo currentSymbol)
+        protected static int? GetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, SymbolInfo currentSymbol) where TSymbol : class, ISymbol
         {
-            var matched = currentSymbol.Symbol as IMethodSymbol;
+            var matched = currentSymbol.Symbol as TSymbol;
             int? matchedIndex = null;
             if (matched != null)
             {

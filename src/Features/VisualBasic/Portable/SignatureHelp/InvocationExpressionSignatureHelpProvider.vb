@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -75,8 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             ' get the regular signature help items
             Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim memberGroup = semanticModel.GetMemberGroup(targetExpression, cancellationToken).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                            OfType(Of IMethodSymbol).ToImmutableArrayOrEmpty()
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
 
             ' try to bind to the actual method
             Dim symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken)
