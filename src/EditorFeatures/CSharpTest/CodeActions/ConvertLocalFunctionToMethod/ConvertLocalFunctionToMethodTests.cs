@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
@@ -135,6 +135,31 @@ struct S
     {
         System.Func<int> x = () => value;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        public async Task TestCaptures4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static void M(int i, int j)
+    {
+        LocalFunction1();
+        int [||]LocalFunction1() => i;
+        int LocalFunction2() => j;
+    }
+}",
+@"class C
+{
+    public static void M(int i, int j)
+    {
+        LocalFunction1(i);
+        int LocalFunction2() => j;
+    }
+
+    private static int LocalFunction1(int i) => i;
 }");
         }
 

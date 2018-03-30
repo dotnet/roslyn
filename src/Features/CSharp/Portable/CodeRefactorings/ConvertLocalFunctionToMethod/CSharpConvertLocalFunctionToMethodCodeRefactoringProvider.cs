@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 localFunction.Body ?? (SyntaxNode)localFunction.ExpressionBody.Expression);
 
             // Exclude local function parameters in case they were captured inside the function body
-            var captures = dataFlow.Captured.Except(declaredSymbol.Parameters).ToList();
+            var captures = dataFlow.CapturedInside.Except(declaredSymbol.Parameters).ToList();
 
             // First, create a parameter per each capture so that we can pass them as arguments to the final method
             // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
