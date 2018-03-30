@@ -2,11 +2,28 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
+using UIAutomationClient;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class Helper
     {
+        private static IUIAutomation2 _automation;
+
+        public static IUIAutomation2 Automation
+        {
+            get
+            {
+                if (_automation == null)
+                {
+                    Interlocked.CompareExchange(ref _automation, new CUIAutomation8(), null);
+                }
+
+                return _automation;
+            }
+        }
+
         /// <summary>
         /// This method will retry the action represented by the 'action' argument,
         /// milliseconds, waiting 'delay' milliseconds after each retry. If a given retry returns a value 

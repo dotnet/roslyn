@@ -648,13 +648,43 @@ public struct S
     public static implicit operator S(int value) { return new S() { I = value }; }
     public static bool operator==(S s1, S s2) { System.Console.Write($""{s1.I} == {s2.I}, ""); return s1.I == s2.I; }
     public static bool operator!=(S s1, S s2) { throw null; }
+    public override bool Equals(object o) { throw null; }
+    public override int GetHashCode() { throw null; }
 }";
+            var comp = CompileAndVerify(source, expectedOutput: "1 == 1, 2 == 2, True");
+            comp.VerifyDiagnostics();
+        }
 
-            // https://github.com/dotnet/roslyn/issues/25488
-            // We need to create a temp for `this`, otherwise it gets mutated
+        [Fact]
+        public void TestThisClass()
+        {
+            var source = @"
+public class C
+{
+    public int I;
+    public static void Main()
+    {
+        C c = new C() { I = 1 };
+        c.M();
+    }
+    void M()
+    {
+        System.Console.Write((this, 2) == (2, this.Mutate()));
+    }
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 == 1, False");
-            //comp.VerifyDiagnostics();
+    C Mutate()
+    {
+        I++;
+        return this;
+    }
+    public static implicit operator C(int value) { return new C() { I = value }; }
+    public static bool operator==(C c1, C c2) { System.Console.Write($""{c1.I} == {c2.I}, ""); return c1.I == c2.I; }
+    public static bool operator!=(C c1, C c2) { throw null; }
+    public override bool Equals(object o) { throw null; }
+    public override int GetHashCode() { throw null; }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "2 == 2, 2 == 2, True");
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

@@ -2750,7 +2750,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.</value>
   </data>
   <data name="ERR_BadIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have ref or out parameters</value>
+    <value>Iterators cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadIteratorReturn" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{1}' is not an iterator interface type</value>
@@ -3275,7 +3275,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The best overloaded Add method '{0}' for the collection initializer has some invalid arguments</value>
   </data>
   <data name="ERR_ByRefParameterInExpressionTree" xml:space="preserve">
-    <value>An expression tree lambda may not contain an out or ref parameter</value>
+    <value>An expression tree lambda may not contain a ref, in or out parameter</value>
   </data>
   <data name="ERR_VarArgsInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a method with variable arguments</value>
@@ -3612,7 +3612,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Async methods cannot have unsafe parameters or return types</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have ref or out parameters</value>
+    <value>Async methods cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadAwaitWithoutAsync" xml:space="preserve">
     <value>The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier</value>
