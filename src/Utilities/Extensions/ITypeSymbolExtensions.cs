@@ -78,7 +78,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool DerivesFrom(this ITypeSymbol symbol, ITypeSymbol candidateBaseType, bool baseTypesOnly = false)
+        public static bool DerivesFrom(this ITypeSymbol symbol, ITypeSymbol candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
         {
             if (candidateBaseType == null || symbol == null)
             {
@@ -88,6 +88,18 @@ namespace Analyzer.Utilities.Extensions
             if (!baseTypesOnly && symbol.AllInterfaces.OfType<ITypeSymbol>().Contains(candidateBaseType))
             {
                 return true;
+            }
+
+            if (checkTypeParameterConstraints && symbol.TypeKind == TypeKind.TypeParameter)
+            {
+                var typeParameterSymbol = (ITypeParameterSymbol)symbol;
+                foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
+                {
+                    if (constraintType.DerivesFrom(candidateBaseType, baseTypesOnly, checkTypeParameterConstraints))
+                    {
+                        return true;
+                    }
+                }
             }
 
             while (symbol != null)
@@ -149,6 +161,9 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+
+        public static bool IsNonNullableValueType(this ITypeSymbol typeSymbol)
+            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
 
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {
