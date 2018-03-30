@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                return (await GetLightBulbActionsAsync(broker, view)).Select(a => a.DisplayText).ToArray();
+                return (await GetLightBulbActionsAsync(broker, view).ConfigureAwait(false)).Select(a => a.DisplayText).ToArray();
             });
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 actionSets = Array.Empty<SuggestedActionSet>();
             }
 
-            return await SelectActionsAsync(actionSets);
+            return await SelectActionsAsync(actionSets).ConfigureAwait(false);
         }
 
         public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var activeTextView = GetActiveTextView();
-                await lightBulbAction(activeTextView);
+                await lightBulbAction(activeTextView).ConfigureAwait(false);
             });
 
             if (blockUntilComplete)
@@ -400,7 +400,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            actions.AddRange(await SelectActionsAsync(await action.GetActionSetsAsync(CancellationToken.None)));
+                            actions.AddRange(await SelectActionsAsync(await action.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false));
                         }
                     }
                 }
@@ -426,8 +426,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     if (action.HasActionSets)
                     {
-                        var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
+                        var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(false);
+                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope).ConfigureAwait(false);
                         if (fixAllSuggestedAction != null)
                         {
                             return fixAllSuggestedAction;

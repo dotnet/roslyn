@@ -13,7 +13,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public static class AutomationElementExtensions
     {
         private const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
-        private const int AutomationRetryCount = 3;
+
+        /// <summary>
+        /// The number of times to retry a UI automation operation that failed with
+        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>, not counting the initial call. A value of 2 means the operation
+        /// will be attempted a total of three times.
+        /// </summary>
+        private const int AutomationRetryCount = 2;
+
+        /// <summary>
+        /// The delay between retrying a UI automation operation that failed with
+        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>.
+        /// </summary>
         private static readonly TimeSpan AutomationRetryDelay = TimeSpan.FromMilliseconds(100);
 
         /// <summary>
@@ -334,6 +345,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void RetryIfNotAvailable<T>(Action<T> action, T state)
         {
+            // NOTE: The loop termination condition if exceptions are thrown is in the exception filter
             for (var i = 0; true; i++)
             {
                 try
@@ -341,7 +353,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     action(state);
                     return;
                 }
-                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount - 1)
+                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount)
                 {
                     Thread.Sleep(AutomationRetryDelay);
                     continue;
@@ -351,13 +363,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static TResult RetryIfNotAvailable<T, TResult>(Func<T, TResult> function, T state)
         {
+            // NOTE: The loop termination condition if exceptions are thrown is in the exception filter
             for (var i = 0; true; i++)
             {
                 try
                 {
                     return function(state);
                 }
-                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount - 1)
+                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount)
                 {
                     Thread.Sleep(AutomationRetryDelay);
                     continue;
