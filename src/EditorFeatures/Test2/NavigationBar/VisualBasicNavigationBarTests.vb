@@ -749,7 +749,7 @@ End Class
                 </Result>)
         End Function
 
-        <WpfFact>
+        <ConditionalWpfFact(GetType(IsEnglishLocal))>
         <WorkItem(18792, "https://github.com/dotnet/roslyn/issues/18792")>
         <Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestGenerateEventHandlerWithDuplicate() As Task
