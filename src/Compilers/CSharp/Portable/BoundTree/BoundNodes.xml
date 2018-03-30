@@ -853,7 +853,7 @@
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
@@ -877,6 +877,10 @@
   </Node>
   <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
     <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression left,BoundDagTemp dagTemp)&gt;" Null="disallow"/>
+    <!--
+    WhenExpression is null when there was no when clause in source but there are bindings.
+    In that case WhenFalse is null.
+    -->
     <Field Name="WhenExpression" Type="BoundExpression" Null="allow"/>
     <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
     <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="allow"/>
@@ -934,7 +938,7 @@
   <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // in a different section via the use of a local function), so we only apply the optimization
                 // of using user-declared pattern variables as pattern-matching automaton temps
                 // when there are no nontrivial when-clauses at all.
-                if (!sortedNodes.OfType<BoundWhenDecisionDagNode>().Where(w => w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True).Any())
+                if (!sortedNodes.Any(n => n is BoundWhenDecisionDagNode w && w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True))
                 {
                     ShareTemps(sortedNodes);
                 }

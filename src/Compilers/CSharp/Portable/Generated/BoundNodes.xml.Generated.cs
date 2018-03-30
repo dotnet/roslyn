@@ -2964,8 +2964,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchExpressionArm : BoundNode
     {
-        public BoundSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value, LabelSymbol label, bool hasErrors = false)
-            : base(BoundKind.SwitchExpressionArm, syntax, hasErrors || pattern.HasErrors() || guard.HasErrors() || value.HasErrors())
+        public BoundSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression whenClause, BoundExpression value, LabelSymbol label, bool hasErrors = false)
+            : base(BoundKind.SwitchExpressionArm, syntax, hasErrors || pattern.HasErrors() || whenClause.HasErrors() || value.HasErrors())
         {
 
             Debug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -2975,7 +2975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Locals = locals;
             this.Pattern = pattern;
-            this.Guard = guard;
+            this.WhenClause = whenClause;
             this.Value = value;
             this.Label = label;
         }
@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPattern Pattern { get; }
 
-        public BoundExpression Guard { get; }
+        public BoundExpression WhenClause { get; }
 
         public BoundExpression Value { get; }
 
@@ -2996,11 +2996,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchExpressionArm(this);
         }
 
-        public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value, LabelSymbol label)
+        public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression whenClause, BoundExpression value, LabelSymbol label)
         {
-            if (locals != this.Locals || pattern != this.Pattern || guard != this.Guard || value != this.Value || label != this.Label)
+            if (locals != this.Locals || pattern != this.Pattern || whenClause != this.WhenClause || value != this.Value || label != this.Label)
             {
-                var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, guard, value, label, this.HasErrors);
+                var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, whenClause, value, label, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3567,8 +3567,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPatternSwitchLabel : BoundNode
     {
-        public BoundPatternSwitchLabel(SyntaxNode syntax, LabelSymbol label, BoundPattern pattern, BoundExpression guard, bool hasErrors = false)
-            : base(BoundKind.PatternSwitchLabel, syntax, hasErrors || pattern.HasErrors() || guard.HasErrors())
+        public BoundPatternSwitchLabel(SyntaxNode syntax, LabelSymbol label, BoundPattern pattern, BoundExpression whenClause, bool hasErrors = false)
+            : base(BoundKind.PatternSwitchLabel, syntax, hasErrors || pattern.HasErrors() || whenClause.HasErrors())
         {
 
             Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -3576,7 +3576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Label = label;
             this.Pattern = pattern;
-            this.Guard = guard;
+            this.WhenClause = whenClause;
         }
 
 
@@ -3584,18 +3584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPattern Pattern { get; }
 
-        public BoundExpression Guard { get; }
+        public BoundExpression WhenClause { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitPatternSwitchLabel(this);
         }
 
-        public BoundPatternSwitchLabel Update(LabelSymbol label, BoundPattern pattern, BoundExpression guard)
+        public BoundPatternSwitchLabel Update(LabelSymbol label, BoundPattern pattern, BoundExpression whenClause)
         {
-            if (label != this.Label || pattern != this.Pattern || guard != this.Guard)
+            if (label != this.Label || pattern != this.Pattern || whenClause != this.WhenClause)
             {
-                var result = new BoundPatternSwitchLabel(this.Syntax, label, pattern, guard, this.HasErrors);
+                var result = new BoundPatternSwitchLabel(this.Syntax, label, pattern, whenClause, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9015,7 +9015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             this.Visit(node.Pattern);
-            this.Visit(node.Guard);
+            this.Visit(node.WhenClause);
             this.Visit(node.Value);
             return null;
         }
@@ -9101,7 +9101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPatternSwitchLabel(BoundPatternSwitchLabel node)
         {
             this.Visit(node.Pattern);
-            this.Visit(node.Guard);
+            this.Visit(node.WhenClause);
             return null;
         }
         public override BoundNode VisitIfStatement(BoundIfStatement node)
@@ -9954,9 +9954,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            BoundExpression guard = (BoundExpression)this.Visit(node.Guard);
+            BoundExpression whenClause = (BoundExpression)this.Visit(node.WhenClause);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Locals, pattern, guard, value, node.Label);
+            return node.Update(node.Locals, pattern, whenClause, value, node.Label);
         }
         public override BoundNode VisitDecisionDag(BoundDecisionDag node)
         {
@@ -10043,8 +10043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPatternSwitchLabel(BoundPatternSwitchLabel node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            BoundExpression guard = (BoundExpression)this.Visit(node.Guard);
-            return node.Update(node.Label, pattern, guard);
+            BoundExpression whenClause = (BoundExpression)this.Visit(node.WhenClause);
+            return node.Update(node.Label, pattern, whenClause);
         }
         public override BoundNode VisitIfStatement(BoundIfStatement node)
         {
@@ -11270,7 +11270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("locals", node.Locals, null),
                 new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
-                new TreeDumperNode("guard", null, new TreeDumperNode[] { Visit(node.Guard, null) }),
+                new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) }),
                 new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
                 new TreeDumperNode("label", node.Label, null)
             }
@@ -11418,7 +11418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("label", node.Label, null),
                 new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
-                new TreeDumperNode("guard", null, new TreeDumperNode[] { Visit(node.Guard, null) })
+                new TreeDumperNode("whenClause", null, new TreeDumperNode[] { Visit(node.WhenClause, null) })
             }
             );
         }

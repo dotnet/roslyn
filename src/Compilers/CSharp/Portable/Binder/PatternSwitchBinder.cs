@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // We mark any subsumed sections as erroneous for the benefit of flow analysis
-                        newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.Guard, hasErrors: true);
+                        newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
                     }
 
                     labelBuilder.Add(newLabel);

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
             /// <summary>
-            /// We revise the returned label for a leaf so that all leafs in the same switch section are given the same label.
+            /// We revise the returned label for a leaf so that all leaves in the same switch section are given the same label.
             /// This enables the switch emitter to produce better code.
             /// </summary>
             protected override LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // It is possible that the leaf represents a compiler-generated default for a switch statement in the EE.
                     // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
-                    // in leafs that result from explicit switch case labels in a switch section.
+                    // in leaves that result from explicit switch case labels in a switch section.
                     if (section?.Kind() == SyntaxKind.SwitchSection)
                     {
                         if (_sectionLabels.TryGetValue(section, out LabelSymbol replacementLabel))
