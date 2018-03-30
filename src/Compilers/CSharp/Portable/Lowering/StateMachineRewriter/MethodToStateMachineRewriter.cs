@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundStatement Dispatch()
         {
             return F.Switch(F.Local(cachedState),
-                    from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))
+                    (from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))).ToImmutableArray()
                     );
         }
 

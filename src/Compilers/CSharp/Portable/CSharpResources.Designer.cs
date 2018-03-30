@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a switch-expression..
+        ///   Looks up a localized string similar to An expression tree may not contain a switch expression..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsSwitchExpression {
             get {

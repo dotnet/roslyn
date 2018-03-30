@@ -5349,6 +5349,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
   </data>
   <data name="ERR_ExpressionTreeContainsSwitchExpression" xml:space="preserve">
-    <value>An expression tree may not contain a switch-expression.</value>
+    <value>An expression tree may not contain a switch expression.</value>
   </data>
 </root>

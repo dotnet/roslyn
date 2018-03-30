@@ -127,22 +127,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerDecisionDag(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
-                switch (sortedNodes[0])
+                var firstNode = sortedNodes[0];
+                switch (firstNode)
                 {
-                    case BoundWhenDecisionDagNode wc:
-                        // If the first node is in a when clause's section rather than the code for the
+                    case BoundWhenDecisionDagNode _:
+                    case BoundLeafDecisionDagNode _:
+                        // If the first node is a leaf or when clause rather than the code for the
                         // lowered decision dag, jump there to start.
-                        _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(wc)));
-                        break;
-                    case BoundLeafDecisionDagNode d:
-                        // If the first node is a leaf rather than the code for the
-                        // lowered decision dag, jump there to start.
-                        _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(d)));
+                        _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(firstNode)));
                         break;
                 }
 
                 // Note that a when-clause can contain an assignment to a
-                // pattern variable declared in a different when-clause, so we only apply the optimization
+                // pattern variable declared in a different when-clause (e.g. in the same section, or
+                // in a different section via the use of a local function), so we only apply the optimization
                 // of using user-declared pattern variables as pattern-matching automaton temps
                 // when there are no nontrivial when-clauses at all.
                 if (!sortedNodes.Any(n => n is BoundWhenDecisionDagNode w && w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True))
@@ -460,7 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundTestDecisionDagNode testNode:
                         {
-                            // PROTOTYPE(patterns2): should translate a chain of constant value tests into a switch instruction as before
                             BoundExpression test = base.LowerTest(testNode.Test);
                             GenerateTest(test, testNode.WhenTrue, testNode.WhenFalse, nextNode);
                         }

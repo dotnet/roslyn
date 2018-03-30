@@ -8771,8 +8771,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
-        <source>An expression tree may not contain a switch-expression.</source>
-        <target state="new">An expression tree may not contain a switch-expression.</target>
+        <source>An expression tree may not contain a switch expression.</source>
+        <target state="new">An expression tree may not contain a switch expression.</target>
         <note />
       </trans-unit>
     </body>

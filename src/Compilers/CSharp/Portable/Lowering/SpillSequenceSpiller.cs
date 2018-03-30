@@ -475,6 +475,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Statement Visitors
 
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
+        }
+
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
             BoundSpillSequenceBuilder builder = null;
@@ -496,13 +503,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var condition = VisitExpression(ref builder, node.Condition);
             return UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label));
-        }
-
-        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
-        {
-            BoundSpillSequenceBuilder builder = null;
-            var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
@@ -537,7 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Locals.All(l => l.SynthesizedKind.IsLongLived()));
             var builder = new BoundSpillSequenceBuilder();
+
+            // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
             _F.Syntax = node.Syntax;
+
             builder.AddStatements(VisitList(node.SideEffects));
             builder.AddLocals(node.Locals);
             var value = VisitExpression(ref builder, node.Value);

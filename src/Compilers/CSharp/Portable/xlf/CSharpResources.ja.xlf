@@ -8771,8 +8771,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
-        <source>An expression tree may not contain a switch-expression.</source>
-        <target state="new">An expression tree may not contain a switch-expression.</target>
+        <source>An expression tree may not contain a switch expression.</source>
+        <target state="new">An expression tree may not contain a switch expression.</target>
         <note />
       </trans-unit>
     </body>
