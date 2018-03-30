@@ -1238,8 +1238,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
-  <data name="Convert_If_to_Select_Case" xml:space="preserve">
-    <value>Convert 'If' to 'Select Case'</value>
+  <data name="Convert_to_Select_Case" xml:space="preserve">
+    <value>Convert to 'Select Case'</value>
   </data>
   <data name="Use_Is_Nothing_check" xml:space="preserve">
     <value>Use 'Is Nothing' check</value>
@@ -1247,7 +1247,10 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Use_IsNot_Nothing_check" xml:space="preserve">
     <value>Use 'IsNot Nothing' check</value>
   </data>
-  <data name="Convert_For_to_For_Each" xml:space="preserve">
-    <value>Convert 'For' to 'For Each'</value>
+  <data name="Convert_to_For_Each" xml:space="preserve">
+    <value>Convert to 'For Each'</value>
+  </data>
+  <data name="Convert_to_For" xml:space="preserve">
+    <value>Convert  to 'For'</value>
   </data>
 </root>
