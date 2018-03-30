@@ -3,10 +3,6 @@
 using System;
 using System.Diagnostics;
 
-#if !NETSTANDARD1_3
-using System.Runtime.Serialization;
-#endif
-
 namespace Microsoft.CodeAnalysis
 {
     // To enable this for a process, add the following to the app.config for the project:
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     {
         public override void Fail(string message, string detailMessage)
         {
-            throw new DebugAssertFailureException(message + Environment.NewLine + detailMessage);
+            throw new InvalidOperationException(message + Environment.NewLine + detailMessage);
         }
 
         public override void Write(object o)
@@ -58,19 +54,6 @@ namespace Microsoft.CodeAnalysis
 
         public override void WriteLine(string message, string category)
         {
-        }
-
-#if !NETSTANDARD1_3
-        [Serializable]
-#endif
-        public class DebugAssertFailureException : Exception
-        {
-            public DebugAssertFailureException() { }
-            public DebugAssertFailureException(string message) : base(message) { }
-            public DebugAssertFailureException(string message, Exception innerException) : base(message, innerException) { }
-#if !NETSTANDARD1_3
-            protected DebugAssertFailureException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-#endif
         }
     }
 }
