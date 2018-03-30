@@ -745,7 +745,7 @@ class Generic<T>
         }
 
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ComplexDynamicType()
         {
             var source =
@@ -840,7 +840,7 @@ public class Outer<T, U>
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DynamicAliases()
         {
             var source =

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
             ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDag(
+            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
                 compilation: this.Compilation,
                 syntax: node,
                 switchGoverningExpression: boundSwitchGoverningExpression,
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // We mark any subsumed sections as erroneous for the benefit of flow analysis
-                        newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.Guard, hasErrors: true);
+                        newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
                     }
 
                     labelBuilder.Add(newLabel);

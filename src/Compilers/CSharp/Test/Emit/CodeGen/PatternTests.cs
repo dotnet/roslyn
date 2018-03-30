@@ -169,35 +169,32 @@ public class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.Main",
 @"{
-  // Code size       44 (0x2c)
+  // Code size       42 (0x2a)
   .maxstack  1
   .locals init (int V_0, //index
                 bool V_1,
-                int? V_2,
-                int V_3)
+                int? V_2)
   IL_0000:  nop
   IL_0001:  call       ""int? C.TryGet()""
   IL_0006:  stloc.2
   IL_0007:  ldloca.s   V_2
   IL_0009:  call       ""bool int?.HasValue.get""
-  IL_000e:  brfalse.s  IL_001d
+  IL_000e:  brfalse.s  IL_001b
   IL_0010:  ldloca.s   V_2
   IL_0012:  call       ""int int?.GetValueOrDefault()""
-  IL_0017:  stloc.3
-  IL_0018:  ldloc.3
-  IL_0019:  stloc.0
-  IL_001a:  ldc.i4.1
-  IL_001b:  br.s       IL_001e
-  IL_001d:  ldc.i4.0
-  IL_001e:  stloc.1
-  IL_001f:  ldloc.1
-  IL_0020:  brfalse.s  IL_002b
-  IL_0022:  nop
-  IL_0023:  ldloc.0
-  IL_0024:  call       ""void System.Console.WriteLine(int)""
-  IL_0029:  nop
-  IL_002a:  nop
-  IL_002b:  ret
+  IL_0017:  stloc.0
+  IL_0018:  ldc.i4.1
+  IL_0019:  br.s       IL_001c
+  IL_001b:  ldc.i4.0
+  IL_001c:  stloc.1
+  IL_001d:  ldloc.1
+  IL_001e:  brfalse.s  IL_0029
+  IL_0020:  nop
+  IL_0021:  ldloc.0
+  IL_0022:  call       ""void System.Console.WriteLine(int)""
+  IL_0027:  nop
+  IL_0028:  nop
+  IL_0029:  ret
 }");
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
@@ -269,12 +266,11 @@ class IdentityAccessor<T>
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
 @"{
-  // Code size       63 (0x3f)
+  // Code size       61 (0x3d)
   .maxstack  3
   .locals init (U V_0, //u
                 bool V_1,
-                T V_2,
-                U V_3)
+                T V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<T> X<T>.GetT()""
@@ -286,22 +282,20 @@ class IdentityAccessor<T>
   IL_0019:  ldloc.2
   IL_001a:  box        ""T""
   IL_001f:  isinst     ""U""
-  IL_0024:  brfalse.s  IL_0037
+  IL_0024:  brfalse.s  IL_0035
   IL_0026:  ldloc.2
   IL_0027:  box        ""T""
   IL_002c:  unbox.any  ""U""
-  IL_0031:  stloc.3
-  IL_0032:  ldloc.3
-  IL_0033:  stloc.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  br.s       IL_0038
-  IL_0037:  ldc.i4.0
-  IL_0038:  stloc.1
-  IL_0039:  ldloc.1
-  IL_003a:  brfalse.s  IL_003e
-  IL_003c:  nop
-  IL_003d:  nop
-  IL_003e:  ret
+  IL_0031:  stloc.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  br.s       IL_0036
+  IL_0035:  ldc.i4.0
+  IL_0036:  stloc.1
+  IL_0037:  ldloc.1
+  IL_0038:  brfalse.s  IL_003c
+  IL_003a:  nop
+  IL_003b:  nop
+  IL_003c:  ret
 }");
         }
 
@@ -345,15 +339,12 @@ True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size      106 (0x6a)
+  // Code size       82 (0x52)
   .maxstack  2
   .locals init (Base<object> V_0, //x
                 Derived V_1, //y
-                Derived V_2,
-                Derived V_3, //z
-                Base<object> V_4,
-                Derived V_5,
-                Base<object> V_6)
+                Derived V_2, //z
+                Base<object> V_3)
   IL_0000:  nop
   IL_0001:  newobj     ""Derived..ctor()""
   IL_0006:  stloc.0
@@ -365,42 +356,34 @@ True";
   IL_0015:  nop
   IL_0016:  ldloc.0
   IL_0017:  isinst     ""Derived""
-  IL_001c:  brfalse.s  IL_002a
-  IL_001e:  ldloc.0
-  IL_001f:  castclass  ""Derived""
-  IL_0024:  stloc.2
-  IL_0025:  ldloc.2
-  IL_0026:  stloc.1
-  IL_0027:  ldc.i4.1
-  IL_0028:  br.s       IL_002b
-  IL_002a:  ldc.i4.0
-  IL_002b:  call       ""void System.Console.WriteLine(bool)""
-  IL_0030:  nop
-  IL_0031:  ldloc.0
-  IL_0032:  stloc.s    V_6
-  IL_0034:  ldloc.s    V_6
-  IL_0036:  stloc.s    V_4
-  IL_0038:  ldloc.s    V_4
-  IL_003a:  isinst     ""Derived""
-  IL_003f:  brfalse.s  IL_005a
-  IL_0041:  ldloc.s    V_4
-  IL_0043:  castclass  ""Derived""
-  IL_0048:  stloc.s    V_5
-  IL_004a:  br.s       IL_004c
-  IL_004c:  ldloc.s    V_5
-  IL_004e:  stloc.3
-  IL_004f:  br.s       IL_0051
-  IL_0051:  ldc.i4.1
-  IL_0052:  call       ""void System.Console.WriteLine(bool)""
-  IL_0057:  nop
-  IL_0058:  br.s       IL_005a
-  IL_005a:  ldloc.0
-  IL_005b:  isinst     ""Derived""
-  IL_0060:  ldnull
-  IL_0061:  cgt.un
-  IL_0063:  call       ""void System.Console.WriteLine(bool)""
-  IL_0068:  nop
-  IL_0069:  ret
+  IL_001c:  stloc.1
+  IL_001d:  ldloc.1
+  IL_001e:  ldnull
+  IL_001f:  cgt.un
+  IL_0021:  call       ""void System.Console.WriteLine(bool)""
+  IL_0026:  nop
+  IL_0027:  ldloc.0
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.3
+  IL_002a:  stloc.0
+  IL_002b:  ldloc.0
+  IL_002c:  isinst     ""Derived""
+  IL_0031:  stloc.2
+  IL_0032:  ldloc.2
+  IL_0033:  brtrue.s   IL_0037
+  IL_0035:  br.s       IL_0042
+  IL_0037:  br.s       IL_0039
+  IL_0039:  ldc.i4.1
+  IL_003a:  call       ""void System.Console.WriteLine(bool)""
+  IL_003f:  nop
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ldloc.0
+  IL_0043:  isinst     ""Derived""
+  IL_0048:  ldnull
+  IL_0049:  cgt.un
+  IL_004b:  call       ""void System.Console.WriteLine(bool)""
+  IL_0050:  nop
+  IL_0051:  ret
 }");
         }
 
@@ -486,61 +469,662 @@ class Program
 }");
             compVerifier.VerifyIL("Program.P5",
 @"{
-  // Code size      103 (0x67)
+  // Code size       98 (0x62)
   .maxstack  2
-  .locals init (object V_0,
-                double V_1,
-                float V_2,
-                object V_3,
-                bool V_4)
+  .locals init (double V_0,
+                float V_1,
+                object V_2,
+                bool V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.3
-  IL_0003:  ldloc.3
-  IL_0004:  stloc.0
-  IL_0005:  ldloc.0
-  IL_0006:  isinst     ""double""
-  IL_000b:  brfalse.s  IL_002a
-  IL_000d:  ldloc.0
-  IL_000e:  unbox.any  ""double""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""bool double.IsNaN(double)""
-  IL_001a:  brtrue.s   IL_004b
-  IL_001c:  ldc.r8     3.14
-  IL_0025:  ldloc.1
-  IL_0026:  beq.s      IL_0055
-  IL_0028:  br.s       IL_005f
-  IL_002a:  ldloc.0
-  IL_002b:  isinst     ""float""
-  IL_0030:  brfalse.s  IL_005f
-  IL_0032:  ldloc.0
-  IL_0033:  unbox.any  ""float""
-  IL_0038:  stloc.2
-  IL_0039:  ldloc.2
-  IL_003a:  call       ""bool float.IsNaN(float)""
-  IL_003f:  brtrue.s   IL_0050
-  IL_0041:  ldc.r4     3.14
-  IL_0046:  ldloc.2
-  IL_0047:  beq.s      IL_005a
-  IL_0049:  br.s       IL_005f
-  IL_004b:  ldc.i4.1
-  IL_004c:  stloc.s    V_4
-  IL_004e:  br.s       IL_0064
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  starg.s    V_0
+  IL_0006:  ldarg.0
+  IL_0007:  isinst     ""double""
+  IL_000c:  brfalse.s  IL_002b
+  IL_000e:  ldarg.0
+  IL_000f:  unbox.any  ""double""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""bool double.IsNaN(double)""
+  IL_001b:  brtrue.s   IL_004c
+  IL_001d:  ldc.r8     3.14
+  IL_0026:  ldloc.0
+  IL_0027:  beq.s      IL_0054
+  IL_0029:  br.s       IL_005c
+  IL_002b:  ldarg.0
+  IL_002c:  isinst     ""float""
+  IL_0031:  brfalse.s  IL_005c
+  IL_0033:  ldarg.0
+  IL_0034:  unbox.any  ""float""
+  IL_0039:  stloc.1
+  IL_003a:  ldloc.1
+  IL_003b:  call       ""bool float.IsNaN(float)""
+  IL_0040:  brtrue.s   IL_0050
+  IL_0042:  ldc.r4     3.14
+  IL_0047:  ldloc.1
+  IL_0048:  beq.s      IL_0058
+  IL_004a:  br.s       IL_005c
+  IL_004c:  ldc.i4.1
+  IL_004d:  stloc.3
+  IL_004e:  br.s       IL_0060
   IL_0050:  ldc.i4.1
-  IL_0051:  stloc.s    V_4
-  IL_0053:  br.s       IL_0064
-  IL_0055:  ldc.i4.1
-  IL_0056:  stloc.s    V_4
-  IL_0058:  br.s       IL_0064
-  IL_005a:  ldc.i4.1
-  IL_005b:  stloc.s    V_4
-  IL_005d:  br.s       IL_0064
-  IL_005f:  ldc.i4.0
-  IL_0060:  stloc.s    V_4
-  IL_0062:  br.s       IL_0064
-  IL_0064:  ldloc.s    V_4
-  IL_0066:  ret
+  IL_0051:  stloc.3
+  IL_0052:  br.s       IL_0060
+  IL_0054:  ldc.i4.1
+  IL_0055:  stloc.3
+  IL_0056:  br.s       IL_0060
+  IL_0058:  ldc.i4.1
+  IL_0059:  stloc.3
+  IL_005a:  br.s       IL_0060
+  IL_005c:  ldc.i4.0
+  IL_005d:  stloc.3
+  IL_005e:  br.s       IL_0060
+  IL_0060:  ldloc.3
+  IL_0061:  ret
+}");
+        }
+
+        [Fact]
+        public void DecimalEquality()
+        {
+            // demonstrate that pattern-matching against a decimal constant is
+            // at least as efficient as simply using ==
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M1(1.0m));
+        Console.Write(M2(1.0m));
+        Console.Write(M1(2.0m));
+        Console.Write(M2(2.0m));
+    }
+
+    static int M1(decimal d)
+    {
+        if (M(d) is 1.0m) return 1;
+        return 0;
+    }
+
+    static int M2(decimal d)
+    {
+        if (M(d) == 1.0m) return 1;
+        return 0;
+    }
+
+    public static decimal M(decimal d)
+    {
+        return d;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1100";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  5
+  .locals init (bool V_0,
+                decimal V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""decimal C.M(decimal)""
+  IL_0007:  stloc.1
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0013:  ldloc.1
+  IL_0014:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_0021
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.2
+  IL_001f:  br.s       IL_0025
+  IL_0021:  ldc.i4.0
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ret
+}");
+            compVerifier.VerifyIL("C.M2",
+@"{
+  // Code size       37 (0x25)
+  .maxstack  6
+  .locals init (bool V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""decimal C.M(decimal)""
+  IL_0007:  ldc.i4.s   10
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0012:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  brfalse.s  IL_001f
+  IL_001b:  ldc.i4.1
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0023
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.1
+  IL_0024:  ret
+}");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  5
+  .locals init (decimal V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""decimal C.M(decimal)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.s   10
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0018:  brfalse.s  IL_001c
+  IL_001a:  ldc.i4.1
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}");
+            compVerifier.VerifyIL("C.M2",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  6
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""decimal C.M(decimal)""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0011:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0016:  brfalse.s  IL_001a
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldc.i4.0
+  IL_001b:  ret
+}");
+        }
+
+        [Fact, WorkItem(16878, "https://github.com/dotnet/roslyn/issues/16878")]
+        public void RedundantNullCheck()
+        {
+            var source =
+@"public class C
+{
+    static int M1(bool? b1, bool b2)
+    {
+        switch (b1)
+        {
+            case null:
+                return 1;
+            case var _ when b2:
+                return 2;
+            case true:
+                return 3;
+            case false:
+                return 4;
+        }
+    }
+
+    static int M2(object o, bool b)
+    {
+        switch (o)
+        {
+            case string a when b:
+                return 1;
+            case string a:
+                return 2;
+        }
+        return 3;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (bool? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool bool?.HasValue.get""
+  IL_0009:  brfalse.s  IL_0018
+  IL_000b:  br.s       IL_001a
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0014:  brtrue.s   IL_001f
+  IL_0016:  br.s       IL_0021
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldarg.1
+  IL_001b:  brfalse.s  IL_000d
+  IL_001d:  ldc.i4.2
+  IL_001e:  ret
+  IL_001f:  ldc.i4.3
+  IL_0020:  ret
+  IL_0021:  ldc.i4.4
+  IL_0022:  ret
+}");
+            compVerifier.VerifyIL("C.M2",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""string""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0011
+  IL_000a:  ldarg.1
+  IL_000b:  brfalse.s  IL_000f
+  IL_000d:  ldc.i4.1
+  IL_000e:  ret
+  IL_000f:  ldc.i4.2
+  IL_0010:  ret
+  IL_0011:  ldc.i4.3
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(12813, "https://github.com/dotnet/roslyn/issues/12813")]
+        public void NoBoxingOnIntegerConstantPattern()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(int x)
+    {
+        return x is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ldarg.0
+  IL_0003:  ceq
+  IL_0005:  ret
+}");
+        }
+
+        [Fact, WorkItem(22654, "https://github.com/dotnet/roslyn/issues/22654")]
+        public void NoRedundantTypeCheck()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public void SwitchBasedPatternMatching(object o)
+    {
+        switch (o)
+        {
+            case int n when n == 1:
+                Console.WriteLine(""1""); break;
+            case string s:
+                Console.WriteLine(""s""); break;
+            case int n when n == 2:
+                Console.WriteLine(""2""); break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.SwitchBasedPatternMatching",
+@"{
+  // Code size       71 (0x47)
+  .maxstack  2
+  .locals init (int V_0,
+                string V_1,
+                object V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  isinst     ""int""
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.2
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  isinst     ""string""
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brtrue.s   IL_002d
+  IL_001d:  ret
+  IL_001e:  ldloc.0
+  IL_001f:  ldc.i4.1
+  IL_0020:  bne.un.s   IL_0038
+  IL_0022:  ldstr      ""1""
+  IL_0027:  call       ""void System.Console.WriteLine(string)""
+  IL_002c:  ret
+  IL_002d:  ldstr      ""s""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+  IL_0038:  ldloc.0
+  IL_0039:  ldc.i4.2
+  IL_003a:  bne.un.s   IL_0046
+  IL_003c:  ldstr      ""2""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ret
+}");
+        }
+
+        [Fact, WorkItem(15437, "https://github.com/dotnet/roslyn/issues/15437")]
+        public void IsTypeDiscard()
+        {
+            var source =
+@"public class C
+{
+    public bool IsString(object o)
+    {
+        return o is string _;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.IsString",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""string""
+  IL_0006:  ldnull
+  IL_0007:  cgt.un
+  IL_0009:  ret
+}");
+        }
+
+        [Fact, WorkItem(19150, "https://github.com/dotnet/roslyn/issues/19150")]
+        public void RedundantHasValue()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void M(int? x)
+    {
+        switch (x)
+        {
+            case int i:
+                Console.Write(i);
+                break;
+            case null:
+                Console.Write(""null"");
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0016
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""int int?.GetValueOrDefault()""
+  IL_0010:  call       ""void System.Console.Write(int)""
+  IL_0015:  ret
+  IL_0016:  ldstr      ""null""
+  IL_001b:  call       ""void System.Console.Write(string)""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact, WorkItem(19153, "https://github.com/dotnet/roslyn/issues/19153")]
+        public void RedundantBox()
+        {
+            var source = @"using System;
+public class C
+{
+    public static void M<T, U>(U x) where T : U
+    {
+        // when T is not known to be a reference type, there is an unboxing conversion from
+        // a type parameter U to T, provided T depends on U.
+        switch (x)
+        {
+            case T i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M<T, U>(U)",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""U""
+  IL_0006:  isinst     ""T""
+  IL_000b:  brfalse.s  IL_0022
+  IL_000d:  ldarg.0
+  IL_000e:  box        ""U""
+  IL_0013:  unbox.any  ""T""
+  IL_0018:  box        ""T""
+  IL_001d:  call       ""void System.Console.Write(object)""
+  IL_0022:  ret
+}");
+        }
+
+        [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        public void PatternsVsAs01()
+        {
+            var source = @"using System.Collections;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main() { }
+
+    internal static bool TryGetCount1<T>(IEnumerable<T> source, out int count)
+    {
+        ICollection nonGeneric = source as ICollection;
+        if (nonGeneric != null)
+        {
+            count = nonGeneric.Count;
+            return true;
+        }
+
+        ICollection<T> generic = source as ICollection<T>;
+        if (generic != null)
+        {
+            count = generic.Count;
+            return true;
+        }
+
+        count = -1;
+        return false;
+    }
+
+    internal static bool TryGetCount2<T>(IEnumerable<T> source, out int count)
+    {
+        switch (source)
+        {
+            case ICollection nonGeneric:
+                count = nonGeneric.Count;
+                return true;
+
+            case ICollection<T> generic:
+                count = generic.Count;
+                return true;
+
+            default:
+                count = -1;
+                return false;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("Program.TryGetCount1<T>",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (System.Collections.ICollection V_0, //nonGeneric
+                System.Collections.Generic.ICollection<T> V_1) //generic
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""System.Collections.ICollection""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0014
+  IL_000a:  ldarg.1
+  IL_000b:  ldloc.0
+  IL_000c:  callvirt   ""int System.Collections.ICollection.Count.get""
+  IL_0011:  stind.i4
+  IL_0012:  ldc.i4.1
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  isinst     ""System.Collections.Generic.ICollection<T>""
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  brfalse.s  IL_0028
+  IL_001e:  ldarg.1
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""int System.Collections.Generic.ICollection<T>.Count.get""
+  IL_0025:  stind.i4
+  IL_0026:  ldc.i4.1
+  IL_0027:  ret
+  IL_0028:  ldarg.1
+  IL_0029:  ldc.i4.m1
+  IL_002a:  stind.i4
+  IL_002b:  ldc.i4.0
+  IL_002c:  ret
+}");
+            compVerifier.VerifyIL("Program.TryGetCount2<T>",
+@"{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (System.Collections.ICollection V_0, //nonGeneric
+                System.Collections.Generic.ICollection<T> V_1) //generic
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""System.Collections.ICollection""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_0016
+  IL_000a:  ldarg.0
+  IL_000b:  isinst     ""System.Collections.Generic.ICollection<T>""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  brtrue.s   IL_0020
+  IL_0014:  br.s       IL_002a
+  IL_0016:  ldarg.1
+  IL_0017:  ldloc.0
+  IL_0018:  callvirt   ""int System.Collections.ICollection.Count.get""
+  IL_001d:  stind.i4
+  IL_001e:  ldc.i4.1
+  IL_001f:  ret
+  IL_0020:  ldarg.1
+  IL_0021:  ldloc.1
+  IL_0022:  callvirt   ""int System.Collections.Generic.ICollection<T>.Count.get""
+  IL_0027:  stind.i4
+  IL_0028:  ldc.i4.1
+  IL_0029:  ret
+  IL_002a:  ldarg.1
+  IL_002b:  ldc.i4.m1
+  IL_002c:  stind.i4
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
+}");
+        }
+
+        [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        public void PatternsVsAs02()
+        {
+            var source = @"using System.Collections;
+class Program
+{
+    static void Main() { }
+
+    internal static bool IsEmpty1(IEnumerable source)
+    {
+        var c = source as ICollection;
+        return c != null && c.Count > 0;
+    }
+
+    internal static bool IsEmpty2(IEnumerable source)
+    {
+        return source is ICollection c && c.Count > 0;
+    }
+
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("Program.IsEmpty1",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.Collections.ICollection V_0) //c
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""System.Collections.ICollection""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0014
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""int System.Collections.ICollection.Count.get""
+  IL_0010:  ldc.i4.0
+  IL_0011:  cgt
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
+}");
+            compVerifier.VerifyIL("Program.IsEmpty2",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.Collections.ICollection V_0) //c
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""System.Collections.ICollection""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0014
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""int System.Collections.ICollection.Count.get""
+  IL_0010:  ldc.i4.0
+  IL_0011:  cgt
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
 }");
         }
     }

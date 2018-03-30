@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // When the variable's type has not yet been inferred,
         // don't let the debugger force inference.
-        internal new string GetDebuggerDisplay()
+        internal override string GetDebuggerDisplay()
         {
             return ((object)_type != null)
                 ? base.GetDebuggerDisplay()

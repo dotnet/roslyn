@@ -988,7 +988,7 @@ throw Dummy(11 is var x1, x1);
             Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact, WorkItem(9121, "https://github.com/dotnet/roslyn/issues/9121")]
         public void ScopeOfPatternVariables_If_01()
         {
             var source =

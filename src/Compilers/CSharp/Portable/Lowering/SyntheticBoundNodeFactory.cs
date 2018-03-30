@@ -159,8 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
 
             this.CompilationState = compilationState;
-            this.TopLevelMethod = topLevelMethodOpt;
             this.CurrentType = currentClassOpt;
+            this.TopLevelMethod = topLevelMethodOpt;
+            this.CurrentMethod = topLevelMethodOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
         }
@@ -798,9 +799,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)
+        public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)
         {
-            return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+            return new BoundSpillSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -1311,6 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol containingMethod = this.CurrentMethod;
+            Debug.Assert((object)containingMethod != null);
             var syntax = argument.Syntax;
             var type = argument.Type;
 

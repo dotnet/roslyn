@@ -569,9 +569,9 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (16,35): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "await One()").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
                );
         }
 

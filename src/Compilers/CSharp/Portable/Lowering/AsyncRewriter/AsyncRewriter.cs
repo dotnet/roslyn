@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Rewrite an async method into a state machine type.
         /// </summary>
         internal static BoundStatement Rewrite(
-            BoundStatement body,
+            BoundStatement bodyWithAwaitLifted,
             MethodSymbol method,
             int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
@@ -46,21 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!method.IsAsync)
             {
                 stateMachineType = null;
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
-
-            var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
-
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             try
@@ -70,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                return new BoundBadStatement(body.Syntax, ImmutableArray.Create<BoundNode>(body), hasErrors: true);
+                return new BoundBadStatement(bodyWithAwaitLifted.Syntax, ImmutableArray.Create<BoundNode>(bodyWithAwaitLifted), hasErrors: true);
             }
         }
 
