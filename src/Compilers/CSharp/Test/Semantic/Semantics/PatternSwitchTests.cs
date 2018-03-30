@@ -1048,7 +1048,8 @@ null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(25846, "https://github.com/dotnet/roslyn/issues/25846")]
         public void DuplicateDouble()
         {
             var source =
@@ -1155,33 +1156,32 @@ null";
         }
     }
 }";
-            var provider = EnsureEnglishUICulture.PreferredOrNull;
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments(1.01.ToString(provider)).WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01:").WithArguments(1.01.ToString()).WithLocation(13, 13),
                 // (34,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case -0.0: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments((-0.0).ToString(provider)).WithLocation(34, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0:").WithArguments((-0.0).ToString()).WithLocation(34, 13),
                 // (35,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
                 //             case -double.NaN: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments((-double.NaN).ToString(provider)).WithLocation(35, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -double.NaN:").WithArguments((-double.NaN).ToString()).WithLocation(35, 13),
                 // (46,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01f: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments(1.01f.ToString(provider)).WithLocation(46, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01f:").WithArguments(1.01f.ToString()).WithLocation(46, 13),
                 // (67,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case -0.0f: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments((-0.0f).ToString(provider)).WithLocation(67, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0f:").WithArguments((-0.0f).ToString()).WithLocation(67, 13),
                 // (68,13): error CS0152: The switch statement contains multiple cases with the label value 'NaN'
                 //             case -float.NaN: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments((-float.NaN).ToString(provider)).WithLocation(68, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -float.NaN:").WithArguments((-float.NaN).ToString()).WithLocation(68, 13),
                 // (78,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01m: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments(1.01m.ToString(provider)).WithLocation(78, 13),
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1.01m:").WithArguments(1.01m.ToString()).WithLocation(78, 13),
                 // (99,13): error CS0152: The switch statement contains multiple cases with the label value '0.0'
                 //             case -0.0m: // duplicate
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments((-0.0m).ToString(provider)).WithLocation(99, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case -0.0m:").WithArguments((-0.0m).ToString()).WithLocation(99, 13)
                 );
         }
 
