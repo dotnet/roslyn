@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var op = symbol.GetPredefinedOperator();
 
-            return FindReferencesInDocumentAsync(symbol, document, t =>
+            return FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
                 IsPotentialReference(syntaxFacts, op, t),
                 cancellationToken);
         }

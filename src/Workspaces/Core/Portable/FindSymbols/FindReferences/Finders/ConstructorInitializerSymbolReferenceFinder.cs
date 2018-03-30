@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return await FindReferencesInTokensAsync(
                  methodSymbol,
                  document,
+                 semanticModel,
                  tokens,
                  tokensMatch,
                  cancellationToken).ConfigureAwait(false);

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
             var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
         }
@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private Task<ImmutableArray<ReferenceLocation>> FindPredefinedTypeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(symbol, document,
+                semanticModel,
                 t => IsPotentialReference(predefinedType, syntaxFacts, t),
                 cancellationToken);
         }

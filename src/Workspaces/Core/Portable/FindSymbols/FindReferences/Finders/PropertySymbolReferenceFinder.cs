@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             var forEachReferences = IsForEachProperty(symbol)
-                ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
+                ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<ReferenceLocation>.Empty;
 
             var elementAccessReferences = symbol.IsIndexer
-                ? await FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false)
+                ? await FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<ReferenceLocation>.Empty;
 
             return nameReferences.Concat(forEachReferences)
@@ -122,12 +122,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private async Task<ImmutableArray<ReferenceLocation>> FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(
             IPropertySymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
