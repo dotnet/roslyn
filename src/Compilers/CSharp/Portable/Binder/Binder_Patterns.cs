@@ -88,7 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             var name = node.UnderscoreToken.ValueText;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, ref useSiteDiagnostics, options: LookupOptions.AllMethodsOnArityZero);
+            this.LookupSymbolsInternal(
+                lookupResult, name, arity: 0, basesBeingResolved: null,
+                options: LookupOptions.AllMethodsOnArityZero, diagnose: false, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             if (lookupResult.IsMultiViable)
             {
