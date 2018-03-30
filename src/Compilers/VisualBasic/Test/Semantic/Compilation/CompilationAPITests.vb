@@ -17,10 +17,149 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
+Imports Roslyn.Test.Utilities.TestHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
+
+        <Fact>
+        Public Sub PerTreeVsGlobalSuppress()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp.AssertNoDiagnostics()
+
+            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Warn)))
+            comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Global options override syntax tree options. This is the opposite of C# behavior
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsParseWarnings()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+
+            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsPragma()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+#Disable Warning BC42024
+        Dim x As Integer
+#Enable Warning BC42024
+    End Sub
+End Class")
+
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            comp.AssertNoDiagnostics()
+
+            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            ' Pragma should have precedence over per-tree options
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsSpecificOptions()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
+                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp.AssertNoDiagnostics()
+
+            Dim newTree = tree.WithDiagnosticOptions(
+                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=options)
+            ' Tree options should have precedence over specific diagnostic options
+            comp2.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub DifferentDiagnosticOptionsForTrees()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim newTree = SyntaxFactory.ParseSyntaxTree("
+Class D
+     Sub M()
+        Dim y As Integer
+    End Sub
+End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC4024", ReportDiagnostic.Error)))
+
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'y'.
+        Dim y As Integer
+            ~ 
+                </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TreeOptionsComparerRespected()
+            Dim options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("bc42024", ReportDiagnostic.Suppress))
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class").WithDiagnosticOptions(options)
+
+            Dim newTree = SyntaxFactory.ParseSyntaxTree("
+Class D
+     Sub M()
+        Dim y As Integer
+    End Sub
+End Class").WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer))
+
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+        End Sub
 
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
