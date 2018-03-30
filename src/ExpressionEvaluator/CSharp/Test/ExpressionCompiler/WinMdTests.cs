@@ -242,7 +242,8 @@ class C
         /// and referencing runtime assembly.
         /// </summary>
         [WorkItem(1116143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        //[ConditionalFact(typeof(OSVersionWin8))]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")] // should be ConditionalFact, above, when fixed
         public void AssemblyQualifiedName()
         {
             var source =

@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
             BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
-            BoundExpression guard = node.WhenClause != null
+            BoundExpression whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
             BoundExpression armResult = armBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var label = new GeneratedLabelSymbol("arm");
-            return new BoundSwitchExpressionArm(node, locals, pattern, guard, armResult, label, hasErrors | pattern.HasErrors);
+            return new BoundSwitchExpressionArm(node, locals, pattern, whenClause, armResult, label, hasErrors | pattern.HasErrors);
         }
     }
 }

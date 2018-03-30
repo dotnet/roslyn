@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._factory = localRewriter._factory;
                 this._factory.Syntax = _loweredInput.Syntax;
                 this._tempAllocator = new DagTempAllocator(_factory);
-                this._inputTemp = new BoundDagTemp(loweredInput.Syntax, loweredInput.Type, null, 0);
+                this._inputTemp = new BoundDagTemp(loweredInput.Syntax, loweredInput.Type, source: null, index: 0);
             }
 
             public void Free()
@@ -69,14 +69,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
+                /// <summary>
+                /// Try setting a user-declared variable (given by its accessing expression) to be
+                /// used for a pattern-matching temporary variable. Returns true when not already
+                /// assigned. The return value of this method is typically ignored by the caller as
+                /// once we have made an assignment we can keep it (we keep the first assignment we
+                /// find), but we return a success bool to emphasize that the assignment is not unconditional.
+                /// </summary>
+                public bool TrySetTemp(BoundDagTemp dagTemp, BoundExpression translation)
+                {
+                    if (!_map.ContainsKey(dagTemp))
+                    {
+                        _map.Add(dagTemp, translation);
+                        return true;
+                    }
+
+                    return false;
+                }
+
                 public ImmutableArray<LocalSymbol> AllTemps()
                 {
                     return _temps.ToImmutableArray();
-                }
-
-                public void AssignTemp(BoundDagTemp dagTemp, BoundExpression value)
-                {
-                    _map.Add(dagTemp, value);
                 }
             }
 
@@ -91,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagFieldEvaluation f:
                         {
                             FieldSymbol field = f.Field;
-                            var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, 0);
+                            var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, index: 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             BoundExpression access = _localRewriter.MakeFieldAccess(f.Syntax, input, field, null, LookupResultKind.Viable, field.Type);
                             access.WasCompilerGenerated = true;
@@ -101,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagPropertyEvaluation p:
                         {
                             PropertySymbol property = p.Property;
-                            var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, 0);
+                            var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, index: 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, _factory.Property(input, property));
                         }
@@ -153,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             TypeSymbol type = t.Type;
-                            var outputTemp = new BoundDagTemp(t.Syntax, type, t, 0);
+                            var outputTemp = new BoundDagTemp(t.Syntax, type, t, index: 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
@@ -187,21 +200,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Return the boolean test required for the given decision. Returns `null` if the decision is trivially true.
+            /// Return the boolean expression to be evaluated for the given test. Returns `null` if the test is trivially true.
             /// </summary>
-            protected BoundExpression LowerDecision(BoundDagDecision decision)
+            protected BoundExpression LowerTest(BoundDagTest test)
             {
-                BoundExpression input = _tempAllocator.GetTemp(decision.Input);
-                switch (decision)
+                BoundExpression input = _tempAllocator.GetTemp(test.Input);
+                switch (test)
                 {
-                    case BoundNonNullDecision d:
+                    case BoundDagNonNullTest d:
                         // If the actual input is a constant, short-circuit this test
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
                         {
-                            bool decisionResult = _loweredInput.ConstantValue != ConstantValue.Null;
-                            if (!decisionResult)
+                            bool testResult = _loweredInput.ConstantValue != ConstantValue.Null;
+                            if (!testResult)
                             {
-                                return _factory.Literal(decisionResult);
+                                return _factory.Literal(testResult);
                             }
                         }
                         else
@@ -211,19 +224,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return null;
 
-                    case BoundTypeDecision d:
+                    case BoundDagTypeTest d:
                         {
                             // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
                             return _factory.Is(input, d.Type);
                         }
 
-                    case BoundNullValueDecision d:
+                    case BoundDagNullTest d:
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
                         {
-                            bool decisionResult = _loweredInput.ConstantValue == ConstantValue.Null;
-                            if (!decisionResult)
+                            bool testResult = _loweredInput.ConstantValue == ConstantValue.Null;
+                            if (!testResult)
                             {
-                                return _factory.Literal(decisionResult);
+                                return _factory.Literal(testResult);
                             }
                         }
                         else
@@ -233,14 +246,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return null;
 
-                    case BoundNonNullValueDecision d:
+                    case BoundDagValueTest d:
                         // If the actual input is a constant, short-circuit this test
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
                         {
-                            bool decisionResult = _loweredInput.ConstantValue == d.Value;
-                            if (!decisionResult)
+                            bool testResult = _loweredInput.ConstantValue == d.Value;
+                            if (!testResult)
                             {
-                                return _factory.Literal(decisionResult);
+                                return _factory.Literal(testResult);
                             }
                         }
                         else
@@ -252,7 +265,78 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(decision);
+                        throw ExceptionUtilities.UnexpectedValue(test);
+                }
+            }
+
+            /// <summary>
+            /// Lower a test followed by an evaluation into a side-effect followed by a test. This permits us to optimize
+            /// a type test followed by a cast into an `as` expression followed by a null check. Returns true if the optimization
+            /// applies and the results are placed into <paramref name="sideEffect"/> and <paramref name="test"/>. The caller
+            /// should place the side-effect before the test in the generated code.
+            /// </summary>
+            /// <param name="evaluation"></param>
+            /// <param name="test"></param>
+            /// <param name="sideEffect"></param>
+            /// <param name="testExpression"></param>
+            /// <returns>true if the optimization is applied</returns>
+            protected bool TryLowerTypeTestAndCast(
+                BoundDagTest test,
+                BoundDagEvaluation evaluation,
+                out BoundExpression sideEffect,
+                out BoundExpression testExpression)
+            {
+                if (test is BoundDagTypeTest typeDecision &&
+                    evaluation is BoundDagTypeEvaluation typeEvaluation &&
+                    typeDecision.Type.IsReferenceType &&
+                    typeDecision.Input.Type.IsReferenceType &&
+                    typeEvaluation.Type == typeDecision.Type &&
+                    typeEvaluation.Input == typeDecision.Input
+                    )
+                {
+                    BoundExpression input = _tempAllocator.GetTemp(test.Input);
+                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation.Type, evaluation, index: 0));
+                    sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation.Type));
+                    testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
+                    return true;
+                }
+
+                sideEffect = testExpression = null;
+                return false;
+            }
+
+            protected void ShareTemps(ImmutableArray<BoundDecisionDagNode> sortedNodes)
+            {
+                if (_loweredInput.Kind == BoundKind.Local || _loweredInput.Kind == BoundKind.Parameter)
+                {
+                    // If we're switching on a local variable and there is no when clause (checked by the caller),
+                    // we assume the value of the local variable does not change during the execution of the
+                    // decision automaton and we just reuse the local variable when we need the input expression.
+                    // It is possible for this assumption to be violated by a side-effecting Deconstruct that
+                    // modifies the local variable which has been captured in a lambda. Since the language assumes
+                    // that functions called during pattern-matching are idempotent and not side-effecting, we feel
+                    // justified in taking this assumption in the compiler too.
+                    _ = _tempAllocator.TrySetTemp(_inputTemp, _loweredInput);
+                }
+
+                foreach (BoundDecisionDagNode node in sortedNodes)
+                {
+                    if (node is BoundWhenDecisionDagNode w)
+                    {
+                        Debug.Assert(w.WhenExpression == null || w.WhenExpression.ConstantValue == ConstantValue.True);
+
+                        // We share a slot for a user-declared pattern-matching variable with a pattern temp if there
+                        // is no user-written when-clause that could modify the variable before the matching
+                        // automaton is done with it (checked by the caller).
+                        foreach ((BoundExpression left, BoundDagTemp dagTemp) in w.Bindings)
+                        {
+                            if (left is BoundLocal l)
+                            {
+                                Debug.Assert(l.LocalSymbol.DeclarationKind == LocalDeclarationKind.PatternVariable);
+                                _ = _tempAllocator.TrySetTemp(dagTemp, left);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -297,25 +381,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Translate the single decision into _sideEffectBuilder and _conjunctBuilder.
+            /// Translate the single test into _sideEffectBuilder and _conjunctBuilder.
             /// </summary>
-            private void LowerOneDecision(BoundDagDecision decision)
+            private void LowerOneTest(BoundDagTest test)
             {
-                _factory.Syntax = decision.Syntax;
-                switch (decision)
+                _factory.Syntax = test.Syntax;
+                switch (test)
                 {
-                    case BoundDagEvaluation e:
+                    case BoundDagEvaluation eval:
                         {
-                            var sideEffect = LowerEvaluation(e);
+                            var sideEffect = LowerEvaluation(eval);
                             _sideEffectBuilder.Add(sideEffect);
                             return;
                         }
-                    case var d:
+                    case var _:
                         {
-                            var test = LowerDecision(d);
-                            if (test != null) // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
+                            var testExpression = LowerTest(test);
+                            if (testExpression != null) // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
                             {
-                                AddConjunct(test);
+                                AddConjunct(testExpression);
                             }
 
                             return;
@@ -326,69 +410,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
             {
                 LabelSymbol failureLabel = new GeneratedLabelSymbol("failure");
-                BoundDecisionDag dag = DecisionDagBuilder.CreateDecisionDag(compilation, pattern.Syntax, this._loweredInput, pattern, failureLabel, diagnostics, out LabelSymbol successLabel);
+                BoundDecisionDag dag = DecisionDagBuilder.CreateDecisionDagForIsPattern(compilation, pattern.Syntax, this._loweredInput, pattern, failureLabel, diagnostics, out LabelSymbol successLabel);
                 if (_loweredInput.ConstantValue != null)
                 {
                     dag = dag.SimplifyDecisionDagForConstantInput(_loweredInput, _localRewriter._compilation.Conversions, diagnostics);
                 }
 
-                // first, copy the input expression into the input temp
-                if (pattern.Kind != BoundKind.RecursivePattern &&
-                    (_loweredInput.Kind == BoundKind.Local || _loweredInput.Kind == BoundKind.Parameter || _loweredInput.ConstantValue != null))
+                // The optimization of sharing pattern-matching temps with user variables can always apply to
+                // an is-pattern expression because there is no when clause.
+                ShareTemps(dag.TopologicallySortedNodes);
+                var inputTemp = _tempAllocator.GetTemp(_inputTemp);
+                if (inputTemp != _loweredInput)
                 {
-                    // Since non-recursive patterns cannot have side-effects on locals, we reuse an existing local
-                    // if present. A recursive pattern, on the other hand, may mutate a local through a captured lambda
-                    // when a `Deconstruct` method is invoked.
-                    _tempAllocator.AssignTemp(_inputTemp, _loweredInput);
-                }
-                else
-                {
-                    // Even if subsequently unused (e.g. `GetValue() is _`), we assign to a temp to evaluate the side-effect
-                    _sideEffectBuilder.Add(_factory.AssignmentExpression(_tempAllocator.GetTemp(_inputTemp), _loweredInput));
+                    _sideEffectBuilder.Add(_factory.AssignmentExpression(inputTemp, _loweredInput));
                 }
 
+                var node = dag.RootNode;
+
                 // We follow the "good" path in the decision dag. We depend on it being nicely linear in structure.
-                while (dag.Kind != BoundKind.Decision && dag.Kind != BoundKind.WhenClause)
+                // If we add "or" patterns that assumption breaks down.
+                while (node.Kind != BoundKind.LeafDecisionDagNode && node.Kind != BoundKind.WhenDecisionDagNode)
                 {
-                    switch (dag)
+                    switch (node)
                     {
-                        case BoundEvaluationPoint e:
-                            LowerOneDecision(e.Evaluation);
-                            dag = e.Next;
+                        case BoundEvaluationDecisionDagNode evalNode:
+                            {
+                                LowerOneTest(evalNode.Evaluation);
+                                node = evalNode.Next;
+                            }
                             break;
-                        case BoundDecisionPoint d:
-                            LowerOneDecision(d.Decision);
-                            Debug.Assert(d.WhenFalse is BoundDecision x && x.Label == failureLabel);
-                            dag = d.WhenTrue;
+                        case BoundTestDecisionDagNode testNode:
+                            {
+                                Debug.Assert(testNode.WhenFalse is BoundLeafDecisionDagNode x && x.Label == failureLabel);
+                                if (testNode.WhenTrue is BoundEvaluationDecisionDagNode e &&
+                                    TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression sideEffect, out BoundExpression testExpression))
+                                {
+                                    _sideEffectBuilder.Add(sideEffect);
+                                    AddConjunct(testExpression);
+                                    node = e.Next;
+                                }
+                                else
+                                {
+                                    LowerOneTest(testNode.Test);
+                                    node = testNode.WhenTrue;
+                                }
+                            }
                             break;
                     }
                 }
 
                 // When we get to "the end", we see if it is a success node.
-                switch (dag)
+                switch (node)
                 {
-                    case BoundDecision d:
+                    case BoundLeafDecisionDagNode leafNode:
                         {
-                            if (d.Label == failureLabel)
+                            if (leafNode.Label == failureLabel)
                             {
                                 // It is not clear that this can occur given the dag "optimizations" we performed earlier.
                                 AddConjunct(_factory.Literal(false));
                             }
                             else
                             {
-                                Debug.Assert(d.Label == successLabel);
+                                Debug.Assert(leafNode.Label == successLabel);
                             }
                         }
 
                         break;
 
-                    case BoundWhenClause w:
+                    case BoundWhenDecisionDagNode whenNode:
                         {
-                            Debug.Assert(w.WhenExpression == null);
-                            Debug.Assert(w.WhenTrue is BoundDecision d && d.Label == successLabel);
-                            foreach ((BoundExpression left, BoundDagTemp right) in w.Bindings)
+                            Debug.Assert(whenNode.WhenExpression == null);
+                            Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == successLabel);
+                            foreach ((BoundExpression left, BoundDagTemp dagTemp) in whenNode.Bindings)
                             {
-                                _sideEffectBuilder.Add(_factory.AssignmentExpression(left, _tempAllocator.GetTemp(right)));
+                                BoundExpression right = _tempAllocator.GetTemp(dagTemp);
+                                if (left != right)
+                                {
+                                    _sideEffectBuilder.Add(_factory.AssignmentExpression(left, right));
+                                }
                             }
                         }
 
@@ -421,6 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
         }
+
 
         private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
         {

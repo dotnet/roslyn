@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DeclarationTests : ExpressionCompilerTestBase
     {
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Declarations()
         {
             var source =
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeconstructionDeclaration()
         {
             var source = @"
@@ -154,7 +154,7 @@ class C
                });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeconstructionDeclarationWithDiscard()
         {
             var source = @"
@@ -220,7 +220,7 @@ class C
                });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_ExpressionStatement_01()
         {
             var source =
@@ -276,7 +276,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
@@ -343,7 +343,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_Assignment_01()
         {
             var source =
@@ -400,7 +400,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_LocalDeclarationStatement_01()
         {
             var source =
@@ -468,7 +468,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void References()
         {
             var source =
@@ -543,7 +543,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Address()
         {
             var source =
@@ -648,7 +648,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void BaseType()
         {
             var source =
@@ -696,7 +696,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Var()
         {
             var source =
@@ -739,7 +739,7 @@ class C
         }
 
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Dynamic()
         {
             var source =
@@ -890,7 +890,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ReferenceInNextDeclaration()
         {
             var source =
@@ -952,7 +952,7 @@ class C
         }
 
         [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ReferenceInSameDeclaration()
         {
             var source =
@@ -1162,7 +1162,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Keyword()
         {
             var source =
@@ -1216,7 +1216,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Constant()
         {
             var source =
@@ -1262,7 +1262,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Generic()
         {
             var source =
@@ -1364,7 +1364,7 @@ class C
         /// Local declarations inside a lambda should
         /// not be considered pseudo-variables.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Lambda()
         {
             var source =
@@ -1442,7 +1442,7 @@ class C
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GenericType_Identifier()
         {
             var source = @"
@@ -1488,7 +1488,7 @@ class Generic<T>
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GenericType_Keyword()
         {
             var source = @"
@@ -1534,7 +1534,7 @@ class Generic<T>
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PointerType_Identifier()
         {
             var source = @"
@@ -1581,7 +1581,7 @@ struct S
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PointerType_Keyword()
         {
             var source = @"
@@ -1624,7 +1624,7 @@ class C
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void NullableType_Identifier()
         {
             var source = @"
@@ -1673,7 +1673,7 @@ struct S
         }
 
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void NullableType_Keyword()
         {
             var source = @"
@@ -1745,7 +1745,7 @@ class C
             flags = resultProperties.Flags;
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_01()
         {
             var source =
@@ -1813,7 +1813,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_02()
         {
             var source =
@@ -1846,7 +1846,7 @@ class C
                 context.CompileAssignment("x", "Test(x is string i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       71 (0x47)
+  // Code size       67 (0x43)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
@@ -1863,25 +1863,24 @@ class C
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
   IL_001f:  isinst     ""string""
-  IL_0024:  brfalse.s  IL_003e
-  IL_0026:  ldarg.0
-  IL_0027:  castclass  ""string""
-  IL_002c:  stloc.s    V_4
-  IL_002e:  ldstr      ""i""
-  IL_0033:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
-  IL_0038:  ldloc.s    V_4
-  IL_003a:  stind.ref
-  IL_003b:  ldc.i4.1
-  IL_003c:  br.s       IL_003f
-  IL_003e:  ldc.i4.0
-  IL_003f:  call       ""object C.Test(bool)""
-  IL_0044:  starg.s    V_0
-  IL_0046:  ret
+  IL_0024:  stloc.s    V_4
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  brfalse.s  IL_003a
+  IL_002a:  ldstr      ""i""
+  IL_002f:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  stind.ref
+  IL_0037:  ldc.i4.1
+  IL_0038:  br.s       IL_003b
+  IL_003a:  ldc.i4.0
+  IL_003b:  call       ""object C.Test(bool)""
+  IL_0040:  starg.s    V_0
+  IL_0042:  ret
 }");
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_03()
         {
             var source =
@@ -1944,7 +1943,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_04()
         {
             var source =
@@ -2003,7 +2002,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_05()
         {
             var source =
@@ -2073,7 +2072,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_LocalDeclarationStatement_01()
         {
             var source =

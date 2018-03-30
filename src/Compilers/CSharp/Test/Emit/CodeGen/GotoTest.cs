@@ -92,7 +92,7 @@ class C
 {
   // Code size       61 (0x3d)
   .maxstack  2
-  .locals init (string V_0)
+  .locals init (string V_0) //Fruit
   IL_0000:  ldstr      ""Apple""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -849,7 +849,7 @@ False";
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(6, 5));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AcrossScriptDeclarations()
         {
             string source =

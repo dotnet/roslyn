@@ -8770,6 +8770,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
+        <source>An expression tree may not contain a switch-expression.</source>
+        <target state="new">An expression tree may not contain a switch-expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderscoreDeclaredAndDiscardPattern">
         <source>The discard pattern '_' cannot be used where '{0}' is in scope.</source>
         <target state="new">The discard pattern '_' cannot be used where '{0}' is in scope.</target>

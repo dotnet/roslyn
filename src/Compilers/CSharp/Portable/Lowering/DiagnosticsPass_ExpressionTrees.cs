@@ -96,6 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitBaseReference(node);
         }
 
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
+            }
+
+            return base.VisitSwitchExpression(node);
+        }
+
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             if (!node.HasAnyErrors)
