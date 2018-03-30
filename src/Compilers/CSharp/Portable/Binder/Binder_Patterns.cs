@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
             if (lookupResult.IsMultiViable)
             {
-                diagnostics.Add(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, node.Location, lookupResult.SingleSymbolOrDefault ?? lookupResult.Symbols[0]);
+                diagnostics.Add(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, node.Location, lookupResult.Symbols[0]);
             }
 
             lookupResult.Free();
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool wasExpression)
         {
             if (innerExpression.Kind() == SyntaxKind.IdentifierName &&
-                innerExpression is IdentifierNameSyntax name && name.Identifier.Text == "_")
+                ((IdentifierNameSyntax)innerExpression).Identifier.Text == "_")
             {
                 diagnostics.Add(ErrorCode.ERR_ConstantPatternNamedUnderscore, innerExpression.Location);
                 hasErrors = true;

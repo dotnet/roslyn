@@ -1133,6 +1133,25 @@ class Program2
         }
 
         [Fact]
+        public void UnderscoreDeclaredAndDiscardPattern_04()
+        {
+            var source =
+@"using _ = System.Int32;
+class Program
+{
+    static int Main() => 0;
+    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,48): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(5, 48)
+                );
+        }
+
+        [Fact]
         public void EscapingUnderscoreDeclaredAndDiscardPattern_04()
         {
             var source =
