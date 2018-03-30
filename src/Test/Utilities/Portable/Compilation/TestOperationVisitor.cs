@@ -717,10 +717,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Body != null)
             {
-                Assert.Same(operation.Body, operation.Children.Single());
+                var children = operation.Children.ToImmutableArray();
+                Assert.Same(operation.Body, children[0]);
+                if (operation.IgnoredBody != null)
+                {
+                    Assert.Same(operation.IgnoredBody, children[1]);
+                    Assert.Equal(2, children.Length);
+                }
+                else
+                {
+                    Assert.Equal(1, children.Length);
+                }
             }
             else
             {
+                Assert.Null(operation.IgnoredBody);
                 Assert.Empty(operation.Children);
             }
         }

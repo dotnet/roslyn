@@ -1423,7 +1423,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Body);
+            if (operation.Body != null)
+            {
+                if (operation.IgnoredBody != null)
+                {
+                    Visit(operation.Body, "Body");
+                    Visit(operation.IgnoredBody, "IgnoredBody");
+
+                }
+                else
+                {
+                    Visit(operation.Body);
+                }
+            }
+            else
+            {
+                Assert.Null(operation.IgnoredBody);
+            }
         }
 
         private void LogCaseClauseCommon(ICaseClauseOperation operation)
