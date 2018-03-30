@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
                 // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
                 var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
-                    () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
+                    workspace, () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
 
                 instance.Started();
 
@@ -80,11 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
 
                 var hostGroup = new HostGroup(current);
-                var remoteHostStream = await Connections.RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
                 var remotableDataRpc = new RemotableDataJsonRpc(
                                           workspace, primary.Logger,
-                                          await Connections.RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+                                          await Connections.RequestServiceAsync(workspace, primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
 
                 var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
                 var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace = null)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace)
         {
             var option = GetCustomTypeInBingSearchOption(workspace);
 
@@ -35,13 +35,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool GetCustomTypeInBingSearchOption(Workspace workspace)
         {
-            var workspaceForOptions = workspace ?? PrimaryWorkspace.Workspace;
-            if (workspaceForOptions == null)
+            if (workspace == null)
             {
                 return false;
             }
 
-            return workspaceForOptions.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
         }
 
         public static DiagnosticData GetPrimaryDiagnosticData(this CodeFix fix)
