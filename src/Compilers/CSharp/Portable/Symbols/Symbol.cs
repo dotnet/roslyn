@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "";
         }
 
-        internal string GetDebuggerDisplay()
+        internal virtual string GetDebuggerDisplay()
         {
             return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }

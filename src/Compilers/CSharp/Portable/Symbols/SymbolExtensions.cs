@@ -402,6 +402,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
+                case SymbolKind.Parameter:
+                    ParameterSymbol parameter = (ParameterSymbol)symbol;
+                    refKind = parameter.RefKind;
+                    returnType = parameter.Type;
+                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }

@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
+            // The switch expression is lowered to an expression that involves the use of side-effects
+            // such as jumps and labels, therefore it is represented by a BoundSpillSequence and
+            // the resulting nodes will need to be "spilled" to move such statements to the top
+            // level (i.e. into the enclosing statement list).
+            this._needsSpilling = true;
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
@@ -32,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private BoundExpression LowerSwitchExpression(BoundSwitchExpression node)
             {
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
-                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
                 LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
 
                 // Assign the input to a temp
@@ -40,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // then lower the rest of the dag that references that input
                 result.AddRange(_loweredDecisionDag.ToImmutable());
-
                 // A branch to the default label when no switch case matches is included in the
                 // decision tree, so the code in result is unreachable at this point.
 
@@ -49,10 +54,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ArrayBuilder<BoundStatement> sectionStatementBuilder = _switchArms[arm.Syntax];
                     result.Add(_factory.Label(arm.Label));
-                    var armSequence = _factory.Sequence(arm.Locals,
-                        sectionStatementBuilder.ToImmutable(),
-                        _factory.AssignmentExpression(_factory.Local(resultTemp), _localRewriter.VisitExpression(arm.Value)));
-                    result.Add(_factory.ExpressionStatement(armSequence));
+                    sectionStatementBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _localRewriter.VisitExpression(arm.Value)));
+                    var statements = sectionStatementBuilder.ToImmutableAndFree();
+                    if (arm.Locals.IsEmpty)
+                    {
+                        result.Add(_factory.StatementList(statements));
+                    }
+                    else
+                    {
+                        // even though the whole switch expression will be lifted to the statement level, we
+                        // want the locals of each section to see a section-specific scope.
+                        result.Add(new BoundScope(arm.Syntax, arm.Locals, statements));
+                        locals.AddRange(arm.Locals);
+                    }
+
                     result.Add(_factory.Goto(afterSwitchExpression));
                 }
 
@@ -64,10 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 result.Add(_factory.Label(afterSwitchExpression));
-                var resultValue = _factory.Local(resultTemp);
-
-                // Dispatch temps are in scope throughout the switch expression
-                return _factory.Sequence(_tempAllocator.AllTemps().Add(resultTemp), result.ToImmutableAndFree(), resultValue);
+                locals.AddRange(_tempAllocator.AllTemps());
+                locals.Add(resultTemp);
+                return _factory.SpillSequence(locals.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
             }
         }
     }

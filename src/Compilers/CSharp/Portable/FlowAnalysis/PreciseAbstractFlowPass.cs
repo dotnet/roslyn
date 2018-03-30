@@ -2246,14 +2246,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var se in sideEffects)
                 {
-                    if (se is BoundExpression e)
-                    {
-                        VisitRvalue(e);
-                    }
-                    else
-                    {
-                        VisitStatement((BoundStatement)se);
-                    }
+                    VisitRvalue(se);
+                }
+            }
+
+            VisitRvalue(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitSpillSequence(BoundSpillSequence node)
+        {
+            var sideEffects = node.SideEffects;
+            if (!sideEffects.IsEmpty)
+            {
+                foreach (var se in sideEffects)
+                {
+                    VisitStatement(se);
                 }
             }
 

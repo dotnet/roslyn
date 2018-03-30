@@ -829,9 +829,13 @@ class MyTaskMethodBuilder<T>
                 // (17,9): error CS0311: The type 'MyTask.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask.Awaiter' to 'System.Runtime.CompilerServices.IAsyncStateMachine'.
                 //         await F();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await F();").WithArguments("MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.IAsyncStateMachine", "TAwaiter", "MyTask.Awaiter").WithLocation(17, 9),
-                // (18,16): error CS0311: The type 'MyTask<int>.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask<int>.Awaiter' to 'System.Runtime.CompilerServices.IAsyncStateMachine'.
-                //         return await G(3);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await G(3)").WithArguments("MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.IAsyncStateMachine", "TAwaiter", "MyTask<int>.Awaiter").WithLocation(18, 16));
+                // (16,5): error CS0311: The type 'MyTask<int>.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask<int>.Awaiter' to 'System.Runtime.CompilerServices.IAsyncStateMachine'.
+                //     {
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, @"{
+        await F();
+        return await G(3);
+    }").WithArguments("MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "System.Runtime.CompilerServices.IAsyncStateMachine", "TAwaiter", "MyTask<int>.Awaiter").WithLocation(16, 5)
+                );
         }
 
         [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]

@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None)
                 {
-                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
                     continue;
                 }
 
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
         {
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
             Debug.Assert(local.SyntaxOpt != null);
             Debug.Assert(this.OriginalMethod.IsAsync);
 
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxOffset = -1;
             }
 
-            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, local.RefKind, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
             proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
 
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expr,
             AwaitExpressionSyntax awaitSyntaxOpt,
             int syntaxOffset,
-            bool isRef,
+            RefKind refKind,
             ArrayBuilder<BoundExpression> sideEffects,
             ArrayBuilder<StateMachineFieldSymbol> hoistedFields,
             ref bool needsSacrificialEvaluation)
@@ -525,11 +525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var array = (BoundArrayAccess)expr;
-                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         var indices = ArrayBuilder<BoundExpression>.GetInstance();
                         foreach (var index in array.Indices)
                         {
-                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
+                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
                         }
 
                         needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
@@ -542,18 +542,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic)
                         {
                             // the address of a static field, and the value of a readonly static field, is stable
-                            if (isRef || field.FieldSymbol.IsReadOnly) return expr;
+                            if (refKind != RefKind.None || field.FieldSymbol.IsReadOnly) return expr;
                             goto default;
                         }
 
-                        if (!isRef)
+                        if (refKind == RefKind.None)
                         {
                             goto default;
                         }
 
                         var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
 
-                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset,
+                            isFieldOfStruct ? refKind : RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
                         {
                             needsSacrificialEvaluation = true; // need the null check in field receiver
@@ -569,22 +570,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
-                    if (isRef)
+                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //
+                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
+                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
+                    if (refKind != RefKind.None && refKind != RefKind.In)
                     {
                         Debug.Assert(call.Method.RefKind != RefKind.None);
                         F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
-                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
                     }
+                    // method call is not referentially transparent, we can only spill the result value.
+                    refKind = RefKind.None;
                     goto default;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
-                    if (isRef)
+                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //
+                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
+                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
+                    if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                     {
                         Debug.Assert(conditional.IsRef);
                         F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
-                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
                     }
+                    // conditional expr is not referentially transparent, we can only spill the result value.
+                    refKind = RefKind.None;
                     goto default;
 
                 default:
@@ -593,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expr;
                     }
 
-                    if (isRef)
+                    if (refKind != RefKind.None)
                     {
                         throw ExceptionUtilities.UnexpectedValue(expr.Kind);
                     }
@@ -665,8 +680,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool localsRewritten = false;
             foreach (var local in node.Locals)
             {
+                // BoundScope is only used for switch
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
+                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm));
 
                 LocalSymbol localToUse;
                 if (TryRewriteLocal(local, out localToUse))
@@ -761,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. Ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
             Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
