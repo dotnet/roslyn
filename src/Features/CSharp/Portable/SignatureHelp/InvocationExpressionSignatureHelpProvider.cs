@@ -95,9 +95,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (methodGroup.Any())
             {
+                var matched = symbolInfo.Symbol as IMethodSymbol;
+                int? matchedIndex = null;
+                if (matched != null)
+                {
+                    matchedIndex = methodGroup.IndexOf(matched);
+                }
+
                 return CreateSignatureHelpItems(
                     GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken),
-                    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                    textSpan,
+                    GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
+                    selectedItem: matchedIndex);
             }
             else if (expressionType != null && expressionType.TypeKind == TypeKind.Delegate)
             {

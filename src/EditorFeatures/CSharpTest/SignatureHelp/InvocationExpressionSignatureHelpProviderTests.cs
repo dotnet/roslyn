@@ -1778,6 +1778,100 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_PickFirst()
+        {
+            var markup = @"
+class Program
+{
+    static void Main()
+    {
+        [|M(1$$|]);
+    }
+    static void M(int i) { }
+    static void M(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_PickSecond()
+        {
+            var markup = @"
+class Program
+{
+    static void Main()
+    {
+        [|M(null$$|]);
+    }
+    static void M(int i) { }
+    static void M(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_FilterFirst_PickFirstRemaining()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: 42$$|]);
+    }
+    static void M(D filtered) { }
+    static void M(int i) { }
+    static void M(string i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_FilterFirst_PickSecondRemaining()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: null$$|]);
+    }
+    static void M(D filtered) { }
+    static void M(int i) { }
+    static void M(string i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithCrefXmlComments()
         {
             var markup = @"

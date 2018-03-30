@@ -34,26 +34,35 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem = null)
         {
             if (items == null || !items.Any() || state == null)
             {
                 return null;
             }
 
-            items = Filter(items, state.ArgumentNames);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
+            (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
 
-        private static IList<SignatureHelpItem> Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames)
+        private static (IList<SignatureHelpItem>, int?) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {
             if (parameterNames == null)
             {
-                return items.ToList();
+                return (items.ToList(), selectedItem);
             }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
-            return filteredList.Count == 0 ? items.ToList() : filteredList;
+            bool isEmpty = filteredList.Count == 0;
+            if (!selectedItem.HasValue || isEmpty)
+            {
+                return (isEmpty ? items.ToList() : filteredList, selectedItem);
+            }
+
+            // adjust the selected item
+            var selection = items[selectedItem.Value];
+            selectedItem = filteredList.IndexOf(selection);
+            return (filteredList, selectedItem);
         }
 
         private static bool Include(SignatureHelpItem item, IEnumerable<string> parameterNames)

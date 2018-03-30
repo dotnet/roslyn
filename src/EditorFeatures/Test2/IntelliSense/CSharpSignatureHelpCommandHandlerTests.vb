@@ -202,14 +202,22 @@ class Program
 }
 ]]></Document>)
 
+                ' We don't have a definite symbol, so default to first
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
-                state.SendTypeChars(""""",")
+                ' We now have a definite symbol (the string overload)
+                state.SendTypeChars("""""")
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+
+                ' We don't have a definite symbol again, but we stick to our last choice
+                state.SendTypeChars(",")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
