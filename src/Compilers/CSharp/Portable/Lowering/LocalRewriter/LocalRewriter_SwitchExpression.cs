@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
 
-            public static BoundNode Rewrite(LocalRewriter localRewriter, BoundSwitchExpression node)
+            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundSwitchExpression node)
             {
                 var rewriter = new SwitchExpressionLocalRewriter(localRewriter, node);
                 BoundExpression result = rewriter.LowerSwitchExpression(node);

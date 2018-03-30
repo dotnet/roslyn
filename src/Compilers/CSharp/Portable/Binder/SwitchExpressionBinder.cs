@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             defaultLabel = new GeneratedLabelSymbol("default");
-            decisionDag = DecisionDagBuilder.CreateDecisionDag(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
+            decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldValue = oldCase.Value;
                 var newValue = GenerateConversionForAssignment(resultType, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.Guard, newValue, oldCase.Label, oldCase.HasErrors);
+                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
             }
 

@@ -836,36 +836,40 @@
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundDecisionDag" Base="BoundNode">
+  <Node Name="BoundDecisionDag" Base="BoundNode">
+    <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
+  </Node>
+
+  <AbstractNode Name="BoundDecisionDagNode " Base="BoundNode">
   </AbstractNode>
   <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
-  <Node Name="BoundEvaluationPoint" Base="BoundDecisionDag">
+  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode ">
     <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
-    <Field Name="Next" Type="BoundDecisionDag" Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDagNode " Null="disallow"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
-  <Node Name="BoundDecisionPoint" Base="BoundDecisionDag">
-    <Field Name="Decision" Type="BoundDagDecision" Null="disallow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDag" Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDag" Null="disallow"/>
+  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode ">
+    <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
   </Node>
-  <Node Name="BoundWhenClause" Base="BoundDecisionDag">
+  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
     <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression,BoundDagTemp)&gt;" Null="disallow"/>
     <Field Name="WhenExpression" Type="BoundExpression" Null="allow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDag" Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDag" Null="allow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="allow"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
-  <Node Name="BoundDecision" Base="BoundDecisionDag">
+  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode ">
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
-  <AbstractNode Name="BoundDagDecision" Base="BoundNode">
+  <AbstractNode Name="BoundDagTest" Base="BoundNode">
      Input is the input to the decision point. 
     <Field Name="Input" Type="BoundDagTemp"/>
   </AbstractNode>
@@ -874,22 +878,22 @@
     <Field Name="Source" Type="BoundDagEvaluation" Null="allow"/>
     <Field Name="Index" Type="int"/>
   </Node>
-  <Node Name="BoundTypeDecision" Base="BoundDagDecision">
+  <Node Name="BoundDagTypeTest" Base="BoundDagTest">
     <!--Check that the input is of the given type. Null check is separate.-->
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
   </Node>
-  <Node Name="BoundNonNullDecision" Base="BoundDagDecision">
+  <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
      <!--Check that the input is not null.--> 
   </Node>
-  <Node Name="BoundNullValueDecision" Base="BoundDagDecision">
+  <Node Name="BoundDagNullTest" Base="BoundDagTest">
     <!--Check that the input is null.-->
   </Node>
-  <Node Name="BoundNonNullValueDecision" Base="BoundDagDecision">
+  <Node Name="BoundDagValueTest" Base="BoundDagTest">
      <!--Check that the input is the same as the given constant value (other than null).--> 
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
-  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagDecision">
+  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>
   <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
     <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>
@@ -913,7 +917,7 @@
   <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
