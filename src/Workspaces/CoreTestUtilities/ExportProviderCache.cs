@@ -68,15 +68,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (assemblies is ImmutableArray<Assembly> assembliesArray)
             {
-                if (s_defaultHostCatalog != null && assembliesArray == MefHostServices.DefaultAssemblies)
+                if (assembliesArray == MefHostServices.DefaultAssemblies)
                 {
                     return s_defaultHostCatalog;
                 }
-                else if (s_desktopHostCatalog != null && assembliesArray == DesktopMefHostServices.DefaultAssemblies)
+                else if (assembliesArray == DesktopMefHostServices.DefaultAssemblies)
                 {
                     return s_desktopHostCatalog;
                 }
-                else if (s_remoteHostCatalog != null && assembliesArray == RoslynServices.RemoteHostAssemblies)
+                else if (assembliesArray == RoslynServices.RemoteHostAssemblies)
                 {
                     return s_remoteHostCatalog;
                 }
@@ -140,15 +140,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static IExportProviderFactory GetOrCreateExportProviderFactory(ComposableCatalog catalog)
         {
-            if (s_defaultHostExportProviderFactory != null && catalog == s_defaultHostCatalog)
+            if (catalog == s_defaultHostCatalog)
             {
                 return s_defaultHostExportProviderFactory;
             }
-            else if (s_desktopHostExportProviderFactory != null && catalog == s_desktopHostCatalog)
+            else if (catalog == s_desktopHostCatalog)
             {
                 return s_desktopHostExportProviderFactory;
             }
-            else if (s_remoteHostExportProviderFactory != null && catalog == s_remoteHostCatalog)
+            else if (catalog == s_remoteHostCatalog)
             {
                 return s_remoteHostExportProviderFactory;
             }
