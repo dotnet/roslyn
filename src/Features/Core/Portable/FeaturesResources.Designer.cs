@@ -436,18 +436,16 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
-        internal static string Alias_ambiguous_type_0
-        {
-            get
-            {
+        internal static string Alias_ambiguous_type_0 {
+            get {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
@@ -547,6 +545,15 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracke" +
                         "t", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assignment can be simplified.
+        /// </summary>
+        internal static string Assignment_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Assignment_can_be_simplified", resourceCulture);
             }
         }
         
@@ -2863,6 +2870,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Separate_words {
             get {
                 return ResourceManager.GetString("Separate_words", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify assignment.
+        /// </summary>
+        internal static string Simplify_assignment {
+            get {
+                return ResourceManager.GetString("Simplify_assignment", resourceCulture);
             }
         }
         
