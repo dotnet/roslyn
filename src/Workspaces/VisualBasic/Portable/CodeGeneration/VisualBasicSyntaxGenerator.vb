@@ -447,6 +447,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
         End Function
 
+        Friend Overrides Function EqualsValueClause(value As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.EqualsValue(DirectCast(value, ExpressionSyntax))
+        End Function
+
         Friend Overrides Function EqualsValueClause(operatorToken As SyntaxToken, value As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function

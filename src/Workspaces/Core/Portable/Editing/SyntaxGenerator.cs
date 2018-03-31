@@ -1413,6 +1413,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
 
         internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
+        internal abstract SyntaxNode EqualsValueClause(SyntaxNode value);
         internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
 
         /// <summary>

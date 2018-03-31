@@ -2015,6 +2015,16 @@ Diese Version wird verwendet in: {2}</target>
         <target state="new">Make field readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="Assignment_can_be_simplified">
+        <source>Assignment can be simplified</source>
+        <target state="new">Assignment can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_assignment">
+        <source>Simplify assignment</source>
+        <target state="new">Simplify assignment</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
