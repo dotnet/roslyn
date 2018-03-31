@@ -87,7 +87,19 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            var variableIdentifier = syntaxFacts.GetIdentifierOfVariableDeclarator(variables[0]);
+            var variable = variables[0];
+            var variableIdentifier = syntaxFacts.GetIdentifierOfVariableDeclarator(variable);
+            var variableInitializer = syntaxFacts.GetInitializerOfVariableDeclarator(variable);
+            if (variableInitializer != null)
+            {
+                if (!syntaxFacts.IsLiteralExpression(variableInitializer) &&
+                    !syntaxFacts.IsDefaultExpression(variableInitializer))
+                {
+                    // the variable has to either not have an initializer, or it needs to be basic
+                    // literal/default expression.
+                    return;
+                }
+            }
 
             var (trueStatement, falseStatement) = GetTrueFalseStatements(ifStatement);
             if (trueStatement == null || falseStatement == null)
@@ -105,7 +117,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             syntaxFacts.GetPartsOfAssignmentStatement(falseStatement, out var falseLeft, out var falseRight);
 
             if (!syntaxFacts.IsIdentifierName(trueLeft) || 
-                !syntaxFacts.IsIdentifierName(trueRight))
+                !syntaxFacts.IsIdentifierName(falseLeft))
+            {
+                return;
+            }
+
+            syntaxFacts.GetNameAndArityOfSimpleName(trueLeft, out var trueName, out _);
+            syntaxFacts.GetNameAndArityOfSimpleName(falseLeft, out var falseName, out _);
+
+            if (trueName != variableIdentifier.ValueText ||
+                falseName != variableIdentifier.ValueText)
             {
                 return;
             }
